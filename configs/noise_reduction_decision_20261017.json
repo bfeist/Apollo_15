@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-17",
+  "basis": "User listening review of some cross-tape samples; general working preference, not approval of every sample or tape.",
+  "review": "reports/noise_review_20261017_speech/index.html",
+  "selected_variant": "full_b3",
+  "stage_03": {
+    "tonal_wet_fraction": 1.0,
+    "max_passes": 6,
+    "method": "iterative_tones_plus_residual_hum_v1",
+    "residual_hum": {
+      "enabled": true,
+      "max_passes": 3,
+      "spectral_window_seconds": 4,
+      "harmonic_family_hz": 60,
+      "harmonic_tolerance_hz": 3,
+      "frequency_bounds_hz": [80, 1600],
+      "nyquist_margin_hz": 5,
+      "median_prominence_above_db": 6,
+      "frame_prominence_above_db": 4,
+      "occupancy_above": 0.6,
+      "notch_width_bounds_hz": [2, 6],
+      "minimum_notch_width_below_130_hz": 4,
+      "basis": "User requested general adoption after the enhanced T510083 CH22 hum-removal comparison.",
+      "review": "reports/flutter_T510083_CH22_20261017_dehum/index.html",
+      "scope": "Default shared stage-03 speech cleanup and future review generation; existing reports remain frozen. Not full-tape streaming validation or approval of every voice/channel."
+    }
+  },
+  "stage_04": {
+    "reduction_cap_db": 3,
+    "noise_profile_approved": false
+  },
+  "preservation_intent": "Preserve voices and noise inherent to the historical tapes; prioritize removal of digitization-introduced artifacts rather than making the recordings artificially quiet.",
+  "noise_origin_established": false,
+  "limitations": "The current tonal detector and quiet-window broadband filter classify signal characteristics, not historical origin. Tonal noise is not proven to originate in digitization; broadband noise is not proven to originate on tape. A 3 dB reduction cap limits processing but does not selectively preserve tape-origin noise.",
+  "individual_sample_ratings": "Not supplied; existing review ratings and per-sample verification remain unchanged."
+}

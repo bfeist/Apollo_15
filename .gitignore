@@ -1,0 +1,32 @@
+﻿# Python environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.uv_cache/
+
+# Local processing output and historical experiment artifacts
+reports/
+runs/
+/archive/
+/research/archives/
+/IRIG_FREE_FLUTTER_RESEARCH.md
+
+# Audio, packaged data, and generated numerical artifacts
+*.[wW][aA][vV]
+*.flac
+*.mp3
+*.rf64
+*.zip
+*.npy
+*.npz
+*.partial
+*.log
+
+# Local secrets and OS metadata
+.env
+.env.*
+!.env.example
+Thumbs.db
+.DS_Store

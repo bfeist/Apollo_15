@@ -1,0 +1,223 @@
+"""Regional reference tracking, promoted from the CH22/T510077 experiments.
+
+No report-generator imports or filesystem side effects. Frequency trajectories
+are measured on original audio; target cleanup belongs to stage 03.
+"""
+import numpy as np
+from scipy import ndimage, signal
+from flutter import positions, resample_at
+
+RATE = 200
+
+
+def discover(x, sr, limit=4):
+    """Search the recorded band, reserving a candidate outside the mains comb."""
+    if len(x) < 4 * sr or np.max(abs(x)) < 1e-12:
+        return []
+    f, _, p = signal.spectrogram(x, sr, nperseg=2*sr, noverlap=sr)
+    power = ndimage.gaussian_filter1d(np.median(p, axis=1), 4)
+    background = ndimage.median_filter(power, size=321)
+    score = 10*np.log10((power+1e-30)/(background+1e-30))
+    peaks, _ = signal.find_peaks(score, distance=60)
+    rows = []
+    for i in peaks:
+        hz = float(f[i])
+        if not 45 < hz < sr/2-100 or 2150 < hz < 2850:
+            continue  # Reserve check tones for target validation.
+        band = abs(f-hz) < 15
+        side = (abs(f-hz) > 45) & (abs(f-hz) < 90)
+        contrast = 10*np.log10((p[band].max(axis=0)+1e-30) /
+                              (np.median(p[side], axis=0)+1e-30))
+        occupancy = float(np.mean(contrast > 10))
+        if occupancy < .5 or np.median(contrast) < 8 or score[i] < 6:
+            continue
+        rows.append(dict(carrier_hz=hz, contrast_db=float(np.median(contrast)),
+                         occupancy=occupancy, spectral_score_db=float(score[i]),
+                         near_mains_family=abs(hz/60-round(hz/60))*60 < 5))
+    rows.sort(key=lambda r: r['spectral_score_db'], reverse=True)
+    # Retain more than just the strongest 60 Hz line: the 120 Hz family supplied
+    # the useful CH21 reference in the CH22 trial.
+    nonmains = [r for r in rows if not r['near_mains_family']][:max(1, limit//2)]
+    mains = [r for r in rows if r['near_mains_family']][:limit-len(nonmains)]
+    chosen = nonmains+mains
+    return chosen+[r for r in rows if r not in chosen][:limit-len(chosen)]
+
+
+def trajectory(x, sr, hz, capture):
+    """Signed phase tracking and local modulation rate, as used in the trials."""
+    if sr % 1000 or len(x) < 10*sr or not np.isfinite(x).all():
+        raise ValueError('Tracking needs finite mono audio, >=10 s and a rate divisible by 1000')
+    if not 0 < capture < min(450, hz, sr/2-hz):
+        raise ValueError('Invalid carrier capture bandwidth')
+    t = np.arange(len(x))/sr
+    z = signal.resample_poly(x*np.exp(-2j*np.pi*hz*t), 1, sr//1000)
+    z = signal.sosfiltfilt(signal.butter(6, capture, fs=1000, output='sos'), z)
+    tt = np.arange(round(len(x)/sr*RATE))/RATE
+    theta = np.interp(tt, np.arange(len(z))/1000, np.unwrap(np.angle(z)))
+    amp = np.interp(tt, np.arange(len(z))/1000, abs(z))
+    freq = hz+np.gradient(theta)*RATE/(2*np.pi)
+    median_amp = float(np.median(amp[400:-400]))
+    if median_amp < 1e-12:
+        raise ValueError('No measurable reference')
+    centre = float(np.median(freq[400:-400]))
+    disp = (theta+2*np.pi*(hz-centre)*tt)/(2*np.pi*centre)
+    error = np.clip((freq-centre)/centre, -.10, .10)
+    freqs, times, spectrum = signal.stft(error, RATE, nperseg=800, noverlap=700)
+    ids = np.flatnonzero((freqs >= 4) & (freqs <= 10))
+    peak = ids[np.argmax(abs(spectrum[ids]), axis=0)]
+    rates = []
+    for col, k in enumerate(peak):
+        yy = np.log(abs(spectrum[k-1:k+2, col])+1e-15)
+        delta = .5*(yy[0]-yy[2])/(yy[0]-2*yy[1]+yy[2]+1e-15)
+        rates.append(float(freqs[k]+np.clip(delta, -.5, .5)*.25))
+    rate = np.interp(tt, times, ndimage.median_filter(rates, size=3))
+    valid = (amp > .3*median_amp) & (abs(freq-centre) < .9*capture)
+    # Reject a neighbourhood of dropouts/phase slips; never extrapolate through it.
+    support = ndimage.uniform_filter1d(valid.astype(float), size=121, mode='nearest')
+    # Match the accepted estimator's support ramp. Brief AM minima are handled
+    # by robust regression; requiring 95% raw phase validity rejects the useful
+    # low-frequency CH21 carrier despite its recoverable periodic displacement.
+    gate = np.clip((support-.35)/.40, 0, 1)
+    f, p = signal.welch(error[400:-400], RATE, nperseg=min(4000, len(error)-800))
+    band = (f >= 2) & (f <= 30)
+    fm = float(f[band][np.argmax(p[band])])
+    concentration = float(p[abs(f-fm) < .6].sum()/max(p[band].sum(), 1e-30))
+    meta = dict(carrier_hz=hz, centre_hz=centre, capture_hz=capture,
+                support=float(np.mean(gate[400:-400] > .95)),
+                modulation_peak_hz=fm, concentration=concentration,
+                rate_percentiles_hz=np.percentile(rate[400:-400], [5, 50, 95]).tolist())
+    return tt, error, disp, amp, rate, gate, meta
+
+
+def bound(e, gate):
+    tt = np.arange(len(e))/RATE
+    return np.clip(e, -.049, .049)*gate*np.clip(np.minimum(tt, tt[-1]-tt)/2, 0, 1)
+
+
+def _harmonic_values(trace, grid, harmonics):
+    """Scalar SVD reference for truncated edge windows and degenerate fits."""
+    tt, _, disp, amp, rate, gate, _ = trace
+    values = []
+    median_amp = max(np.median(amp), 1e-15)
+    for i in grid:
+        lo, hi = max(0, i-120), min(len(tt), i+121)
+        u, fm = tt[lo:hi]-tt[i], rate[i]
+        a = np.column_stack([np.ones(len(u)), u, u*u] +
+            [fn(2*np.pi*h*fm*u) for h in range(1, harmonics+1) for fn in (np.sin, np.cos)])
+        base = np.minimum(amp[lo:hi]/median_amp, 1)**2*np.exp(-.5*(u/.3)**2)
+        w = base.copy()
+        for _ in range(3):
+            c = np.linalg.lstsq(a*np.sqrt(w[:, None]), disp[lo:hi]*np.sqrt(w), rcond=None)[0]
+            residual = disp[lo:hi]-a@c
+            scale = max(1e-6, 1.4826*np.median(abs(residual-np.median(residual))))
+            w = base*np.minimum(1, 2*scale/(abs(residual)+1e-15))
+        values.append(sum(2*np.pi*h*fm*c[3+2*(h-1)] for h in range(1, harmonics+1)))
+    return np.asarray(values)
+
+
+def harmonic_map(trace, harmonics=3):
+    """The same robust regression, batched into small weighted linear systems.
+
+Interior windows have identical shape. Batching removes tens of thousands of
+Python/SVD calls without changing cadence, basis, weights or robust iterations.
+Ill-conditioned systems and truncated edge windows retain the scalar SVD path.
+"""
+    tt, _, disp, amp, rate, gate, _ = trace
+    grid = np.arange(0, len(tt), 5)
+    values = np.empty(len(grid))
+    interior = np.flatnonzero((grid >= 120) & (grid+120 < len(tt)))
+    edges = np.flatnonzero((grid < 120) | (grid+120 >= len(tt)))
+    values[edges] = _harmonic_values(trace, grid[edges], harmonics)
+    median_amp = max(np.median(amp), 1e-15)
+    for offset in range(0, len(interior), 128):
+        batch = interior[offset:offset+128]
+        ids = grid[batch, None]+np.arange(-120, 121)
+        u = tt[ids]-tt[grid[batch], None]
+        fm = rate[grid[batch], None]
+        a = np.stack([np.ones_like(u), u, u*u] +
+            [fn(2*np.pi*h*fm*u) for h in range(1, harmonics+1) for fn in (np.sin, np.cos)], axis=-1)
+        base = np.minimum(amp[ids]/median_amp, 1)**2*np.exp(-.5*(u/.3)**2)
+        w, y = base.copy(), disp[ids]
+        fallback = np.zeros(len(batch), dtype=bool)
+        for _ in range(3):
+            atw = a.swapaxes(1, 2)*w[:, None, :]
+            normal = atw@a
+            rhs = (atw@y[:, :, None])
+            eigenvalues = np.linalg.eigvalsh(normal)
+            good = eigenvalues[:, 0] > 1e-10*np.maximum(eigenvalues[:, -1], 1e-30)
+            fallback |= ~good
+            c = np.zeros((len(batch), a.shape[-1]))
+            c[good] = np.linalg.solve(normal[good], rhs[good])[:, :, 0]
+            residual = y-(a@c[:, :, None])[:, :, 0]
+            centre = np.median(residual, axis=1)
+            scale = np.maximum(1e-6, 1.4826*np.median(abs(residual-centre[:, None]), axis=1))
+            w = base*np.minimum(1, 2*scale[:, None]/(abs(residual)+1e-15))
+        values[batch] = sum(2*np.pi*h*fm[:, 0]*c[:, 3+2*(h-1)] for h in range(1, harmonics+1))
+        if fallback.any():
+            values[batch[fallback]] = _harmonic_values(trace, grid[batch[fallback]], harmonics)
+    return bound(np.interp(tt, tt[grid], values), gate)
+
+
+def signed_map(trace, band=(2, 30)):
+    return bound(signal.sosfiltfilt(signal.butter(3, band, fs=RATE,
+                 btype='bandpass', output='sos'), trace[1]), trace[5])
+
+
+def burst_track(x, sr):
+    t = np.arange(len(x))/sr
+    z = signal.resample_poly(x*np.exp(-2j*np.pi*2500*t), 1, sr//1000)
+    z = signal.sosfiltfilt(signal.butter(5, 280, fs=1000, output='sos'), z)
+    amp = ndimage.gaussian_filter1d(abs(z), 2)
+    freq = ndimage.gaussian_filter1d(2500+np.gradient(np.unwrap(np.angle(z)))*1000/(2*np.pi), 3)
+    return amp, freq
+
+
+def spans(mask):
+    d = np.diff(np.r_[False, mask, False].astype(int))
+    return list(zip(np.flatnonzero(d == 1), np.flatnonzero(d == -1)))
+
+
+def beeps(x, sr):
+    amp, f = burst_track(x, sr)
+    floor = max(float(np.percentile(amp, 25)), 1e-15)
+    mask = ndimage.binary_closing(amp > max(4*floor, 2*np.median(amp)), iterations=3)
+    out = []
+    for lo, hi in spans(mask):
+        if not .18 < (hi-lo)/1000 < .36 or lo < 300 or hi > len(amp)-300:
+            continue
+        core = slice(lo+20, hi-20)
+        ratio = float(np.percentile(amp[core], 90)/max(np.percentile(amp[core], 10), 1e-15))
+        rough = float(np.std(f[core]-ndimage.gaussian_filter1d(f[core], 8)))
+        if ratio <= 2.3 and rough <= 18 and 2360 < np.median(f[core]) < 2600:
+            out.append(dict(start=lo/1000, end=hi/1000,
+                            amplitude_over_floor=float(np.median(amp[core])/floor)))
+    return out
+
+
+def evaluate_events(x, sr, e, events):
+    """Render each check event through the actual inverse warp; keep all margins."""
+    if not events:
+        return []
+    pos = positions(e, sr, len(x))
+    out = []
+    for b in events:
+        lo, hi = max(0, int((b['start']-.15)*sr)), min(len(x), int((b['end']+.15)*sr))
+        requested = pos[lo:hi]
+        left = max(0, int(requested.min())-sr//5)
+        right = min(len(x), int(requested.max())+sr//5)
+        y = resample_at(x[left:right], requested-left)
+        _, fb = burst_track(x[lo:hi], sr)
+        _, fa = burst_track(y, sr)
+        t = lo/sr+np.arange(len(fb))/1000
+        mt = np.interp(t*sr, np.arange(len(pos)), pos)/sr
+        margins = []
+        for margin in (.025, .04, .055):
+            kb = (t > b['start']+margin) & (t < b['end']-margin)
+            ka = (mt > b['start']+margin) & (mt < b['end']-margin)
+            if min(kb.sum(), ka.sum()) < 40:
+                continue
+            before, after = float(np.std(fb[kb])), float(np.std(fa[ka]))
+            margins.append(dict(margin_seconds=margin, before_rms_hz=before,
+                                after_rms_hz=after, residual_ratio=after/max(before, 1e-9)))
+        out.append(dict(b, margins=margins))
+    return out

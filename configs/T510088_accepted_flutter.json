@@ -1,0 +1,25 @@
+{
+  "tape": "A15_T510088",
+  "start_seconds": 80,
+  "duration_seconds": 50,
+  "reference": {
+    "path": "D:\\Apollo_15_30-Track\\orig_delivery\\A15_T510088\\A15-CH14_CAPCOM_LT\\A15_T510088_HR1U_CH14_CAPCOM_LT_212-02-36-00_212-03-06-00-14.wav",
+    "carrier_hz": 631.5,
+    "hum_hz": [
+      540,
+      600,
+      660,
+      720
+    ]
+  },
+  "targets": [
+    {
+      "file": "CH13.wav",
+      "start_seconds": 80
+    },
+    {
+      "file": "CH15.wav",
+      "start_seconds": 80
+    }
+  ]
+}
