@@ -35,11 +35,35 @@ Stage 03 removes persistent narrowband tones and residual hum, then reduces broa
 
 Noise reduction and timing correction solve different problems: removing hum does not repair pitch fluctuations caused by uneven tape speed. The cleaner identifies signal characteristics, not the historical origin of noise, so listening review remains part of assessing speech preservation.
 
+![Denoising spectrum comparison showing removal of narrow peaks followed by modest broadband reduction, with the additional broadband attenuation plotted separately.](docs/images/denoising-spectrum.png)
+
+**Read the upper plot in three steps:** grey is the original spectrum, orange is after tonal/hum cleanup, and green adds the 3 dB-capped broadband step. The large narrow peaks at low frequencies are strongly reduced by tonal cleanup; the broadband step makes a smaller change across the spectrum. The lower plot isolates that additional change. Bins below -90 dBFS/Hz after tonal cleanup are omitted there because ratios near the noise floor are unstable.
+
+This is a 30-second T510073 CH06 review excerpt, starting 1,260 seconds into its delivery fragment, from the 2026-10-17 speech review. All three versions use identical gain. The plots are Welch power-spectrum estimates of the saved review variants, not a new processing run. They illustrate the two operations, not proof of speech preservation or the historical origin of the removed noise.
+
 ### 3. Correct local flutter
 
 Flutter is rapid variation in playback speed: a steady recorded tone wobbles in frequency, and speech is distorted along with it. Stage 05a searches the original channels for usable reference tones and chooses correction methods region by region. It records where the evidence supports transferring a correction to another channel and where it does not.
 
 Stage 05b applies supported timing maps to the denoised audio, joining regional curves continuously. The separate reference branch in the diagram matters: cleanup can remove the very tones needed to measure flutter.
+
+#### Find candidate references across the tape's channels
+
+![Reference-tone search across 29 original channels, with carrier frequency on a logarithmic axis, spectral contrast in color, and four evaluated references circled.](docs/images/reference-tone-search.png)
+
+This regional audit of **T510083, seconds 27,090–27,150**, retained 116 candidate tones across 29 scanned channels; CH01 was inventoried separately as IRIG. Each dot is a candidate carrier frequency. Color shows how strongly the spectral peak stands above its surroundings. Orange rings identify the four references evaluated with correction variants: CH08 at 60 Hz, CH14 at 180 Hz, CH17 at 120 Hz, and CH24 at 300 Hz.
+
+A strong peak is only a candidate. The planner also checks tracking support, compares correction methods on calibration events, and tests the selected correction on separate events. In this audit, CH22 passed the numeric transfer checks using the CH08 60 Hz reference with signed-frequency tracking over a 2–30 Hz modulation band. The other targets still required transfer validation. These are local decisions, not a blanket approval to correct every channel.
+
+**Carrier frequency and flutter rate are different:** a tone at hundreds of hertz can wobble several times per second. The first locates the reference in the audio spectrum; the second describes the timing error being estimated.
+
+#### Measure whether the correction actually steadies another tone
+
+![Five check-tone frequency traces comparing raw audio, noise-cleaned audio, and tone-driven flutter correction. Corrected traces have substantially less frequency variation.](docs/images/reference-tone-validation.png)
+
+In this separate **T510077 CH30 → CH15** research example, grey and blue traces nearly overlap: denoising alone leaves the check tones' frequency wobble. Green shows their measured frequency after reference-tone correction. Across the five illustrated beeps, RMS variation drops from roughly **47–66 Hz to 4–8 Hz**.
+
+These are measured frequency trajectories relative to each beep's local median, not fitted sine waves. The correction came from the separate CH30 reference; the plotted CH15 beeps check its effect. The two source excerpts received local listening approval. Their short check tones and successful examples do not establish full-tape transfer or speech quality everywhere. This historical research comparison used a 6 dB broadband cap; today's stage-03 default and the denoising figure above use 3 dB.
 
 ### 4. Correct slow speed drift with Quindar tones
 
@@ -174,7 +198,8 @@ The survey measures completed **defluttered audio**, not original audio. Plannin
 - `scripts/`: pipeline stages, shared processing code, and review utilities. `noise_review.html` is the template loaded by `review_noise_reduction.py`, so it is required source.
 - `configs/`: processing decisions and example configurations. Examples can reference local audio and reports; adapt those paths to your data.
 - `tests/`: automated checks for processing, orchestration, and file handling.
-- `docs/images/`: selected static measurement charts used in this README; no audio. The two Quindar charts were copied from the local `reports/quindar_speed_T510083_CH20_20261017/review/` assessment, without its recordings or HTML player.
+- `docs/images/`: static measurement charts only. Quindar charts come from `reports/quindar_speed_T510083_CH20_20261017/review/`; the check-tone validation chart comes from `reports/nested_cleanup_20261017/heldout_beep_frequency_motion.png`. No recordings or HTML players are copied.
+- `docs/render_readme_charts.py`: reproduces the denoising and reference-search figures from local `reports/noise_review_20261017_speech/` and `reports/regional_deflutter_T510083_audit/r00000.json`. Requires those ignored reports and Matplotlib; exports PNGs only.
 - `research/irig_free_20261016/`: experimental Python tools and their holdout configuration. These are research source, not production stages; some require local reports, data, or additional plotting dependencies.
 
 Git ignores generated `reports/`, `runs/`, historical experiment `archive/`, research snapshots, audio, numerical artifacts, and Python environments/caches. These files remain available locally. The historical `IRIG_FREE_FLUTTER_RESEARCH.md` report is also local-only; it contains experiment history and references to excluded artifacts.
