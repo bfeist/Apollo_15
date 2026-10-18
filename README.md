@@ -4,6 +4,83 @@ This repository contains the processing pipeline for the **30-track audio record
 
 The aim is to improve intelligibility while preserving the voices and character of the historical recordings. Original audio stays separate from processed outputs. Source audio, generated reports, listening samples, and processing runs are not distributed in this repository.
 
+## From tape fragments to corrected audio
+
+```mermaid
+flowchart TD
+    A[Delivered 30-track tape fragments] --> B[01 · Concatenate and verify channel order]
+    B --> C[Canonical originals · preserved]
+    C --> D[03 · Remove tones, hum, and broadband noise]
+    C --> E[05a · Measure reference tones and plan regional flutter correction]
+    D --> F[05b · Apply supported flutter correction]
+    E --> F
+    F --> G[Survey Quindars in completed defluttered channels]
+    G --> H[Freeze one shared speed curve per tape]
+    H --> I[05c · Retime channels and normalize]
+    I --> J[Corrected audio + timing maps + provenance]
+    style C fill:#e8f1fb,stroke:#2166ac,color:#16324f
+    style D fill:#fff1df,stroke:#bc6a16,color:#59340c
+    style E fill:#fff1df,stroke:#bc6a16,color:#59340c
+    style H fill:#e3f3eb,stroke:#187653,color:#164b37
+    style J fill:#e3f3eb,stroke:#187653,color:#164b37
+```
+
+### 1. Assemble the channels
+
+Each tape arrives as channel fragments. Stage 01 checks their order and joins them into continuous channel files. These canonical originals remain the reference for subsequent processing.
+
+### 2. Reduce interference
+
+Stage 03 removes persistent narrowband tones and residual hum, then reduces broadband noise by at most 3 dB. It saves reusable denoised channels so later timing work does not require repeating cleanup.
+
+Noise reduction and timing correction solve different problems: removing hum does not repair pitch fluctuations caused by uneven tape speed. The cleaner identifies signal characteristics, not the historical origin of noise, so listening review remains part of assessing speech preservation.
+
+### 3. Correct local flutter
+
+Flutter is rapid variation in playback speed: a steady recorded tone wobbles in frequency, and speech is distorted along with it. Stage 05a searches the original channels for usable reference tones and chooses correction methods region by region. It records where the evidence supports transferring a correction to another channel and where it does not.
+
+Stage 05b applies supported timing maps to the denoised audio, joining regional curves continuously. The separate reference branch in the diagram matters: cleanup can remove the very tones needed to measure flutter.
+
+### 4. Correct slow speed drift with Quindar tones
+
+After defluttering, the short Quindar signaling tones provide observations of slower playback-speed error. The analysis compares the two tone families with their nominal frequencies, smooths the noisy observations, and integrates the estimated speed curve into a continuous timing map. Speech and pauses between tones follow the same map.
+
+![Three-panel Quindar analysis: measured start/end frequencies, smoothed playback-speed correction, and cumulative time removed across a 17-hour channel.](docs/images/quindar-anchored-retiming.png)
+
+**Reading the graph, from top to bottom:**
+
+1. **Measure the tones.** Blue and orange points show the two Quindar families. Faint points are individual measurements; open circles mark smoothed anchors. Their downward trend indicates increasingly slow playback relative to nominal tone frequencies.
+2. **Estimate the correction.** The green curve converts those observations into a varying playback-speed increase. Smoothing avoids treating every noisy measurement as a real speed change. The dashed purple line is the earlier linear baseline.
+3. **Integrate the timing change.** A small speed adjustment accumulates over hours. The start stays anchored while the corrected end moves earlier. Grey bands mark sparse coverage or unsupported edges, where the curve is modeled rather than directly measured.
+
+#### Worked example: A15_T510083, channel 20
+
+These charts come from the local single-channel assessment dated **2026-10-17**. They illustrate the method; they are not a completed tape-wide calibration or a mission-wide quality claim.
+
+| Measurement | Sample result |
+| --- | --- |
+| Quindar candidates / accepted anchors | 737 / 378 |
+| Playback-speed increase | Approximately 1.117% to 1.601% |
+| Duration before retiming | 17:05:40.960 |
+| Duration after retiming | 16:52:37.074 |
+| Accumulated time removed | 13 minutes, 3.887 seconds |
+| Held-out tone prediction RMSE | 4.96 Hz |
+
+The selected smoothing scale was 120 minutes; anchors still occur at each accepted tone. This broad smoothing reflects substantial residual scatter. Retiming changes both duration and pitch. Unknown historical generator accuracy, residual flutter, and gaps in tone coverage limit absolute clock accuracy.
+
+The production tape-wide workflow surveys all expected completed defluttered audio channels before freezing **one shared curve per tape**, including for channels without usable tones. Historical content offsets between recording heads are retained.
+
+<details>
+<summary>Earlier comparison: fixed speed versus gradual drift</summary>
+
+![Earlier single-channel assessment comparing a constant speed correction with a linear drift model and their cumulative timing changes.](docs/images/quindar-linear-assessment.png)
+
+A single fixed multiplier captures the overall speed error, but misses the trend across the recording. The earlier linear model reduced held-out tone RMSE from 6.17 Hz to 5.02 Hz. The smoothed anchored curve above is the later approach; this chart is retained to explain the progression, not as a second applied correction.
+
+</details>
+
+Only static measurement charts are included here. No Apollo 15 recordings or listening clips are included in the repository.
+
 ## Setup
 
 Use Python 3.10 or newer and `uv`. Dependencies are declared in `pyproject.toml` and pinned in `uv.lock`. Run commands from the repository root.
@@ -97,6 +174,7 @@ The survey measures completed **defluttered audio**, not original audio. Plannin
 - `scripts/`: pipeline stages, shared processing code, and review utilities. `noise_review.html` is the template loaded by `review_noise_reduction.py`, so it is required source.
 - `configs/`: processing decisions and example configurations. Examples can reference local audio and reports; adapt those paths to your data.
 - `tests/`: automated checks for processing, orchestration, and file handling.
+- `docs/images/`: selected static measurement charts used in this README; no audio. The two Quindar charts were copied from the local `reports/quindar_speed_T510083_CH20_20261017/review/` assessment, without its recordings or HTML player.
 - `research/irig_free_20261016/`: experimental Python tools and their holdout configuration. These are research source, not production stages; some require local reports, data, or additional plotting dependencies.
 
 Git ignores generated `reports/`, `runs/`, historical experiment `archive/`, research snapshots, audio, numerical artifacts, and Python environments/caches. These files remain available locally. The historical `IRIG_FREE_FLUTTER_RESEARCH.md` report is also local-only; it contains experiment history and references to excluded artifacts.
