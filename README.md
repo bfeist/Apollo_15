@@ -124,7 +124,7 @@ uv run python scripts/pipeline.py --help
 | 05b | `scripts/05b_deflutter.py` | Apply supported timing corrections to denoised audio, then bounded constant-gain normalization. |
 | 05c | `scripts/05c_retime.py` | Apply a shared tape speed curve derived from Quindars in completed defluttered audio. |
 
-Stage numbers reflect the project's development history. Tonal and broadband cleanup are now combined in stage 03. `scripts/01a_zip_originals.py` is a separate utility for archiving complete concatenated tapes as ZIP files.
+Stage numbers reflect the project's development history. Tonal and broadband cleanup are now combined in stage 03. `scripts/01a_zip_originals.py` is a separate utility for archiving concatenated tape folders as ZIP files. It includes all files recursively without marker, delivery, file-age, or WAV-completeness checks, and skips existing ZIPs.
 
 The whole-channel order is **03 -> 05a -> 05b -> 05c** after concatenation. Stage 05a reads original channels because denoising can remove useful timing references. Stage 05b reads denoised intermediates and saved plans.
 
