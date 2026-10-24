@@ -129,6 +129,7 @@ def parse_args(argv=None):
 def make_denoise_batch(args):
     """Inventory originals once and queue independent, reusable whole-channel jobs."""
     from flutter_planning import inventory
+    from channel_review import completed_denoised
 
     if args.all_tapes:
         if not args.concatenated.is_dir():
@@ -153,6 +154,7 @@ def make_denoise_batch(args):
             if args.channel is not None and channel != args.channel:
                 continue
             output = tape_directory(inv['tape'], args.denoised_root) / f'CH{channel:02d}'
+            status = 'skipped existing' if completed_denoised(row, output, 0, row['frames']) else 'pending'
             jobs.append(dict(number='03', name=f"{inv['tape']} CH{channel:02d}",
                 tape=inv['tape'], channel=channel, script='03_denoise.py',
                 description='Denoise whole channel',
@@ -160,8 +162,8 @@ def make_denoise_batch(args):
                          '--input', str(folder), '--output', str(output),
                          '--channel', str(channel), '--workers', str(args.denoise_workers)],
                 log=f"03_{inv['tape']}_CH{channel:02d}.log",
-                status='pending', elapsed=0.0, returncode=None))
-    if not any(job['status'] in {'pending', 'failed'} for job in jobs):
+                status=status, elapsed=0.0, returncode=0 if status == 'skipped existing' else None))
+    if not jobs:
         raise ValueError('No available channels match the selection')
     return jobs
 
@@ -213,6 +215,16 @@ def make_jobs(args, selected, run_dir):
             name, description = 'Denoise channel', 'Cache tone/hum removal and 3 dB broadband denoising'
             command = [sys.executable,'-u',str(SCRIPTS/script),'--input',str(args.concatenated/args.tape),
                        '--output',str(output),'--channel',str(args.channel),'--workers',str(args.denoise_workers)]
+            if number in selected:
+                from flutter_planning import inventory
+                from channel_review import completed_denoised
+
+                inv = inventory(args.concatenated/args.tape)
+                row = next((r for r in inv['channels'] if r['channel'] == args.channel), None)
+                if row is None:
+                    raise ValueError('Requested channel is unavailable')
+                if completed_denoised(row, output, 0, row['frames']):
+                    status = 'skipped existing'
         elif number == '05b' and args.channel is not None:
             output = tape_directory(args.tape,args.defluttered_root)/f'CH{args.channel:02d}'
             plan = args.flutter_plan or planning_directory(args.tape,args.flutter_planning_root)/'plan.json'
@@ -254,7 +266,8 @@ def make_jobs(args, selected, run_dir):
         if number in {'05b', '05c'}:
             command += ['--target-dbfs',str(args.target_dbfs),'--max-boost-db',str(args.max_boost_db)]
         jobs.append(dict(number=number, name=name, script=script, description=description,
-                         command=command, status=status, elapsed=0.0, returncode=None))
+                         command=command, status=status, elapsed=0.0,
+                         returncode=0 if status == 'skipped existing' else None))
     return jobs
 
 
@@ -264,12 +277,14 @@ def dashboard(jobs, tail, location):
         table.add_column(column)
     visible = jobs
     if jobs and 'tape' in jobs[0]:
-        finished = sum(j['channel'] is not None and j['status'] in {'done', 'failed', 'cancelled'} for j in jobs)
+        completed = {'done', 'failed', 'cancelled', 'skipped existing'}
+        finished = sum(j['channel'] is not None and j['status'] in completed for j in jobs)
         total = sum(j['channel'] is not None for j in jobs)
         failed = sum(j['channel'] is not None and j['status'] == 'failed' for j in jobs)
         invalid = sum(j['channel'] is None for j in jobs)
-        table.caption = f'{finished}/{total} channels finished; {failed} failed; {invalid} invalid tapes'
-        visible = ([j for j in jobs if j['status'] in {'done', 'failed', 'cancelled'}][-5:]
+        skipped = sum(j['status'] == 'skipped existing' for j in jobs)
+        table.caption = f'{finished}/{total} channels finished; {skipped} skipped existing; {failed} failed; {invalid} invalid tapes'
+        visible = ([j for j in jobs if j['status'] in completed][-5:]
                    + [j for j in jobs if j['status'] == 'running']
                    + [j for j in jobs if j['status'] in {'pending', 'not run'}][:5])
     for job in visible:

@@ -5,6 +5,7 @@ import json
 import os
 import re
 import time
+import warnings
 from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
 from multiprocessing import get_context
 from pathlib import Path
@@ -42,10 +43,18 @@ def inventory(folder):
         raise ValueError('Tape input must be a canonical tape folder')
     if list(folder.rglob('*.partial')):
         raise ValueError('Tape contains incomplete .partial files')
-    rows, seen = [], set()
+    rows, seen, excluded = [], set(), []
     files = sorted(p for p in folder.rglob('*') if p.suffix.lower() == '.wav')
     for path in files:
         ch, stamp = CHANNEL.search(path.name), STAMP.search(path.name)
+        # Some deliveries include an extra recording with an explicitly empty
+        # channel label. Keep it unassigned without blocking numbered channels.
+        if not ch and stamp and re.fullmatch(r'A15_T\d+_HR\d+[UL]_', path.name[:stamp.start()], re.I):
+            reason = 'Unlabelled recording has no channel number; excluded from channel processing'
+            stat = path.stat()
+            excluded.append(dict(path=str(path), bytes=stat.st_size, mtime_ns=stat.st_mtime_ns, reason=reason))
+            warnings.warn(f'{reason}: {path.name}', stacklevel=2)
+            continue
         if not ch or not stamp:
             raise ValueError(f'Expected a timestamped canonical channel WAV: {path.name}')
         channel = int(ch[1])
@@ -70,10 +79,13 @@ def inventory(folder):
     for r in rows:
         r['start_seconds'] = r['absolute_start']-origin
         r['end_seconds'] = r['start_seconds']+r['duration_seconds']
-    return dict(tape=folder.name, input=str(folder), origin_filename_seconds=origin,
+    result = dict(tape=folder.name, input=str(folder), origin_filename_seconds=origin,
                 time_basis='Canonical filename timeline; not authenticated GET or proven head alignment',
                 duration_seconds=max(r['end_seconds'] for r in rows),
                 missing_channels=sorted(set(range(1, 31))-seen), channels=sorted(rows, key=lambda r: r['channel']))
+    if excluded:
+        result['excluded_files'] = excluded
+    return result
 
 
 def read_channel(row, start, end):

@@ -160,6 +160,10 @@ uv run python -u scripts/pipeline.py run --stages 03 --all-tapes --plain
 
 This includes channel 1 and IRIG-labeled channels. Full-mission denoising is a long-running batch job. `--denoise-workers` controls concurrency; the pipeline default is 14. Avoid launching a second job against outputs already being processed.
 
+Some deliveries include an extra unlabelled recording, such as `A15_T510078_HR1U__208-10-47-00_209-03-59-07.wav`. Inventory warns and excludes these recordings from channel processing while retaining them in place; the numbered channels can proceed. Saved inventories list them under `excluded_files`. They need identification before they can be assigned to a channel.
+
+Rerunning stage 03 skips completed channels with matching source data, cleanup settings, and implementation. The plan and run dashboard mark them `skipped existing`, without starting a denoise process or rereading the full audio. Missing or unfinished channels remain queued; incompatible or damaged cache metadata still goes through the stage's validation.
+
 For one channel:
 
 ```powershell
@@ -194,6 +198,8 @@ uv run python scripts/pipeline.py run --tape A15_T510083 --all-channels --stages
 The survey measures completed **defluttered audio**, not original audio. Planning freezes one shared speed curve per tape, used by all channels, including those without usable tones. Retiming changes duration and pitch, preserves historical content offsets between heads, and records timing/provenance information. Sparse tone coverage, residual flutter, and unknown historical generator accuracy limit absolute calibration.
 
 ## Repository contents
+
+For suspected channel-label errors, see the [channel identification and mislabelling investigation plan](CHANNEL_IDENTIFICATION_AND_MISLABELLING.md), covering transcript/acoustic evidence, time-varying mappings, and non-destructive annotations. The separate [crosstalk removal research plan](CROSSTALK_REMOVAL_RESEARCH.md) describes conditional reference cancellation and speech-preservation checks; removability is not yet established.
 
 - `scripts/`: pipeline stages, shared processing code, and review utilities. `noise_review.html` is the template loaded by `review_noise_reduction.py`, so it is required source.
 - `configs/`: processing decisions and example configurations. Examples can reference local audio and reports; adapt those paths to your data.

@@ -410,6 +410,36 @@ def denoised_directory(root, tape, channel, start=0., duration=None):
     return folder
 
 
+def denoised_signature(row, offset, frames, block_seconds=60.):
+    code = Path(__file__).with_name('audio_processing.py').read_bytes()
+    code += ''.join(inspect.getsource(f) for f in (cleanup_block, cleanup_results, cleanup_channel)).encode()
+    return dict(source={k:row[k] for k in ('path','bytes','mtime_ns','frames','sample_rate','channel')},
+                offset_frames=offset,frames=frames,block_seconds=block_seconds,
+                cleanup_sha256=hashlib.sha256(code).hexdigest(),broadband_cap_db=DEFAULT_BROADBAND_CAP_DB)
+
+
+def completed_denoised(row, folder, offset, frames, block_seconds=60.):
+    """Read-only pipeline check; avoid decoding a completed channel on every rerun."""
+    folder = Path(folder)
+    try:
+        saved = json.loads((folder/'denoised.json').read_text(encoding='utf-8'))
+        if not isinstance(saved, dict) or saved.get('status') != 'complete':
+            return False
+        if saved.get('signature') != denoised_signature(row, offset, frames, block_seconds):
+            return False
+        separate(folder.resolve(), [Path(row['path']).parent])
+        check_source(row)
+        info = sf.info(folder/'denoised.wav')
+        if info.frames != frames or info.samplerate != row['sample_rate'] or info.channels != 1:
+            return False
+        audio = saved['audio']
+        if not isinstance(audio, dict) or audio['frames'] != frames or audio['sample_rate'] != row['sample_rate']:
+            return False
+        return hashlib.sha256((folder/'cleanup.jsonl').read_bytes()).hexdigest() == saved['cleanup_log_sha256']
+    except (ValueError, KeyError, TypeError, OSError, RuntimeError):
+        return False
+
+
 def ensure_denoised(row, folder, offset, frames, block_seconds=60., progress=print, require_existing=False, workers=1):
     """Persist one aligned intermediate; reuse only verified identical cleanup."""
     folder = Path(folder).resolve()
@@ -421,11 +451,7 @@ def ensure_denoised(row, folder, offset, frames, block_seconds=60., progress=pri
     manifest = folder/'denoised.json'
     if require_existing and not manifest.is_file():
         raise ValueError('Prepared denoised intermediate is missing; run stage 03 first')
-    code = Path(__file__).with_name('audio_processing.py').read_bytes()
-    code += ''.join(inspect.getsource(f) for f in (cleanup_block, cleanup_results, cleanup_channel)).encode()
-    signature = dict(source={k:row[k] for k in ('path','bytes','mtime_ns','frames','sample_rate','channel')},
-                     offset_frames=offset,frames=frames,block_seconds=block_seconds,
-                     cleanup_sha256=hashlib.sha256(code).hexdigest(),broadband_cap_db=DEFAULT_BROADBAND_CAP_DB)
+    signature = denoised_signature(row, offset, frames, block_seconds)
     with planning_lock(folder):
         if manifest.is_file():
             saved = json.loads(manifest.read_text(encoding='utf-8'))

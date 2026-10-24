@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 RUNNER = ROOT / 'scripts' / 'pipeline.py'
 sys.path.insert(0, str(ROOT/'scripts'))
 from audio_processing import clean_tones, denoise
+from flutter_planning import inventory
 import pipeline
 
 
@@ -95,9 +96,48 @@ class BatchDenoiseTests(unittest.TestCase):
         stamps = {p: p.stat().st_mtime_ns for p in outputs}
         again = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
         self.assertEqual(again.returncode, 0, again.stdout+again.stderr)
-        self.assertGreaterEqual(again.stdout.count('Reusing verified denoised intermediate'), 5)
+        self.assertIn('5 skipped existing', again.stdout)
+        with patch.object(pipeline, 'execute', side_effect=AssertionError('Completed channel was launched')), \
+             patch('channel_review.verify_audio', side_effect=AssertionError('Completed audio was decoded')):
+            self.assertEqual(pipeline.main(['run', *self.options, '--all-tapes']), 0)
+        manifests = [json.loads(p.read_text()) for p in self.runs.glob('*/run.json')]
+        self.assertEqual(sum(all(j['status'] == 'skipped existing' and j['returncode'] == 0
+                                 for j in m['stages']) for m in manifests), 2)
+        jobs = self.jobs('--all-tapes')
+        self.assertTrue(all(j['status'] == 'skipped existing' for j in jobs))
         self.assertEqual(stamps, {p: p.stat().st_mtime_ns for p in outputs})
         self.assertTrue(all(p.read_bytes() == content for p, content in originals.items()))
+        # Existing files alone cannot hide incomplete or incompatible caches.
+        cache_manifest = outputs[0].with_suffix('.json')
+        saved = cache_manifest.read_text()
+        for change in ('running', 'failed', 'source', 'implementation', 'evidence', 'invalid json', 'invalid shape'):
+            with self.subTest(change=change):
+                record = json.loads(saved)
+                if change in {'running', 'failed'}:
+                    record['status'] = change
+                elif change == 'source':
+                    record['signature']['source']['mtime_ns'] += 1
+                elif change == 'implementation':
+                    record['signature']['cleanup_sha256'] = 'old implementation'
+                elif change == 'evidence':
+                    record['cleanup_log_sha256'] = 'changed evidence'
+                cache_manifest.write_text('{' if change == 'invalid json' else
+                                          '[]' if change == 'invalid shape' else json.dumps(record))
+                statuses = [j['status'] for j in self.jobs('--all-tapes')]
+                self.assertEqual(statuses.count('pending'), 1)
+                self.assertEqual(statuses.count('skipped existing'), 4)
+        cache_manifest.write_text(saved)
+        # A partial batch still schedules just the unfinished channel.
+        missing = outputs[0]
+        missing.unlink()
+        calls = []
+        def execute(job, *unused):
+            calls.append((job['tape'], job['channel']))
+            job.update(status='done', returncode=0)
+            return 0
+        with patch.object(pipeline, 'execute', side_effect=execute):
+            self.assertEqual(pipeline.main(['run', *self.options, '--all-tapes']), 0)
+        self.assertEqual(calls, [(missing.parent.parent.name, int(missing.parent.name[2:]))])
 
     def test_failed_channel_does_not_stop_batch_or_hide_failure(self):
         calls = []
@@ -131,6 +171,36 @@ class BatchDenoiseTests(unittest.TestCase):
         self.assertEqual(calls, ['A15_T002', 'A15_T002'])
         manifest = json.loads(next(self.runs.glob('*/run.json')).read_text())
         self.assertEqual(manifest['stages'][0]['status'], 'failed')
+
+    def test_unlabelled_delivery_does_not_block_numbered_channels(self):
+        folder = self.originals/'A15_T001'
+        extra = folder/'A15_T001_HR1U__206-23-59-59_207-00-00-15.wav'
+        sf.write(extra, np.zeros(16*8000), 8000)
+        before = extra.read_bytes()
+        with self.assertWarnsRegex(UserWarning, 'Unlabelled recording'):
+            inv = inventory(folder)
+        self.assertEqual([r['channel'] for r in inv['channels']], [1, 2, 4])
+        self.assertEqual(inv['duration_seconds'], 15)
+        self.assertTrue(all(r['start_seconds'] == 0 for r in inv['channels']))
+        self.assertEqual(inv['excluded_files'][0]['path'], str(extra.resolve()))
+        self.assertEqual(inv['missing_channels'], sorted(set(range(1, 31))-{1, 2, 4}))
+        with self.assertWarnsRegex(UserWarning, 'Unlabelled recording'):
+            jobs = self.jobs('--all-tapes')
+        self.assertEqual(len(jobs), 5)
+        self.assertTrue(all(j['status'] == 'pending' for j in jobs))
+        # Exercise the same inventory path used by the stage-03 subprocess.
+        command = [sys.executable, str(ROOT/'scripts'/'03_denoise.py'),
+                   '--input', str(folder), '--output', str(self.cache/'CH02'),
+                   '--channel', '2', '--workers', '1']
+        result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
+        self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+        self.assertIn('Unlabelled recording', result.stderr)
+        self.assertEqual(sf.info(self.cache/'CH02'/'denoised.wav').frames, 15*8000)
+        self.assertEqual(extra.read_bytes(), before)
+        # Arbitrary malformed WAV names still fail rather than being ignored.
+        extra.rename(folder/'unexpected_206-23-59-59_207-00-00-15.wav')
+        with self.assertRaisesRegex(ValueError, 'Expected a timestamped canonical'):
+            inventory(folder)
 
 
 @unittest.skipUnless(os.name == 'nt', 'Windows process-tree cancellation')
@@ -205,7 +275,7 @@ class PipelineTests(unittest.TestCase):
                                '--output', str(self.output), *args], capture_output=True, text=True, encoding='utf-8')
 
     def manifest(self):
-        path = next(self.output.glob('*/run.json'))
+        path = max(self.output.glob('*/run.json'), key=lambda p: p.stat().st_mtime_ns)
         return path.parent, json.loads(path.read_text())
 
     def test_order_residuals_and_explicit_skip(self):
@@ -343,7 +413,10 @@ class PipelineTests(unittest.TestCase):
         before=intermediate.stat().st_mtime_ns
         again=subprocess.run(command+['--stages','03'],capture_output=True,text=True,encoding='utf-8')
         self.assertEqual(again.returncode,0,again.stdout+again.stderr)
-        self.assertIn('Reusing verified denoised intermediate',again.stdout)
+        self.assertIn('skipped existing',again.stdout)
+        _, manifest = self.manifest()
+        self.assertEqual(next(j['status'] for j in manifest['stages'] if j['number'] == '03'),
+                         'skipped existing')
         self.assertEqual(intermediate.stat().st_mtime_ns,before)
 
 
