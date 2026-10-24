@@ -91,9 +91,9 @@ def region_curve(folder, summary, channel, experimental):
     if target is None:
         raise ValueError(f'{r["id"]}: missing target decision')
     action = target['action']
-    if action not in ('render_and_review', 'validate_transfer', 'leave_uncorrected'):
+    if action not in ('render_and_review', 'group_render_and_review', 'validate_transfer', 'leave_uncorrected'):
         raise ValueError('Unknown target decision')
-    enabled = action == 'render_and_review' or (action == 'validate_transfer' and experimental)
+    enabled = action in {'render_and_review', 'group_render_and_review'} or (action == 'validate_transfer' and experimental)
     result = dict(region=r, target=target, enabled=enabled, speed=None, support=None)
     if enabled:
         if not r.get('maps') or not target.get('selected'):
@@ -140,7 +140,8 @@ def continuous_map(folder, regions, channel, start, frames, sr, experimental=Fal
         a, b = max(start, r['start_seconds']), min(start+frames/sr, r['end_seconds'])
         lo, hi = np.searchsorted(tt, [a-start, b-start])
         speed[lo:hi], envelope[lo:hi] = sample_curve(current, start+tt[lo:hi])
-        status = ('validated' if target['action'] == 'render_and_review' else 'experimental') if current['enabled'] else 'bypassed'
+        status = ('numeric_pass' if target['action'] == 'render_and_review' else
+                  'group_numeric_pass' if target['action'] == 'group_render_and_review' else 'experimental') if current['enabled'] else 'bypassed'
         markers.append(dict(start_seconds=a-start, end_seconds=b-start, kind=status,
                             region=r['id'], selected=target.get('selected'), reason=target['reason']))
         evidence.append(dict(region=r['id'], detail_sha256=summary['detail_sha256'],
@@ -218,10 +219,70 @@ def continuous_map(folder, regions, channel, start, frames, sr, experimental=Fal
     stats = dict(rate=RATE, frames=frames, sample_rate=sr, last_sample_seconds=last,
                  dc_speed_removed=dc, maximum_displacement_seconds=float(np.max(abs(delay))),
                  maximum_speed_correction=float(np.max(abs(speed))),
+                 speed_limit_saturation_fraction=float(np.mean(abs(speed) >= .049)),
+                 reference_switches=sum(a.get('selected') != b.get('selected') for a, b in zip(
+                     [m for m in markers if m['kind'] in {'numeric_pass','group_numeric_pass','experimental','bypassed'}],
+                     [m for m in markers if m['kind'] in {'numeric_pass','group_numeric_pass','experimental','bypassed'}][1:])),
+                 fade_count=sum(m['kind'] == 'fade' for m in markers),
+                 blend_count=sum(m['kind'] == 'blend' for m in markers),
                  nonzero_speed_fraction=float(np.mean(abs(speed)>1e-12)),
                  integration='Single trapezoidal integration after speed blending/fading; support-weighted DC anchoring',
                  bypass='Zero local speed correction; a constant timing offset can remain for continuity')
     return tt, nominal, speed, stats, sorted(markers, key=lambda m:m['start_seconds']), evidence
+
+
+def joined_map_checks(folder, regions, row, channel, start, tt, nominal, speed):
+    """Measure original check tones through the exact final inverse map.
+
+Boundary/dropout events were excluded from calibration and regional holdouts.
+No alternative is fitted after these results; failure stays a failure.
+"""
+    from flutter_tracking import evaluate_events
+    from flutter_policy import LIMITS
+    observations, seen = [], set()
+    sr = row['sample_rate']
+    displacement = float(np.max(abs(nominal-tt)))
+    for summary in regions:
+        _, raw = checked_artifact(folder, summary['detail_file'], summary['detail_sha256'])
+        r = json.loads(raw)
+        target = next(t for t in r['targets'] if t['channel'] == channel)
+        if target['action'] not in {'render_and_review', 'group_render_and_review'}:
+            continue
+        for event in target.get('reserved_events', []):
+            a = r['analysis_start']+event['start']
+            b = r['analysis_start']+event['end']
+            key = round(a*sr)
+            if key in seen or a < start+.5 or b > start+tt[-1]-.5:
+                continue
+            seen.add(key)
+            low = max(start, a-.5-displacement)
+            high = min(start+tt[-1], b+.5+displacement)
+            offset = round((low-row['start_seconds'])*sr)
+            count = round((high-low)*sr)
+            low = row['start_seconds']+offset/sr
+            with sf.SoundFile(row['path']) as stream:
+                stream.seek(offset)
+                x = stream.read(count, dtype='float64')
+            output_times = low-start+np.arange(len(x))/sr
+            input_times = np.interp(output_times, nominal, tt)
+            pos = (input_times-(low-start))*sr
+            if np.any(np.diff(pos) <= 0):
+                continue
+            metrics = evaluate_events(x, sr, None, [dict(event, start=a-low, end=b-low)], sample_positions=pos)
+            margins = metrics[0]['margins'] if metrics else []
+            passed = len(margins) == 3 and all(m['after_rms_hz'] <= LIMITS['max_residual_hz']
+                and m['after_rms_cents'] <= LIMITS['max_residual_cents']
+                and m['after_rms_hz'] <= max(m['before_rms_hz']*1.05, m['before_rms_hz']+.1) for m in margins)
+            observations.append(dict(region=r['id'], original_start_seconds=a,
+                                     status='passed' if passed else 'failed', metrics=metrics))
+    status = ('passed' if len(observations) >= 2 else 'insufficient_reserved_events')
+    if any(o['status'] == 'failed' for o in observations):
+        status = 'failed'
+    if not np.any(abs(speed) > 1e-12):
+        status = 'passed'
+    return dict(status=status, reserved_events=observations, no_motion=not bool(np.any(abs(speed) > 1e-12)),
+                map='Exact final continuous joined, faded and duration-anchored inverse map',
+                failed_choice_refitted=False, listening_approved=False)
 
 
 def wav_format(frames):
@@ -514,7 +575,7 @@ td,th{text-align:left;padding:8px;border-bottom:1px solid #39424d}a{color:#95caf
 Bypassed regions have zero local speed correction; continuous timing may retain an offset.</p>
 <button id="before" onclick="switchVersion(false)">A: Denoised</button><button id="after" onclick="switchVersion(true)">B: Denoised + deflutter</button>
 <strong id="version">A: Denoised</strong><audio id="player" controls preload="metadata" src="cleaned.wav"></audio>
-<label>Markers <select onchange="filter(this.value)"><option value="">All</option><option>validated</option><option>experimental</option><option>bypassed</option><option>fade</option><option>blend</option><option>support_gap</option></select></label>
+<label>Markers <select onchange="filter(this.value)"><option value="">All</option><option>numeric_pass</option><option>experimental</option><option>bypassed</option><option>fade</option><option>blend</option><option>support_gap</option></select></label>
 <small>Times are relative to this review; canonical start: __START__ seconds. <a href="markers.csv">Markers CSV</a> · <a href="review.json">Measurements</a></small></header>
 <table><thead><tr><th>Seek</th><th>Status</th><th>Region</th><th>Evidence</th></tr></thead><tbody>__ROWS__</tbody></table>
 <script>const p=document.getElementById('player'); let revision=0; const gain=__GAIN__;
@@ -577,8 +638,12 @@ def render_channel_review(plan_path, channel, destination, *, start=0., duration
     clean_stat = cleaned.stat()
     progress(f'Preparing continuous map for CH{channel}: {frames/row["sample_rate"]/3600:.2f} hours')
     tt, nominal, speed, timing, markers, evidence = continuous_map(plan_path.parent,regions,channel,start,frames,row['sample_rate'],experimental,progress)
+    joined = joined_map_checks(plan_path.parent, regions, row, channel, start, tt, nominal, speed)
     destination.mkdir(parents=True,exist_ok=True)
     summary.update(status='running',timing=timing,evidence=evidence,denoised_intermediate=intermediate,
+                   methodology=plan.get('methodology', 'legacy'), joined_map_checks=joined,
+                   evidence_status=dict(numeric_pass_is_listening_approval=False,
+                                        transfer_groups_accepted=False, production_accepted=False),
                    cleanup=intermediate['cleanup'])
     # Exclusive claim prevents concurrently started jobs sharing an output.
     with (destination/'review.json').open('x',encoding='utf-8') as f:
@@ -587,6 +652,8 @@ def render_channel_review(plan_path, channel, destination, *, start=0., duration
     try:
         np.save(destination/'nominal_seconds.npy',nominal,allow_pickle=False)
         np.save(destination/'speed_error.npy',speed,allow_pickle=False)
+        summary['timing_artifacts'] = {name: hashlib.sha256((destination/name).read_bytes()).hexdigest()
+                                       for name in ('nominal_seconds.npy', 'speed_error.npy')}
         shutil.copyfile(cache/'cleanup.jsonl',destination/'cleanup.jsonl')
         summary['render'] = render_warp(cleaned,corrected,tt,nominal,render_block_seconds,progress)
         summary['normalization'] = normalize_pending_file(corrected,target_dbfs,max_boost_db,progress)

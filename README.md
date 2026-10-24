@@ -4,6 +4,12 @@ This repository contains the processing pipeline for the **30-track audio record
 
 The aim is to improve intelligibility while preserving the voices and character of the historical recordings. Original audio stays separate from processed outputs. Source audio, generated reports, listening samples, and processing runs are not distributed in this repository.
 
+## Local deflutter review interface
+
+Run `.venv\Scripts\python.exe scripts\deflutter_review.py` and open **http://127.0.0.1:8765**. Add `--demo` to exercise the complete review workflow with synthetic fixtures and no mission processing. The default listening budget is 30 matched-gain comparisons of 20 seconds (about 20 minutes for both versions), selected for condition coverage, risk and reproducible random holdouts.
+
+The interface shows mission readiness, streams bounded comparisons from continuous full-channel maps, records judgments and previews explicit sampling-based methodology or production acceptance. It preserves stage 03 and existing artifacts; approval never launches rendering. [Startup, policy, CLI integration, configuration and evidence gaps](docs/deflutter_review_app.md).
+
 ## From tape fragments to corrected audio
 
 ```mermaid
@@ -11,7 +17,9 @@ flowchart TD
     A[Delivered 30-track tape fragments] --> B[01 · Concatenate and verify channel order]
     B --> C[Canonical originals · preserved]
     C --> D[03 · Remove tones, hum, and broadband noise]
-    C --> E[05a · Measure reference tones and plan regional flutter correction]
+    C --> S[04 · Survey carriers on all originals]
+    S --> E[05a · Measure reference tones and plan regional flutter correction]
+    S --> K[Independent original-sample IRIG decoding]
     D --> F[05b · Apply supported flutter correction]
     E --> F
     F --> G[Survey Quindars in completed defluttered channels]
@@ -120,13 +128,14 @@ uv run python scripts/pipeline.py --help
 | --- | --- | --- |
 | 01 | `scripts/01_concatenate.py` | Verify fragment order and concatenate each channel. |
 | 03 | `scripts/03_denoise.py` | Remove persistent tones and residual hum, then apply broadband reduction capped at 3 dB. |
+| 04 | `scripts/carrier_survey.py` | Resumable full-timeline carrier screening, including timing and unlabelled recordings. |
 | 05a | `scripts/05a_plan_deflutter.py` | Analyze original channels and save regional flutter correction plans. |
 | 05b | `scripts/05b_deflutter.py` | Apply supported timing corrections to denoised audio, then bounded constant-gain normalization. |
 | 05c | `scripts/05c_retime.py` | Apply a shared tape speed curve derived from Quindars in completed defluttered audio. |
 
 Stage numbers reflect the project's development history. Tonal and broadband cleanup are now combined in stage 03. `scripts/01a_zip_originals.py` is a separate utility for archiving concatenated tape folders as ZIP files. It includes all files recursively without marker, delivery, file-age, or WAV-completeness checks, and skips existing ZIPs.
 
-The whole-channel order is **03 -> 05a -> 05b -> 05c** after concatenation. Stage 05a reads original channels because denoising can remove useful timing references. Stage 05b reads denoised intermediates and saved plans.
+The whole-channel order is **03 -> 04 -> bounded pilots -> accepted 05a -> reviewed/accepted 05b -> 05c** after concatenation. Stage 04 can run independently of denoising. Stage 05a reads original channels because denoising can remove useful timing references. Stage 05b reads denoised intermediates and saved plans.
 
 ### Data locations
 
@@ -137,12 +146,13 @@ Defaults reflect the local processing workstation, under `D:/Apollo_15_30-Track`
 | `orig_delivery/` | Delivered fragments | `--delivery` |
 | `orig_concatenated/` | Canonical per-tape, per-channel originals | `--concatenated` |
 | `denoised/` | Reusable stage-03 intermediates | `--denoised-root` |
-| `deflutter_planning/` | Regional plans, evidence, and timing maps | `--flutter-planning-root` |
-| `defluttered/` | Stage-05b audio | `--defluttered-root` |
-| `quindar_post_deflutter_analysis/` | Quindar surveys and frozen shared plans | `--quindar-analysis-root` |
-| `defulterred_retimed/` | Stage-05c audio | `--retimed-root` |
+| `carrier_survey_v2/` | Original-audio carrier features and islands | `--carrier-survey-root` |
+| `deflutter_planning_v2/` | Regional plans, evidence, and timing maps | `--flutter-planning-root` |
+| `defluttered_v2/` | Stage-05b audio | `--defluttered-root` |
+| `quindar_post_deflutter_analysis_v2/` | Quindar surveys and frozen shared plans | `--quindar-analysis-root` |
+| `defluttered_retimed_v2/` | Stage-05c audio | `--retimed-root` |
 
-The spelling `defulterred_retimed` is the existing output directory name. Logs and manifests go under local `runs/<run-id>/` by default; `--output` changes that location. Standalone scripts may use different option names; consult their `--help`.
+Earlier directories, including `deflutter_planning`, `defluttered`, and `defulterred_retimed`, remain preserved baselines. Logs and manifests go under local `runs/<run-id>/` by default; `--output` changes that location. Standalone scripts may use different option names; consult their `--help`.
 
 ## Running the pipeline
 
@@ -174,16 +184,31 @@ Completed intermediates are retained across runs and verified against source ide
 
 ### Plan and apply flutter correction
 
-Plan a tape from its canonical originals, then render one denoised channel:
+The [pipeline review](DEFLUTTER_PIPELINE_REVIEW.md) is implemented as the versioned workflow described in the [v2 runbook](docs/deflutter_v2.md). Carrier surveys and clock decoding have independent caches. Full-tape planning requires frozen pilot/listening acceptance; whole-channel production rendering requires acceptance of the exact plan and continuous map. The successful earlier T510083 CH20 render used experimental transfer and remains a baseline.
+
+Screen the originals, then run bounded planning pilots before accepting full-tape planning:
 
 ```powershell
-uv run python scripts/pipeline.py run --stages 05a --tape A15_T510083 --plain
-uv run python scripts/pipeline.py run --stages 05b --tape A15_T510083 --channel 20 --plain
+uv run python scripts/pipeline.py run --stages 04 --all-tapes --plain
+uv run python scripts/pipeline.py run --stages 05a --tape A15_T510083 --flutter-plan-start 27090 --flutter-plan-duration 180 --plain
 ```
 
 Planning checkpoints completed regions and reuses matching completed plans. Interrupted plans can resume; incompatible source data, settings, or evidence are rejected. `--flutter-plan-workers` controls planning concurrency.
 
-Plans distinguish supported corrections, regions requiring transfer validation, and regions to leave uncorrected. Whole-channel rendering joins regional timing curves continuously. `--experimental-transfer` allows proposed corrections in regions requiring transfer validation for listening review; those results remain experimental. A local listening-approved example does not validate every channel or an entire tape.
+Plan or apply flutter correction across every canonical tape:
+
+```powershell
+uv run python -u scripts/pipeline.py run --stages 05a --all-tapes --rollout-approval configs/local_rollout_approval.json --plain
+uv run python -u scripts/pipeline.py run --stages 05b --all-tapes --plain
+```
+
+Batch mode accepts one stage per command. Planning runs once per tape from originals and can run while stage 03 is still denoising; use `--flutter-plan-workers 2` to limit its competing load. Defluttering processes available non-IRIG channels sequentially, using each tape's saved whole-tape plan and each channel's completed denoised intermediate. Use `--tape A15_T510083 --all-channels` for one tape, or add `--channel 20` to `--all-tapes` for that channel across tapes. Replace `run` with `plan` to preview commands without writing outputs.
+
+Batch failures are recorded and remaining tapes/channels continue; the command returns a nonzero exit code if any job fails. Existing stage-05b output folders are not overwritten and are reported as blocked. Use a different `--defluttered-root` for another render.
+
+Plans distinguish direct numeric support, bounded transfer-group evidence, proposals, and bypasses. Whole-channel rendering joins regional timing curves continuously and checks reserved events through the final map. Use `scripts/render_channel_review.py` for listening pilots; its `--experimental-transfer` option remains review-only and is rejected by production batches. Place accepted per-tape `production_acceptance.json` records under the planning root (or `--production-approval-root`); see the runbook for their schema.
+
+Run `uv run python scripts/deflutter_readiness.py --rollout-approval configs/local_rollout_approval.json` to report all remaining prerequisites. Exit code 2 means the batch is not ready. Numeric tests and completed plans never provide listening approval automatically.
 
 ### Retime a completed tape
 

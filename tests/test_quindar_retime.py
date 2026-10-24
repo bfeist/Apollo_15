@@ -127,7 +127,7 @@ class QuindarRetimeTests(unittest.TestCase):
         jobs = pipeline.make_jobs(args, selected, Path('fake_run'))
         job = next(j for j in jobs if j['number'] == '05c')
         self.assertIn('05c_retime.py', job['script'])
-        self.assertIn('defulterred_retimed', ' '.join(job['command']))
+        self.assertIn('defluttered_retimed_v2', ' '.join(job['command']))
         with self.assertRaises(SystemExit):
             pipeline.parse_args(['plan', '--stages', '05b,05c', '--skip-deflutter'])
 

@@ -200,12 +200,16 @@ def summarize_tape(folder,require_complete=True):
     return calibration,expected
 
 
-def build_shared_plan(folder,bandwidth=None):
+def build_shared_plan(folder,bandwidth=None,clock_anchors=None):
     """Freeze a single model per tape. Later targets reuse it, never re-estimate."""
     folder=Path(folder).resolve(); destination=folder/'shared_plan'
     with planning_lock(destination):
         if (destination/'plan.json').exists():
-            return load_shared_plan(destination/'plan.json')
+            saved = load_shared_plan(destination/'plan.json')
+            expected = dict(path=str(Path(clock_anchors).resolve()), sha256=hashlib.sha256(Path(clock_anchors).read_bytes()).hexdigest()) if clock_anchors else None
+            if saved.get('clock_anchor_source') != expected:
+                raise ValueError('Frozen slow plan uses different clock annotations; choose a fresh analysis destination')
+            return saved
         post,targets=summarize_tape(folder)
         if not post['channels']:
             raise ValueError('Awaiting completed post-deflutter audio')
@@ -242,6 +246,22 @@ def build_shared_plan(folder,bandwidth=None):
         if len(origins)!=1:raise ValueError('Tape origin is not established')
         duration=max(r['start_seconds']+r['duration_seconds'] for r in targets if r['start_seconds'] is not None)
         model=curve_model(events,duration,bandwidth)
+        clock_source = None
+        if clock_anchors is not None:
+            from irig_clock import clock_constraints
+            from flutter_policy import digest
+            anchor_path = Path(clock_anchors).resolve()
+            annotation = json.loads(anchor_path.read_text(encoding='utf-8'))
+            if annotation['tape'] != folder.name:
+                raise ValueError('Clock anchors belong to another tape')
+            for key in ('anchor_source', 'applied_review', 'applied_map'):
+                evidence = annotation[key]
+                if digest(evidence['path']) != evidence['sha256']:
+                    raise ValueError('Clock anchors are stale after a source/map change')
+            model['clock_constraints'] = clock_constraints(annotation['anchors'], model)
+            if model['clock_constraints']['status'] == 'conflict':
+                raise ValueError('Authenticated clock intervals conflict with the Quindar model; no clock was forced to agree')
+            clock_source = dict(path=str(anchor_path), sha256=digest(anchor_path))
         tt,oo,ss=timing_map(model)
         destination.mkdir(parents=True,exist_ok=True)
         write_json(destination/'curve.json',model)
@@ -250,6 +270,10 @@ def build_shared_plan(folder,bandwidth=None):
                     origin_filename_seconds=origins.pop(),input_duration_seconds=duration,
                     complete_defluttered_coverage=post['complete_defluttered_coverage'],
                     reference_count=len(post['channels']),references=post['channels'],targets=targets,
+                    clock_anchor_source=clock_source,
+                    clock_constraints=model.get('clock_constraints'),
+                    synchronization_claim=False,
+                    differential_displacement=differential_displacement(post['channels']),
                     unique_calibration_events=len(events),duplicate_copies_removed=post['duplicate_copies_removed'],
                     ambiguous_single_channel_fallback=fallback if post['ambiguous_detections'] else None,
                     kernel_sigma_seconds=model['kernel_sigma_seconds'],
@@ -280,7 +304,46 @@ def load_shared_plan(path):
             raise ValueError('Shared-plan post-deflutter reference changed')
         if hashlib.sha256((Path(row['path']).parent/'review.json').read_bytes()).hexdigest()!=row['review_sha256']:
             raise ValueError('Shared-plan post-deflutter manifest changed')
+    if plan.get('clock_anchor_source'):
+        source = plan['clock_anchor_source']
+        if hashlib.sha256(Path(source['path']).read_bytes()).hexdigest() != source['sha256']:
+            raise ValueError('Shared-plan clock annotations changed')
+        annotation = json.loads(Path(source['path']).read_text(encoding='utf-8'))
+        for key in ('anchor_source', 'applied_review', 'applied_map'):
+            record = annotation[key]
+            if hashlib.sha256(Path(record['path']).read_bytes()).hexdigest() != record['sha256']:
+                raise ValueError('Clock provenance changed after slow plan freeze')
     return plan
+
+
+def differential_displacement(references):
+    """Compare actual 05b maps at 200 Hz; never infer synchrony from content lag."""
+    maps, results = [], []
+    for row in references:
+        folder = Path(row['path']).parent
+        review = json.loads((folder/'review.json').read_text(encoding='utf-8'))
+        path = folder/'nominal_seconds.npy'
+        if not path.exists() or not review.get('timing_artifacts'):
+            return dict(status='unmeasured_legacy_maps', synchronized_channels=False)
+        if hashlib.sha256(path.read_bytes()).hexdigest() != review['timing_artifacts']['nominal_seconds.npy']:
+            raise ValueError('Applied deflutter map changed')
+        maps.append((row['channel'], review['start_seconds'], np.load(path, mmap_mode='r'), review['timing']['last_sample_seconds']))
+    if maps:
+        base_ch, base_start, base, base_last = maps[0]
+        for ch, start, values, last in maps[1:]:
+            low, high = max(base_start, start), min(base_start+base_last, start+last)
+            maximum = 0.
+            for a in np.arange(low, high, 500.):
+                times = np.arange(a, min(high, a+500.), .005)
+                def displacement(data, origin):
+                    indices = np.minimum((times-origin)*200, len(data)-1)
+                    left = np.floor(indices).astype(int)
+                    right = np.minimum(left+1, len(data)-1)
+                    return data[left]+(indices-left)*(data[right]-data[left])-(times-origin)
+                maximum = max(maximum, float(np.max(abs(displacement(base, base_start)-displacement(values, start)))))
+            results.append(dict(channels=[base_ch, ch], overlap_seconds=max(0., high-low), maximum_displacement_difference_seconds=maximum))
+    return dict(status='measured', comparisons=results, synchronized_channels=False,
+                interpretation='Applied-map displacement relative to first channel; historical/content offsets are preserved, not authenticated')
 
 
 def target_map(plan_path,source):

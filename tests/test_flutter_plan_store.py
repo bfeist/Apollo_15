@@ -52,14 +52,17 @@ class PlanStoreTests(unittest.TestCase):
         self.create()
         index = self.output/'plan.json'
         prior = json.loads(index.read_text())
-        prior['implementation_sha256'] = 'older-implementation-preserved'
-        index.write_text(json.dumps(prior), encoding='utf-8')
         before = {p.name: p.read_bytes() for p in self.output.iterdir()}
         with (patch('flutter_planning.analyze_region', side_effect=AssertionError('Analysis reran')),
               patch('flutter_planning.save_plan', side_effect=AssertionError('Plan rewritten'))):
             reused = self.create(reuse=True)
         self.assertTrue(reused['complete'])
         self.assertEqual(before, {p.name: p.read_bytes() for p in self.output.iterdir()})
+        prior['implementation_sha256'] = 'older-implementation-preserved'
+        index.write_text(json.dumps(prior), encoding='utf-8')
+        with self.assertRaisesRegex(ValueError, 'methodology or implementation changed'):
+            self.create(reuse=True)
+        index.write_bytes(before['plan.json'])
         mapfile = self.output/reused['regions'][0]['maps']['file']
         mapfile.write_bytes(mapfile.read_bytes()+b'changed')
         with self.assertRaisesRegex(ValueError, 'artifact changed'):

@@ -7,9 +7,9 @@ import os
 from pathlib import Path
 import re
 
-DEFAULT_PLANNING_ROOT = Path('D:/Apollo_15_30-Track/deflutter_planning')
+DEFAULT_PLANNING_ROOT = Path('D:/Apollo_15_30-Track/deflutter_planning_v2')
 DEFAULT_DENOISED_ROOT = Path('D:/Apollo_15_30-Track/denoised')
-DEFAULT_DEFLUTTERED_ROOT = Path('D:/Apollo_15_30-Track/defluttered')
+DEFAULT_DEFLUTTERED_ROOT = Path('D:/Apollo_15_30-Track/defluttered_v2')
 
 
 def tape_directory(tape, root=DEFAULT_PLANNING_ROOT):
@@ -50,8 +50,11 @@ def load_saved_plan(path, require_complete=True, *, expand_regions=True):
         raise ValueError('Unsupported saved-plan schema')
     if require_complete and (not plan.get('complete') or plan.get('source_validation') != 'verified'):
         raise ValueError('Saved plan is incomplete; finish stage 05a first')
+    survey = plan['inventory'].get('carrier_survey')
+    if survey and hashlib.sha256(Path(survey['path']).read_bytes()).hexdigest() != survey['sha256']:
+        raise ValueError('Original carrier survey changed since planning')
     # Validate original source identity without redoing reference analysis.
-    for row in plan['inventory']['channels']:
+    for row in plan['inventory']['channels']+plan['inventory'].get('excluded_files', []):
         stat = Path(row['path']).stat()
         if stat.st_size != row['bytes'] or stat.st_mtime_ns != row['mtime_ns']:
             raise ValueError(f"Original source changed since planning: {row['path']}")

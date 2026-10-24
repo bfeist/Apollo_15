@@ -204,6 +204,7 @@ def main():
     parser.add_argument('--channel',type=int,help='Render a whole channel using its stage-03 intermediate')
     parser.add_argument('--denoised-input',type=Path,help='Prepared stage-03 folder containing denoised.wav and manifest')
     parser.add_argument('--experimental-transfer',action='store_true')
+    parser.add_argument('--production-approval', type=Path, help='Accepted plan/channel and continuous listening evidence')
     parser.add_argument('--flutter-config',type=Path,help='One-tape JSON reference and target alignment declaration')
     parser.add_argument('--flutter-plan', type=Path, help='Saved regional plan; defaults to the persistent tape folder')
     parser.add_argument('--flutter-targets', type=Path, help='Region, target channels and excerpt alignment JSON')
@@ -221,11 +222,17 @@ def main():
             from channel_review import render_channel_review, denoised_directory
             plan=args.flutter_plan or tape_directory(args.tape,args.planning_root)/'plan.json'
             index=plan/'plan.json' if plan.is_dir() else plan
-            if json.loads(index.read_text(encoding='utf-8'))['inventory']['tape'] != args.tape:
+            from flutter_policy import require_production
+            require_production(args.production_approval, index, args.channel, args.experimental_transfer)
+            inventory=json.loads(index.read_text(encoding='utf-8'))['inventory']
+            if inventory['tape'] != args.tape:
                 raise ValueError('Requested tape and saved plan disagree')
+            row=next((r for r in inventory['channels'] if r['channel']==args.channel),None)
+            if row is None:
+                raise ValueError('Requested channel is unavailable in the saved plan')
             output=args.output or tape_directory(args.tape,DEFAULT_DEFLUTTERED_ROOT)/f'CH{args.channel:02d}'
             denoised=args.denoised_input or denoised_directory(DEFAULT_DENOISED_ROOT,args.tape,args.channel)
-            render_channel_review(plan,args.channel,output,experimental=args.experimental_transfer,
+            render_channel_review(plan,args.channel,output,start=row['start_seconds'],experimental=args.experimental_transfer,
                                   denoised_input=denoised,require_prepared=True,target_dbfs=args.target_dbfs,max_boost_db=args.max_boost_db,progress=lambda s:print(s,flush=True))
             return
         if args.input is None or args.output is None:

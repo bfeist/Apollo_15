@@ -22,12 +22,14 @@ from audio_processing import DEFAULT_BROADBAND_CAP_DB
 from flutter_plan_store import DEFAULT_PLANNING_ROOT, DEFAULT_DENOISED_ROOT, DEFAULT_DEFLUTTERED_ROOT, planning_directory, tape_directory
 from quindar_retime import DEFAULT_RETIMED_ROOT
 from quindar_survey import DEFAULT_ANALYSIS_ROOT
+from flutter_policy import DEFAULT_SURVEY_ROOT
 
 SCRIPTS = Path(__file__).resolve().parent
 STAGES = [
     ('01', 'Concatenate', '01_concatenate.py', 'Verify fragment order and join channels'),
     ('03', 'Denoise', '03_denoise.py',
      f'Remove tones and residual hum, then reduce broadband noise by up to {DEFAULT_BROADBAND_CAP_DB} dB'),
+    ('04', 'Survey carriers', 'carrier_survey.py', 'Screen every original, including timing and unlabelled recordings'),
     ('05a', 'Plan deflutter', '05a_plan_deflutter.py', 'Analyze original timing evidence; preserve reference tones'),
     ('05b', 'Deflutter', '05b_deflutter.py', 'Correct timing, then normalize with bounded constant gain'),
     ('05c', 'Retime', '05c_retime.py', 'Apply a smoothed Quindar anchor curve to defluttered audio'),
@@ -44,10 +46,10 @@ def parse_args(argv=None):
     parser.add_argument('--concatenated', type=Path, default=Path('D:/Apollo_15_30-Track/orig_concatenated'))
     tapes = parser.add_mutually_exclusive_group()
     tapes.add_argument('--tape', help='Select one canonical tape folder')
-    tapes.add_argument('--all-tapes', action='store_true', help='Denoise all canonical tape folders under --concatenated')
+    tapes.add_argument('--all-tapes', action='store_true', help='Process all tapes for stage 03, 05a, 05b, or 05c')
     channels = parser.add_mutually_exclusive_group()
     channels.add_argument('--channel', type=int, help='Whole-channel mode; defaults to stages 03,05a,05b,05c for one tape')
-    channels.add_argument('--all-channels', action='store_true', help='Denoise every available channel, including CH01/IRIG')
+    channels.add_argument('--all-channels', action='store_true', help='Process all available channels; stage 03 includes CH01/IRIG, stage 05b excludes IRIG')
     parser.add_argument('--denoised-root', type=Path, default=DEFAULT_DENOISED_ROOT)
     parser.add_argument('--denoise-workers', type=int, default=14,
                         help='Whole-channel stage 03 workers (default: 14); 0 selects up to 16, 1 is serial')
@@ -64,6 +66,10 @@ def parse_args(argv=None):
     parser.add_argument('--flutter-planning-root', '--planning-root', type=Path, default=DEFAULT_PLANNING_ROOT,
                         help='Persistent per-tape plans; shared by stages 05a and 05b')
     parser.add_argument('--flutter-plan', type=Path, help='Stage 05b saved plan override; defaults to the tape plan')
+    parser.add_argument('--carrier-survey-root', type=Path, default=DEFAULT_SURVEY_ROOT)
+    parser.add_argument('--carrier-max-windows', type=int, help='Per-file survey benchmark budget; omit for full coverage')
+    parser.add_argument('--rollout-approval', type=Path, help='Frozen carrier/pilot/fresh-holdout/listening acceptance')
+    parser.add_argument('--production-approval-root', type=Path, help='Per-tape production_acceptance.json records; defaults to planning root')
     parser.add_argument('--flutter-targets', type=Path, help='Stage 05b region, target channels and excerpt alignment JSON')
     parser.add_argument('--flutter-region-seconds', type=float, default=60, help='Stage 05a region length (15-120 s)')
     parser.add_argument('--flutter-plan-start', type=float, default=0, help='Stage 05a bounded audit start; default whole tape')
@@ -75,23 +81,30 @@ def parse_args(argv=None):
     parser.add_argument('--plain', action='store_true', help='Print sequential logs without a live dashboard')
     args = parser.parse_args(argv)
     # Explicit tape selection without excerpt input is also a whole-tape denoise request.
-    args.batch_denoise = args.all_tapes or args.all_channels or (
+    args.batch = args.all_tapes or args.all_channels or (
         args.tape is not None and args.channel is None and args.input is None
         and (args.stages is None or args.stages.strip() in {'3', '03'}))
     args.tape = args.tape or 'A15_T510073'
     if args.denoise_workers < 0:
         parser.error('--denoise-workers must be nonnegative')
     try:
-        requested = args.stages or ('03' if args.batch_denoise else
+        requested = args.stages or ('03' if args.batch else
                                     '03,05a,05b,05c' if args.channel is not None else '03,05b')
         selected = {value.strip().lower() if value.strip().lower() in {'05a','05b','05c'} else f'{int(value):02d}' for value in requested.split(',')}
     except ValueError:
         parser.error('--stages must contain 01,03,05a,05b,05c')
     if not selected or not selected <= {s[0] for s in STAGES}:
         parser.error('--stages must contain 01,03,05a,05b,05c')
-    args.batch_retime = args.batch_denoise and selected == {'05c'}
+    if '04' in selected and args.input is not None:
+        parser.error('Stage 04 surveys canonical originals under --concatenated; omit speech --input')
+    if args.batch and selected not in ({'03'}, {'04'}, {'05a'}, {'05b'}, {'05c'}):
+        parser.error('Batch mode supports one stage at a time; use --stages 03, 05a, 05b, or 05c')
+    args.batch_denoise = args.batch and selected == {'03'}
+    args.batch_flutter = args.batch and bool(selected & {'05a', '05b'})
+    if args.batch and selected == {'05b'} and args.experimental_transfer:
+        parser.error('Experimental transfer is review-only; production batches require accepted conservative maps')
+    args.batch_retime = args.batch and selected == {'05c'}
     if args.batch_retime:
-        args.batch_denoise = False
         if args.input or args.quindar_plan or args.retime_candidates or args.retime_smoothing_seconds or args.experimental_single_channel:
             parser.error('Batch 05c uses one saved plan per tape; omit file-specific overrides')
     if args.skip_deflutter and {'05b', '05c'} <= selected:
@@ -99,10 +112,13 @@ def parse_args(argv=None):
     if Path(args.tape).name != args.tape or args.tape in {'.', '..'}:
         parser.error('--tape must be a folder name')
     if args.batch_denoise:
-        if selected != {'03'}:
-            parser.error('Batch mode supports denoising only; use --stages 03')
         if args.input or args.flutter_config or args.flutter_targets or args.flutter_plan or args.retime_candidates:
             parser.error('Batch denoising uses original tapes under --concatenated; omit excerpt/deflutter inputs')
+    if args.batch_flutter:
+        if args.input or args.flutter_config or args.flutter_targets or args.flutter_plan:
+            parser.error('Batch flutter stages use original tapes and one stored plan per tape; omit excerpt/plan overrides')
+        if '05b' in selected and (args.flutter_plan_start != 0 or args.flutter_plan_duration is not None):
+            parser.error('Batch 05b requires whole-tape plans; omit bounded planning arguments')
     if args.channel is not None:
         if not 1 <= args.channel <= 30:
             parser.error('--channel must be 1-30')
@@ -113,7 +129,7 @@ def parse_args(argv=None):
     if args.flutter_config and (args.flutter_plan or args.flutter_targets):
         parser.error('Choose legacy --flutter-config or saved-plan rendering, not both')
     if args.action == 'run':
-        if not args.batch_denoise and args.channel is None and selected & {'03', '05b'} and (args.input is None or not args.input.is_dir()):
+        if not args.batch and args.channel is None and selected & {'03', '05b'} and (args.input is None or not args.input.is_dir()):
             parser.error('Audio stages require --input pointing to a speech excerpt folder')
         if not args.batch_retime and args.channel is None and '05c' in selected and '05b' not in selected and (args.input is None or not args.input.exists()):
             parser.error('Standalone 05c requires --input pointing to defluttered audio')
@@ -126,11 +142,7 @@ def parse_args(argv=None):
     return args, selected
 
 
-def make_denoise_batch(args):
-    """Inventory originals once and queue independent, reusable whole-channel jobs."""
-    from flutter_planning import inventory
-    from channel_review import completed_denoised
-
+def canonical_tapes(args):
     if args.all_tapes:
         if not args.concatenated.is_dir():
             raise ValueError(f'Canonical tape root does not exist: {args.concatenated}')
@@ -139,8 +151,16 @@ def make_denoise_batch(args):
         folders = [args.concatenated / args.tape]
     if not folders:
         raise ValueError('No canonical tape folders found under --concatenated')
+    return folders
+
+
+def make_denoise_batch(args):
+    """Inventory originals once and queue independent, reusable whole-channel jobs."""
+    from flutter_planning import inventory
+    from channel_review import completed_denoised
+
     jobs = []
-    for folder in folders:
+    for folder in canonical_tapes(args):
         try:
             inv = inventory(folder)
         except (ValueError, OSError, RuntimeError) as error:
@@ -168,7 +188,50 @@ def make_denoise_batch(args):
     return jobs
 
 
+def make_flutter_batch(args, selected, run_dir):
+    """Plan each tape, or render each available non-IRIG channel from its saved plan."""
+    from flutter_planning import inventory
+
+    jobs = []
+    for folder in canonical_tapes(args):
+        tape_args = argparse.Namespace(**vars(args))
+        tape_args.tape = folder.name
+        if selected == {'05a'}:
+            channels = [None]
+        else:
+            try:
+                inv = inventory(folder)
+            except (ValueError, OSError, RuntimeError) as error:
+                jobs.append(dict(number='05b', name=f'{folder.name} inventory', tape=folder.name,
+                                 channel=None, script='05b_deflutter.py', description=str(error),
+                                 command=[], status='failed', elapsed=0., returncode=2, error=str(error)))
+                continue
+            channels = [r['channel'] for r in inv['channels'] if r['role'] != 'timing_only'
+                        and (args.channel is None or r['channel'] == args.channel)]
+        for channel in channels:
+            tape_args.channel = channel
+            for job in make_tape_jobs(tape_args, selected, run_dir):
+                if job['number'] not in selected:
+                    continue
+                suffix = '' if channel is None else f' CH{channel:02d}'
+                job.update(name=folder.name+suffix, tape=folder.name, channel=channel,
+                           log=f'{job["number"]}_{folder.name}{suffix.replace(" ", "_")}.log')
+                jobs.append(job)
+    if not jobs:
+        raise ValueError('No available non-IRIG channels match the selection')
+    return jobs
+
+
 def make_jobs(args, selected, run_dir):
+    if selected == {'04'} and args.batch:
+        jobs = []
+        for folder in canonical_tapes(args):
+            command = [sys.executable, '-u', str(SCRIPTS/'carrier_survey.py'), '--input', str(folder), '--output', str(args.carrier_survey_root)]
+            if args.carrier_max_windows is not None:
+                command += ['--max-windows', str(args.carrier_max_windows)]
+            jobs.append(dict(number='04', name=folder.name, script='carrier_survey.py', description='Survey all original recordings',
+                             command=command, tape=folder.name, channel=None, status='pending', elapsed=0., returncode=None, log=f'04_{folder.name}.log'))
+        return jobs
     if args.batch_retime:
         folders = sorted(args.defluttered_root.glob('A15_T*')) if args.all_tapes else [args.defluttered_root/args.tape]
         folders = [p for p in folders if p.is_dir()]
@@ -191,6 +254,12 @@ def make_jobs(args, selected, run_dir):
         return jobs
     if args.batch_denoise:
         return make_denoise_batch(args)
+    if args.batch_flutter:
+        return make_flutter_batch(args, selected, run_dir)
+    return make_tape_jobs(args, selected, run_dir)
+
+
+def make_tape_jobs(args, selected, run_dir):
     current = args.input
     jobs = []
     for number, name, script, description in STAGES:
@@ -201,6 +270,10 @@ def make_jobs(args, selected, run_dir):
         output = run_dir / f'{number}_{name.lower().replace(" ", "_").replace("/", "_")}'
         if number == '01':
             command += ['--input', str(args.delivery), '--output', str(args.concatenated), '--min-age', str(args.min_age), '--strict']
+        elif number == '04':
+            command += ['--input', str(args.concatenated/args.tape), '--output', str(args.carrier_survey_root)]
+            if args.carrier_max_windows is not None:
+                command += ['--max-windows', str(args.carrier_max_windows)]
         elif number == '05a':
             output = planning_directory(args.tape, args.flutter_planning_root,
                                         args.flutter_plan_start, args.flutter_plan_duration)
@@ -208,6 +281,9 @@ def make_jobs(args, selected, run_dir):
                         '--region-seconds', str(args.flutter_region_seconds),
                         '--start', str(args.flutter_plan_start),
                         '--workers', str(args.flutter_plan_workers)]
+            command += ['--carrier-survey-root', str(args.carrier_survey_root)]
+            if args.rollout_approval:
+                command += ['--rollout-approval', str(args.rollout_approval)]
             if args.flutter_plan_duration is not None:
                 command += ['--duration', str(args.flutter_plan_duration)]
         elif number == '03' and args.channel is not None:
@@ -231,6 +307,8 @@ def make_jobs(args, selected, run_dir):
             denoised = tape_directory(args.tape,args.denoised_root)/f'CH{args.channel:02d}'
             command += ['--tape',args.tape,'--channel',str(args.channel),'--output',str(output),
                         '--flutter-plan',str(plan),'--denoised-input',str(denoised)]
+            approval = tape_directory(args.tape, args.production_approval_root or args.flutter_planning_root)/'production_acceptance.json'
+            command += ['--production-approval', str(approval)]
             if args.experimental_transfer:
                 command += ['--experimental-transfer']
         elif number == '05c':
@@ -277,13 +355,16 @@ def dashboard(jobs, tail, location):
         table.add_column(column)
     visible = jobs
     if jobs and 'tape' in jobs[0]:
-        completed = {'done', 'failed', 'cancelled', 'skipped existing'}
-        finished = sum(j['channel'] is not None and j['status'] in completed for j in jobs)
-        total = sum(j['channel'] is not None for j in jobs)
-        failed = sum(j['channel'] is not None and j['status'] == 'failed' for j in jobs)
-        invalid = sum(j['channel'] is None for j in jobs)
+        completed = {'done', 'failed', 'blocked', 'cancelled', 'skipped existing', 'skipped explicitly'}
+        planning = all(j['number'] in {'04', '05a'} for j in jobs)
+        counted = jobs if planning else [j for j in jobs if j['channel'] is not None]
+        finished = sum(j['status'] in completed for j in counted)
+        total = len(counted)
+        failed = sum(j['status'] in {'failed', 'blocked'} for j in counted)
+        invalid = len(jobs)-total
         skipped = sum(j['status'] == 'skipped existing' for j in jobs)
-        table.caption = f'{finished}/{total} channels finished; {skipped} skipped existing; {failed} failed; {invalid} invalid tapes'
+        unit = 'tapes' if planning else 'channels'
+        table.caption = f'{finished}/{total} {unit} finished; {skipped} skipped existing; {failed} failed; {invalid} invalid tapes'
         visible = ([j for j in jobs if j['status'] in completed][-5:]
                    + [j for j in jobs if j['status'] == 'running']
                    + [j for j in jobs if j['status'] in {'pending', 'not run'}][:5])
@@ -372,7 +453,7 @@ def main(argv=None):
         for job in jobs:
             if job['status'] == 'pending':
                 console.print(Text(subprocess.list2cmdline(job['command'])))
-        console.print('Commands only; no outputs written.' if args.batch_denoise else
+        console.print('Commands only; no outputs written.' if args.batch else
                       'Commands only. Whole-channel order: 03 denoise, 05a plan on originals, 05b deflutter, 05c Quindar retime.')
         return 2 if invalid else 0
     run_dir.mkdir(parents=True)
@@ -389,7 +470,7 @@ def main(argv=None):
             try:
                 code = execute(job, jobs, tail, run_dir, live, console)
             except Exception as error:
-                if not (args.batch_denoise or args.batch_retime):
+                if not args.batch:
                     raise
                 job.update(status='failed', returncode=1, error=str(error))
                 console.print(Text(f'{job["name"]}: {error}'))
@@ -398,7 +479,7 @@ def main(argv=None):
                 result = result or code
             # Persist each completed job so an overnight interruption leaves a record.
             (run_dir / 'run.json').write_text(json.dumps(dict(returncode=result, stages=jobs), indent=2), encoding='utf-8')
-            if code and not (args.batch_denoise or args.batch_retime):
+            if code and not args.batch:
                 break
     except KeyboardInterrupt:
         job['status'] = 'cancelled'
@@ -417,9 +498,9 @@ def main(argv=None):
             live.stop()
         else:
             console.print(dashboard(jobs, tail, run_dir))
-        if args.batch_denoise:
+        if args.batch:
             for failed in jobs:
-                if failed['status'] == 'failed':
+                if failed['status'] in {'failed', 'blocked'}:
                     detail = failed.get('error') or str(run_dir/failed['log'])
                     console.print(Text(f'Failed: {failed["name"]}: {detail}'))
     return result

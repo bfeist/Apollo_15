@@ -19,6 +19,7 @@ def main():
     p.add_argument('--plan-only', action='store_true', help='Freeze the tape plan after exhaustive discovery and post-deflutter measurement')
     p.add_argument('--quindar-analysis-root', type=Path, default=DEFAULT_ANALYSIS_ROOT)
     p.add_argument('--quindar-plan', type=Path, help='Frozen shared tape plan override')
+    p.add_argument('--clock-anchors', type=Path, help='Authenticated anchors carried through the actual 05b map; for one-tape --plan-only')
     p.add_argument('--experimental-single-channel', action='store_true', help='Explicitly permit the original per-file assessment workflow')
     p.add_argument('--defluttered-root', type=Path, default=DEFAULT_DEFLUTTERED_ROOT)
     p.add_argument('--retimed-root', type=Path, default=DEFAULT_RETIMED_ROOT)
@@ -28,6 +29,8 @@ def main():
     p.add_argument('--max-boost-db', type=float, default=12.)
     args = p.parse_args()
     try:
+        if args.clock_anchors and (not args.plan_only or args.all_tapes):
+            p.error('--clock-anchors requires one-tape --plan-only')
         plan = args.quindar_plan
         if args.all_tapes:
             if not args.plan_only or args.tape or args.channel or args.input or args.all_channels or plan:
@@ -46,7 +49,7 @@ def main():
         if args.plan_only:
             if not args.tape or args.input or args.channel or args.all_channels or plan:
                 p.error('--plan-only requires --tape; omit input/channel/plan overrides')
-            record = build_shared_plan(tape_directory(args.tape, args.quindar_analysis_root), args.smoothing_seconds)
+            record = build_shared_plan(tape_directory(args.tape, args.quindar_analysis_root), args.smoothing_seconds, args.clock_anchors)
             print(f"Frozen tape plan: {record['tape']}; {record['unique_calibration_events']} unique anchors; {record['reference_count']} post-deflutter references")
             return
         if args.tape and not args.experimental_single_channel:

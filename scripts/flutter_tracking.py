@@ -43,7 +43,7 @@ def discover(x, sr, limit=4):
     return chosen+[r for r in rows if r not in chosen][:limit-len(chosen)]
 
 
-def trajectory(x, sr, hz, capture):
+def trajectory(x, sr, hz, capture, support_mask=None):
     """Signed phase tracking and local modulation rate, as used in the trials."""
     if sr % 1000 or len(x) < 10*sr or not np.isfinite(x).all():
         raise ValueError('Tracking needs finite mono audio, >=10 s and a rate divisible by 1000')
@@ -56,10 +56,13 @@ def trajectory(x, sr, hz, capture):
     theta = np.interp(tt, np.arange(len(z))/1000, np.unwrap(np.angle(z)))
     amp = np.interp(tt, np.arange(len(z))/1000, abs(z))
     freq = hz+np.gradient(theta)*RATE/(2*np.pi)
-    median_amp = float(np.median(amp[400:-400]))
+    supported = np.ones(len(tt), dtype=bool) if support_mask is None else np.asarray(support_mask, dtype=bool)
+    if supported.shape != tt.shape or supported.sum() < 2*RATE:
+        raise ValueError('Reference needs at least two seconds of local support')
+    median_amp = float(np.median(amp[400:-400] if support_mask is None else amp[supported]))
     if median_amp < 1e-12:
         raise ValueError('No measurable reference')
-    centre = float(np.median(freq[400:-400]))
+    centre = float(np.median(freq[400:-400] if support_mask is None else freq[supported]))
     disp = (theta+2*np.pi*(hz-centre)*tt)/(2*np.pi*centre)
     error = np.clip((freq-centre)/centre, -.10, .10)
     freqs, times, spectrum = signal.stft(error, RATE, nperseg=800, noverlap=700)
@@ -71,13 +74,26 @@ def trajectory(x, sr, hz, capture):
         delta = .5*(yy[0]-yy[2])/(yy[0]-2*yy[1]+yy[2]+1e-15)
         rates.append(float(freqs[k]+np.clip(delta, -.5, .5)*.25))
     rate = np.interp(tt, times, ndimage.median_filter(rates, size=3))
-    valid = (amp > .3*median_amp) & (abs(freq-centre) < .9*capture)
+    valid = (amp > (.15 if support_mask is not None else .3)*median_amp) & (abs(freq-centre) < .9*capture) & supported
     # Reject a neighbourhood of dropouts/phase slips; never extrapolate through it.
     support = ndimage.uniform_filter1d(valid.astype(float), size=121, mode='nearest')
     # Match the accepted estimator's support ramp. Brief AM minima are handled
     # by robust regression; requiring 95% raw phase validity rejects the useful
     # low-frequency CH21 carrier despite its recoverable periodic displacement.
     gate = np.clip((support-.35)/.40, 0, 1)
+    # A short capture excursion or true signal loss must not disappear inside
+    # the occupancy average. Keep a hard reacquisition exclusion around it.
+    unsafe = (abs(freq-centre) >= .9*capture) | (amp < .05*median_amp)
+    block = sr//RATE
+    clipped_samples = (abs(x) >= .999) & np.r_[False, abs(np.diff(x)) < 1e-12]
+    clipped = np.add.reduceat(clipped_samples.astype(float), np.arange(0, len(x), block))/block
+    unsafe |= np.interp(tt, np.arange(len(clipped))/RATE, clipped) > .01
+    gate *= 1-ndimage.maximum_filter1d(unsafe.astype(float), size=101, mode='nearest')
+    if support_mask is not None:
+        # Legitimate AM low bits retain support; explicit missing carrier does
+        # not. Erode the screened edges to remove filter/reacquisition context.
+        safe = ndimage.minimum_filter1d(supported.astype(float), size=101, mode='constant', cval=0)
+        gate *= safe
     f, p = signal.welch(error[400:-400], RATE, nperseg=min(4000, len(error)-800))
     band = (f >= 2) & (f <= 30)
     fm = float(f[band][np.argmax(p[band])])
@@ -85,6 +101,10 @@ def trajectory(x, sr, hz, capture):
     meta = dict(carrier_hz=hz, centre_hz=centre, capture_hz=capture,
                 support=float(np.mean(gate[400:-400] > .95)),
                 modulation_peak_hz=fm, concentration=concentration,
+                out_of_band_motion_rms_percent=float(100*np.sqrt(max(0., np.trapezoid(p, f)-np.trapezoid(p[band], f[band])))),
+                relative_motion_band_hz=[2, 30], absolute_speed_estimated=False,
+                clipping_fraction=float(np.mean(clipped_samples)),
+                capture_loss_or_dropout_fraction=float(np.mean(unsafe)),
                 rate_percentiles_hz=np.percentile(rate[400:-400], [5, 50, 95]).tolist())
     return tt, error, disp, amp, rate, gate, meta
 
@@ -163,12 +183,12 @@ def signed_map(trace, band=(2, 30)):
                  btype='bandpass', output='sos'), trace[1]), trace[5])
 
 
-def burst_track(x, sr):
+def burst_track(x, sr, carrier_hz=2500., capture_hz=280.):
     t = np.arange(len(x))/sr
-    z = signal.resample_poly(x*np.exp(-2j*np.pi*2500*t), 1, sr//1000)
-    z = signal.sosfiltfilt(signal.butter(5, 280, fs=1000, output='sos'), z)
+    z = signal.resample_poly(x*np.exp(-2j*np.pi*carrier_hz*t), 1, sr//1000)
+    z = signal.sosfiltfilt(signal.butter(5, capture_hz, fs=1000, output='sos'), z)
     amp = ndimage.gaussian_filter1d(abs(z), 2)
-    freq = ndimage.gaussian_filter1d(2500+np.gradient(np.unwrap(np.angle(z)))*1000/(2*np.pi), 3)
+    freq = ndimage.gaussian_filter1d(carrier_hz+np.gradient(np.unwrap(np.angle(z)))*1000/(2*np.pi), 3)
     return amp, freq
 
 
@@ -194,11 +214,13 @@ def beeps(x, sr):
     return out
 
 
-def evaluate_events(x, sr, e, events):
+def evaluate_events(x, sr, e, events, sample_positions=None):
     """Render each check event through the actual inverse warp; keep all margins."""
     if not events:
         return []
-    pos = positions(e, sr, len(x))
+    pos = positions(e, sr, len(x)) if sample_positions is None else np.asarray(sample_positions)
+    if pos.shape != (len(x),) or not np.isfinite(pos).all() or np.any(np.diff(pos) <= 0):
+        raise ValueError('Event evaluation needs a finite monotonic inverse map')
     out = []
     for b in events:
         lo, hi = max(0, int((b['start']-.15)*sr)), min(len(x), int((b['end']+.15)*sr))
@@ -206,8 +228,9 @@ def evaluate_events(x, sr, e, events):
         left = max(0, int(requested.min())-sr//5)
         right = min(len(x), int(requested.max())+sr//5)
         y = resample_at(x[left:right], requested-left)
-        _, fb = burst_track(x[lo:hi], sr)
-        _, fa = burst_track(y, sr)
+        carrier, capture = b.get('carrier_hz', 2500.), b.get('capture_hz', 280.)
+        _, fb = burst_track(x[lo:hi], sr, carrier, capture)
+        _, fa = burst_track(y, sr, carrier, capture)
         t = lo/sr+np.arange(len(fb))/1000
         mt = np.interp(t*sr, np.arange(len(pos)), pos)/sr
         margins = []
@@ -218,6 +241,8 @@ def evaluate_events(x, sr, e, events):
                 continue
             before, after = float(np.std(fb[kb])), float(np.std(fa[ka]))
             margins.append(dict(margin_seconds=margin, before_rms_hz=before,
-                                after_rms_hz=after, residual_ratio=after/max(before, 1e-9)))
+                                after_rms_hz=after, residual_ratio=after/max(before, 1e-9),
+                                after_rms_cents=float(1200/np.log(2)*after/max(abs(np.median(fa[ka])), 1.)),
+                                before_rms_cents=float(1200/np.log(2)*before/max(abs(np.median(fb[kb])), 1.))))
         out.append(dict(b, margins=margins))
     return out

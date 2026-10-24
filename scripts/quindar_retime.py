@@ -16,7 +16,7 @@ from flutter import resample_at
 from flutter_plan_store import planning_lock
 from normalization import normalize_pending_file, validate_settings, verify_peak
 
-DEFAULT_RETIMED_ROOT = Path('D:/Apollo_15_30-Track/defulterred_retimed')
+DEFAULT_RETIMED_ROOT = Path('D:/Apollo_15_30-Track/defluttered_retimed_v2')
 
 
 def smooth_at(times, ratios, queries, bandwidth):

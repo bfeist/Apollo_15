@@ -80,7 +80,7 @@ class RegionalPlanningTests(unittest.TestCase):
         noisy_tau = tau+.004/(2*np.pi*8)*np.sin(2*np.pi*8*t)
         ref1 = .4*np.sin(2*np.pi*1500*noisy_tau)*(t < 20)
         ref2 = .4*np.sin(2*np.pi*1033*tau)*(t >= 20)
-        envelope = sum(((t > at) & (t < at+.25)).astype(float) for at in (5, 12, 25, 32))
+        envelope = sum(((t > at) & (t < at+.25)).astype(float) for at in (3.5, 7.5, 11.5, 15.5, 23.5, 27.5, 31.5, 35.5))
         target = .3*envelope*np.sin(2*np.pi*2500*tau)
         target += np.random.default_rng(1).normal(0, .001, len(t))
         # Independent pitch motion must not inherit the references' correction.

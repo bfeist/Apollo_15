@@ -20,9 +20,9 @@ import soundfile as sf
 
 import quindar_speed
 from quindar_retime import write_json
-from flutter_plan_store import planning_lock
+from flutter_plan_store import planning_lock, DEFAULT_DEFLUTTERED_ROOT
 
-DEFAULT_ANALYSIS_ROOT = Path('D:/Apollo_15_30-Track/quindar_post_deflutter_analysis')
+DEFAULT_ANALYSIS_ROOT = Path('D:/Apollo_15_30-Track/quindar_post_deflutter_analysis_v2')
 SETTINGS = dict(block_seconds=60, context_seconds=1, frequency_band_hz=[2250,2750],
                 post_max_fm_sd_hz=35., post_max_amplitude_ratio=3.)
 
@@ -238,7 +238,7 @@ def survey(original_root,defluttered_root,output,tapes=None,workers=8,max_files=
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--original-root',type=Path,default=Path('D:/Apollo_15_30-Track/orig_concatenated'))
-    p.add_argument('--defluttered-root',type=Path,default=Path('D:/Apollo_15_30-Track/defluttered'))
+    p.add_argument('--defluttered-root',type=Path,default=DEFAULT_DEFLUTTERED_ROOT)
     p.add_argument('--output',type=Path,default=DEFAULT_ANALYSIS_ROOT)
     p.add_argument('--tape',action='append')
     p.add_argument('--workers',type=int,default=8)

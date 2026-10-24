@@ -15,6 +15,9 @@ import soundfile as sf
 
 from audio_processing import DEFAULT_BROADBAND_CAP_DB, TONAL_CLEANUP_METHOD
 from flutter_plan_store import load_saved_plan
+from flutter_policy import (METHODOLOGY, LIMITS, policy_digest, implementation_digest,
+                            shifted_curve, evidence_strength, numeric_pass)
+from io_metrics import read_bytes as os_read_bytes, difference as io_difference
 from flutter_tracking import (RATE, beeps, burst_track, discover, evaluate_events, harmonic_map,
                               signed_map, spans, trajectory)
 
@@ -139,9 +142,62 @@ def split_events(events, region):
     start = region['analysis_start']
     events = sorted((b for b in events if b['start'] >= region['start_seconds']-start+2
                      and b['end'] <= region['end_seconds']-start-2), key=lambda b: b['start'])
+    separated = []
+    for event in events:
+        if not separated or event['start']-separated[-1]['start'] >= LIMITS['independent_window_seconds']:
+            separated.append(event)
+    events = separated
     # Split by event order, so an early cluster still has genuinely unused events.
     n = max(1, len(events)//2)
     return events[:n], events[n:]
+
+
+def fair_shortlist(candidates, screening, limit):
+    """Greedy coverage of target winners; a channel number never sets priority."""
+    eligible = {c['key']: c for c in candidates if c['eligible']}
+    scores = {}
+    for s in screening:
+        if s['proxy_loss'] is not None:
+            scores.setdefault(s['target_channel'], []).append(s)
+    winners = {ch: min(rows, key=lambda r: (r['proxy_loss'], r['key']))['key'] for ch, rows in scores.items()}
+    chosen = []
+    while eligible and len(chosen) < limit:
+        best = max(eligible.values(), key=lambda c: (sum(k == c['key'] for k in winners.values()), c['rank'], c['key']))
+        chosen.append(best)
+        eligible.pop(best['key'])
+        winners = {ch: k for ch, k in winners.items() if k != best['key']}
+    return chosen, dict(limit=limit, eligible_candidates=len(chosen)+len(eligible),
+                        exhausted=bool(eligible), targets_without_winner=sorted(winners),
+                        untried_candidates=sorted(eligible),
+                        interpretation='Budget exhaustion is not exhausted evidence; increase reference-limit for calibration before freezing holdouts')
+
+
+def attach_survey(inv, path):
+    from carrier_survey import load_survey
+    from flutter_policy import digest
+    index, rows = load_survey(path)
+    if Path(index['source']).resolve() != Path(inv['input']).resolve():
+        raise ValueError('Carrier survey belongs to different originals')
+    expected = {r['path'] for r in inv['channels']} | {r['path'] for r in inv.get('excluded_files', [])}
+    if {r['source']['path'] for r in rows} != expected:
+        raise ValueError('Carrier survey must cover every canonical and unlabelled original')
+    numbered = {r['path']: r for r in inv['channels']}
+    extra = []
+    for i, scan in enumerate(rows):
+        source = scan['source']
+        row = numbered.get(source['path'])
+        if row is None:
+            stamp = STAMP.search(Path(source['path']).name)
+            absolute = seconds(stamp[1])
+            row = dict(source, channel=f'unlabelled_{i}', role='timing_only', head=None,
+                       absolute_start=absolute, start_seconds=absolute-inv['origin_filename_seconds'])
+            row['end_seconds'] = row['start_seconds']+row['frames']/row['sample_rate']
+            extra.append(row)
+        row['carrier_windows'] = scan['islands']
+    inv['carrier_sources'] = extra
+    survey_path = Path(path)/'survey.json' if Path(path).is_dir() else Path(path)
+    inv['carrier_survey'] = dict(path=str(survey_path.resolve()), sha256=digest(survey_path))
+    return inv
 
 
 def calibration_proxy(x, sr, curve, events):
@@ -204,6 +260,9 @@ def quality_spans(gate, region):
 
 
 def analyze_region(inv, region, output, candidates_per_channel=4, reference_limit=4, quiet=False):
+    wall, cpu = time.perf_counter(), time.process_time()
+    io_start = os_read_bytes()
+    read_bytes = 0
     start, end = region['analysis_start'], region['analysis_end']
     data, coverage, candidates, traces, event_rows = {}, [], [], {}, {}
     core_lo = round((region['start_seconds']-start)*RATE)
@@ -214,10 +273,10 @@ def analyze_region(inv, region, output, candidates_per_channel=4, reference_limi
                     candidates=[], targets=[dict(channel=r['channel'], action='leave_uncorrected',
                         selected=None, reason='Insufficient tracking context') for r in inv['channels']
                         if r['role'] != 'timing_only'], maps={}, reference_spans=[])
-    for row in inv['channels']:
+    for row in inv['channels']+inv.get('carrier_sources', []):
         ch = row['channel']
-        if row['role'] == 'timing_only':
-            coverage.append(dict(channel=ch, status='inventoried_timing_only', reason='IRIG requires a separate decoder'))
+        if row['role'] == 'timing_only' and not row.get('carrier_windows'):
+            coverage.append(dict(channel=ch, status='screened_no_candidate' if 'carrier_windows' in row else 'not_scanned', reason='Independent carrier survey required; decoding is separate'))
             continue
         # Context may not cross a channel's actual coverage edge. Missing context
         # is explicit, rather than padding silence and inventing a reference.
@@ -225,32 +284,59 @@ def analyze_region(inv, region, output, candidates_per_channel=4, reference_limi
             coverage.append(dict(channel=ch, status='uncovered', reason='Missing source or boundary context'))
             continue
         x, sr, digest = read_channel(row, start, end)
+        read_bytes += x.nbytes
         data[ch] = (x, sr)
         coverage.append(dict(channel=ch, status='scanned', excerpt_float64_sha256=digest))
-        event_rows[ch] = beeps(x, sr)
-        discovered = discover(x, sr, candidates_per_channel)
+        event_rows[ch] = beeps(x, sr) if row['role'] != 'timing_only' else []
+        discovered = discover(x, sr, candidates_per_channel) if row['role'] != 'timing_only' else []
+        local_windows = [w for w in row.get('carrier_windows', [])
+                         if row['start_seconds']+w['end_sample']/sr > start
+                         and row['start_seconds']+w['start_sample']/sr < end]
+        for w in local_windows:
+            if not any(abs(c['carrier_hz']-w['carrier_hz']) < 40 for c in discovered):
+                discovered.append(dict(carrier_hz=w['carrier_hz'], contrast_db=w['contrast_db'],
+                    occupancy=1., from_carrier_survey=True, identity='generic_reference'))
         for candidate in discovered:
             hz = candidate['carrier_hz']
             capture = min(140., max(9., hz*.025), hz*.4)
             key = f'c{ch}_{hz:.2f}'
+            mask = None
+            if candidate.get('from_carrier_survey'):
+                times = start+np.arange(round((end-start)*RATE))/RATE
+                mask = np.zeros(len(times), dtype=bool)
+                for w in local_windows:
+                    if abs(w['carrier_hz']-hz) < 40:
+                        mask |= ((times >= row['start_seconds']+w['start_sample']/sr)
+                                 & (times < row['start_seconds']+w['end_sample']/sr))
             try:
-                trace = trajectory(x, sr, hz, capture)
+                # Acquire widely before narrow-capture failure can reject a tone.
+                wide_capture = min(180., max(12., hz*.09), hz*.45)
+                wide = trajectory(x, sr, hz, wide_capture, mask)
+                try:
+                    trace = trajectory(x, sr, hz, capture, mask)
+                except ValueError:
+                    trace = wide
+                if np.mean(wide[5][core_lo:core_hi]) > np.mean(trace[5][core_lo:core_hi]):
+                    trace = wide
             except ValueError as exc:
                 candidates.append(dict(candidate, key=key, channel=ch, rank=0.,
                                        eligible=False, rejection=str(exc)))
                 continue
             e = signed_map(trace)
             rms = float(np.std(e[core_lo:core_hi])) if core_hi > core_lo else 0.
-            support = float(np.mean(trace[5][core_lo:core_hi] >= .95))
+            support = float(np.mean(trace[5][core_lo:core_hi] >= .95)) if core_hi > core_lo else 0.
             rank = candidate['occupancy']*support*min(candidate['contrast_db']/30, 1)
             rank *= min(rms/.004, 1)*max(.05, trace[-1]['concentration'])
             record = dict(candidate, key=key, channel=ch, tracking=trace[-1],
                           speed_rms_percent=100*rms, core_support=support, rank=rank,
-                          eligible=bool(support >= .5 and .0002 < rms < .04))
+                          eligible=bool((support >= .5 or (mask is not None and support*(region['end_seconds']-region['start_seconds']) >= 2)) and .0002 < rms < .04),
+                          carrier_status='carrier_supported' if support > 0 else 'carrier_candidate',
+                          acquisition_masked=mask is not None)
             candidates.append(record)
             traces[key] = trace
+            traces[key+'__mask'] = mask
         if not quiet:
-            print(f"  {region['id']} CH{ch:02d}: {len(discovered)} references, {len(event_rows[ch])} check events", flush=True)
+            print(f"  {region['id']} channel {ch}: {len(discovered)} references, {len(event_rows[ch])} check events", flush=True)
     candidates.sort(key=lambda c: c['rank'], reverse=True)
     # All discovered candidates get a target-calibration screen. This prevents a
     # strong but irrelevant hum family from consuming the expensive shortlist.
@@ -266,35 +352,14 @@ def analyze_region(inv, region, output, candidates_per_channel=4, reference_limi
                 continue
             score = calibration_proxy(x, sr, signed_map(traces[c['key']]), cal)
             scores.append(dict(key=c['key'], target_channel=ch, proxy_loss=score))
-        screening.extend(sorted(scores, key=lambda s: s['proxy_loss']))
-    chosen, seen = [], set()
-    # At least one calibration winner per target with evidence, then fill by
-    # reference quality and frequency diversity. The cap is a search budget.
-    for ch in sorted(event_rows):
-        ranked = [s for s in screening if s['target_channel'] == ch]
-        for s in ranked[:2]:
-            c = next(c for c in candidates if c['key'] == s['key'])
-            if c['key'] not in seen and len(chosen) < reference_limit:
-                chosen.append(c)
-                seen.add(c['key'])
-    for c in candidates:
-        if len(chosen) >= reference_limit:
-            break
-        if c['eligible'] and c['key'] not in seen and all(abs(c['carrier_hz']-v['carrier_hz']) > 20 for v in chosen):
-            chosen.append(c)
-            seen.add(c['key'])
-    for c in candidates:
-        if len(chosen) >= reference_limit:
-            break
-        if c['eligible'] and c['key'] not in seen:
-            chosen.append(c)
-            seen.add(c['key'])
+        screening.extend(sorted(scores, key=lambda s: float('inf') if s['proxy_loss'] is None else s['proxy_loss']))
+    chosen, search_budget = fair_shortlist(candidates, screening, reference_limit)
     variants, maps, gates = [], {}, {}
     for c in chosen:
         trace = traces[c['key']]
         x, sr = data[c['channel']]
         wide_capture = min(180., max(12., c['carrier_hz']*.09), c['carrier_hz']*.45)
-        wide = trajectory(x, sr, c['carrier_hz'], wide_capture)
+        wide = trajectory(x, sr, c['carrier_hz'], wide_capture, traces[c['key']+'__mask'])
         specs = [('harmonic_3', 'harmonic_3', trace, harmonic_map(trace), None),
                  ('harmonic_3_wide', 'harmonic_3', wide, harmonic_map(wide), None),
                  ('signed_2_15', 'signed_2_15', wide, signed_map(wide, (2, 15)), [2, 15]),
@@ -304,7 +369,10 @@ def analyze_region(inv, region, output, candidates_per_channel=4, reference_limi
             maps[key], gates[key] = e, tr[5]
             variants.append(dict(key=key, reference_channel=c['channel'], method=method,
                                  carrier_hz=c['carrier_hz'], capture_hz=tr[-1]['capture_hz'],
-                                 modulation_band_hz=band, harmonics=3 if method == 'harmonic_3' else None,
+                                 modulation_band_hz=band or [4, 30], harmonic_seed_band_hz=[4, 10] if method == 'harmonic_3' else None,
+                                 speed_limit_saturation_fraction=float(np.mean(abs(e) >= .049-1e-9)),
+                                 residual_reference_motion_rms_percent=float(100*np.std((tr[1]-e)[tr[5] >= .95])) if np.any(tr[5] >= .95) else None,
+                                 harmonics=3 if method == 'harmonic_3' else None,
                                  reference_rank=c['rank'], tracking=tr[-1]))
     # Default for targets without check events remains the strongest shortlisted
     # reference by reference quality, using A. Target-trained ranking is separate.
@@ -322,6 +390,10 @@ def analyze_region(inv, region, output, candidates_per_channel=4, reference_limi
         elif variants:
             x, sr = data[ch]
             cal, hold = split_events(event_rows[ch], region)
+            target['evidence'] = evidence_strength(cal, hold)
+            target['reserved_events'] = [b for b in event_rows[ch]
+                if b['start'] >= region['start_seconds']-start and b['end'] <= region['end_seconds']-start
+                and (b['start'] < region['start_seconds']-start+2 or b['end'] > region['end_seconds']-start-2)]
             for v in variants:
                 if v['reference_channel'] == ch:
                     continue  # A reference cannot validate its own transfer.
@@ -337,15 +409,53 @@ def analyze_region(inv, region, output, candidates_per_channel=4, reference_limi
                 e = maps[v['key']]
                 metrics = evaluate_events(x, sr, e, hold)
                 wrong = evaluate_events(x, sr, -e, hold)
-                shifted = evaluate_events(x, sr, np.roll(e, 14), hold)
-                passed = transfer_passes(metrics, wrong, shifted)
-                target.update(holdout=metrics, wrong_sign=wrong, shift_70ms=shifted,
+                shifted = {str(shift): evaluate_events(x, sr, shifted_curve(e, shift), hold)
+                           for shift in LIMITS['wrong_time_seconds']}
+                no_motion = evaluate_events(x, sr, np.zeros_like(e), hold)
+                # AM-derived phase control tests amplitude coupling separately.
+                tr = traces[next(c['key'] for c in chosen if v['key'].startswith(c['key']+'_'))]
+                amplitude = tr[3]/max(float(np.median(tr[3])), 1e-12)-1
+                am = amplitude*float(np.std(e))/max(float(np.std(amplitude)), 1e-12)
+                am *= gates[v['key']]
+                am_control = evaluate_events(x, sr, np.clip(am, -.049, .049), hold)
+                passed = numeric_pass(metrics, [wrong, no_motion, am_control], list(shifted.values()))
+                supported_events = all(np.min(gates[v['key']][round(b['start']*RATE):round(b['end']*RATE)]) >= LIMITS['minimum_support'] for b in cal+hold)
+                strong = target['evidence']['level'] == 'multiple_time_windows'
+                passed = passed and supported_events
+                low_baseline = bool(metrics) and all(m['before_rms_hz'] < LIMITS['low_baseline_hz'] for b in metrics for m in b['margins'])
+                target.update(holdout=metrics, wrong_sign=wrong, wrong_time_controls=shifted,
+                              no_motion_control=no_motion, amplitude_control=am_control,
                               numeric_transfer_passed=passed,
-                              action='render_and_review' if passed else 'leave_uncorrected',
+                              action=('render_and_review' if strong else 'validate_transfer') if passed else 'leave_uncorrected',
                               reason='Local held-out event improvement; speech/head provenance still needs review'
                               if passed else 'Frozen calibration choice failed held-out transfer or controls')
+                if low_baseline:
+                    target.update(action='leave_uncorrected', reason='Low baseline flutter: no-op/no-harm policy', no_op=True)
             target['reference_spans'] = quality_spans(gates[v['key']], region)
         targets.append(target)
+    # Freeze one donor and one distinct target carrier using reference quality
+    # only. Never cycle alternatives after inspecting group holdouts.
+    from flutter_groups import demonstrate_group, SETTINGS as GROUP_SETTINGS
+    donors = [t for t in targets if t['action'] == 'render_and_review']
+    for target in targets:
+        if target['action'] != 'validate_transfer' or target.get('holdout_event_count', 0):
+            continue
+        donor = next((t for t in donors if t['selected'] == target['selected']), None)
+        if donor is None:
+            continue
+        variant = next(v for v in variants if v['key'] == donor['selected'])
+        own = next((c for c in candidates if c['channel'] == target['channel'] and c['eligible']
+                    and abs(c['carrier_hz']-variant['carrier_hz']) >= GROUP_SETTINGS['minimum_frequency_separation_hz']), None)
+        if own is None:
+            continue
+        group = demonstrate_group(maps[donor['selected']], gates[donor['selected']], traces[own['key']], region)
+        group.update(direct_donor_channel=donor['channel'], independent_target_reference=own['key'])
+        target['transfer_group'] = group
+        if group['passed']:
+            target.update(action='group_render_and_review', reason='Bounded independently checked playback-motion group; listening still required')
+            target['evidence']['transfer_group_supported'] = True
+            target['reserved_events'] = [dict(e, carrier_hz=own['carrier_hz'],
+                capture_hz=traces[own['key']][-1]['capture_hz'], evidence_kind='independent_target_carrier') for e in group['reserved_events']]
     used = {t['selected'] for t in targets if t['selected']}
     if primary:
         used.add(primary['key'])
@@ -355,6 +465,9 @@ def analyze_region(inv, region, output, candidates_per_channel=4, reference_limi
         np.savez_compressed(map_path, **{k: maps[k] for k in sorted(used)},
                             **{k+'__support': gates[k] for k in sorted(used)})
     return dict(region, status='analyzed', decision='regional_candidates' if primary else 'leave_uncorrected',
+                search_budget=search_budget,
+                performance=dict(decoded_read_bytes=read_bytes, os_read_bytes=io_difference(io_start),
+                                 wall_seconds=time.perf_counter()-wall, cpu_seconds=time.process_time()-cpu),
                 coverage=coverage, candidates=candidates, calibration_screening=screening,
                 variants=variants, targets=targets,
                 primary=primary['key'] if primary else None,
@@ -390,7 +503,7 @@ def transitions(regions, folder):
                 supported = (lm[previous['selected']+'__support'][li] >= .95) & (rm[target['selected']+'__support'][ri] >= .95)
                 disagreement = float(np.sqrt(np.mean((le[supported]-re[supported])**2))) if supported.any() else None
                 usable = supported.mean() >= .9 and disagreement is not None and disagreement <= .005
-                transfer_ready = previous['action'] == target['action'] == 'render_and_review'
+                transfer_ready = all(t['action'] in {'render_and_review', 'group_render_and_review'} for t in (previous, target))
                 record['targets'].append(dict(channel=target['channel'],
                     reference_or_method_changed=previous['selected'] != target['selected'],
                     overlap_speed_rms_difference=disagreement,
@@ -411,7 +524,35 @@ def save_plan(plan, output):
     plan.setdefault('transitions', [])
     plan['summary'] = dict(regions=len(regions), analyzed=sum(r['status'] == 'analyzed' for r in regions),
         target_actions={action: sum(t['action'] == action for r in regions for t in r.get('targets', []))
-                        for action in ('render_and_review', 'validate_transfer', 'leave_uncorrected')})
+                        for action in ('render_and_review', 'group_render_and_review', 'validate_transfer', 'leave_uncorrected')})
+    coverage = []
+    for row in plan['inventory']['channels']:
+        if row['role'] == 'timing_only':
+            continue
+        seconds_by_category = dict(direct_numeric=0., demonstrated_group=0., proposal=0., rejected=0., no_evidence=0., pending=0.)
+        switches, exhausted, previous = 0, 0, None
+        for region in regions:
+            duration = max(0., min(row['end_seconds'], region['end_seconds'])-max(row['start_seconds'], region['start_seconds']))
+            if not duration:
+                continue
+            target = next((t for t in region.get('targets', []) if t['channel'] == row['channel']), None)
+            if region['status'] != 'analyzed':
+                category = 'pending'
+            elif target is None or not target.get('selected'):
+                category = 'no_evidence'
+            else:
+                category = {'render_and_review': 'direct_numeric', 'group_render_and_review': 'demonstrated_group', 'validate_transfer': 'proposal', 'leave_uncorrected': 'rejected'}[target['action']]
+                if previous is not None and previous != target['selected']:
+                    switches += 1
+                previous = target['selected']
+            seconds_by_category[category] += duration
+            exhausted += int(region.get('search_budget', {}).get('exhausted', False))
+        coverage.append(dict(channel=row['channel'], seconds=seconds_by_category,
+                             reference_switches=switches, search_budget_exhausted_regions=exhausted,
+                             listening_approved=False, production_accepted=False,
+                             final_map_diagnostics='Measured by continuous renderer before acceptance'))
+    plan['summary']['duration_weighted_coverage'] = coverage
+    plan['summary']['measurement'] = 'Channel-region duration; within-region support gaps are reported separately, not implied corrected'
     # Keep the frequently checkpointed index small. Detailed evidence is written
     # once per region, avoiding quadratic rewriting on a 17-hour tape.
     index = dict(plan, regions=[])
@@ -442,7 +583,7 @@ def save_plan(plan, output):
 
 def plan_tape(source, output, *, region_seconds=60, context_seconds=4, start=0,
               duration=None, candidates_per_channel=4, reference_limit=4,
-              max_regions=None, resume=False, workers=1, reuse=False):
+              max_regions=None, resume=False, workers=1, reuse=False, carrier_survey=None):
     source, output = Path(source).resolve(), Path(output).resolve()
     if source == output or source in output.parents or output in source.parents:
         raise ValueError('Input and output must be non-overlapping')
@@ -453,17 +594,20 @@ def plan_tape(source, output, *, region_seconds=60, context_seconds=4, start=0,
     if workers == 0:
         workers = min(8, max(1, (os.cpu_count() or 2)//2))
     inv = inventory(source)
+    if carrier_survey is not None:
+        attach_survey(inv, carrier_survey)
     params = dict(region_seconds=region_seconds, context_seconds=context_seconds, start=start,
-                  duration=duration, candidates_per_channel=candidates_per_channel, reference_limit=reference_limit)
-    code_hash = hashlib.sha256(b''.join(Path(__file__).with_name(name).read_bytes()
-        for name in ('flutter_planning.py', 'flutter_tracking.py', 'flutter.py', 'audio_processing.py'))).hexdigest()
+                  duration=duration, candidates_per_channel=candidates_per_channel, reference_limit=reference_limit,
+                  carrier_survey=inv.get('carrier_survey'))
+    code_hash = implementation_digest()
     if reuse and (output/'plan.json').is_file():
         saved = load_saved_plan(output/'plan.json', require_complete=False)
+        if saved.get('methodology') != METHODOLOGY or saved.get('implementation_sha256') != code_hash or saved.get('policy_sha256') != policy_digest():
+            raise ValueError('Stored plan methodology or implementation changed; preserve baseline and choose a new planning destination')
         if saved['inventory'] != inv or saved['parameters'] != params:
             raise ValueError('Stored plan uses different sources or settings; choose a different output for a new plan')
         if saved.get('complete') and saved.get('source_validation') == 'verified':
-            # A complete, verified map is an immutable result. A later code
-            # change does not require repeating its analysis.
+            # Only an exact compatible completed result is reusable.
             print(f"Reusing completed tape plan: {output/'plan.json'} (no analysis rerun)", flush=True)
             return saved
         resume = True
@@ -490,7 +634,9 @@ def plan_tape(source, output, *, region_seconds=60, context_seconds=4, start=0,
             raise ValueError('Use a fresh output folder, or --resume with identical settings')
         regions = make_regions(inv, start, duration, region_seconds, context_seconds)
         output.mkdir(parents=True, exist_ok=True)
-        plan = dict(schema=SCHEMA, implementation_sha256=code_hash, inventory=inv, parameters=params,
+        plan = dict(schema=SCHEMA, methodology=METHODOLOGY, policy_sha256=policy_digest(),
+                    acceptance_limits=LIMITS, acceptance_status='development_requires_pilot_and_listening',
+                    implementation_sha256=code_hash, inventory=inv, parameters=params,
                     full_tape=start == 0 and (duration is None or duration >= inv['duration_seconds']),
                     policy=dict(first_method='harmonic_3', alternatives=['signed_2_15', 'signed_2_30'],
                         selection='Reference quality plus early-event calibration shortlist; frozen per-target choice tested on later unused events',
@@ -531,6 +677,9 @@ def plan_tape(source, output, *, region_seconds=60, context_seconds=4, start=0,
         elapsed = time.perf_counter()-started
         remaining = sum(r['end_seconds']-r['start_seconds'] for r in plan['regions'] if r['status'] != 'analyzed')
         plan['performance'] = dict(workers=workers, invocation_elapsed_seconds=elapsed,
+            decoded_read_bytes=sum(r.get('performance', {}).get('decoded_read_bytes', 0) for r in plan['regions']),
+            os_read_bytes=sum(r.get('performance', {}).get('os_read_bytes') or 0 for r in plan['regions']),
+            worker_cpu_seconds=sum(r.get('performance', {}).get('cpu_seconds', 0.) for r in plan['regions']),
             invocation_analyzed_seconds=processed_seconds,
             projected_remaining_seconds=remaining*elapsed/processed_seconds,
             projection_basis='Observed throughput in this invocation; varies with events, disk and CPU load')
@@ -567,7 +716,10 @@ def plan_tape(source, output, *, region_seconds=60, context_seconds=4, start=0,
                 for future in pending:
                     future.cancel()
     # Detect source changes even if they happened after the last channel read.
-    if inventory(source) != inv:
+    final_inventory = inventory(source)
+    if carrier_survey is not None:
+        attach_survey(final_inventory, carrier_survey)
+    if final_inventory != inv:
         plan['source_validation'] = 'changed'
         save_plan(plan, output)
         raise ValueError('Sources changed during planning; results require a new run')
