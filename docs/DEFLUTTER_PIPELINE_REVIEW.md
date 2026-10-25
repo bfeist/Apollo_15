@@ -1,6 +1,6 @@
 # Deflutter pipeline review and rollout criteria
 
-Implementation follow-up: the revised code and operational commands are documented in the [v2 runbook](docs/deflutter_v2.md). The findings below describe the pre-v2 review snapshot. The new survey, independent decoder, transfer controls, version gates, final-map checks and acceptance records now exist; mission-wide survey and pilot/listening acceptance remain required before production. Stage 03 and the existing T510083 artifacts remain preserved.
+Implementation follow-up: the revised code and operational commands are documented in the [v2 runbook](deflutter_v2.md). The findings below describe the pre-v2 review snapshot. The new survey, independent decoder, transfer controls, version gates, final-map checks and acceptance records now exist; mission-wide survey and pilot/listening acceptance remain required before production. Stage 03 and the existing T510083 artifacts remain preserved.
 
 Reviewed 2026-10-24 against the local research, saved T510083 results, current working-tree implementation, and `F:/_repos/Apollo_Audio_Processing`.
 
@@ -26,9 +26,9 @@ Evidence locations:
 
 - `D:/Apollo_15_30-Track/deflutter_planning/A15_T510083/plan.json`
 - `D:/Apollo_15_30-Track/defluttered/A15_T510083/CH20/review.json`
-- [Earlier whole-tape assessment](reports/whole_tape_assessment_20261017/assessment.json)
-- [Bounded rendered-CH20 assessment](reports/bounded_CH20_assessment_20261018/assessment.json)
-- [Research baseline](IRIG_FREE_FLUTTER_RESEARCH.md) and [expanded study](reports/bespoke_expanded_20261017/summary.json)
+- [Earlier whole-tape assessment](../reports/whole_tape_assessment_20261017/assessment.json)
+- [Bounded rendered-CH20 assessment](../reports/bounded_CH20_assessment_20261018/assessment.json)
+- [Research baseline](IRIG_FREE_FLUTTER_RESEARCH.md) and [expanded study](../reports/bespoke_expanded_20261017/summary.json)
 
 The expanded study sampled 16 eligible tapes and found fresh exploratory passes on eight. T510073 and T510091 failed calibration; several tapes lacked suitable sampled events; T510092 behaved differently between passages. These are useful pilot cases, not permanent tape-level exclusions. There are now 39 canonical tape folders locally, so the prior study is not mission-wide coverage.
 
@@ -61,7 +61,7 @@ Reproduce with a new output JSON path:
 F:\_repos\Apollo_Audio_Processing\.venv\Scripts\python.exe research\irig_carrier_probe.py --input 'O:\30-track-audio\Apollo_11_30-Track\concatenated_wav_files\original\T648\A11_T648_HR1U_CH1.wav' --legacy-repo F:\_repos\Apollo_Audio_Processing --output reports\pipeline_review_20261024\a11_t648_irig_probe_repeat.json
 ```
 
-[Probe code](research/irig_carrier_probe.py) and [local evidence](reports/pipeline_review_20261024/a11_t648_irig_probe.json). This establishes a useful known-positive test source and demonstrates the need for preprocessing and a broad acquisition search. It does not validate Apollo 15 detection sensitivity, carrier-to-speech transfer, or corrected speech quality.
+[Probe code](../research/irig_carrier_probe.py) and [local evidence](../reports/pipeline_review_20261024/a11_t648_irig_probe.json). This establishes a useful known-positive test source and demonstrates the need for preprocessing and a broad acquisition search. It does not validate Apollo 15 detection sensitivity, carrier-to-speech transfer, or corrected speech quality.
 
 ### Survey design
 

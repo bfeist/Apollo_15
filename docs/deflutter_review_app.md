@@ -1,17 +1,17 @@
 # Local deflutter evidence desk
 
-From `F:\_repos\Apollo_15`, start the application with the existing environment:
+From `F:\_repos\Apollo_15`, start the application with `uv`:
 
 ```powershell
-.venv\Scripts\python.exe scripts\deflutter_review.py
+uv run python scripts/deflutter_review.py
 ```
 
-Open **http://127.0.0.1:8765**. Alternatively use `uv run python scripts/deflutter_review.py`. No new Python packages, JavaScript packages, CDN, or build step are needed. Stop with Ctrl+C. `--port` selects another port. The server binds only to loopback.
+Open **http://127.0.0.1:8765**. No new Python packages, JavaScript packages, CDN, or build step are needed. Stop with Ctrl+C. `--port` selects another port. The server binds only to loopback.
 
 To exercise listening, decisions, exclusions and simulated acceptance without mission processing:
 
 ```powershell
-.venv\Scripts\python.exe scripts\deflutter_review.py --demo
+uv run python scripts/deflutter_review.py --demo
 ```
 
 The demo makes six two-minute synthetic recordings, regional evidence, denoised fixtures and independently checked continuous maps under `reports/deflutter_demo/`. These are harmonic voice-like signals and measurement tones, not real speech or scientific qualification. Demo plans and acceptance records are explicitly rejected by CLI production/planning gates. A changed implementation creates a separate fixture directory; prior demo records remain intact.
@@ -72,13 +72,13 @@ Records include policy version, reviewer/time, seed, exact coordinates, all judg
 Default state is `reports/deflutter_review`. After acceptance, inspect readiness using its approval paths:
 
 ```powershell
-.venv\Scripts\python.exe scripts\deflutter_readiness.py --rollout-approval reports/deflutter_review/methodology/rollout_approval.json --approval-root reports/deflutter_review/approvals
+uv run python scripts/deflutter_readiness.py --rollout-approval reports/deflutter_review/methodology/rollout_approval.json --approval-root reports/deflutter_review/approvals
 ```
 
 Production remains a separate explicit command, for example for an accepted channel:
 
 ```powershell
-.venv\Scripts\python.exe scripts\pipeline.py run --stages 05b --tape A15_T510083 --channel 20 --production-approval-root reports/deflutter_review/approvals --plain
+uv run python scripts/pipeline.py run --stages 05b --tape A15_T510083 --channel 20 --production-approval-root reports/deflutter_review/approvals --plain
 ```
 
 The existing all-tape command can use the same approval root, after inspecting readiness. This app never invokes it. Copying an acceptance file without its immutable certificate/evidence and failure ledger does not create portable authorization.
@@ -109,7 +109,7 @@ Inputs are read-only. All writes are confined to a separate state root; it must 
 Run the targeted suite:
 
 ```powershell
-.venv\Scripts\python.exe -m unittest discover -s tests -p test_review_sampling.py -v
+uv run python -m unittest discover -s tests -p test_review_sampling.py -v
 ```
 
 It covers seeded risk/random selection and coverage, deduplication/provenance, no content-lag shifting, stale evidence, retained failures, bounded follow-ups, full-map excerpt equivalence, pilot-only scope, methodology/production lifecycle, production-gate dispatch, changed-method holdouts, configured roots, Host/origin/token checks and static serving.

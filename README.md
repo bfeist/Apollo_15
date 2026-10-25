@@ -4,9 +4,15 @@ This repository contains the processing pipeline for the **30-track audio record
 
 The aim is to improve intelligibility while preserving the voices and character of the historical recordings. Original audio stays separate from processed outputs. Source audio, generated reports, listening samples, and processing runs are not distributed in this repository.
 
+## Local pipeline control room
+
+Double-click `start_pipeline_app.cmd`, or run `uv run python scripts/pipeline_app.py` and open **http://127.0.0.1:8766/**. The Apollo 15 control room tracks every tape and channel through preparation, planning, review, deflutter rendering and retiming. Select tapes to preview processing commands and prerequisites, then manage a persistent queue with live logs. Tape journals and listening history sit alongside artifact-derived completion status.
+
+The existing listening desk is integrated at **/review**, sharing its saved queues, judgments and acceptance records. Processing uses the existing CLI scripts and acceptance checks; the queue starts paused. [Startup, workflow, data roots and restart behavior](docs/pipeline_app.md).
+
 ## Local deflutter review interface
 
-Run `.venv\Scripts\python.exe scripts\deflutter_review.py` and open **http://127.0.0.1:8765**. Add `--demo` to exercise the complete review workflow with synthetic fixtures and no mission processing. The default listening budget is 30 matched-gain comparisons of 20 seconds (about 20 minutes for both versions), selected for condition coverage, risk and reproducible random holdouts.
+Run `uv run python scripts/deflutter_review.py` and open **http://127.0.0.1:8765**. Add `--demo` to exercise the complete review workflow with synthetic fixtures and no mission processing. The default listening budget is 30 matched-gain comparisons of 20 seconds (about 20 minutes for both versions), selected for condition coverage, risk and reproducible random holdouts.
 
 The interface shows mission readiness, streams bounded comparisons from continuous full-channel maps, records judgments and previews explicit sampling-based methodology or production acceptance. It preserves stage 03 and existing artifacts; approval never launches rendering. [Startup, policy, CLI integration, configuration and evidence gaps](docs/deflutter_review_app.md).
 
@@ -184,7 +190,7 @@ Completed intermediates are retained across runs and verified against source ide
 
 ### Plan and apply flutter correction
 
-The [pipeline review](DEFLUTTER_PIPELINE_REVIEW.md) is implemented as the versioned workflow described in the [v2 runbook](docs/deflutter_v2.md). Carrier surveys and clock decoding have independent caches. Full-tape planning requires frozen pilot/listening acceptance; whole-channel production rendering requires acceptance of the exact plan and continuous map. The successful earlier T510083 CH20 render used experimental transfer and remains a baseline.
+The [pipeline review](docs/DEFLUTTER_PIPELINE_REVIEW.md) is implemented as the versioned workflow described in the [v2 runbook](docs/deflutter_v2.md). Carrier surveys and clock decoding have independent caches. Full-tape planning requires frozen pilot/listening acceptance; whole-channel production rendering requires acceptance of the exact plan and continuous map. The successful earlier T510083 CH20 render used experimental transfer and remains a baseline.
 
 Screen the originals, then run bounded planning pilots before accepting full-tape planning:
 
@@ -224,16 +230,17 @@ The survey measures completed **defluttered audio**, not original audio. Plannin
 
 ## Repository contents
 
-For suspected channel-label errors, see the [channel identification and mislabelling investigation plan](CHANNEL_IDENTIFICATION_AND_MISLABELLING.md), covering transcript/acoustic evidence, time-varying mappings, and non-destructive annotations. The separate [crosstalk removal research plan](CROSSTALK_REMOVAL_RESEARCH.md) describes conditional reference cancellation and speech-preservation checks; removability is not yet established.
+For suspected channel-label errors, see the [channel identification and mislabelling investigation plan](docs/CHANNEL_IDENTIFICATION_AND_MISLABELLING.md), covering transcript/acoustic evidence, time-varying mappings, and non-destructive annotations. The separate [crosstalk removal research plan](docs/CROSSTALK_REMOVAL_RESEARCH.md) describes conditional reference cancellation and speech-preservation checks; removability is not yet established.
 
 - `scripts/`: pipeline stages, shared processing code, and review utilities. `noise_review.html` is the template loaded by `review_noise_reduction.py`, so it is required source.
 - `configs/`: processing decisions and example configurations. Examples can reference local audio and reports; adapt those paths to your data.
 - `tests/`: automated checks for processing, orchestration, and file handling.
+- `docs/`: runbooks, pipeline reviews, and research plans.
 - `docs/images/`: static measurement charts only. Quindar charts come from `reports/quindar_speed_T510083_CH20_20261017/review/`; the check-tone validation chart comes from `reports/nested_cleanup_20261017/heldout_beep_frequency_motion.png`. No recordings or HTML players are copied.
 - `docs/render_readme_charts.py`: reproduces the denoising and reference-search figures from local `reports/noise_review_20261017_speech/` and `reports/regional_deflutter_T510083_audit/r00000.json`. Requires those ignored reports and Matplotlib; exports PNGs only.
 - `research/irig_free_20261016/`: experimental Python tools and their holdout configuration. These are research source, not production stages; some require local reports, data, or additional plotting dependencies.
 
-Git ignores generated `reports/`, `runs/`, historical experiment `archive/`, research snapshots, audio, numerical artifacts, and Python environments/caches. These files remain available locally. The historical `IRIG_FREE_FLUTTER_RESEARCH.md` report is also local-only; it contains experiment history and references to excluded artifacts.
+Git ignores generated `reports/`, `runs/`, historical experiment `archive/`, research snapshots, audio, numerical artifacts, and Python environments/caches. These files remain available locally. The historical `docs/IRIG_FREE_FLUTTER_RESEARCH.md` report is also local-only; it contains experiment history and references to excluded artifacts.
 
 ## Validation
 

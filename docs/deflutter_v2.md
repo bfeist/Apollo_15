@@ -2,7 +2,7 @@
 
 The implementation preserves stage 03 and the old T510083 plan/render. New defaults use `carrier_survey_v2`, `deflutter_planning_v2`, `defluttered_v2`, `quindar_post_deflutter_analysis_v2`, and `defluttered_retimed_v2` beneath `D:/Apollo_15_30-Track`.
 
-This implements the workflow in [DEFLUTTER_PIPELINE_REVIEW.md](../DEFLUTTER_PIPELINE_REVIEW.md). The initial numeric limits are **development limits**, not thresholds already qualified across Apollo 15. Carrier sensitivity, cross-tape pilots, fresh evaluation, and speech listening must be accepted before the batch. Tools never manufacture acceptance from a completed plan.
+This implements the workflow in [DEFLUTTER_PIPELINE_REVIEW.md](DEFLUTTER_PIPELINE_REVIEW.md). The initial numeric limits are **development limits**, not thresholds already qualified across Apollo 15. Carrier sensitivity, cross-tape pilots, fresh evaluation, and speech listening must be accepted before the batch. Tools never manufacture acceptance from a completed plan.
 
 ## 1. Qualify and benchmark the carrier survey
 
@@ -90,7 +90,7 @@ The record must identify the reviewer/date and hash-bound JSON evidence for `car
 
 ## 4. Full plans, continuous review and production
 
-The [local evidence desk](deflutter_review_app.md) adds `representative-listening-v1`, an explicit sampling-based alternative to individual channel listening approvals. Start with `python scripts/deflutter_review.py` (or add `--demo`). It prepares bounded audio from exact full-channel maps, retains numeric/transfer/listening distinctions, previews exact acceptance scope and writes records consumed by the existing readiness/production gates. Methodology can use review-only full-duration maps containing bounded pilots and explicit identity elsewhere; production still requires complete actual full-tape maps. Acceptance never starts rendering.
+The [local evidence desk](deflutter_review_app.md) adds `representative-listening-v1`, an explicit sampling-based alternative to individual channel listening approvals. Start with `uv run python scripts/deflutter_review.py` (or add `--demo`). It prepares bounded audio from exact full-channel maps, retains numeric/transfer/listening distinctions, previews exact acceptance scope and writes records consumed by the existing readiness/production gates. Methodology can use review-only full-duration maps containing bounded pilots and explicit identity elsewhere; production still requires complete actual full-tape maps. Acceptance never starts rendering.
 
 ```powershell
 uv run python scripts/pipeline.py run --stages 05a --all-tapes --rollout-approval configs/local_rollout_approval.json --plain

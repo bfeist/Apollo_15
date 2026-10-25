@@ -1,4 +1,4 @@
-"""Local deflutter evidence desk. Run: python scripts/deflutter_review.py --demo.
+"""Local deflutter evidence desk. Run: uv run python scripts/deflutter_review.py --demo.
 
 Only map construction, reserved numeric checks and bounded excerpts run here.
 Stage 03 and production audio rendering are deliberately separate commands.
@@ -24,6 +24,7 @@ import numpy as np
 import soundfile as sf
 
 from carrier_survey import load_survey
+from carrier_inventory import load_inventory
 from channel_review import (completed_denoised, continuous_map, denoised_signature,
                             joined_map_checks, prepare, check_source)
 from flutter import resample_at
@@ -79,6 +80,7 @@ class Desk:
         self.pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix='deflutter-review')
         self.lock = threading.RLock()
         self.jobs = {}
+        self.pending_refreshes = {}
         self.catalog = dict(tapes=[], channels=[], candidates=[], required_conditions=[], errors=[], scanned_at=None)
         self.token = secrets.token_urlsafe(32)
         self.preview_cache = {}
@@ -95,11 +97,13 @@ class Desk:
                     raise ValueError('Stale evidence: '+str(path))
                 self.hash_cache[key] = True
 
-    def submit(self, name, fn):
+    def submit(self, name, fn, *, coalesce=False):
         with self.lock:
             # Bound work in flight; double clicks reuse the current job.
             running = next((j for j in self.jobs.values() if j['status'] in ('queued', 'running')), None)
             if running:
+                if coalesce:
+                    self.pending_refreshes[fn] = name
                 return running
             job = dict(id=uuid.uuid4().hex, name=name, status='queued', progress='', started_at=now())
             self.jobs[job['id']] = job
@@ -114,6 +118,12 @@ class Desk:
                 job.update(status='complete', result=result, finished_at=now())
             except Exception as exc:
                 job.update(status='failed', error=str(exc), finished_at=now())
+            finally:
+                with self.lock:
+                    if self.pending_refreshes:
+                        followup, title = next(iter(self.pending_refreshes.items()))
+                        del self.pending_refreshes[followup]
+                        self.submit(title, followup, coalesce=True)
         self.pool.submit(run)
         return job
 
@@ -131,7 +141,7 @@ class Desk:
                     self.guard.check(path.parent/name)
         return load_saved_plan(path, expand_regions=False)
 
-    def safe_survey(self, path):
+    def safe_survey(self, path, *, inventory_only=False):
         path = self.guard.check(path)
         if path.is_dir():
             path /= 'survey.json'
@@ -140,7 +150,7 @@ class Desk:
         for r in survey['files']:
             self.guard.check(r['path'])
             self.guard.check(path.parent/r['cache'])
-        return load_survey(path)
+        return (load_inventory if inventory_only else load_survey)(path)
 
     def baseline_tapes(self):
         baseline = HERE.parent/'reports/bespoke_expanded_20261017/summary.json'
@@ -177,7 +187,7 @@ class Desk:
                     row['denoised_channels'] += int(completed_denoised(target, den, 0, target['frames']))
                 islands = []
                 try:
-                    index, surveys = self.safe_survey(Path(self.config['surveys'])/folder.name)
+                    index, surveys = self.safe_survey(Path(self.config['surveys'])/folder.name, inventory_only=True)
                     row['survey_complete'] = Path(index['source']).resolve() == folder.resolve()
                     row['survey_performance'] = index.get('performance', {})
                     discovered_islands |= any(s.get('islands') for s in surveys)
