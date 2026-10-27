@@ -1,24 +1,22 @@
 """Representative listening, scope and the actual CLI production gate."""
 from copy import deepcopy
-from http.server import ThreadingHTTPServer
 import json
 from pathlib import Path
+import shutil
 import sys
 import tempfile
-import threading
 import unittest
 from unittest.mock import patch
-from urllib.error import HTTPError
-from urllib.request import Request, urlopen
 
 import numpy as np
 import soundfile as sf
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
 from review_sampling import (POLICY, PILOTS, select_samples, assess, fingerprint,
-                             immutable_json, read_json, bound, verify_bindings, policy_hash)
-from review_demo import make_demo
-from deflutter_review import Desk, Handler
+                             immutable_json, read_json, bound, verify_bindings, policy_hash, audio_activity,
+                             comparison_change, automatic_no_change)
+from review_fixtures import make_demo
+from review_evidence import Desk
 from flutter_policy import require_production, require_rollout, implementation_digest, policy_digest
 from channel_review import render_warp
 
@@ -30,6 +28,70 @@ def candidates(n=80):
 
 
 class SelectionTests(unittest.TestCase):
+    def test_comparison_check_skips_only_exact_playback_equality(self):
+        a=np.sin(np.arange(8000)*.1)*.05
+        check=comparison_change(a,a.copy())
+        self.assertEqual(check['status'],'identical')
+        self.assertFalse(check['human_review_required'])
+        changed=a.copy();changed[100]+=2**-23
+        check=comparison_change(a,changed)
+        self.assertEqual(check['status'],'changed')
+        self.assertTrue(check['human_review_required'])
+        self.assertEqual(check['audible_benefit'],'not_assessed')
+        self.assertIsNone(comparison_change(np.zeros(100),np.zeros(100))['difference_dbfs'])
+        for invalid in (np.zeros(0),np.zeros(5),np.array([np.nan]*8000),np.zeros((8000,1))):
+            with self.assertRaises(ValueError):comparison_change(a,invalid)
+
+    def test_phase_difference_is_not_a_quality_or_audibility_verdict(self):
+        t=np.arange(8000)/8000
+        a=.1*np.sin(2*np.pi*500*t);b=.1*np.sin(2*np.pi*500*t+.8)
+        check=comparison_change(a,b)
+        self.assertEqual(check['status'],'changed')
+        self.assertEqual(check['audible_benefit'],'not_assessed')
+        self.assertTrue(check['human_review_required'])
+
+    def test_automatic_completion_needs_matching_bound_audio_and_retains_failures(self):
+        sample=dict(id='s',ready=True,excerpt=dict(comparison_check=comparison_change(np.zeros(10),np.zeros(10)),
+                                                 audio_hashes={'a.wav':'same','b.wav':'same'}))
+        self.assertTrue(automatic_no_change(sample))
+        result=assess(dict(samples=[sample]),[])
+        self.assertTrue(result['complete'])
+        self.assertEqual(result['automated_unchanged'],['s'])
+        bad=dict(sample_id='s',judgment='worse',flags={},cohorts=['c'])
+        self.assertFalse(assess(dict(samples=[sample]),[],[bad])['accepted_findings'])
+        sample['excerpt']['audio_hashes']['b.wav']='different'
+        self.assertFalse(automatic_no_change(sample))
+        self.assertFalse(assess(dict(samples=[sample]),[])['complete'])
+
+    def test_tape_spot_check_is_random_reproducible_and_bounded(self):
+        source=candidates(80)
+        a=select_samples(source,3,20,42,tape_random=True)
+        b=select_samples(list(reversed(source)),3,20,42,tape_random=True)
+        self.assertEqual([s['id'] for s in a['samples']],[s['id'] for s in b['samples']])
+        self.assertNotEqual([s['id'] for s in a['samples']],
+                            [s['id'] for s in select_samples(source,3,20,43,tape_random=True)['samples']])
+        self.assertEqual(a['estimated_listening_seconds'],120)
+        self.assertEqual(a['random_selected'],3)
+        self.assertTrue(all(s['selection_reason']=='Reproducible random tape spot check' for s in a['samples']))
+        for budget in (1,2,6,100):
+            with self.assertRaises(ValueError):select_samples(source,budget,tape_random=True)
+        short=select_samples(source[:2],3,tape_random=True)
+        self.assertTrue(short['unavailable_ordinary_random'])
+        self.assertEqual(short['comparisons'],2)
+
+    def test_activity_screen_rejects_silence_hum_and_stationary_noise(self):
+        sr=8000
+        t=np.arange(20*sr)/sr
+        rng=np.random.default_rng(15)
+        for x in (np.zeros(len(t)), .02*np.sin(2*np.pi*120*t),
+                  rng.normal(0,1e-4,len(t)), rng.normal(0,.02,len(t))):
+            self.assertFalse(audio_activity(x,sr)['usable'])
+        # Intermittent broadband activity, including quiet but usable passages.
+        x=rng.normal(0,.006,len(t))*((t%3)<1)
+        result=audio_activity(x,sr)
+        self.assertTrue(result['usable'],result)
+        self.assertGreater(result['active_seconds'],2)
+
     def test_reproducible_bounded_risk_random_and_coverage(self):
         source=candidates()
         required=['early','middle','late']+[f'cohort:{i}' for i in range(4)]
@@ -106,6 +168,40 @@ class DeskTests(unittest.TestCase):
             self.assertTrue(sample['ready'],sample.get('error'))
             self.desk.judge(dict(queue_id=queue['id'],sample_id=sample['id'],reviewer='Synthetic tester',judgment='unchanged'))
 
+    def test_three_random_excerpts_complete_tape_listening_without_condition_expansion(self):
+        tape=self.desk.catalog['tapes'][0]['tape']
+        options=dict(kind='production',tapes=[tape],budget=3,tape_random=True,seed=15)
+        queue=self.desk.queue(self.desk.create_queue(options,lambda _:None)['queue_id'])
+        self.assertEqual(len(queue['samples']),3)
+        self.assertEqual(queue['required_conditions'],['tape:'+tape])
+        with self.assertRaisesRegex(ValueError,'cannot qualify'):
+            self.desk.preview(dict(queue_id=queue['id'],kind='methodology',reviewer='Synthetic tester'))
+        rollout=self.desk.state/'methodology/rollout_approval.json'
+        immutable_json(rollout,dict(demo=True,status='accepted'))
+        item=self.desk.item(tape,2)
+        item['required_conditions'].extend(['unheard_rare_condition','unheard_channel_condition'])
+        payload=dict(queue_id=queue['id'],kind='production',reviewer='Synthetic tester')
+        self.assertEqual(self.desk.preview(payload)['status'],'blocked')
+        self.judge_all(queue)
+        preview=self.desk.preview(payload)
+        self.assertEqual(preview['status'],'ready',preview['errors'])
+        self.assertEqual(preview['scope'][0]['required_conditions'],['tape:'+tape])
+        decision=self.desk.accept(preview['id'])
+        self.assertEqual(decision['channels'],1)
+        self.assertFalse(decision['production_launched'])
+        # Passing listening never replaces independent automatic map checks.
+        path=self.desk.map_directory(item)/'review.json';review=read_json(path)
+        review['joined_map_checks']['status']='insufficient_reserved_events';path.write_text(json.dumps(review))
+        preview=self.desk.preview(payload)
+        self.assertEqual(preview['status'],'blocked')
+        self.assertTrue(any('Final joined-map' in b for b in preview['scope'][0]['blockers']))
+
+    def test_tape_spot_check_rejects_multiple_tapes_and_methodology(self):
+        tapes=[t['tape'] for t in self.desk.catalog['tapes']]
+        for options in (dict(kind='production',tapes=tapes[:2]),dict(kind='methodology',tapes=tapes[:1])):
+            with self.assertRaisesRegex(ValueError,'one tape'):
+                self.desk.selection(dict(options,budget=3,tape_random=True))
+
     def test_demo_inventory_covers_pilots_and_new_tape(self):
         self.assertEqual(len(self.desk.catalog['tapes']),6)
         selection=self.desk.selection({})
@@ -113,6 +209,106 @@ class DeskTests(unittest.TestCase):
         self.assertTrue(set(PILOTS).issubset(selection['tapes']))
         self.assertIn('A15_T599999',selection['tapes'])
         self.assertTrue(all(t['denoised_channels']==1 for t in self.desk.catalog['tapes']))
+
+    def test_activity_screen_precedes_risk_selection_and_keeps_coverage_gaps(self):
+        target=self.desk.catalog['candidates'][0]
+        target['risk']=100
+        target['conditions'].append('silent_boundary_only')
+        self.desk.catalog['required_conditions'].append('silent_boundary_only')
+        measure=self.desk.candidate_activity
+        def activity(c):
+            if c['channel']==target['channel'] and c['tape']==target['tape']:
+                return dict(usable=False,status='Insufficient speech-band activity')
+            return measure(c)
+        with patch.object(self.desk,'candidate_activity',side_effect=activity):
+            selection=self.desk.selection(dict(budget=3))
+        self.assertEqual(len(selection['samples']),3)
+        self.assertTrue(selection['activity_screened_out'])
+        self.assertIn('silent_boundary_only',selection['uncovered_conditions'])
+        self.assertTrue(all(s['tape']!=target['tape'] for s in selection['samples']))
+        self.assertNotIn('faint_speech',selection['samples'][0]['activity'])
+
+    def test_activity_screen_checks_budget_bounds_before_audio_reads(self):
+        with patch.object(self.desk,'candidate_activity',side_effect=AssertionError('Audio read')):
+            for options in (dict(seconds=0),dict(seconds=1000000),dict(budget=101)):
+                with self.assertRaises(ValueError):self.desk.selection(options)
+
+    def test_playback_gain_matches_levels_and_preserves_peaks(self):
+        queue=self.make_queue(3)
+        for sample in queue['samples']:
+            self.assertTrue(sample['ready'],sample.get('error'))
+            folder=self.desk.state/'queues'/queue['id']/sample['id']
+            a,sr=sf.read(folder/'a.wav');b,_=sf.read(folder/'b.wav')
+            rms_a=np.sqrt(np.mean(a*a));rms_b=np.sqrt(np.mean(b*b))
+            self.assertAlmostEqual(rms_a,rms_b,places=6)
+            self.assertLessEqual(max(np.max(abs(a)),np.max(abs(b))),.950001)
+            self.assertGreater(sample['excerpt']['gain_a'],1)
+            self.assertAlmostEqual(20*np.log10(rms_a),-24,places=3)
+            self.assertEqual(sample['excerpt']['comparison_check']['status'],'changed')
+
+    def test_saving_checks_only_heard_excerpt_and_approval_still_checks_all_evidence(self):
+        queue=self.make_queue(3);sample=queue['samples'][0]
+        with patch.object(self.desk,'verify',wraps=self.desk.verify) as verify:
+            event=self.desk.judge(dict(queue_id=queue['id'],sample_id=sample['id'],reviewer='tester',judgment='improved',notes='Clearer speech'))
+        checked=verify.call_args.args[0]
+        self.assertEqual({Path(b['path']).name for b in checked},{'a.wav','b.wav','excerpt.json'})
+        self.assertTrue(verify.call_args.kwargs['force'])
+        updates=self.desk.queue_updates(queue['id'])
+        self.assertEqual(updates['events'][0]['id'],event['id'])
+        self.assertEqual(updates['events'][0]['notes'],'Clearer speech')
+        self.assertNotEqual(updates['labels'][sample['id']],['Version A','Version B'])
+        self.assertNotIn('bindings',updates)
+        reopened=self.desk.public_queue(queue['id'])
+        self.assertEqual(reopened['events'][0]['judgment'],'improved')
+        source=Path(self.desk.item(sample['tape'],sample['channel'])['denoised'])/'denoised.wav'
+        original=source.read_bytes()
+        try:
+            source.write_bytes(original+b'changed')
+            # A listening observation remains recordable independently of current source freshness.
+            self.desk.judge(dict(queue_id=queue['id'],sample_id=sample['id'],reviewer='tester',judgment='unchanged'))
+            preview=self.desk.preview(dict(queue_id=queue['id'],kind='production',reviewer='tester'))
+            self.assertTrue(any('Stale evidence' in error for error in preview['errors']))
+        finally:source.write_bytes(original)
+
+    def test_changed_playback_audio_cannot_be_saved_as_the_reviewed_excerpt(self):
+        queue=self.make_queue(3);sample=queue['samples'][0]
+        audio=self.desk.state/'queues'/queue['id']/sample['id']/'a.wav'
+        audio.write_bytes(audio.read_bytes()+b'changed')
+        with self.assertRaisesRegex(ValueError,'Stale evidence'):
+            self.desk.judge(dict(queue_id=queue['id'],sample_id=sample['id'],reviewer='tester',judgment='improved'))
+        self.assertFalse(self.desk.events(queue['id']))
+
+    def test_findings_and_reopen_use_saved_events(self):
+        queue=self.make_queue(3);sample=queue['samples'][0]
+        saved=self.desk.judge(dict(queue_id=queue['id'],sample_id=sample['id'],reviewer='tester',
+                                  judgment='improved',notes='Saved without a UI'))
+        updates=self.desk.queue_updates(queue['id'])
+        self.assertEqual(updates['events'][0]['id'],saved['id'])
+        self.assertEqual(updates['events'][0]['notes'],'Saved without a UI')
+        reopened=self.desk.public_queue(queue['id'])
+        self.assertEqual(reopened['events'][0]['id'],saved['id'])
+        self.assertNotEqual(reopened['samples'][0]['labels'],['Version A','Version B'])
+
+    def test_identical_prepared_excerpts_require_no_listening_or_fabricated_judgment(self):
+        original=np.load
+        def identity_map(path,*args,**kwargs):
+            value=original(path,*args,**kwargs)
+            if Path(path).name=='nominal_seconds.npy':
+                value=np.arange(len(value))/200
+                value[-1]=(120*8000-1)/8000
+            return value
+        tape=self.desk.catalog['tapes'][0]['tape']
+        with patch('review_evidence.np.load',side_effect=identity_map):
+            q=self.desk.queue(self.desk.create_queue(dict(kind='production',tapes=[tape],budget=3,tape_random=True),lambda _:None)['queue_id'])
+        self.assertEqual(q['automated_unchanged'],3)
+        self.assertEqual(q['estimated_listening_seconds'],0)
+        self.assertTrue(all(automatic_no_change(s) for s in q['samples']))
+        self.assertTrue(assess(q,[])['complete'])
+        self.assertEqual(self.desk.events(q['id']),[])
+        # Exact equality is no substitute for methodology or numeric approval.
+        preview=self.desk.preview(dict(queue_id=q['id'],kind='production',reviewer='tester'))
+        self.assertEqual(preview['status'],'blocked')
+        self.assertTrue(any('Methodology acceptance required' in e for e in preview['errors']))
 
     def test_excerpts_equal_slice_of_monolithic_production_map(self):
         queue=self.make_queue(5)
@@ -143,6 +339,7 @@ class DeskTests(unittest.TestCase):
         decision=self.desk.accept(preview['id'])
         self.assertFalse(decision['production_launched'])
         self.assertEqual(read_json(decision['certificate'])['kind'],'methodology')
+        self.assertNotIn('cross_tape_pilots',read_json(self.desk.state/'methodology/rollout_approval.json'))
         with self.assertRaisesRegex(ValueError,'Synthetic'):
             require_rollout(self.desk.state/'methodology/rollout_approval.json')
         production=self.desk.preview(dict(payload,kind='production'))
@@ -217,6 +414,96 @@ class DeskTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'pilot-only'):
                 require_production(acceptance,derived,2)
 
+    def proposal_pilot(self):
+        item=self.desk.catalog['channels'][0]
+        source=Path(item['plan_path'])
+        plan=read_json(source)
+        folder=source.parent/'audits'/self.id().split('.')[-1]
+        folder.mkdir(parents=True)
+        summary=plan['regions'][1]
+        detail=read_json(source.parent/summary['detail_file'])
+        detail['search_budget']=dict(exhausted=True,limit=4,eligible_candidates=100)
+        for target in detail['targets']:
+            target.update(action='validate_transfer',numeric_transfer_passed=False,
+                          reason='Insufficient separate calibration and holdout events')
+        shutil.copyfile(source.parent/detail['maps']['file'],folder/detail['maps']['file'])
+        immutable_json(folder/summary['detail_file'],detail)
+        plan.update(full_tape=False,regions=[dict(detail,detail_file=summary['detail_file'],
+                                                detail_sha256=bound(folder/summary['detail_file'])['sha256'])])
+        path=folder/'plan.json'
+        immutable_json(path,plan)
+        self.config['plan_overrides']={item['tape']:str(path)}
+        self.desk.scan(lambda _:None)
+        return self.desk.item(item['tape'],item['channel'])
+
+    def test_diagnostic_pilot_plays_proposals_but_cannot_authorize_processing(self):
+        item=self.proposal_pilot()
+        options=dict(tapes=[item['tape']],budget=1,kind='methodology')
+        blocked=self.desk.queue(self.desk.create_queue(options,lambda _:None)['queue_id'])
+        self.assertEqual(blocked['samples'][0]['error'],'Reference search budget exhausted')
+        options['kind']='diagnostic'
+        queue=self.desk.queue(self.desk.create_queue(options,lambda _:None)['queue_id'])
+        sample=queue['samples'][0]
+        self.assertTrue(sample['ready'],sample.get('error'))
+        self.assertTrue(queue['diagnostic_only'])
+        self.assertTrue(sample['excerpt']['diagnostic_only'])
+        self.assertNotEqual(sample['id'],blocked['samples'][0]['id'])
+        folder=self.desk.map_directory(item,diagnostic=True)
+        review=read_json(folder/'review.json')
+        self.assertTrue(review['experimental_transfer'])
+        self.assertEqual(review['joined_map_checks']['status'],'diagnostic_only')
+        speed=np.load(folder/'speed_error.npy')
+        self.assertGreater(float(np.max(abs(speed))),.001)
+        self.assertFalse(self.desk.map_directory(item).exists())
+        audio=self.desk.state/'queues'/queue['id']/sample['id']
+        a,_=sf.read(audio/'a.wav'); b,_=sf.read(audio/'b.wav')
+        self.assertGreater(float(np.max(abs(a-b))),.001)
+        # Diagnostic excerpts still use the joined full-duration map, with
+        # identity outside the trial and no local re-anchoring.
+        nominal=np.load(folder/'nominal_seconds.npy')
+        tt=np.arange(len(nominal))/200.;tt[-1]=(item['source']['frames']-1)/8000
+        whole=folder/'test_monolithic.wav'
+        render_warp(Path(item['denoised'])/'denoised.wav',whole,tt,nominal,progress=lambda _:None)
+        rendered,_=sf.read(whole,start=sample['start_frame'],frames=sample['frames'])
+        np.testing.assert_allclose(b,rendered*sample['excerpt']['gain_b'],atol=2e-7)
+        self.judge_all(queue)
+        self.assertTrue(self.desk.events(queue['id'])[0]['diagnostic_only'])
+        # Matching implementation hashes do not turn explored passages into
+        # fresh acceptance evidence.
+        with patch.dict(item,blockers=[]):
+            qualified=self.desk.queue(self.desk.create_queue(dict(options,kind='methodology'),lambda _:None)['queue_id'])
+        preview=self.desk.preview(dict(queue_id=qualified['id'],reviewer='tester',kind='methodology'))
+        self.assertIn('Fresh evaluation overlaps diagnostic pilot listening',preview['errors'])
+        for kind in ('diagnostic','methodology','production'):
+            with self.assertRaisesRegex(ValueError,'cannot authorize'):
+                self.desk.preview(dict(queue_id=queue['id'],kind=kind,reviewer='tester'))
+        from review_sampling import validate_map_review
+        with self.assertRaisesRegex(ValueError,'conservative'):
+            validate_map_review(folder/'review.json',item['plan_path'],item['channel'])
+        with self.assertRaisesRegex(ValueError,'search budget exhausted'):
+            self.desk.build_map(item,lambda _:None)
+
+    def test_diagnostic_playback_preserves_input_and_clock_blockers(self):
+        item=self.proposal_pilot()
+        self.desk.build_map(item,lambda _:None,diagnostic=True)
+        self.config['clock_conflicts']={item['tape']:True}
+        self.desk.scan(lambda _:None)
+        item=self.desk.item(item['tape'],item['channel'])
+        with self.assertRaisesRegex(ValueError,'clock conflict'):
+            self.desk.build_map(item,lambda _:None,diagnostic=True)
+        self.config.pop('clock_conflicts')
+        with patch('review_evidence.completed_denoised',return_value=False):
+            self.desk.scan(lambda _:None)
+        item=self.desk.item(item['tape'],item['channel'])
+        with self.assertRaisesRegex(ValueError,'stage-03'):
+            self.desk.build_map(item,lambda _:None,diagnostic=True)
+
+    def test_diagnostic_selection_requires_bounded_pilot(self):
+        self.assertEqual(self.desk.selection(dict(kind='diagnostic'))['samples'],[])
+        item=self.desk.catalog['channels'][0]
+        with self.assertRaisesRegex(ValueError,'bounded pilot'):
+            self.desk.build_map(item,lambda _:None,diagnostic=True)
+
     def test_method_change_requires_fresh_nonoverlapping_evaluation(self):
         queue=self.make_queue(5)
         sample=queue['samples'][0]
@@ -226,21 +513,9 @@ class DeskTests(unittest.TestCase):
         preview=self.desk.preview(dict(queue_id=queue['id'],reviewer='tester',kind='methodology'))
         self.assertTrue(any('overlaps a holdout' in e for e in preview['errors']))
 
-    def test_filesystem_roots_and_host_csrf_controls(self):
+    def test_filesystem_roots(self):
         with self.assertRaisesRegex(ValueError,'outside configured'):
             self.desk.guard.check(self.root/'outside.json')
-        server=ThreadingHTTPServer(('127.0.0.1',0),Handler);server.desk=self.desk
-        thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
-        self.addCleanup(server.server_close);self.addCleanup(server.shutdown)
-        base=f'http://127.0.0.1:{server.server_port}'
-        with urlopen(base) as response:
-            self.assertEqual(response.status,200)
-            self.assertIn(b'Deflutter evidence desk',response.read())
-        with urlopen(base+'/api/overview') as response:self.assertIn('tapes',json.load(response))
-        for headers in ({},{'X-Review-Token':self.desk.token,'Origin':'https://other.example'}):
-            with self.assertRaises(HTTPError):urlopen(Request(base+'/api/scan',data=b'{}',headers=headers))
-        with self.assertRaises(HTTPError):urlopen(Request(base+'/api/overview',headers={'Host':'attacker.example'}))
-        with self.assertRaises(HTTPError):urlopen(base+'/../flutter_policy.py')
 
     def test_existing_production_gate_dispatches_sampling_and_scopes_channels(self):
         queue=self.make_queue()

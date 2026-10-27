@@ -1,8 +1,8 @@
 """Versioned, explicit deflutter evidence and production acceptance contracts.
 
-These initial absolute thresholds are development limits, not pilot-qualified
-claims. A signed-off rollout record must bind the exact implementation/policy
-and evidence before batch planning or production rendering.
+These initial absolute thresholds are development limits, not qualified claims.
+A signed-off rollout record must bind the exact implementation/policy and
+evidence before production rendering. Planning produces evidence for review.
 """
 import hashlib
 import json
@@ -10,7 +10,7 @@ from pathlib import Path
 
 import numpy as np
 
-METHODOLOGY = 'regional-carrier-v2'
+METHODOLOGY = 'continuous-carrier-v4'
 LIMITS = dict(max_residual_hz=6., max_residual_cents=5., max_event_ratio=.95,
               median_event_ratio=.8, control_margin=.10, low_baseline_hz=1.,
               minimum_events_per_split=2, independent_window_seconds=3.,
@@ -29,13 +29,19 @@ def digest(path):
 
 def implementation_digest():
     names = ('flutter_policy.py', 'flutter_planning.py', 'flutter_tracking.py',
-             'flutter.py', 'carrier_survey.py', 'channel_review.py', 'irig_clock.py', 'flutter_groups.py')
+             'flutter.py', 'carrier_survey.py', 'channel_review.py', 'irig_clock.py', 'flutter_groups.py',
+             'continuous_tracking.py', 'continuous_planning.py', 'continuous_maps.py',
+             'continuous_acquisition.py', 'continuous_quality.py', 'carrier_capture.py')
     return hashlib.sha256(b''.join(Path(__file__).with_name(n).read_bytes() for n in names)).hexdigest()
 
 
 def policy_digest():
     from flutter_groups import SETTINGS
-    return hashlib.sha256(json.dumps(dict(direct=LIMITS, group=SETTINGS), sort_keys=True).encode()).hexdigest()
+    from continuous_planning import SETTINGS as CONTINUOUS_SETTINGS
+    from continuous_quality import IMPROVEMENT_LIMITS
+    from continuous_acquisition import DEFAULT_HORIZONS, ROLE_CYCLE
+    return hashlib.sha256(json.dumps(dict(direct=LIMITS, group=SETTINGS, continuous=CONTINUOUS_SETTINGS,
+        improvement=IMPROVEMENT_LIMITS, acquisition_horizons=DEFAULT_HORIZONS, evidence_roles=ROLE_CYCLE), sort_keys=True).encode()).hexdigest()
 
 
 def shifted_curve(curve, seconds, rate=200):
@@ -89,16 +95,16 @@ def checked_evidence(record, base):
 
 def require_rollout(path):
     if path is None:
-        raise ValueError('Batch planning requires --rollout-approval after carrier qualification and fresh pilot/listening acceptance')
+        raise ValueError('Production requires --rollout-approval after carrier qualification and fresh holdout/listening acceptance')
     path = Path(path)
     value = json.loads(path.read_text(encoding='utf-8'))
     if value.get('demo'):
-        raise ValueError('Synthetic demo evidence cannot authorize production or batch planning')
+        raise ValueError('Synthetic demo evidence cannot authorize production')
     if (value.get('methodology') != METHODOLOGY or value.get('implementation_sha256') != implementation_digest()
             or value.get('policy_sha256') != policy_digest() or value.get('status') != 'accepted'
             or not value.get('reviewer') or not value.get('reviewed_at')):
         raise ValueError('Rollout approval must accept the current implementation and frozen policy')
-    for name in ('carrier_qualification', 'cross_tape_pilots', 'fresh_holdouts', 'speech_listening'):
+    for name in ('carrier_qualification', 'fresh_holdouts', 'speech_listening'):
         evidence = checked_evidence(value[name], path.parent)
         if evidence.get('status') != 'accepted':
             raise ValueError(f'{name} evidence is not accepted')

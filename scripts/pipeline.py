@@ -22,14 +22,12 @@ from audio_processing import DEFAULT_BROADBAND_CAP_DB
 from flutter_plan_store import DEFAULT_PLANNING_ROOT, DEFAULT_DENOISED_ROOT, DEFAULT_DEFLUTTERED_ROOT, planning_directory, tape_directory
 from quindar_retime import DEFAULT_RETIMED_ROOT
 from quindar_survey import DEFAULT_ANALYSIS_ROOT
-from flutter_policy import DEFAULT_SURVEY_ROOT
 
 SCRIPTS = Path(__file__).resolve().parent
 STAGES = [
     ('01', 'Concatenate', '01_concatenate.py', 'Verify fragment order and join channels'),
     ('03', 'Denoise', '03_denoise.py',
      f'Remove tones and residual hum, then reduce broadband noise by up to {DEFAULT_BROADBAND_CAP_DB} dB'),
-    ('04', 'Survey carriers', 'carrier_survey.py', 'Screen every original, including timing and unlabelled recordings'),
     ('05a', 'Plan deflutter', '05a_plan_deflutter.py', 'Analyze original timing evidence; preserve reference tones'),
     ('05b', 'Deflutter', '05b_deflutter.py', 'Correct timing, then normalize with bounded constant gain'),
     ('05c', 'Retime', '05c_retime.py', 'Apply a smoothed Quindar anchor curve to defluttered audio'),
@@ -62,19 +60,15 @@ def parse_args(argv=None):
     parser.add_argument('--retime-smoothing-seconds', type=float, help='Stage 05c: smoothing kernel sigma; default chooses by block validation')
     parser.add_argument('--experimental-transfer', action='store_true')
     parser.add_argument('--min-age', type=float, default=60)
-    parser.add_argument('--flutter-config', type=Path, help='One-tape original reference and aligned target manifest')
     parser.add_argument('--flutter-planning-root', '--planning-root', type=Path, default=DEFAULT_PLANNING_ROOT,
                         help='Persistent per-tape plans; shared by stages 05a and 05b')
     parser.add_argument('--flutter-plan', type=Path, help='Stage 05b saved plan override; defaults to the tape plan')
-    parser.add_argument('--carrier-survey-root', type=Path, default=DEFAULT_SURVEY_ROOT)
-    parser.add_argument('--carrier-max-windows', type=int, help='Per-file survey benchmark budget; omit for full coverage')
-    parser.add_argument('--rollout-approval', type=Path, help='Frozen carrier/pilot/fresh-holdout/listening acceptance')
     parser.add_argument('--production-approval-root', type=Path, help='Per-tape production_acceptance.json records; defaults to planning root')
-    parser.add_argument('--flutter-targets', type=Path, help='Stage 05b region, target channels and excerpt alignment JSON')
-    parser.add_argument('--flutter-region-seconds', type=float, default=60, help='Stage 05a region length (15-120 s)')
+    parser.add_argument('--flutter-monitor-seconds', type=float, default=60, help='Continuous quality-check cadence, not reference lifetime')
+    parser.add_argument('--flutter-chunk-seconds', type=float, default=7, help='Continuous tracker I/O size, independent of reference lifetime')
+    parser.add_argument('--flutter-reference-limit', type=int, default=8, help='Maximum references tried per acquisition search')
     parser.add_argument('--flutter-plan-start', type=float, default=0, help='Stage 05a bounded audit start; default whole tape')
     parser.add_argument('--flutter-plan-duration', type=float, help='Stage 05a optional bounded audit duration')
-    parser.add_argument('--flutter-plan-workers', type=int, default=0, help='Stage 05a concurrent regions; 0 chooses up to eight workers')
     parser.add_argument('--skip-deflutter', action='store_true', help='Skip stage 05b correction and normalization')
     parser.add_argument('--target-dbfs', type=float, default=DEFAULT_TARGET_DBFS, help='Stages 05b/05c sample-peak target (default: -3 dBFS)')
     parser.add_argument('--max-boost-db', type=float, default=DEFAULT_MAX_BOOST_DB, help='Stages 05b/05c maximum boost (default: 12 dB)')
@@ -89,15 +83,13 @@ def parse_args(argv=None):
         parser.error('--denoise-workers must be nonnegative')
     try:
         requested = args.stages or ('03' if args.batch else
-                                    '03,05a,05b,05c' if args.channel is not None else '03,05b')
+                                    '03,05a,05b,05c' if args.channel is not None else '03')
         selected = {value.strip().lower() if value.strip().lower() in {'05a','05b','05c'} else f'{int(value):02d}' for value in requested.split(',')}
     except ValueError:
         parser.error('--stages must contain 01,03,05a,05b,05c')
     if not selected or not selected <= {s[0] for s in STAGES}:
         parser.error('--stages must contain 01,03,05a,05b,05c')
-    if '04' in selected and args.input is not None:
-        parser.error('Stage 04 surveys canonical originals under --concatenated; omit speech --input')
-    if args.batch and selected not in ({'03'}, {'04'}, {'05a'}, {'05b'}, {'05c'}):
+    if args.batch and selected not in ({'03'}, {'05a'}, {'05b'}, {'05c'}):
         parser.error('Batch mode supports one stage at a time; use --stages 03, 05a, 05b, or 05c')
     args.batch_denoise = args.batch and selected == {'03'}
     args.batch_flutter = args.batch and bool(selected & {'05a', '05b'})
@@ -109,25 +101,25 @@ def parse_args(argv=None):
             parser.error('Batch 05c uses one saved plan per tape; omit file-specific overrides')
     if args.skip_deflutter and {'05b', '05c'} <= selected:
         parser.error('Cannot retime a skipped deflutter stage; run 05c alone on existing defluttered audio')
+    if '05b' in selected and not args.skip_deflutter and not args.batch and args.channel is None:
+        parser.error('Stage 05b requires --channel, --all-channels, or --all-tapes; use render_channel_review.py for listening pilots')
     if Path(args.tape).name != args.tape or args.tape in {'.', '..'}:
         parser.error('--tape must be a folder name')
     if args.batch_denoise:
-        if args.input or args.flutter_config or args.flutter_targets or args.flutter_plan or args.retime_candidates:
+        if args.input or args.flutter_plan or args.retime_candidates:
             parser.error('Batch denoising uses original tapes under --concatenated; omit excerpt/deflutter inputs')
     if args.batch_flutter:
-        if args.input or args.flutter_config or args.flutter_targets or args.flutter_plan:
+        if args.input or args.flutter_plan:
             parser.error('Batch flutter stages use original tapes and one stored plan per tape; omit excerpt/plan overrides')
         if '05b' in selected and (args.flutter_plan_start != 0 or args.flutter_plan_duration is not None):
             parser.error('Batch 05b requires whole-tape plans; omit bounded planning arguments')
     if args.channel is not None:
         if not 1 <= args.channel <= 30:
             parser.error('--channel must be 1-30')
-        if args.flutter_config or args.flutter_targets or args.input:
+        if args.input:
             parser.error('Whole-channel mode uses stored stage folders; use --concatenated for original input')
         if args.flutter_plan_start != 0 or args.flutter_plan_duration is not None:
             parser.error('Whole-channel mode requires a whole-tape plan; omit bounded planning arguments')
-    if args.flutter_config and (args.flutter_plan or args.flutter_targets):
-        parser.error('Choose legacy --flutter-config or saved-plan rendering, not both')
     if args.action == 'run':
         if not args.batch and args.channel is None and selected & {'03', '05b'} and (args.input is None or not args.input.is_dir()):
             parser.error('Audio stages require --input pointing to a speech excerpt folder')
@@ -223,15 +215,6 @@ def make_flutter_batch(args, selected, run_dir):
 
 
 def make_jobs(args, selected, run_dir):
-    if selected == {'04'} and args.batch:
-        jobs = []
-        for folder in canonical_tapes(args):
-            command = [sys.executable, '-u', str(SCRIPTS/'carrier_survey.py'), '--input', str(folder), '--output', str(args.carrier_survey_root)]
-            if args.carrier_max_windows is not None:
-                command += ['--max-windows', str(args.carrier_max_windows)]
-            jobs.append(dict(number='04', name=folder.name, script='carrier_survey.py', description='Survey all original recordings',
-                             command=command, tape=folder.name, channel=None, status='pending', elapsed=0., returncode=None, log=f'04_{folder.name}.log'))
-        return jobs
     if args.batch_retime:
         folders = sorted(args.defluttered_root.glob('A15_T*')) if args.all_tapes else [args.defluttered_root/args.tape]
         folders = [p for p in folders if p.is_dir()]
@@ -270,20 +253,14 @@ def make_tape_jobs(args, selected, run_dir):
         output = run_dir / f'{number}_{name.lower().replace(" ", "_").replace("/", "_")}'
         if number == '01':
             command += ['--input', str(args.delivery), '--output', str(args.concatenated), '--min-age', str(args.min_age), '--strict']
-        elif number == '04':
-            command += ['--input', str(args.concatenated/args.tape), '--output', str(args.carrier_survey_root)]
-            if args.carrier_max_windows is not None:
-                command += ['--max-windows', str(args.carrier_max_windows)]
         elif number == '05a':
             output = planning_directory(args.tape, args.flutter_planning_root,
                                         args.flutter_plan_start, args.flutter_plan_duration)
             command += ['--input', str(args.concatenated / args.tape), '--output', str(output),
-                        '--region-seconds', str(args.flutter_region_seconds),
                         '--start', str(args.flutter_plan_start),
-                        '--workers', str(args.flutter_plan_workers)]
-            command += ['--carrier-survey-root', str(args.carrier_survey_root)]
-            if args.rollout_approval:
-                command += ['--rollout-approval', str(args.rollout_approval)]
+                        '--reference-limit', str(args.flutter_reference_limit)]
+            command += ['--monitor-seconds', str(args.flutter_monitor_seconds),
+                        '--chunk-seconds', str(args.flutter_chunk_seconds)]
             if args.flutter_plan_duration is not None:
                 command += ['--duration', str(args.flutter_plan_duration)]
         elif number == '03' and args.channel is not None:
@@ -327,18 +304,8 @@ def make_tape_jobs(args, selected, run_dir):
                 command += ['--candidates', str(args.retime_candidates)]
             if args.retime_smoothing_seconds is not None:
                 command += ['--smoothing-seconds', str(args.retime_smoothing_seconds)]
-        elif number in {'03', '05b'}:
+        elif number == '03':
             command += ['--input', str(current or '<speech-excerpt-folder>'), '--output', str(output)]
-            if number == '05b' and args.flutter_config is not None:
-                command += ['--flutter-config', str(args.flutter_config.resolve())]
-            elif number == '05b':
-                folder = planning_directory(args.tape, args.flutter_planning_root,
-                    args.flutter_plan_start if '05a' in selected else 0,
-                    args.flutter_plan_duration if '05a' in selected else None)
-                plan = args.flutter_plan or folder/'plan.json'
-                command += ['--flutter-plan', str(plan), '--tape', args.tape]
-                if args.flutter_targets is not None:
-                    command += ['--flutter-targets', str(args.flutter_targets.resolve())]
             if number in selected and status != 'skipped explicitly':
                 current = output
         if number in {'05b', '05c'}:
@@ -356,7 +323,7 @@ def dashboard(jobs, tail, location):
     visible = jobs
     if jobs and 'tape' in jobs[0]:
         completed = {'done', 'failed', 'blocked', 'cancelled', 'skipped existing', 'skipped explicitly'}
-        planning = all(j['number'] in {'04', '05a'} for j in jobs)
+        planning = all(j['number'] == '05a' for j in jobs)
         counted = jobs if planning else [j for j in jobs if j['channel'] is not None]
         finished = sum(j['status'] in completed for j in counted)
         total = len(counted)
@@ -372,7 +339,7 @@ def dashboard(jobs, tail, location):
         style = {'running': 'cyan', 'done': 'green', 'failed': 'red', 'blocked': 'yellow'}.get(job['status'], 'dim')
         table.add_row(f'{job["number"]} {job["name"]}', Text(job['script'] + '\n' + job['description']),
                       Text(job['status'], style=style), f'{job["elapsed"]:.1f}s')
-    return Group(Panel(table, title='Apollo 15 â€¢ audio pipeline'),
+    return Group(Panel(table, title='Apollo 15 audio pipeline'),
                  Panel(Text('\n'.join(tail) or 'Waiting to start'), title='Current script output'),
                  Text(f'Run: {location}'))
 

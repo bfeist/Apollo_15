@@ -29,6 +29,9 @@ from flutter_plan_store import checked_artifact, load_saved_plan, planning_lock,
 
 RATE = 200
 
+# Imported lazily in the dispatchers to keep the regional renderer available
+# independently of the continuous methodology's implementation modules.
+
 
 def write_json(path, value):
     temporary = path.with_suffix(path.suffix + '.partial')
@@ -126,6 +129,11 @@ def rising(x):
 
 
 def continuous_map(folder, regions, channel, start, frames, sr, experimental=False, progress=print):
+    if regions and regions[0].get('kind') == 'continuous_reference':
+        from continuous_maps import saved_continuous_map
+        if experimental:
+            raise ValueError('Continuous plans do not contain experimental transfer proposals')
+        return saved_continuous_map(folder, regions[0], channel, start, frames, sr)
     # End at the last sample, including a fractional final tracking interval.
     last = (frames-1)/sr
     tt = np.arange(math.floor(last*RATE)+1, dtype=float)/RATE
@@ -237,6 +245,9 @@ def joined_map_checks(folder, regions, row, channel, start, tt, nominal, speed):
 Boundary/dropout events were excluded from calibration and regional holdouts.
 No alternative is fitted after these results; failure stays a failure.
 """
+    if regions and regions[0].get('kind') == 'continuous_reference':
+        from continuous_maps import continuous_holdout_checks
+        return continuous_holdout_checks(folder, regions[0], row, channel, start, tt, nominal, speed)
     from flutter_tracking import evaluate_events
     from flutter_policy import LIMITS
     observations, seen = [], set()
@@ -556,7 +567,8 @@ def ensure_denoised(row, folder, offset, frames, block_seconds=60., progress=pri
 
 
 def review_page(destination, title, markers, start, cleaned_path=None, gain=1.):
-    fields = ('start_seconds','end_seconds','kind','region','selected','reason','overlap_supported_fraction','speed_rms_difference')
+    fields = ('start_seconds','end_seconds','kind','region','selected','reason','overlap_supported_fraction','speed_rms_difference',
+              'reference_channel','method','quality_level')
     with (destination/'markers.csv').open('w', newline='',encoding='utf-8') as f:
         writer = csv.DictWriter(f,fieldnames=fields)
         writer.writeheader()
@@ -564,7 +576,7 @@ def review_page(destination, title, markers, start, cleaned_path=None, gain=1.):
     rows = []
     for m in markers:
         s = m['start_seconds']; stamp = f'{int(s)//3600:02}:{int(s)//60%60:02}:{s%60:05.2f}'
-        detail = (m.get('selected') or '')+' '+m['reason']
+        detail = ' '.join(filter(None, (m.get('selected'), m.get('quality_level'), m['reason'])))
         rows.append(f'<tr data-kind="{m["kind"]}"><td><button onclick="seek({s})">{stamp}</button></td>'
                     f'<td>{m["kind"]}</td><td>{html.escape(m["region"])}</td><td>{html.escape(detail)}</td></tr>')
     page = '''<!doctype html><meta charset="utf-8"><title>Channel review</title>

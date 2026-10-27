@@ -7,9 +7,37 @@ import os
 from pathlib import Path
 import re
 
-DEFAULT_PLANNING_ROOT = Path('D:/Apollo_15_30-Track/deflutter_planning_v2')
+DEFAULT_PLANNING_ROOT = Path('D:/Apollo_15_30-Track/deflutter_planning_v4')
 DEFAULT_DENOISED_ROOT = Path('D:/Apollo_15_30-Track/denoised')
-DEFAULT_DEFLUTTERED_ROOT = Path('D:/Apollo_15_30-Track/defluttered_v2')
+DEFAULT_DEFLUTTERED_ROOT = Path('D:/Apollo_15_30-Track/defluttered_v4')
+
+
+def is_continuous_plan(plan):
+    return plan.get('schema') == 2 and plan.get('kind') == 'continuous_reference'
+
+
+def iter_plan_artifacts(folder, plan):
+    """Yield all bound evidence/maps, including continuous binary streams."""
+    folder = Path(folder).resolve()
+    for summary in plan['regions']:
+        if not summary.get('detail_file'):
+            continue
+        path, raw = checked_artifact(folder, summary['detail_file'], summary['detail_sha256'])
+        yield path, summary['detail_sha256']
+        detail = json.loads(raw)
+        maps = detail.get('maps', {})
+        if is_continuous_plan(plan):
+            for row in maps.get('streams', {}).values():
+                path = checked_stream(folder, row['file'], row['sha256'])
+                if path.stat().st_size != row['frames']*16 or row.get('dtype') != '<f8':
+                    raise ValueError('Continuous stream size or dtype changed')
+                yield path, row['sha256']
+            for row in detail.get('monitor_records', []):
+                path, _ = checked_artifact(folder, row['file'], row['sha256'])
+                yield path, row['sha256']
+        elif maps:
+            path, _ = checked_artifact(folder, maps['file'], maps['sha256'])
+            yield path, maps['sha256']
 
 
 def tape_directory(tape, root=DEFAULT_PLANNING_ROOT):
@@ -40,13 +68,27 @@ def checked_artifact(folder, name, digest):
     return path, raw
 
 
+def checked_stream(folder, name, expected):
+    """Validate large binary maps without allocating tape-length byte arrays."""
+    path = (Path(folder)/name).resolve()
+    if Path(folder).resolve() not in path.parents:
+        raise ValueError('Plan artifact must be inside its plan directory')
+    value = hashlib.sha256()
+    with path.open('rb') as stream:
+        while block := stream.read(4*1024*1024):
+            value.update(block)
+    if value.hexdigest() != expected:
+        raise ValueError(f'Saved plan artifact changed: {name}')
+    return path
+
+
 def load_saved_plan(path, require_complete=True, *, expand_regions=True):
     """Verify every artifact; optionally keep the compact index for streaming jobs."""
     path = Path(path).resolve()
     if path.is_dir():
         path = path/'plan.json'
     plan = json.loads(path.read_text(encoding='utf-8'))
-    if plan.get('schema') != 1:
+    if plan.get('schema') != 1 and not is_continuous_plan(plan):
         raise ValueError('Unsupported saved-plan schema')
     if require_complete and (not plan.get('complete') or plan.get('source_validation') != 'verified'):
         raise ValueError('Saved plan is incomplete; finish stage 05a first')
@@ -66,7 +108,14 @@ def load_saved_plan(path, require_complete=True, *, expand_regions=True):
         for key in ('id', 'start_seconds', 'end_seconds', 'analysis_start', 'analysis_end', 'maps'):
             if detail.get(key) != summary.get(key):
                 raise ValueError('Saved region index and evidence disagree')
-        if detail.get('maps'):
+        if is_continuous_plan(plan):
+            for artifact in detail.get('maps', {}).get('streams', {}).values():
+                stream = checked_stream(path.parent, artifact['file'], artifact['sha256'])
+                if stream.stat().st_size != artifact['frames']*16 or artifact.get('dtype') != '<f8':
+                    raise ValueError('Continuous stream size or dtype changed')
+            for artifact in detail.get('monitor_records', []):
+                checked_artifact(path.parent, artifact['file'], artifact['sha256'])
+        elif detail.get('maps'):
             checked_artifact(path.parent, detail['maps']['file'], detail['maps']['sha256'])
         detail.update(detail_file=summary['detail_file'], detail_sha256=summary['detail_sha256'])
         if expand_regions:

@@ -22,7 +22,7 @@ import quindar_speed
 from quindar_retime import write_json
 from flutter_plan_store import planning_lock, DEFAULT_DEFLUTTERED_ROOT
 
-DEFAULT_ANALYSIS_ROOT = Path('D:/Apollo_15_30-Track/quindar_post_deflutter_analysis_v2')
+DEFAULT_ANALYSIS_ROOT = Path('D:/Apollo_15_30-Track/quindar_post_deflutter_analysis_v4')
 SETTINGS = dict(block_seconds=60, context_seconds=1, frequency_band_hz=[2250,2750],
                 post_max_fm_sd_hz=35., post_max_amplitude_ratio=3.)
 

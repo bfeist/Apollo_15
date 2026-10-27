@@ -1,12 +1,12 @@
 """Bounded playback-motion transfer, independent of content/head alignment.
 
 Each member must have its own distinct reference tone on original audio. No
-cross-correlation lag search is allowed. Groups expire at region boundaries,
-support gaps and reference changes. A group is numeric evidence, not listening.
+cross-correlation lag search is allowed. Groups are rechecked during monitoring and expire on
+support gaps or motion disagreement. A group is numeric evidence, not listening.
 """
 import numpy as np
 
-from flutter_tracking import RATE, signed_map
+from flutter_tracking import RATE
 
 SETTINGS = dict(window_seconds=3., minimum_windows_per_split=2,
                 reserved_final_map_seconds=.5,
@@ -38,20 +38,3 @@ def compare_motion(applied, independent, support, amplitude, lo, hi):
         result.append(dict(start=a/RATE, end=b/RATE, phase_correlation=corr, amplitude_gain=gain,
                            residual_speed_rms=residual, amplitude_coupling=coupling, passed=bool(passed)))
     return result
-
-
-def demonstrate_group(applied, donor_gate, independent_trace, region):
-    lo = round((region['start_seconds']-region['analysis_start'])*RATE)
-    hi = round((region['end_seconds']-region['analysis_start'])*RATE)
-    independent = signed_map(independent_trace)
-    support = np.minimum(donor_gate, independent_trace[5])
-    windows = compare_motion(applied, independent, support, independent_trace[3], lo, hi)
-    mid = len(windows)//2
-    calibration, holdout = windows[:mid], windows[mid:]
-    passed = min(len(calibration), len(holdout)) >= SETTINGS['minimum_windows_per_split'] and all(w['passed'] for w in windows)
-    return dict(passed=bool(passed), calibration=calibration, holdout=holdout,
-                reserved_events=[dict(start=w['end'], end=w['start']+SETTINGS['window_seconds']) for w in windows],
-                start_seconds=region['start_seconds'], end_seconds=region['end_seconds'],
-                playback_lag_seconds=0., content_lag_seconds=None, head_offset_seconds=None,
-                lag_fitted=False, expires='Region end, carrier loss, or reference change',
-                listening_approved=False, settings=SETTINGS)

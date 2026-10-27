@@ -14,9 +14,9 @@ import soundfile as sf
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
 from carrier_survey import scan_file, survey_tape, load_survey, screen
-from flutter_planning import inventory, attach_survey, fair_shortlist, plan_tape, split_events
+from flutter_planning import inventory, fair_shortlist
+from continuous_planning import plan_tape
 from flutter_policy import shifted_curve, numeric_pass, evidence_strength, require_rollout, require_production
-from flutter_groups import demonstrate_group
 from flutter_tracking import trajectory
 from irig_clock import sequential_runs, promote_run, carry_anchors, clock_constraints
 from channel_review import continuous_map, joined_map_checks
@@ -64,13 +64,11 @@ class CarrierPipelineTests(unittest.TestCase):
             index = survey_tape(source, output)
             self.assertEqual(len(index['files']), 3)
             with self.assertWarns(UserWarning):
-                inv = attach_survey(inventory(source), output)
-            self.assertEqual(len(inv['carrier_sources']), 1)
-            self.assertEqual(inv['carrier_sources'][0]['role'], 'timing_only')
+                inv = inventory(source)
+            self.assertEqual(len(inv['excluded_files']), 1)
             with self.assertWarns(UserWarning):
-                plan = plan_tape(source, root/'plan', carrier_survey=output)
+                plan = plan_tape(source, root/'plan')
             self.assertEqual([t['channel'] for t in plan['regions'][0]['targets']], [2])
-            self.assertTrue(any(c['channel'] == 1 for c in plan['regions'][0]['candidates']))
             cache = json.loads((output/index['files'][0]['cache']).read_text())
             feature = output/cache['feature_blocks'][0]['file']
             feature.write_bytes(feature.read_bytes()+b' ')
@@ -98,11 +96,6 @@ class CarrierPipelineTests(unittest.TestCase):
         self.assertEqual(budget['targets_without_winner'], [1, 22])
         self.assertTrue(budget['exhausted'])
 
-    def test_event_clusters_do_not_straddle_calibration_and_holdout(self):
-        events = [dict(start=s, end=s+.25) for s in (3., 3.5, 7., 7.2, 11., 11.2, 15., 15.2)]
-        cal, hold = split_events(events, dict(analysis_start=0., start_seconds=0., end_seconds=20.))
-        self.assertEqual([e['start'] for e in cal], [3., 7.])
-        self.assertEqual([e['start'] for e in hold], [11., 15.])
 
     def test_local_carrier_mask_never_bridges_gap_or_rejects_am_bits(self):
         sr = 8000
@@ -116,18 +109,6 @@ class CarrierPipelineTests(unittest.TestCase):
         self.assertEqual(float(trace[5][1800:2200].max()), 0.)
         self.assertGreater(float(trace[5][1200:1600].mean()), .9)
 
-    def test_group_phase_is_checked_without_content_lag_fitting(self):
-        sr = 8000
-        t = np.arange(24*sr)/sr
-        motion = .01*np.sin(2*np.pi*6.5*t)
-        tau = t-.01/(2*np.pi*6.5)*np.cos(2*np.pi*6.5*t)
-        tr = trajectory(.2*np.sin(2*np.pi*777*tau), sr, 777, 65)
-        region = dict(start_seconds=3., end_seconds=21., analysis_start=0.)
-        result = demonstrate_group(motion[::40], tr[5], tr, region)
-        self.assertTrue(result['passed'], result)
-        wrong = demonstrate_group(-motion[::40], tr[5], tr, region)
-        self.assertFalse(wrong['passed'])
-        self.assertFalse(result['lag_fitted'])
 
     def test_sequential_clock_authentication_and_actual_map_coordinates(self):
         frames = [dict(day_of_year=207, hours=13, minutes=34, seconds=i, original_sample=8000*i,

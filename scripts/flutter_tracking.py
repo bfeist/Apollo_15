@@ -1,4 +1,4 @@
-"""Regional reference tracking, promoted from the CH22/T510077 experiments.
+"""Original-audio reference discovery, signed-frequency tracking and check tones.
 
 No report-generator imports or filesystem side effects. Frequency trajectories
 are measured on original audio; target cleanup belongs to stage 03.
@@ -112,70 +112,6 @@ def trajectory(x, sr, hz, capture, support_mask=None):
 def bound(e, gate):
     tt = np.arange(len(e))/RATE
     return np.clip(e, -.049, .049)*gate*np.clip(np.minimum(tt, tt[-1]-tt)/2, 0, 1)
-
-
-def _harmonic_values(trace, grid, harmonics):
-    """Scalar SVD reference for truncated edge windows and degenerate fits."""
-    tt, _, disp, amp, rate, gate, _ = trace
-    values = []
-    median_amp = max(np.median(amp), 1e-15)
-    for i in grid:
-        lo, hi = max(0, i-120), min(len(tt), i+121)
-        u, fm = tt[lo:hi]-tt[i], rate[i]
-        a = np.column_stack([np.ones(len(u)), u, u*u] +
-            [fn(2*np.pi*h*fm*u) for h in range(1, harmonics+1) for fn in (np.sin, np.cos)])
-        base = np.minimum(amp[lo:hi]/median_amp, 1)**2*np.exp(-.5*(u/.3)**2)
-        w = base.copy()
-        for _ in range(3):
-            c = np.linalg.lstsq(a*np.sqrt(w[:, None]), disp[lo:hi]*np.sqrt(w), rcond=None)[0]
-            residual = disp[lo:hi]-a@c
-            scale = max(1e-6, 1.4826*np.median(abs(residual-np.median(residual))))
-            w = base*np.minimum(1, 2*scale/(abs(residual)+1e-15))
-        values.append(sum(2*np.pi*h*fm*c[3+2*(h-1)] for h in range(1, harmonics+1)))
-    return np.asarray(values)
-
-
-def harmonic_map(trace, harmonics=3):
-    """The same robust regression, batched into small weighted linear systems.
-
-Interior windows have identical shape. Batching removes tens of thousands of
-Python/SVD calls without changing cadence, basis, weights or robust iterations.
-Ill-conditioned systems and truncated edge windows retain the scalar SVD path.
-"""
-    tt, _, disp, amp, rate, gate, _ = trace
-    grid = np.arange(0, len(tt), 5)
-    values = np.empty(len(grid))
-    interior = np.flatnonzero((grid >= 120) & (grid+120 < len(tt)))
-    edges = np.flatnonzero((grid < 120) | (grid+120 >= len(tt)))
-    values[edges] = _harmonic_values(trace, grid[edges], harmonics)
-    median_amp = max(np.median(amp), 1e-15)
-    for offset in range(0, len(interior), 128):
-        batch = interior[offset:offset+128]
-        ids = grid[batch, None]+np.arange(-120, 121)
-        u = tt[ids]-tt[grid[batch], None]
-        fm = rate[grid[batch], None]
-        a = np.stack([np.ones_like(u), u, u*u] +
-            [fn(2*np.pi*h*fm*u) for h in range(1, harmonics+1) for fn in (np.sin, np.cos)], axis=-1)
-        base = np.minimum(amp[ids]/median_amp, 1)**2*np.exp(-.5*(u/.3)**2)
-        w, y = base.copy(), disp[ids]
-        fallback = np.zeros(len(batch), dtype=bool)
-        for _ in range(3):
-            atw = a.swapaxes(1, 2)*w[:, None, :]
-            normal = atw@a
-            rhs = (atw@y[:, :, None])
-            eigenvalues = np.linalg.eigvalsh(normal)
-            good = eigenvalues[:, 0] > 1e-10*np.maximum(eigenvalues[:, -1], 1e-30)
-            fallback |= ~good
-            c = np.zeros((len(batch), a.shape[-1]))
-            c[good] = np.linalg.solve(normal[good], rhs[good])[:, :, 0]
-            residual = y-(a@c[:, :, None])[:, :, 0]
-            centre = np.median(residual, axis=1)
-            scale = np.maximum(1e-6, 1.4826*np.median(abs(residual-centre[:, None]), axis=1))
-            w = base*np.minimum(1, 2*scale[:, None]/(abs(residual)+1e-15))
-        values[batch] = sum(2*np.pi*h*fm[:, 0]*c[:, 3+2*(h-1)] for h in range(1, harmonics+1))
-        if fallback.any():
-            values[batch[fallback]] = _harmonic_values(trace, grid[batch[fallback]], harmonics)
-    return bound(np.interp(tt, tt[grid], values), gate)
 
 
 def signed_map(trace, band=(2, 30)):
