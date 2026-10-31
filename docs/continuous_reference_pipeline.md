@@ -1,5 +1,11 @@
 # Continuous-reference pipeline design
 
+This guide describes the existing pipeline and earlier `continuous-carrier-v5`
+experiment. The new version 5 methodology is `continuous-allchannel-v5` and
+uses the separate [all-channel planner](deflutter_v5.md). Use its documented command
+for new research; the batch commands below retain the historical engine. V4,
+earlier v5 experiments, and the new v5 checkpoints are not interchangeable.
+
 Stage `05a` uses one continuous-reference engine. Stage `05b` consumes saved
 maps and prepared stage-03 channels. Use `render_channel_review.py` for bounded
 listening pilots; headless evidence and acceptance utilities remain available.
@@ -14,6 +20,26 @@ uv run python scripts/05a_plan_deflutter.py --input D:/Apollo_15_30-Track/orig_c
 The second command checkpoints after one new monitoring passage. Repeat it
 without `--max-windows` to continue; compatible unfinished plans resume
 automatically. A complete compatible plan is reused without reanalysis.
+To stop an all-tape run, press Ctrl+C in its terminal. Restart it with the same
+command and planning settings, for example:
+
+```powershell
+uv run python scripts/pipeline.py run --stages 05a --all-tapes --plain
+```
+
+All-tape stage 05a runs up to four tapes at once by default. Set
+`--flutter-plan-workers 16` to allow up to 16 simultaneous tape planners on a
+16-core machine, or `--flutter-plan-workers 1` for serial processing. Each
+planner can use substantial memory and disk bandwidth, so reduce this setting
+if the machine runs short of memory or storage becomes the bottleneck. A single
+tape still uses one planner; this setting does not parallelize work within it.
+The worker count can be changed when resuming.
+
+Each tape resumes from its last committed monitoring passage; work after that
+checkpoint is repeated. Already completed compatible tapes are reused and the
+remaining tapes continue. The run log is new, while plans remain in the same
+planning root. The original audio, planning settings, implementation and policy
+must still match the saved plan; an incompatible plan is not silently resumed.
 `--monitor-seconds` (default 60) controls evidence/revalidation cadence;
 `--chunk-seconds` (default 7) controls bounded reference I/O. Changing the I/O
 size does not change candidate choices, lifetime boundaries or the intended map.
@@ -21,9 +47,9 @@ Pipeline equivalents are `--flutter-monitor-seconds` and
 `--flutter-chunk-seconds`. `--reference-limit` bounds candidate screening; its
 pipeline equivalent is `--flutter-reference-limit`.
 
-Default roots beneath `D:/Apollo_15_30-Track` are `deflutter_planning_v4`,
-`defluttered_v4`, `quindar_post_deflutter_analysis_v4`, and
-`defluttered_retimed_v4`. Denoised intermediates are reused. Existing v2 and v3 outputs
+Default roots beneath `D:/Apollo_15_30-Track` are `deflutter_planning_v5`,
+`defluttered_v5`, `quindar_post_deflutter_analysis_v5`, and
+`defluttered_retimed_v5`. Denoised intermediates are reused. Existing v2, v3 and v4 outputs
 are preserved. Continuous plans discover their own references and do not require
 an all-channel 1 kHz survey. The retired regional planner and excerpt-manifest
 renderer are no longer command options. Historical map readers remain for saved
@@ -40,6 +66,15 @@ The v4 planner distinguishes `restoration_target_met`, `supported_improvement`, 
 Low-carrier acquisition now tests the original capture and a modulation-aware alternative. A 117.5 Hz reference's old 12 Hz capture attenuated FM sidebands; widened alternatives improve a known synthetic case from 8.47 to 0.89 Hz worst residual. Wider capture sometimes worsens real passages, so calibration chooses between candidates and competing-tone checks remain. Discovery defaults to eight candidates per channel and eight shortlisted references. The selected trial's actual calibration loss is recorded.
 
 A checkpointed per-channel evidence ledger assigns immutable C,C,V,V,F roles before candidate scoring. It accumulates up to 300 seconds, consumes attempted passages before retry, and never pools channel copies as independent events. Only continuously supported acquisition evidence may qualify. Once a waiting interval validates, its supported portion may be backfilled retrospectively; already qualified spans are never replaced by that backfill. Early passages with no detected check tones remain genuine evidence gaps.
+
+The v5 planner can include an earlier contiguous evidence-waiting interval when a
+shorter ready horizon would omit it, but only within the unconsumed 300-second
+bound, the same uninterrupted supported reference island, and when that extra
+interval contains a reserved target event. Failed or already selected spans are
+not replaced. The reserved event is evaluated on the final joined map; its mere
+presence is not a passing result. Unsupported acquisition context is explicitly
+labelled. Available source context before a bounded plan is read for event
+measurement, without admitting evidence from outside the requested range.
 
 `optimization_outcome` and CLI summaries distinguish accepted correction coverage from successful execution. Existing research artifacts remain local comparisons; execution success alone does not qualify a tape for correction.
 
@@ -87,7 +122,11 @@ reference identity, evidence, support, failures and switch reasons for each span
 Monitoring is conservative and retrospective. A short supported gap ends the
 current lifetime at the first unsafe sample; resumption waits for independent
 validation on a subsequent monitoring passage. A detected target-quality failure
-bypasses that whole monitoring passage. The implementation does not promise
+bypasses that whole monitoring passage. If a reference loses support within a
+passage, only checks fully inside the supported prefix can judge that prefix;
+checks at or after the gap are recorded as outside it and cannot turn identity
+into evidence of deterioration. A passing prefix ends at the first gap, which
+remains explicitly bypassed. The implementation does not promise
 instantaneous switching at the exact acoustic change. Direct transfer evidence
 expires after five minutes without a new independent check. Playback groups
 require a directly validated donor and a distinct target carrier with matching
@@ -135,7 +174,9 @@ Generation-named tracker state, detail and checkpoint files commit through
 uncommitted stream suffix. Original identities, evidence and stream hashes are
 checked; changed settings/code require a fresh destination.
 
-The methodology is `continuous-carrier-v4`. Older rollout/production acceptance
+The methodology is `continuous-carrier-v5`. V4 checkpoints cannot be resumed as
+v5: the methodology and implementation hashes differ. Use the separate default
+v5 destination; the stopped v4 plan remains a historical artifact. Older rollout/production acceptance
 does not authorize these maps. The existing final-map and representative
 listening gates remain in force; completing a plan does not approve production.
 
@@ -171,7 +212,7 @@ anchors explicitly without assuming alignment between channels.
 ## Reference qualification coverage
 
 The rollout evidence field `carrier_qualification` is retained, but for
-`continuous-carrier-v4` it means qualification of the planner's reference
+`continuous-carrier-v5` it means qualification of the planner's reference
 acquisition and continuous tracking. It does not require a standalone survey.
 Historical 700-1300 Hz screening and IRIG-decoding reports cannot establish
 qualification of the wider deflutter search.

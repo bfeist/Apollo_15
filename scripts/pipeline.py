@@ -1,6 +1,7 @@
 """Numbered Apollo 15 audio pipeline with a Rich terminal dashboard."""
 import argparse
 from collections import deque
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from datetime import datetime
 import json
 import os
@@ -24,6 +25,7 @@ from quindar_retime import DEFAULT_RETIMED_ROOT
 from quindar_survey import DEFAULT_ANALYSIS_ROOT
 
 SCRIPTS = Path(__file__).resolve().parent
+DEFAULT_V5_PLANNING_ROOT = Path('D:/Apollo_15_30-Track/deflutter_planning_v5_allchannel')
 STAGES = [
     ('01', 'Concatenate', '01_concatenate.py', 'Verify fragment order and join channels'),
     ('03', 'Denoise', '03_denoise.py',
@@ -45,6 +47,8 @@ def parse_args(argv=None):
     tapes = parser.add_mutually_exclusive_group()
     tapes.add_argument('--tape', help='Select one canonical tape folder')
     tapes.add_argument('--all-tapes', action='store_true', help='Process all tapes for stage 03, 05a, 05b, or 05c')
+    parser.add_argument('--exclude-tape', action='append', default=[], metavar='TAPE',
+                        help='Skip a tape in an all-tapes batch; may be repeated')
     channels = parser.add_mutually_exclusive_group()
     channels.add_argument('--channel', type=int, help='Whole-channel mode; defaults to stages 03,05a,05b,05c for one tape')
     channels.add_argument('--all-channels', action='store_true', help='Process all available channels; stage 03 includes CH01/IRIG, stage 05b excludes IRIG')
@@ -60,13 +64,21 @@ def parse_args(argv=None):
     parser.add_argument('--retime-smoothing-seconds', type=float, help='Stage 05c: smoothing kernel sigma; default chooses by block validation')
     parser.add_argument('--experimental-transfer', action='store_true')
     parser.add_argument('--min-age', type=float, default=60)
-    parser.add_argument('--flutter-planning-root', '--planning-root', type=Path, default=DEFAULT_PLANNING_ROOT,
-                        help='Persistent per-tape plans; shared by stages 05a and 05b')
+    parser.add_argument('--flutter-planning-root', '--planning-root', type=Path,
+                        help='Persistent per-tape plans; defaults depend on planner')
+    parser.add_argument('--flutter-planner', choices=['legacy', 'v5'], default='legacy',
+                        help='Select the planner for batch stage 05a (default: legacy)')
+    parser.add_argument('--flutter-plan-stop-on-error', action='store_true',
+                        help='Stop starting tapes after a planning failure; running tapes finish')
+    parser.add_argument('--flutter-plan-resume', action='store_true',
+                        help='Resume existing v5 checkpoints; unstarted tapes begin fresh')
     parser.add_argument('--flutter-plan', type=Path, help='Stage 05b saved plan override; defaults to the tape plan')
     parser.add_argument('--production-approval-root', type=Path, help='Per-tape production_acceptance.json records; defaults to planning root')
     parser.add_argument('--flutter-monitor-seconds', type=float, default=60, help='Continuous quality-check cadence, not reference lifetime')
     parser.add_argument('--flutter-chunk-seconds', type=float, default=7, help='Continuous tracker I/O size, independent of reference lifetime')
     parser.add_argument('--flutter-reference-limit', type=int, default=8, help='Maximum references tried per acquisition search')
+    parser.add_argument('--flutter-plan-workers', type=int, default=4,
+                        help='Concurrent tape planners for batch stage 05a (default: 4; 1 is serial)')
     parser.add_argument('--flutter-plan-start', type=float, default=0, help='Stage 05a bounded audit start; default whole tape')
     parser.add_argument('--flutter-plan-duration', type=float, help='Stage 05a optional bounded audit duration')
     parser.add_argument('--skip-deflutter', action='store_true', help='Skip stage 05b correction and normalization')
@@ -74,13 +86,20 @@ def parse_args(argv=None):
     parser.add_argument('--max-boost-db', type=float, default=DEFAULT_MAX_BOOST_DB, help='Stages 05b/05c maximum boost (default: 12 dB)')
     parser.add_argument('--plain', action='store_true', help='Print sequential logs without a live dashboard')
     args = parser.parse_args(argv)
+    if args.flutter_planning_root is None:
+        args.flutter_planning_root = DEFAULT_V5_PLANNING_ROOT if args.flutter_planner == 'v5' else DEFAULT_PLANNING_ROOT
     # Explicit tape selection without excerpt input is also a whole-tape denoise request.
     args.batch = args.all_tapes or args.all_channels or (
         args.tape is not None and args.channel is None and args.input is None
         and (args.stages is None or args.stages.strip() in {'3', '03'}))
     args.tape = args.tape or 'A15_T510073'
+    if args.exclude_tape and (not args.all_tapes or any(
+            Path(tape).name != tape or tape in {'.', '..'} for tape in args.exclude_tape)):
+        parser.error('--exclude-tape requires --all-tapes and simple tape folder names')
     if args.denoise_workers < 0:
         parser.error('--denoise-workers must be nonnegative')
+    if args.flutter_plan_workers < 1:
+        parser.error('--flutter-plan-workers must be positive')
     try:
         requested = args.stages or ('03' if args.batch else
                                     '03,05a,05b,05c' if args.channel is not None else '03')
@@ -95,6 +114,14 @@ def parse_args(argv=None):
     args.batch_flutter = args.batch and bool(selected & {'05a', '05b'})
     if args.batch and selected == {'05b'} and args.experimental_transfer:
         parser.error('Experimental transfer is review-only; production batches require accepted conservative maps')
+    if args.flutter_planner == 'v5' and not (args.batch and selected == {'05a'}):
+        parser.error('--flutter-planner v5 is supported only for batch stage 05a')
+    if args.flutter_planner == 'v5' and args.channel is not None:
+        parser.error('V5 planning surveys all channels; omit --channel')
+    if args.flutter_plan_stop_on_error and not (args.batch and selected == {'05a'}):
+        parser.error('--flutter-plan-stop-on-error requires batch stage 05a')
+    if args.flutter_plan_resume and args.flutter_planner != 'v5':
+        parser.error('--flutter-plan-resume requires --flutter-planner v5')
     args.batch_retime = args.batch and selected == {'05c'}
     if args.batch_retime:
         if args.input or args.quindar_plan or args.retime_candidates or args.retime_smoothing_seconds or args.experimental_single_channel:
@@ -138,7 +165,8 @@ def canonical_tapes(args):
     if args.all_tapes:
         if not args.concatenated.is_dir():
             raise ValueError(f'Canonical tape root does not exist: {args.concatenated}')
-        folders = sorted(p for p in args.concatenated.glob('A15_T*') if p.is_dir())
+        folders = sorted(p for p in args.concatenated.glob('A15_T*')
+                         if p.is_dir() and p.name not in args.exclude_tape)
     else:
         folders = [args.concatenated / args.tape]
     if not folders:
@@ -217,7 +245,7 @@ def make_flutter_batch(args, selected, run_dir):
 def make_jobs(args, selected, run_dir):
     if args.batch_retime:
         folders = sorted(args.defluttered_root.glob('A15_T*')) if args.all_tapes else [args.defluttered_root/args.tape]
-        folders = [p for p in folders if p.is_dir()]
+        folders = [p for p in folders if p.is_dir() and p.name not in args.exclude_tape]
         if not folders:
             raise ValueError('No defluttered tapes are available')
         jobs = []
@@ -247,6 +275,9 @@ def make_tape_jobs(args, selected, run_dir):
     jobs = []
     for number, name, script, description in STAGES:
         status = 'pending' if number in selected else 'not selected'
+        if number == '05a' and args.flutter_planner == 'v5':
+            script = '05a_plan_deflutter_v5.py'
+            description = 'Survey originals and existing denoised audio, then plan and assess'
         if number == '05b' and number in selected and args.skip_deflutter:
             status = 'skipped explicitly'
         command = [sys.executable, '-u', str(SCRIPTS / script)]
@@ -263,6 +294,10 @@ def make_tape_jobs(args, selected, run_dir):
                         '--chunk-seconds', str(args.flutter_chunk_seconds)]
             if args.flutter_plan_duration is not None:
                 command += ['--duration', str(args.flutter_plan_duration)]
+            if args.flutter_planner == 'v5':
+                command += ['--denoised-root', str(args.denoised_root)]
+                if args.flutter_plan_resume and output.exists():
+                    command.append('--resume')
         elif number == '03' and args.channel is not None:
             output = tape_directory(args.tape,args.denoised_root)/f'CH{args.channel:02d}'
             name, description = 'Denoise channel', 'Cache tone/hum removal and 3 dB broadband denoising'
@@ -344,14 +379,21 @@ def dashboard(jobs, tail, location):
                  Text(f'Run: {location}'))
 
 
-def execute(job, jobs, tail, run_dir, live, console):
+def execute(job, jobs, tail, run_dir, live, console, stop_event=None, report_queue=None):
+    if stop_event is not None and stop_event.is_set():
+        return 130
     started = time.monotonic()
     job['status'] = 'running'
     messages = queue.Queue()
+    env = {**os.environ, 'PYTHONIOENCODING': 'utf-8'}
+    if job['number'] == '05a':
+        # Each tape is already a separate process; prevent nested BLAS pools
+        # from multiplying the configured concurrency.
+        env.update(OPENBLAS_NUM_THREADS='1', OMP_NUM_THREADS='1', MKL_NUM_THREADS='1')
     process = subprocess.Popen(job['command'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                text=True, encoding='utf-8', errors='replace',
                                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == 'nt' else 0,
-                               env={**os.environ, 'PYTHONIOENCODING': 'utf-8'})
+                               env=env)
 
     def reader():
         for line in process.stdout:
@@ -364,15 +406,22 @@ def execute(job, jobs, tail, run_dir, live, console):
         with (run_dir / job.get('log', f'{job["number"]}.log')).open('w', encoding='utf-8') as log:
             while True:
                 job['elapsed'] = time.monotonic() - started
+                if stop_event is not None and stop_event.is_set():
+                    job['status'] = 'cancelled'
+                    job['returncode'] = 130
+                    return 130
                 try:
                     line = messages.get(timeout=0.1)
                     if line is None:
                         break
                     log.write(line + '\n')
                     log.flush()
-                    tail.append(line)
-                    if live is None:
-                        console.print(Text(line))
+                    if report_queue is not None:
+                        report_queue.put(line)
+                    else:
+                        tail.append(line)
+                        if live is None:
+                            console.print(Text(line))
                 except queue.Empty:
                     pass
                 if live:
@@ -398,6 +447,60 @@ def execute(job, jobs, tail, run_dir, live, console):
         thread.join(timeout=2)
         process.stdout.close()
         job['elapsed'] = time.monotonic() - started
+
+
+def execute_planning_batch(jobs, tail, run_dir, live, console, workers, result, stop_on_error=False):
+    """Run independent tape processes, committing each result as it finishes."""
+    stop = threading.Event()
+    reports = queue.Queue()
+    pool = ThreadPoolExecutor(max_workers=workers, thread_name_prefix='tape-planner')
+    pending = iter(j for j in jobs if j['status'] == 'pending')
+    running = {}
+
+    def start_next():
+        job = next(pending, None)
+        if job is None:
+            return False
+        console.print(Text(f'{job["number"]} {job["name"]}: {job["description"]}'))
+        running[pool.submit(execute, job, jobs, tail, run_dir, None, console, stop, reports)] = job
+        return True
+
+    try:
+        for _ in range(workers):
+            if not start_next():
+                break
+        while running:
+            done, _ = wait(running, timeout=.1, return_when=FIRST_COMPLETED)
+            while True:
+                try:
+                    line = reports.get_nowait()
+                except queue.Empty:
+                    break
+                tail.append(line)
+                if live is None:
+                    console.print(Text(line))
+            if live:
+                live.update(dashboard(jobs, tail, run_dir))
+            for future in done:
+                job = running.pop(future)
+                try:
+                    code = future.result()
+                except Exception as error:
+                    job.update(status='failed', returncode=1, error=str(error))
+                    console.print(Text(f'{job["name"]}: {error}'))
+                    code = 1
+                if code:
+                    result = result or code
+                (run_dir/'run.json').write_text(json.dumps(dict(returncode=result, stages=jobs), indent=2), encoding='utf-8')
+            if not (stop_on_error and result):
+                for _ in done:
+                    start_next()
+    except BaseException:
+        stop.set()
+        raise
+    finally:
+        pool.shutdown(wait=True, cancel_futures=True)
+    return result
 
 
 def main(argv=None):
@@ -429,30 +532,45 @@ def main(argv=None):
     try:
         if live:
             live.start()
-        for job in jobs:
-            if job['status'] != 'pending':
-                continue
-            tail.clear()
-            console.print(Text(f'{job["number"]} {job["name"]}: {job["description"]}'))
-            try:
-                code = execute(job, jobs, tail, run_dir, live, console)
-            except Exception as error:
-                if not args.batch:
-                    raise
-                job.update(status='failed', returncode=1, error=str(error))
-                console.print(Text(f'{job["name"]}: {error}'))
-                code = 1
-            if code:
-                result = result or code
-            # Persist each completed job so an overnight interruption leaves a record.
-            (run_dir / 'run.json').write_text(json.dumps(dict(returncode=result, stages=jobs), indent=2), encoding='utf-8')
-            if code and not args.batch:
-                break
+        if args.batch_flutter and selected == {'05a'} and args.flutter_plan_workers > 1:
+            result = execute_planning_batch(jobs, tail, run_dir, live, console,
+                                            args.flutter_plan_workers, result, args.flutter_plan_stop_on_error)
+        else:
+            for job in jobs:
+                if job['status'] != 'pending':
+                    continue
+                tail.clear()
+                console.print(Text(f'{job["number"]} {job["name"]}: {job["description"]}'))
+                try:
+                    code = execute(job, jobs, tail, run_dir, live, console)
+                except Exception as error:
+                    if not args.batch:
+                        raise
+                    job.update(status='failed', returncode=1, error=str(error))
+                    console.print(Text(f'{job["name"]}: {error}'))
+                    code = 1
+                if code:
+                    result = result or code
+                # Persist each completed job so an overnight interruption leaves a record.
+                (run_dir / 'run.json').write_text(json.dumps(dict(returncode=result, stages=jobs), indent=2), encoding='utf-8')
+                if code and (not args.batch or (selected == {'05a'} and args.flutter_plan_stop_on_error)):
+                    break
     except KeyboardInterrupt:
-        job['status'] = 'cancelled'
+        for interrupted in jobs:
+            if interrupted['status'] == 'running':
+                interrupted['status'] = 'cancelled'
         result = 130
+        if '05a' in selected:
+            if args.flutter_planner == 'v5':
+                console.print(Text('Planning stopped. Use --flutter-plan-resume for compatible checkpoints; '
+                                   'survey windows are now checkpointed as well.'))
+            else:
+                console.print(Text('Planning stopped. Repeat the same pipeline command to resume compatible '
+                                   'checkpoints and reuse completed plans.'))
     except Exception as error:
-        job['status'] = 'failed'
+        for failed in jobs:
+            if failed['status'] == 'running':
+                failed['status'] = 'failed'
         tail.append(str(error))
         result = 1
     finally:

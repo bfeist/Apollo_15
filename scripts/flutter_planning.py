@@ -126,6 +126,10 @@ def calibration_proxy(x, sr, curve, events):
     values = []
     for b in events:
         lo, hi = int((b['start']-.15)*sr), int((b['end']+.15)*sr)
+        # A negative Python slice wraps from the end of the excerpt, yielding
+        # an empty or unrelated event. Never screen an incomplete margin.
+        if lo < 0 or hi > len(x) or hi <= lo:
+            return None
         _, freq = burst_track(x[lo:hi], sr)
         tt = lo/sr+np.arange(len(freq))/1000
         keep = (tt > b['start']+.04) & (tt < b['end']-.04)

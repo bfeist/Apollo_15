@@ -22,18 +22,22 @@ def main():
     parser.add_argument('--candidates-per-channel', type=int, default=8)
     parser.add_argument('--reference-limit', type=int, default=8)
     parser.add_argument('--max-windows', type=int, help='Checkpoint after this many new monitoring windows')
-    parser.add_argument('--resume', action='store_true')
+    parser.add_argument('--resume', action='store_true', help='Resume an incomplete plan (also automatic without this flag)')
     args = parser.parse_args()
     try:
         output = args.output or planning_directory(args.input.name, args.planning_root, args.start, args.duration)
         if args.input.resolve() == output.resolve() or args.input.resolve() in output.resolve().parents or output.resolve() in args.input.resolve().parents:
             raise ValueError('Input and output must be non-overlapping')
         with planning_lock(output):
+            if (output/'plan.json').exists():
+                print(f'{args.input.name}: existing plan found; checking compatibility and resuming if incomplete', flush=True)
             plan = plan_tape(args.input, output, start=args.start, duration=args.duration,
                 monitor_seconds=args.monitor_seconds, chunk_seconds=args.chunk_seconds,
                 context_seconds=args.context_seconds, candidates_per_channel=args.candidates_per_channel,
                 reference_limit=args.reference_limit, max_windows=args.max_windows, resume=args.resume, reuse=True)
             outcome = plan.get('optimization_outcome', {})
+            if not plan.get('complete'):
+                print(f'{args.input.name}: checkpoint saved; repeat the same command to continue', flush=True)
             print(f"{args.input.name}: {outcome.get('status', 'incomplete')}; "
                   f"supported correction coverage={outcome.get('correction_coverage', 0.):.2%}; "
                   f"restoration-goal channel-seconds={outcome.get('restoration_goal_seconds', 0.):.3f}; "

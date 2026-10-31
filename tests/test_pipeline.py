@@ -5,6 +5,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import threading
 import unittest
 from unittest.mock import Mock, patch
 
@@ -231,6 +232,109 @@ class BatchFlutterTests(CanonicalTapeTests):
         self.assertFalse(self.runs.exists())
         self.assertFalse(self.cache.exists())
 
+    def test_v5_batch_commands_and_resume_selection(self):
+        flags = ('--all-tapes', '--stages', '05a', '--flutter-planner', 'v5')
+        jobs = self.jobs(*flags)
+        for job in jobs:
+            command = job['command']
+            self.assertEqual(Path(command[2]).name, '05a_plan_deflutter_v5.py')
+            self.assertEqual(command[command.index('--denoised-root')+1], str(self.cache))
+            self.assertEqual(command[command.index('--output')+1], str(self.plans/job['tape']))
+            self.assertNotIn('--resume', command)
+        (self.plans/'A15_T001').mkdir(parents=True)
+        resumed = self.jobs(*flags, '--flutter-plan-resume')
+        self.assertIn('--resume', resumed[0]['command'])
+        self.assertNotIn('--resume', resumed[1]['command'])
+        args, _ = pipeline.parse_args(['--all-tapes', '--stages', '05a', '--flutter-planner', 'v5'])
+        self.assertEqual(args.flutter_planning_root, pipeline.DEFAULT_V5_PLANNING_ROOT)
+        for extra in [('--flutter-plan-resume',), ('--stages', '05b', '--flutter-planner', 'v5'),
+                      ('--all-tapes', '--stages', '05a', '--flutter-planner', 'v5', '--channel', '2')]:
+            with self.subTest(extra=extra), self.assertRaises(SystemExit):
+                pipeline.parse_args(list(extra))
+
+    def test_all_tapes_can_exclude_active_tapes(self):
+        jobs = self.jobs('--all-tapes', '--stages', '05a', '--flutter-planner', 'v5',
+                         '--exclude-tape', 'A15_T001')
+        self.assertEqual([job['tape'] for job in jobs], ['A15_T002'])
+        with self.assertRaises(SystemExit):
+            pipeline.parse_args(['--exclude-tape', 'A15_T001'])
+
+    def test_v5_batch_executes_and_reports_interrupted_survey(self):
+        command = [sys.executable, str(RUNNER), 'run', *self.options, '--planning-root', str(self.plans),
+                   '--all-tapes', '--stages', '05a', '--flutter-planner', 'v5', '--flutter-plan-workers', '2']
+        result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
+        self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+        for tape in ('A15_T001', 'A15_T002'):
+            self.assertTrue((self.plans/tape/'joined_assessment.json').is_file())
+            self.assertTrue((self.plans/tape/'plan'/'plan.json').is_file())
+        # An occupied survey with no planning checkpoint must fail, not restart or overwrite it.
+        partial = self.originals/'A15_T003'
+        partial.mkdir()
+        occupied = self.plans/'A15_T003'
+        occupied.mkdir()
+        marker = occupied/'survey.jsonl'
+        marker.write_text('preserved')
+        result = subprocess.run([*command, '--flutter-plan-resume'], capture_output=True, text=True, encoding='utf-8')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('No survey checkpoint', ' '.join(result.stdout.split()))
+        self.assertEqual(marker.read_text(), 'preserved')
+
+    def test_planning_batch_runs_tapes_concurrently_and_continues_after_failure(self):
+        jobs = self.jobs('--all-tapes', '--stages', '05a')
+        jobs.append(dict(jobs[1], tape='A15_T003', name='A15_T003', log='05a_A15_T003.log'))
+        barrier = threading.Barrier(2, timeout=10)
+        def run(job, jobs, tail, run_dir, live, console, stop, reports):
+            job['status'] = 'running'
+            if job['tape'] != 'A15_T003':
+                barrier.wait()
+            job['returncode'] = 1 if job['tape'] == 'A15_T001' else 0
+            job['status'] = 'failed' if job['returncode'] else 'done'
+            return job['returncode']
+        self.runs.mkdir()
+        with patch('pipeline.execute', side_effect=run):
+            result = pipeline.execute_planning_batch(jobs, deque(maxlen=10), self.runs,
+                None, pipeline.Console(), 2, 0)
+        self.assertEqual(result, 1)
+        self.assertEqual([job['status'] for job in jobs], ['failed', 'done', 'done'])
+        self.assertEqual(json.loads((self.runs/'run.json').read_text())['returncode'], 1)
+
+    def test_planning_batch_can_stop_starting_tapes_after_failure(self):
+        jobs = self.jobs('--all-tapes', '--stages', '05a')
+        jobs.append(dict(jobs[1], tape='A15_T003', name='A15_T003', log='05a_A15_T003.log'))
+        def run(job, *unused):
+            job.update(status='failed', returncode=7)
+            return 7
+        self.runs.mkdir()
+        with patch('pipeline.execute', side_effect=run):
+            result = pipeline.execute_planning_batch(jobs, deque(maxlen=10), self.runs,
+                None, pipeline.Console(), 1, 0, stop_on_error=True)
+        self.assertEqual(result, 7)
+        self.assertEqual([job['status'] for job in jobs], ['failed', 'pending', 'pending'])
+
+    def test_planning_worker_stop_terminates_child(self):
+        self.runs.mkdir()
+        job = dict(number='05a', command=[sys.executable, '-u', '-c',
+            'import time; print("started", flush=True); time.sleep(60)'],
+            status='pending', elapsed=0., returncode=None)
+        stop, reports = threading.Event(), pipeline.queue.Queue()
+        worker = threading.Thread(target=pipeline.execute, args=(job, [job], deque(maxlen=10),
+            self.runs, None, pipeline.Console(), stop, reports))
+        worker.start()
+        try:
+            self.assertEqual(reports.get(timeout=10), 'started')
+        finally:
+            stop.set()
+            worker.join(timeout=15)
+        self.assertFalse(worker.is_alive())
+        self.assertEqual(job['status'], 'cancelled')
+        self.assertEqual(job['returncode'], 130)
+
+    def test_planning_worker_count_must_be_positive(self):
+        args, _ = pipeline.parse_args(['--flutter-plan-workers', '16'])
+        self.assertEqual(args.flutter_plan_workers, 16)
+        with self.assertRaises(SystemExit):
+            pipeline.parse_args(['--flutter-plan-workers', '0'])
+
     def test_default_continuous_planning_forwards_monitor_and_io_sizes_without_survey(self):
         jobs = self.jobs('--all-tapes', '--stages', '05a',
                          '--flutter-monitor-seconds', '45', '--flutter-chunk-seconds', '3.7',
@@ -243,6 +347,51 @@ class BatchFlutterTests(CanonicalTapeTests):
             self.assertNotIn('--carrier-survey-root', command)
             self.assertNotIn('--region-seconds', command)
             self.assertNotIn('--workers', command)
+
+    def test_restart_reuses_completed_tapes_and_resumes_checkpoint(self):
+        # One tape is already finished, while another has only one committed
+        # monitoring window, as after an interruption of the batch.
+        unfinished = self.originals/'A15_T002'
+        for path in unfinished.glob('*.wav'):
+            path.unlink()
+        sf.write(unfinished/'A15_T002_HR1U_CH2_VOICE_207-00-00-00_207-00-02-00.wav',
+                 np.zeros(120*8000), 8000, subtype='FLOAT')
+        stage = ROOT/'scripts'/'05a_plan_deflutter.py'
+        for tape in ('A15_T001', 'A15_T002'):
+            result = subprocess.run([sys.executable, str(stage), '--input', str(self.originals/tape),
+                                     '--output', str(self.plans/tape), '--max-windows', '1'],
+                                    capture_output=True, text=True, encoding='utf-8')
+            self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+        done = self.plans/'A15_T001'/'plan.json'
+        pending = self.plans/'A15_T002'/'plan.json'
+        completed_bytes = done.read_bytes()
+        before = json.loads(pending.read_text())
+        self.assertTrue(json.loads(completed_bytes)['complete'])
+        self.assertFalse(before['complete'])
+        self.assertEqual(before['summary']['monitor_windows'], 1)
+        checkpoint = self.plans/'A15_T002'/before['checkpoint_file']
+        checkpoint_bytes = checkpoint.read_bytes()
+
+        result = subprocess.run([sys.executable, str(RUNNER), 'run', *self.options,
+                                 '--all-tapes', '--stages', '05a'],
+                                capture_output=True, text=True, encoding='utf-8')
+        self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+        self.assertIn('existing plan found; checking compatibility and resuming if incomplete',
+                      ' '.join(result.stdout.split()))
+        self.assertEqual(done.read_bytes(), completed_bytes)
+        self.assertEqual(checkpoint.read_bytes(), checkpoint_bytes)
+        after = json.loads(pending.read_text())
+        self.assertTrue(after['complete'])
+        self.assertEqual(after['summary']['monitor_windows'], 2)
+        resumed_bytes = pending.read_bytes()
+        changed = subprocess.run([sys.executable, str(RUNNER), 'run', *self.options,
+                                  '--all-tapes', '--stages', '05a', '--flutter-reference-limit', '9'],
+                                 capture_output=True, text=True, encoding='utf-8')
+        self.assertNotEqual(changed.returncode, 0)
+        self.assertIn('Stored continuous plan sources/settings/implementation changed',
+                      ' '.join(changed.stdout.split()))
+        self.assertEqual(done.read_bytes(), completed_bytes)
+        self.assertEqual(pending.read_bytes(), resumed_bytes)
 
     def test_deflutter_all_tapes_selects_audio_channels_and_forwards_roots(self):
         jobs = self.jobs('--all-tapes', '--stages', '05b',

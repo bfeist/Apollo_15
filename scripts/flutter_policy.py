@@ -10,7 +10,7 @@ from pathlib import Path
 
 import numpy as np
 
-METHODOLOGY = 'continuous-carrier-v4'
+METHODOLOGY = 'continuous-carrier-v5'
 LIMITS = dict(max_residual_hz=6., max_residual_cents=5., max_event_ratio=.95,
               median_event_ratio=.8, control_margin=.10, low_baseline_hz=1.,
               minimum_events_per_split=2, independent_window_seconds=3.,
@@ -31,7 +31,8 @@ def implementation_digest():
     names = ('flutter_policy.py', 'flutter_planning.py', 'flutter_tracking.py',
              'flutter.py', 'carrier_survey.py', 'channel_review.py', 'irig_clock.py', 'flutter_groups.py',
              'continuous_tracking.py', 'continuous_planning.py', 'continuous_maps.py',
-             'continuous_acquisition.py', 'continuous_quality.py', 'carrier_capture.py')
+             'continuous_acquisition.py', 'continuous_quality.py', 'carrier_capture.py',
+             'v5_allchannel.py', 'v5_assessment.py')
     return hashlib.sha256(b''.join(Path(__file__).with_name(n).read_bytes() for n in names)).hexdigest()
 
 

@@ -7,9 +7,9 @@ import os
 from pathlib import Path
 import re
 
-DEFAULT_PLANNING_ROOT = Path('D:/Apollo_15_30-Track/deflutter_planning_v4')
+DEFAULT_PLANNING_ROOT = Path('D:/Apollo_15_30-Track/deflutter_planning_v5')
 DEFAULT_DENOISED_ROOT = Path('D:/Apollo_15_30-Track/denoised')
-DEFAULT_DEFLUTTERED_ROOT = Path('D:/Apollo_15_30-Track/defluttered_v4')
+DEFAULT_DEFLUTTERED_ROOT = Path('D:/Apollo_15_30-Track/defluttered_v5')
 
 
 def is_continuous_plan(plan):
@@ -19,6 +19,7 @@ def is_continuous_plan(plan):
 def iter_plan_artifacts(folder, plan):
     """Yield all bound evidence/maps, including continuous binary streams."""
     folder = Path(folder).resolve()
+    yield from checked_v5_survey(folder, plan)
     for summary in plan['regions']:
         if not summary.get('detail_file'):
             continue
@@ -88,6 +89,7 @@ def load_saved_plan(path, require_complete=True, *, expand_regions=True):
     if path.is_dir():
         path = path/'plan.json'
     plan = json.loads(path.read_text(encoding='utf-8'))
+    list(checked_v5_survey(path.parent, plan))
     if plan.get('schema') != 1 and not is_continuous_plan(plan):
         raise ValueError('Unsupported saved-plan schema')
     if require_complete and (not plan.get('complete') or plan.get('source_validation') != 'verified'):
@@ -121,6 +123,21 @@ def load_saved_plan(path, require_complete=True, *, expand_regions=True):
         if expand_regions:
             plan['regions'][i] = detail
     return plan
+
+
+def checked_v5_survey(folder, plan):
+    """V5 bundles place the immutable survey beside the nested plan directory."""
+    if plan.get('methodology') != 'continuous-allchannel-v5':
+        return
+    signature = plan.get('survey_signature', {})
+    if Path(folder).name != 'plan':
+        raise ValueError('V5 plan must remain inside its survey bundle under plan/')
+    for name, key in (('survey_manifest.json', 'manifest_sha256'), ('survey.jsonl', 'coverage_sha256')):
+        expected = signature.get(key)
+        if not isinstance(expected, str) or len(expected) != 64:
+            raise ValueError('V5 plan has no bound survey evidence')
+        path = checked_stream(Path(folder).parent, name, expected)
+        yield path, expected
 
 
 @contextmanager

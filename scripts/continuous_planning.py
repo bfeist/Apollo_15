@@ -16,7 +16,7 @@ import soundfile as sf
 from scipy import signal
 
 from continuous_tracking import CarrierStream, METHODS, RATE, track_array
-from continuous_acquisition import AcquisitionEvidence, local_roles
+from continuous_acquisition import AcquisitionEvidence, SynchronizedEvidence, local_roles
 from continuous_quality import classify_numeric_quality, IMPROVEMENT_LIMITS
 from carrier_capture import capture_candidates
 from flutter_planning import inventory, read_channel, calibration_proxy, fair_shortlist, loss, write_json
@@ -209,13 +209,50 @@ def reopen_pending_span(target, low):
     target['reference_spans'] = retained
 
 
-def local_data(inv, low, high):
+def pending_backfill_start(target, cursor, floor):
+    """Extend into contiguous evidence-waiting audio, never a failed decision.
+
+    The caller still intersects this interval with the reference's continuously
+    supported island and the bounded, unconsumed acquisition horizon.
+    """
+    low = cursor
+    for span in reversed(target['reference_spans']):
+        if abs(span['end_seconds']-low) > 1e-7 or span.get('selected') or span['reason'] != 'Insufficient independent calibration/validation events':
+            break
+        low = max(floor, span['start_seconds'])
+        if low <= floor:
+            break
+    return low
+
+
+def acquisition_span_start(target, current_low, floor, proposal_start, supported_from, final_events):
+    """Bound backfill by failed spans, physical support and reserved evidence."""
+    waiting_start = pending_backfill_start(target, current_low, floor)
+    supported_start = max(waiting_start, supported_from)
+    low = max(supported_start, proposal_start)
+    # The shorter ready horizon may omit waiting audio. Use its earlier part
+    # only when an untouched reserved event there can assess the final map.
+    if any(supported_start <= event['start_seconds'] and event['end_seconds'] <= low
+           for event in final_events):
+        low = supported_start
+    return low
+
+
+def local_data(inv, low, high, tolerate_errors=False):
     data = {}
     for row in inv['channels']:
         a, b = max(row['start_seconds'], low), min(row['end_seconds'], high)
+        if tolerate_errors and b > a and b-a < 10:
+            a = max(row['start_seconds'], b-10)
+            b = min(row['end_seconds'], max(b, a+10))
         if b-a < 10:
             continue
-        x, sr, _ = read_channel(row, a, b)
+        try:
+            x, sr, _ = read_channel(row, a, b)
+        except (OSError, ValueError, RuntimeError):
+            if not tolerate_errors:
+                raise
+            continue
         data[row['channel']] = (x, sr, a, b)
     return data
 
@@ -292,7 +329,7 @@ def group_evidence(applied, independent, support, amplitude, lo, hi):
                 amplitude_modulation_rms=modulation, content_lag_fitted=False)
 
 
-def acquire(inv, data, roles, low, high, reference_limit, candidates_per_channel, incumbents=()):
+def acquire(inv, data, roles, low, high, reference_limit, candidates_per_channel, incumbents=(), candidate_provider=None, allow_transfer_group=True):
     """Calibrate all shortlisted variants; validate exactly one frozen choice per target."""
     candidates, traces, screening = [], {}, []
     for row in inv['channels']:
@@ -300,7 +337,9 @@ def acquire(inv, data, roles, low, high, reference_limit, candidates_per_channel
         if ch not in data:
             continue
         x, sr, origin, end = data[ch]
-        for candidate in discover(x, sr, candidates_per_channel):
+        candidate_rows = (candidate_provider(ch, origin, end) if candidate_provider is not None
+                          else discover(x, sr, candidates_per_channel))
+        for candidate in candidate_rows:
             hz = candidate['carrier_hz']
             options = []
             for capture in capture_candidates(hz, sr, (2., 30.)):
@@ -397,8 +436,11 @@ def acquire(inv, data, roles, low, high, reference_limit, candidates_per_channel
         best_loss = min(value[0] for value in scores)
         comparable = [value for value in scores if value[0] <= best_loss+max(SETTINGS['calibration_tie_absolute'], best_loss*SETTINGS['calibration_tie_relative'])]
         timing_only = {row['channel'] for row in inv['channels'] if row['role'] == 'timing_only'}
-        selected_loss, _, selected, e = max(comparable, key=lambda value: (
-            value[2]['rank'], value[2]['reference_channel'] in timing_only, -value[0], value[1]))
+        if candidate_provider is not None:
+            selected_loss, _, selected, e = min(scores, key=lambda value: (value[0], value[1]))
+        else:
+            selected_loss, _, selected, e = max(comparable, key=lambda value: (
+                value[2]['rank'], value[2]['reference_channel'] in timing_only, -value[0], value[1]))
         raw_e, support, ref_origin = curves[selected['key']]
         support = np.interp(tt-ref_origin, np.arange(len(support))/RATE, support, left=0., right=0.)
         supported = all(np.min(support[round(event['start']*RATE):round(event['end']*RATE)]) >= .95 for event in cal+validation)
@@ -435,7 +477,7 @@ def acquire(inv, data, roles, low, high, reference_limit, candidates_per_channel
     # group validation. A failed group never cycles through alternatives here.
     donors = sorted([(ch, d['key']) for ch,d in decisions.items() if d['passed']]+retained_donors)
     for ch, (cal, validation, final) in roles.items():
-        if cal or validation or ch not in data or not donors:
+        if not allow_transfer_group or cal or validation or ch not in data or not donors:
             continue
         donor_channel, reference_key = donors[0]
         selected = next(trial for trial in trials if trial['key'] == reference_key)
@@ -475,7 +517,9 @@ def acquire(inv, data, roles, low, high, reference_limit, candidates_per_channel
 
 def plan_tape(source, output, *, start=0., duration=None, monitor_seconds=60.,
               chunk_seconds=7., context_seconds=4., candidates_per_channel=8,
-              reference_limit=8, max_windows=None, resume=False, reuse=True):
+              reference_limit=8, max_windows=None, resume=False, reuse=True,
+              candidate_provider=None, methodology_override=None, survey_signature=None,
+              allow_transfer_group=True, tolerate_read_errors=False):
     source, output = Path(source).resolve(), Path(output).resolve()
     if source == output or source in output.parents or output in source.parents:
         raise ValueError('Input and output must be non-overlapping')
@@ -492,8 +536,10 @@ def plan_tape(source, output, *, start=0., duration=None, monitor_seconds=60.,
     parameters = dict(start=start, duration=duration, monitor_seconds=monitor_seconds,
                       context_seconds=context_seconds, candidates_per_channel=candidates_per_channel,
                       reference_limit=reference_limit)
-    signature = dict(inventory=inv, parameters=parameters, methodology=METHODOLOGY,
+    signature = dict(inventory=inv, parameters=parameters, methodology=methodology_override or METHODOLOGY,
                      implementation_sha256=implementation_digest(), policy_sha256=policy_digest())
+    if survey_signature is not None:
+        signature['survey_signature'] = survey_signature
     output.mkdir(parents=True, exist_ok=True)
     if (output/'plan.json').exists():
         saved = load_saved_plan(output/'plan.json', require_complete=False)
@@ -513,7 +559,8 @@ def plan_tape(source, output, *, start=0., duration=None, monitor_seconds=60.,
         last_checked = {int(k):v for k,v in state['last_checked'].items()}
         groups = {int(k):v for k,v in state.get('groups', {}).items()}
         last_group_search = {int(k):v for k,v in state.get('last_group_search', {}).items()}
-        evidence_ledger = AcquisitionEvidence.restore(state['acquisition_evidence'])
+        evidence_type = SynchronizedEvidence if candidate_provider is not None else AcquisitionEvidence
+        evidence_ledger = evidence_type.restore(state['acquisition_evidence'])
     else:
         if any(p.name != 'audits' or not p.is_dir() for p in output.iterdir()):
             raise ValueError('Use a fresh output folder for continuous planning')
@@ -525,7 +572,8 @@ def plan_tape(source, output, *, start=0., duration=None, monitor_seconds=60.,
                    for row in inv['channels'] if row['role'] != 'timing_only']
         cursor, sequence = start, 0
         groups, last_group_search = {}, {}
-        evidence_ledger = AcquisitionEvidence(context_seconds=context_seconds)
+        evidence_type = SynchronizedEvidence if candidate_provider is not None else AcquisitionEvidence
+        evidence_ledger = evidence_type(context_seconds=context_seconds)
     by_channel = {row['channel']: row for row in inv['channels']}
     by_target = {row['channel']: row for row in targets}
     def publish(complete):
@@ -573,16 +621,22 @@ def plan_tape(source, output, *, start=0., duration=None, monitor_seconds=60.,
     count = 0
     while cursor < end-1e-8 and (max_windows is None or count < max_windows):
         high = min(end, cursor+monitor_seconds)
-        data = local_data(inv, max(0., cursor-context_seconds), min(inv['duration_seconds'], high+context_seconds))
+        data = local_data(inv, max(0., cursor-context_seconds), min(inv['duration_seconds'], high+context_seconds), tolerate_read_errors)
         roles = {}
+        batches = []
         for ch, (x, sr, origin, stop) in data.items():
             if ch not in by_target:
                 continue
-            # Include a beep straddling a monitor boundary once it is complete;
-            # ingestion deduplicates repeated overlapping-context detections.
             events = [e for e in beeps(x, sr) if origin+e['start'] >= max(start, by_channel[ch]['start_seconds'], cursor-.5)
                       and origin+e['end'] <= high]
-            fresh = evidence_ledger.ingest(ch, events, origin=origin)
+            batches.append((ch, events, origin))
+        if isinstance(evidence_ledger, SynchronizedEvidence):
+            fresh_by_channel = evidence_ledger.ingest_batch(batches)
+        else:
+            fresh_by_channel = {ch:evidence_ledger.ingest(ch, events, origin=origin)
+                                for ch, events, origin in batches}
+        for ch, _, origin in batches:
+            fresh = fresh_by_channel[ch]
             roles[ch] = tuple([dict(e, start=e['start_seconds']-origin, end=e['end_seconds']-origin)
                                for e in fresh if e['role'] == name]
                               for name in ('calibration', 'validation', 'final'))
@@ -607,8 +661,16 @@ def plan_tape(source, output, *, start=0., duration=None, monitor_seconds=60.,
                 session.advance(high+context_seconds)
                 e, support = projected(session, data[ch])
                 core = support[max(0, round((low-origin)*RATE)):min(len(support), round((stop-origin)*RATE))]
-                metrics = evaluate_events(data[ch][0], data[ch][1], e, cal+validation)
-                passed = len(core) > 0 and float(np.mean(core >= .95)) >= SETTINGS['minimum_support']
+                # A support gap ends the lifetime. Checks after that point see
+                # identity, not the incumbent correction, and must not veto the
+                # independently monitored prefix before the physical loss.
+                ref_a, ref_b = supported_interval(session, low, stop)
+                prefix_end = ref_b if ref_a <= low+1/RATE else low
+                checked = [event for event in cal+validation
+                           if origin+event['start'] >= low and origin+event['end']+.15 <= prefix_end]
+                metrics = evaluate_events(data[ch][0], data[ch][1], e, checked)
+                passed = prefix_end > low and (ch not in groups or
+                    (len(core) > 0 and float(np.mean(core >= .95)) >= SETTINGS['minimum_support']))
                 reason = 'Continuing validated reference'
                 if key not in health:
                     ref_data = data.get(session.row['channel'])
@@ -661,6 +723,7 @@ def plan_tape(source, output, *, start=0., duration=None, monitor_seconds=60.,
                         groups.pop(ch, None)
                     observations.append(dict(channel=ch, selected=key, action='continue', metrics=metrics,
                                              support_fraction=float(np.mean(core >= .95)),
+                                             checks_outside_supported_prefix=len(cal+validation)-len(checked),
                                              physical_support_lost=not continued))
                     continue
                 active.pop(ch)
@@ -681,14 +744,18 @@ def plan_tape(source, output, *, start=0., duration=None, monitor_seconds=60.,
             incumbents = donors_for_window
             group_search = bool(incumbents) and any(high-last_group_search.get(ch, start-300.) >= 300. for ch in unresolved)
             if ready or group_search:
-                search_low = min((p['analysis_start'] for p in ready.values()), default=max(0., cursor-context_seconds))
-                search_data = local_data(inv, search_low, min(inv['duration_seconds'], high+context_seconds))
+                # A bounded plan may start inside a source file. Read available
+                # context before that boundary for event measurement and filter
+                # settling; evidence itself remains inside the requested range.
+                search_low = max(0., min((p['start_seconds'] for p in ready.values()),
+                                         default=cursor)-context_seconds)
+                search_data = local_data(inv, search_low, min(inv['duration_seconds'], high+context_seconds), tolerate_read_errors)
                 wanted_roles = {ch: local_roles(proposals[ch], search_data[ch][2]) if ch in ready else tuple(
                     [dict(e, start=e['start_seconds']-search_data[ch][2], end=e['end_seconds']-search_data[ch][2]) for e in part]
                     for part in roles[ch]) for ch in unresolved if ch in search_data and ch in roles}
                 decisions, trials, budget = acquire(inv, search_data, wanted_roles,
                     min((p['start_seconds'] for p in ready.values()), default=cursor), high,
-                    reference_limit, candidates_per_channel, incumbents)
+                    reference_limit, candidates_per_channel, incumbents, candidate_provider, allow_transfer_group)
                 budget['acquisition_horizons'] = {str(ch):p['horizon_seconds'] for ch,p in ready.items()}
                 for ch in ready:
                     evidence_ledger.mark_attempt(ch, high)
@@ -704,8 +771,16 @@ def plan_tape(source, output, *, start=0., duration=None, monitor_seconds=60.,
                 decision = decisions.get(ch)
                 if decision and decision['passed']:
                     if ch in ready and not decision.get('support_key'):
-                        low = max(row['start_seconds'], ready[ch]['start_seconds'], decision['supported_from_seconds'])
-                        reopen_pending_span(target, low)
+                        proposal = ready[ch]
+                        floor = max(row['start_seconds'], start, high-evidence_ledger.horizons[-1],
+                                    proposal['attempted_through'] if proposal['attempted_through'] is not None else start)
+                        current_low = low
+                        low = acquisition_span_start(target, current_low, floor, proposal['start_seconds'],
+                            decision['supported_from_seconds'], final_events.get(str(ch), []))
+                        if low < current_low:
+                            reopen_pending_span(target, low)
+                        elif low > current_low:
+                            add_span(target, current_low, low, None, 'Reference acquisition context is unsupported')
                     local_key = decision['key']
                     trial = next(v for v in trials if v['key'] == local_key)
                     if trial.get('session_key'):

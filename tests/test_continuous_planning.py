@@ -18,6 +18,7 @@ from continuous_tracking import track_array
 from flutter_plan_store import load_saved_plan, is_continuous_plan
 from channel_review import prepare, continuous_map, joined_map_checks, render_warp, review_page
 from flutter_tracking import burst_track
+from flutter_planning import calibration_proxy
 
 
 def fixture(root, duration=180, dropout=None, deterioration=False, group=False, target_offset=0):
@@ -63,6 +64,34 @@ class ContinuousPlanningTests(unittest.TestCase):
         result = continuous_map(p.parent, regions, channel, start, frames, row['sample_rate'])
         checks = joined_map_checks(p.parent, regions, row, channel, start, *result[:3])
         return result, checks, row
+
+    def test_waiting_backfill_needs_reserved_event_and_stops_at_failures(self):
+        spans = [dict(start_seconds=0., end_seconds=60., selected=None, reason='Frozen choice failed'),
+                 dict(start_seconds=60., end_seconds=120., selected=None,
+                      reason='Insufficient independent calibration/validation events')]
+        target = dict(reference_spans=spans)
+        choose = continuous_planning.acquisition_span_start
+        final = [dict(start_seconds=100., end_seconds=100.25)]
+        self.assertEqual(choose(target, 120., 0., 120., 70., final), 70.)
+        self.assertEqual(choose(target, 120., 0., 120., 70., []), 120.)
+        self.assertEqual(choose(target, 120., 90., 120., 70., final), 90.)
+        self.assertEqual(choose(target, 120., 0., 120., 105., final), 120.)
+        self.assertEqual(choose(target, 120., 0., 120., 30., final), 60.)
+
+    def test_backfill_does_not_erase_a_rejected_or_selected_span(self):
+        waiting = 'Insufficient independent calibration/validation events'
+        for selected, reason in [(None, 'Frozen playback group failed; passage not retried'),
+                                 ('s1', 'Validated continuous reference')]:
+            target = dict(reference_spans=[
+                dict(start_seconds=0., end_seconds=60., selected=selected, reason=reason),
+                dict(start_seconds=60., end_seconds=120., selected=None, reason=waiting)])
+            self.assertEqual(continuous_planning.pending_backfill_start(target, 120., 0.), 60.)
+
+    def test_screening_rejects_event_without_full_context(self):
+        x = np.zeros(8000)
+        curve = np.zeros(200)
+        self.assertIsNone(calibration_proxy(x, 8000, curve, [dict(start=.05, end=.30)]))
+        self.assertIsNone(calibration_proxy(x, 8000, curve, [dict(start=.75, end=.95)]))
 
     def test_tracker_is_chunk_invariant_through_drift_loss_and_clipping(self):
         sr = 8000
@@ -181,6 +210,8 @@ class ContinuousPlanningTests(unittest.TestCase):
             self.assertEqual(len(supported), 2)
             self.assertNotEqual(supported[0]['selected'], supported[1]['selected'])
             self.assertLess(supported[0]['end_seconds'], 75.)
+            # A later dropout must not discard the healthy part of its minute.
+            self.assertGreater(supported[0]['end_seconds'], 70.)
             self.assertGreaterEqual(supported[1]['start_seconds'], 120.)
             self.assertFalse(any(s['selected'] and s['start_seconds'] < 110 and s['end_seconds'] > 80 for s in spans))
             (tt, nominal, speed, *_), checks, row = self.map(root/'plan', ch)

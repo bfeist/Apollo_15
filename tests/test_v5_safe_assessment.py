@@ -1,0 +1,115 @@
+"""A rejected map remains explicit while other channels finish assessment."""
+import json
+import importlib.util
+from contextlib import nullcontext
+from contextlib import ExitStack
+from pathlib import Path
+import sys
+from unittest.mock import patch
+
+import numpy as np
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
+import v5_safe_assessment as assessment
+import v5_assessment as legacy
+
+
+def fixture(tmp_path):
+    (tmp_path/'plan.json').write_text('{}')
+    rows=[dict(channel=ch,start_seconds=0.,end_seconds=10.,sample_rate=8000) for ch in (2,22)]
+    summary=dict(start_seconds=0.,end_seconds=10.)
+    plan=dict(methodology='continuous-allchannel-v5',implementation_sha256='unchanged',
+        regions=[summary],inventory=dict(channels=rows))
+    record=dict(targets=[dict(channel=ch,reference_spans=[dict(start_seconds=0.,end_seconds=10.,
+        selected='reference',reason='Previously validated reference')]) for ch in (2,22)])
+    return plan,record
+
+
+def test_unsafe_map_is_reported_and_other_channels_are_assessed(tmp_path):
+    plan,record=fixture(tmp_path)
+    def map_for_channel(folder,summary,channel,*args):
+        if channel==22:
+            raise ValueError('Continuous duration anchoring exceeds speed bound')
+        tt=np.arange(2000)/200
+        return tt,tt,tt*0,{},[],[]
+    with patch.object(assessment,'load_saved_plan',return_value=plan), \
+         patch.object(assessment,'detail',return_value=record), \
+         patch.object(assessment,'saved_continuous_map',side_effect=map_for_channel), \
+         patch.object(assessment,'continuous_holdout_checks',return_value=dict(
+             reserved_events=[],no_motion=True,status='passed')) as checks:
+        report=assessment.assess_plan(tmp_path,tmp_path/'assessment.json')
+    assert report['assessment_status']=='completed_with_invalid_maps'
+    assert report['invalid_map_channels']==[22]
+    assert checks.call_count==1
+    channel=report['channels'][1]
+    assert channel['status']=='invalid_map'
+    assert channel['recommended_action']=='leave_uncorrected'
+    assert channel['spans'][0]['outcome']=='rejected_invalid_map'
+    assert channel['spans_with_reserved_improvement_seconds']==0
+    assert channel['map_integrity']['monotonic'] is None
+    assert report['maps_refitted_after_final'] is False
+    assert report['production_accepted'] is False
+    assert json.loads((tmp_path/'assessment.json').read_text())['invalid_map_channels']==[22]
+
+
+def test_unexpected_errors_and_corrupt_artifacts_remain_fatal(tmp_path):
+    plan,record=fixture(tmp_path)
+    with patch.object(assessment,'load_saved_plan',return_value=plan), \
+         patch.object(assessment,'detail',return_value=record), \
+         patch.object(assessment,'saved_continuous_map',side_effect=ValueError('Continuous map stream changed')):
+        with pytest.raises(ValueError,match='stream changed'):
+            assessment.assess_plan(tmp_path)
+    with patch.object(assessment,'load_saved_plan',side_effect=ValueError('Saved plan artifact changed')):
+        with pytest.raises(ValueError,match='artifact changed'):
+            assessment.assess_plan(tmp_path)
+
+
+def test_valid_map_assessments_match_the_frozen_evaluator(tmp_path):
+    plan,record=fixture(tmp_path)
+    tt=np.arange(2000)/200
+    reports=[]
+    for module in (legacy,assessment):
+        with ExitStack() as stack:
+            for name,value in dict(load_saved_plan=plan,detail=record,
+                saved_continuous_map=(tt,tt,tt*0,{},[],[]),
+                continuous_holdout_checks=dict(reserved_events=[],no_motion=True,status='passed')).items():
+                stack.enter_context(patch.object(module,name,return_value=value))
+            reports.append(module.assess_plan(tmp_path))
+    for key in ('assessment_implementation_sha256','assessment_complete','assessment_status','invalid_map_channels'):
+        reports[1].pop(key)
+    assert reports[0]==reports[1]
+
+
+@pytest.mark.parametrize('cache_state', ['current', 'missing_hash', 'changed_hash', 'changed_plan', 'incomplete'])
+def test_cli_resume_reuses_only_a_complete_bound_assessment(tmp_path, monkeypatch, cache_state):
+    script = Path(__file__).resolve().parents[1]/'scripts'/'05a_plan_deflutter_v5.py'
+    spec = importlib.util.spec_from_file_location('v5_cli', script)
+    cli = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cli)
+    plan = tmp_path/'plan'
+    plan.mkdir()
+    (plan/'plan.json').write_text('{}')
+    report = dict(assessment_complete=True, plan_sha256=cli.digest(plan/'plan.json'),
+        assessment_implementation_sha256=cli.assessment_implementation_digest(),
+        proposed_correction_channel_seconds=0., spans_with_reserved_improvement_channel_seconds=0.)
+    cached = dict(report)
+    if cache_state == 'missing_hash':
+        cached.pop('assessment_implementation_sha256')
+    elif cache_state == 'changed_hash':
+        cached['assessment_implementation_sha256'] = 'old implementation'
+    elif cache_state == 'changed_plan':
+        cached['plan_sha256'] = 'old plan'
+    elif cache_state == 'incomplete':
+        cached['assessment_complete'] = False
+    (tmp_path/'joined_assessment.json').write_text(json.dumps(cached))
+    monkeypatch.setattr(sys, 'argv', [str(script), '--input', str(tmp_path/'source'),
+        '--output', str(tmp_path), '--resume'])
+    monkeypatch.setattr(cli, 'planning_lock', lambda _: nullcontext())
+    monkeypatch.setattr(cli, 'plan_tape', lambda *args, **kwargs: dict(complete=True))
+    with patch.object(cli, 'assess_plan', return_value=report) as assess:
+        cli.main()
+    if cache_state == 'current':
+        assess.assert_not_called()
+    else:
+        assess.assert_called_once_with(plan, tmp_path/'joined_assessment.json')

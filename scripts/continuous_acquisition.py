@@ -35,6 +35,9 @@ class AcquisitionEvidence:
         return self.channels.setdefault(str(channel), dict(events=[], next_index=0,
             last_event_start=None, attempted_through=None, rejected_nonindependent=0))
 
+    def event_role(self, event, index):
+        return ROLE_CYCLE[index % len(ROLE_CYCLE)]
+
     def ingest(self, channel, events, *, origin=0.):
         """Accept chronological original-tape events, returning only new events.
 
@@ -59,7 +62,7 @@ class AcquisitionEvidence:
                 continue
             index = row['next_index']
             item = dict(event, channel=channel, evidence_index=index,
-                        role=ROLE_CYCLE[index % len(ROLE_CYCLE)])
+                        role=self.event_role(event, index))
             # Retain one unambiguous coordinate system in checkpoint state.
             item.pop('start', None)
             item.pop('end', None)
@@ -132,6 +135,77 @@ class AcquisitionEvidence:
         result = cls(horizons=value['horizons'], minimum_per_split=value['minimum_per_split'],
                      independent_seconds=value['independent_seconds'], context_seconds=value['context_seconds'])
         result.channels = deepcopy(value['channels'])
+        return result
+
+
+class SynchronizedEvidence(AcquisitionEvidence):
+    """Conservative global role assignment to potentially shared coincident events.
+
+    Coincidence is not evidence of common origin; it prevents the same response
+    appearing in different roles. Each channel retains its own independence gate.
+    """
+    coincidence_seconds = .5
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.global_events = []
+        self.global_index = 0
+        self.ambiguous_coincidences = 0
+
+    def event_role(self, event, index):
+        return event['_synchronized_role']
+
+    def ingest_batch(self, batches):
+        pending = []
+        for channel, events, origin in batches:
+            for event in events:
+                a = float(event.get('start_seconds', origin+event.get('start', 0.)))
+                b = float(event.get('end_seconds', origin+event.get('end', 0.)))
+                if not math.isfinite(a) or not math.isfinite(b) or b <= a:
+                    raise ValueError('Events need finite increasing original coordinates')
+                pending.append((a, b, channel, event))
+        accepted = {channel: [] for channel, _, _ in batches}
+        for a, b, channel, event in sorted(pending, key=lambda e:(e[0], e[1], str(e[2]))):
+            nearby = [g for g in self.global_events if any(abs(t-a) <= self.coincidence_seconds
+                      for t in g.get('members', [g['start_seconds']]))]
+            if len({g['role'] for g in nearby}) > 1:
+                # A late bridging detection cannot change already frozen roles.
+                self.ambiguous_coincidences += 1
+                continue
+            if nearby:
+                group = min(nearby, key=lambda g:(abs(g['start_seconds']-a), g['index']))
+                group['members'].append(a)
+            else:
+                group = dict(start_seconds=a, members=[a], index=self.global_index,
+                             role=ROLE_CYCLE[self.global_index % len(ROLE_CYCLE)])
+                self.global_events.append(group)
+                self.global_index += 1
+            assigned = dict(event, start_seconds=a, end_seconds=b,
+                            _synchronized_role=group['role'], synchronized_event_index=group['index'])
+            accepted[channel].extend(self.ingest(channel, [assigned], origin=0.))
+        # Keep the most recent grouping anchors for repeated boundary detections.
+        if pending:
+            cutoff = max(e[1] for e in pending)-self.horizons[-1]-self.context_seconds-self.coincidence_seconds
+            self.global_events = [g for g in self.global_events if g['start_seconds'] >= cutoff]
+        return accepted
+
+    def state(self):
+        result = super().state()
+        result.update(version=2, global_events=deepcopy(self.global_events), global_index=self.global_index,
+                      coincidence_seconds=self.coincidence_seconds, ambiguous_coincidences=self.ambiguous_coincidences,
+                      coincidence_interpretation='Potential shared event, not authenticated common source')
+        return result
+
+    @classmethod
+    def restore(cls, value):
+        if value.get('version') != 2 or value.get('coincidence_seconds') != cls.coincidence_seconds:
+            raise ValueError('Incompatible synchronized acquisition evidence checkpoint')
+        result = cls(horizons=value['horizons'], minimum_per_split=value['minimum_per_split'],
+                     independent_seconds=value['independent_seconds'], context_seconds=value['context_seconds'])
+        result.channels = deepcopy(value['channels'])
+        result.global_events = deepcopy(value['global_events'])
+        result.global_index = value['global_index']
+        result.ambiguous_coincidences = value['ambiguous_coincidences']
         return result
 
 
