@@ -13,6 +13,10 @@ runs/
 /research/archives/
 /docs/IRIG_FREE_FLUTTER_RESEARCH.md
 
+# Generated listening-site exports (including the local nested repository)
+/sites/deflutter-listening/
+/sites/*.tar.gz
+
 # Audio, packaged data, and generated numerical artifacts
 *.[wW][aA][vV]
 *.flac

@@ -2,12 +2,27 @@
 
 Processing tools for the Apollo 15 30-track recordings. The current work is flutter correction and tape-speed retiming. Concatenation, original-file archiving, and denoising are complete pipeline stages.
 
+The new **version 5 all-channel planner** is `scripts/05a_plan_deflutter_v5.py`.
+It surveys originals and existing denoised channels throughout the requested
+timeline, then validates correction against original timing evidence. See the
+[v5 methodology and planning](docs/deflutter_v5.md). Its separate
+`deflutter_planning_v5_allchannel` destination preserves v4 and the earlier
+v5-labelled experiments. Select it explicitly for batch planning; the legacy
+planner remains the default. Full corrected WAV rendering is a separate step.
+
+The [October 30 research findings](docs/deflutter_research_findings.md) qualify
+these numerical results: no experimental correction is approved for production.
+Stationary electrical interference can pass the response-based checks. The
+research code and regression tests are retained under `research/` and `tests/`;
+generated reports and listening-site exports remain local.
+
 | Stage | Entry point in `scripts/` | Purpose | Status |
 | --- | --- | --- | --- |
 | 01 | `01_concatenate.py` | Verify fragment order and assemble canonical channels | Done |
 | 01a | `01a_zip_originals.py` | ZIP each canonical tape folder, skipping existing ZIPs | Done |
 | 03 | `03_denoise.py` | Remove tones/hum and reduce broadband noise by at most 3 dB | Done |
-| 05a | `05a_plan_deflutter.py` | Discover, validate, and continuously track timing references in originals | Active |
+| 05a v5 | `05a_plan_deflutter_v5.py` | Continuous all-channel original/denoised discovery and validated original-signal motion | Planning and assessment |
+| 05a legacy | `05a_plan_deflutter.py` | Earlier continuous-reference planner, the batch default | Historical compatibility |
 | 05b | `05b_deflutter.py` | Apply accepted saved maps to denoised channels and normalize | Active |
 | 05c | `05c_retime.py` | Apply one shared Quindar speed curve per completed tape | Active |
 | Future 06 or 05c integration | `irig_search.py` | Find provisional IRIG clock snapshots on original CH01–CH04 | Search utility available; integration undecided |
@@ -25,7 +40,13 @@ flowchart TD
     B --> I[IRIG search · future clock anchoring]
 ```
 
-Reference analysis reads originals because denoising can remove useful tones. Flutter maps correct fast timing variation; Quindars measure slow tape-speed drift. IRIG clock discovery remains independent, preserving original sample coordinates for future anchoring.
+V5 discovers reference candidates in originals and denoised audio, then tracks
+and validates their motion in originals because cleanup can remove useful tones.
+The 60 Hz harmonic comb is digitization contamination, according to the source
+provenance supplied by the project owner; it is excluded as timing evidence.
+Flutter maps apply to completed denoised channels. Quindars measure slow
+tape-speed drift. IRIG clock discovery remains independent, preserving original
+sample coordinates for future anchoring.
 
 ## Setup and commands
 
@@ -33,12 +54,19 @@ Python 3.10+ and `uv` are required. Run from the repository root:
 
 ```powershell
 uv sync --locked
-uv run python scripts/pipeline.py --help
-uv run python scripts/pipeline.py plan --stages 05a --all-tapes
-uv run python scripts/pipeline.py run --stages 05a --all-tapes --plain
+uv run python scripts/pipeline.py run --stages 05a --all-tapes --flutter-planner v5 --flutter-plan-workers 4 --plain
+uv run python scripts/05a_plan_deflutter_v5.py --help
+uv run python scripts/05a_plan_deflutter_v5.py --input D:/Apollo_15_30-Track/orig_concatenated/A15_T510073 --start 10920 --duration 240 --output reports/my_fresh_v5_trial
 ```
 
-`plan` previews commands without writing outputs. Batch runs accept one stage per command. Use `--tape A15_T510083` for a single tape, and `--channel 20` for a specific audio channel. Stage 05a plans once per tape; stage 05b requires a complete plan, a prepared stage-03 intermediate, and matching production acceptance.
+The v5 batch surveys whole tapes by default and creates plans and assessments;
+it does not render corrected WAVs. Set `--flutter-plan-workers 1` for serial
+processing, or another positive number for concurrent tape processes. Use `plan`
+instead of `run` to preview without writing outputs. See the v5 guide for
+checkpoint recovery and interrupted surveys. Batch runs accept one stage per
+command. Use `--tape A15_T510083` for a single tape, and `--channel 20` for a
+specific audio channel. Stage 05b requires a complete plan, a prepared stage-03
+intermediate, and matching production acceptance.
 
 ```powershell
 uv run python scripts/pipeline.py run --stages 05b --all-tapes --plain
@@ -70,10 +98,11 @@ Defaults are beneath `D:/Apollo_15_30-Track`; overrides are available in `--help
 | `orig_delivery/` | Delivered fragments | `--delivery` |
 | `orig_concatenated/` | Canonical originals | `--concatenated` |
 | `denoised/` | Completed stage-03 channels | `--denoised-root` |
-| `deflutter_planning_v4/` | Continuous reference plans, evidence, maps | `--flutter-planning-root` |
-| `defluttered_v4/` | Stage-05b audio | `--defluttered-root` |
-| `quindar_post_deflutter_analysis_v4/` | Surveys and frozen tape curves | `--quindar-analysis-root` |
-| `defluttered_retimed_v4/` | Stage-05c audio | `--retimed-root` |
+| `deflutter_planning_v5_allchannel/` | New v5 survey bundles and nested `plan/` maps | Standalone v5 `--planning-root` |
+| `deflutter_planning_v5/` | Continuous reference plans, evidence, maps | `--flutter-planning-root` |
+| `defluttered_v5/` | Stage-05b audio | `--defluttered-root` |
+| `quindar_post_deflutter_analysis_v5/` | Surveys and frozen tape curves | `--quindar-analysis-root` |
+| `defluttered_retimed_v5/` | Stage-05c audio | `--retimed-root` |
 | `irig_search/` | Independent IRIG screening and clock evidence | Standalone search `--output` |
 
 - `scripts/`: supported stage commands, shared processing, and listening-evidence utilities.
@@ -97,4 +126,5 @@ Historical T510083 CH20 assessment: measured Quindars, a smoothed speed curve, a
 
 ```powershell
 uv run python -m unittest discover -s tests -v
+uv run --with pytest python -m pytest tests -q
 ```
