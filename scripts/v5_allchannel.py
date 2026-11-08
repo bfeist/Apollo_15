@@ -11,6 +11,7 @@ from pathlib import Path
 import numpy as np
 import soundfile as sf
 
+from denoise_archive import cleanup_version, historical_path, validate_binding
 from flutter_planning import inventory, read_channel, write_json, STAMP, seconds
 from continuous_acquisition import ROLE_CYCLE
 from flutter_tracking import discover, trajectory, RATE
@@ -95,15 +96,8 @@ def survey_tape(source, output, *, start=0., duration=None, monitor_seconds=60.,
                                     folder = Path(denoised_root)/f'CH{ch:02d}'
                                     raw = (folder/'denoised.json').read_bytes()
                                     metadata = json.loads(raw)
-                                    signature = metadata['signature']
-                                    identity = {k:row[k] for k in ('path','bytes','mtime_ns','frames','sample_rate','channel')}
-                                    if (metadata['status'] != 'complete' or signature['source'] != identity
-                                        or signature['offset_frames'] != 0 or signature['frames'] != row['frames']):
-                                        raise ValueError('Denoised source identity or alignment mismatch')
-                                    path = folder/'denoised.wav'
-                                    info, stat = sf.info(path), path.stat()
-                                    if info.frames != row['frames'] or info.samplerate != sr or info.channels != 1:
-                                        raise ValueError('Denoised audio format mismatch')
+                                    path = validate_binding(folder, metadata, row, 0, row['frames'])
+                                    stat = path.stat()
                                     with sf.SoundFile(path) as f:
                                         f.seek(round((a-row['start_seconds'])*sr))
                                         clean = f.read(len(x), dtype='float64')
@@ -117,6 +111,7 @@ def survey_tape(source, output, *, start=0., duration=None, monitor_seconds=60.,
                                         else:
                                             discovered.append(dict(candidate, provenance=['denoised']))
                                     result['discovery_sources']['denoised'] = dict(status='analyzed',
+                                        cleanup_version=cleanup_version(metadata),
                                         manifest_sha256=hashlib.sha256(raw).hexdigest(), bytes=stat.st_size, mtime_ns=stat.st_mtime_ns,
                                         decoded_excerpt_sha256=hashlib.sha256(clean.tobytes()).hexdigest(),
                                         full_source_decoded_hash_reverified=False)
@@ -221,6 +216,7 @@ def plan_tape(source, output, *, start=0., duration=None, monitor_seconds=60.,
         if not (output/'plan'/'plan.json').exists():
             raise ValueError('No v5 planning checkpoint; interrupted surveys are not resumable')
         manifest = json.loads((output/'survey_manifest.json').read_text(encoding='utf-8'))
+        saved_root = discovery_root(manifest.get('denoised_root'), manifest['windows'])
         source_end = max([inventory(source)['duration_seconds']]+[
             r['end_seconds'] for r in manifest.get('unassigned_sources', []) if not r.get('error')])
         expected_end = min(source_end, start+duration) if duration is not None else source_end
@@ -228,7 +224,7 @@ def plan_tape(source, output, *, start=0., duration=None, monitor_seconds=60.,
             or manifest['start_seconds'] != start or manifest['requested_end_seconds'] != expected_end
             or manifest['monitor_seconds'] != monitor_seconds or manifest['context_seconds'] != context_seconds
             or manifest.get('candidates_per_channel') != candidates_per_channel
-            or manifest.get('denoised_root') != (str(Path(denoised_root).resolve()) if denoised_root is not None else None)):
+            or saved_root != denoised_root_key(denoised_root)):
             raise ValueError('V5 survey source or settings changed')
         if denoised_root is not None:
             for window in manifest['windows']:
@@ -236,7 +232,7 @@ def plan_tape(source, output, *, start=0., duration=None, monitor_seconds=60.,
                     clean = result.get('discovery_sources', {}).get('denoised')
                     if not isinstance(clean, dict) or clean.get('status') != 'analyzed':
                         continue
-                    folder = Path(denoised_root)/f'CH{int(channel):02d}'
+                    folder = Path(saved_root)/f'CH{int(channel):02d}'
                     stat = (folder/'denoised.wav').stat()
                     if ((stat.st_size, stat.st_mtime_ns) != (clean['bytes'], clean['mtime_ns']) or
                         hashlib.sha256((folder/'denoised.json').read_bytes()).hexdigest() != clean['manifest_sha256']):
@@ -255,3 +251,20 @@ def plan_tape(source, output, *, start=0., duration=None, monitor_seconds=60.,
         survey_signature=dict(manifest_sha256=hashlib.sha256((output/'survey_manifest.json').read_bytes()).hexdigest(),
                               coverage_sha256=hashlib.sha256((output/'survey.jsonl').read_bytes()).hexdigest()))
     return plan
+
+
+def denoised_root_key(root):
+    return str(Path(root).resolve()) if root is not None else None
+
+
+def discovery_root(root, windows):
+    """A saved path without a version field predates the v2 production writer."""
+    if root is None:
+        return None
+    versions = {clean.get('cleanup_version', 'v1') for window in windows
+                for channel in window['channels'].values()
+                if isinstance(clean := channel.get('discovery_sources', {}).get('denoised'), dict)
+                and clean.get('status') == 'analyzed'}
+    if len(versions) > 1:
+        raise ValueError('Saved survey mixes denoise cleanup versions')
+    return denoised_root_key(historical_path(root, next(iter(versions), 'v1')))

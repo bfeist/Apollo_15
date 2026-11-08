@@ -6,7 +6,7 @@ regional speed curves are joined before one integration and inverse resampling.
 import csv
 from collections import deque
 from concurrent.futures import ProcessPoolExecutor
-from contextlib import closing
+from contextlib import closing, nullcontext
 from multiprocessing import get_context
 import hashlib
 import html
@@ -23,6 +23,7 @@ import soundfile as sf
 from scipy.integrate import cumulative_trapezoid
 
 from audio_processing import clean_tones, denoise, DEFAULT_BROADBAND_CAP_DB, TONAL_CLEANUP_METHOD
+from denoise_archive import cleanup_version, historical_path, legacy_write, read_json, root_marker, sha256, validate_binding
 from normalization import DEFAULT_TARGET_DBFS, DEFAULT_MAX_BOOST_DB, normalize_pending_file, verify_peak, validate_settings
 from flutter import resample_at
 from flutter_plan_store import checked_artifact, load_saved_plan, planning_lock, tape_directory
@@ -490,20 +491,18 @@ def denoised_signature(row, offset, frames, block_seconds=60.):
                 cleanup_sha256=hashlib.sha256(code).hexdigest(),broadband_cap_db=DEFAULT_BROADBAND_CAP_DB)
 
 
-def completed_denoised(row, folder, offset, frames, block_seconds=60.):
+def completed_denoised(row, folder, offset, frames, block_seconds=60., version=None):
     """Read-only pipeline check; avoid decoding a completed channel on every rerun."""
-    folder = Path(folder)
     try:
+        folder = historical_path(folder) if version == 'v1' else Path(folder).resolve()
         saved = json.loads((folder/'denoised.json').read_text(encoding='utf-8'))
-        if not isinstance(saved, dict) or saved.get('status') != 'complete':
+        if not isinstance(saved, dict):
             return False
-        if saved.get('signature') != denoised_signature(row, offset, frames, block_seconds):
+        validate_binding(folder, saved, row, offset, frames, version)
+        if cleanup_version(saved) == 'v1' and saved.get('signature') != denoised_signature(row, offset, frames, block_seconds):
             return False
         separate(folder.resolve(), [Path(row['path']).parent])
         check_source(row)
-        info = sf.info(folder/'denoised.wav')
-        if info.frames != frames or info.samplerate != row['sample_rate'] or info.channels != 1:
-            return False
         audio = saved['audio']
         if not isinstance(audio, dict) or audio['frames'] != frames or audio['sample_rate'] != row['sample_rate']:
             return False
@@ -512,9 +511,26 @@ def completed_denoised(row, folder, offset, frames, block_seconds=60.):
         return False
 
 
-def ensure_denoised(row, folder, offset, frames, block_seconds=60., progress=print, require_existing=False, workers=1):
+def ensure_denoised(row, folder, offset, frames, block_seconds=60., progress=print, require_existing=False, workers=1,
+                    version=None):
     """Persist one aligned intermediate; reuse only verified identical cleanup."""
-    folder = Path(folder).resolve()
+    folder = historical_path(folder) if require_existing and version == 'v1' else Path(folder).absolute()
+    resolved = folder.resolve()
+    manifest = resolved/'denoised.json'
+    existing = read_json(manifest) if manifest.is_file() else None
+    actual = cleanup_version(existing) if existing else None
+    if version == 'v2' or actual == 'v2' or root_marker(resolved):
+        if version == 'v1' or not completed_denoised(row, resolved, offset, frames, block_seconds, 'v2'):
+            raise ValueError('V2 denoise cache is missing or incompatible; run the frozen v2 stage 03')
+        path = resolved/'denoised.wav'
+        if sha256(path) != existing['audio']['sha256']:
+            raise ValueError('V2 denoise audio changed; refusing reuse')
+        return dict(existing, reused=True, file=str(path))
+    with (nullcontext() if require_existing else legacy_write(folder)):
+        return _ensure_v1(row, resolved, offset, frames, block_seconds, progress, require_existing, workers)
+
+
+def _ensure_v1(row, folder, offset, frames, block_seconds, progress, require_existing, workers):
     separate(folder,[Path(row['path']).parent])
     check_source(row)
     if offset < 0 or frames < 15*row['sample_rate'] or offset+frames > row['frames']:
@@ -524,9 +540,11 @@ def ensure_denoised(row, folder, offset, frames, block_seconds=60., progress=pri
     if require_existing and not manifest.is_file():
         raise ValueError('Prepared denoised intermediate is missing; run stage 03 first')
     signature = denoised_signature(row, offset, frames, block_seconds)
-    with planning_lock(folder):
+    with (nullcontext() if require_existing else planning_lock(folder)):
         if manifest.is_file():
             saved = json.loads(manifest.read_text(encoding='utf-8'))
+            if cleanup_version(saved) != 'v1':
+                raise ValueError('Legacy writer cannot replace v2 audio')
             same_signature = saved.get('signature') == signature
             if not same_signature:
                 old = dict(saved.get('signature') or {})
@@ -548,7 +566,7 @@ def ensure_denoised(row, folder, offset, frames, block_seconds=60., progress=pri
         elif folder.exists() and any(folder.iterdir()):
             raise ValueError('Denoised directory must be empty or contain its own manifest')
         folder.mkdir(parents=True,exist_ok=True)
-        record = dict(status='running',signature=signature,file=str(path),reused=False)
+        record = dict(status='running',cleanup_version='v1',signature=signature,file=str(path),reused=False)
         write_json(manifest,record)
         try:
             temporary = folder/'denoised.partial'
@@ -645,7 +663,9 @@ def render_channel_review(plan_path, channel, destination, *, start=0., duration
     if dry_run:
         progress(json.dumps(summary,indent=2))
         return summary
-    intermediate = ensure_denoised(row,cache,offset,frames,cleanup_block_seconds,progress,require_prepared)
+    archived_cache = any(part.lower() == 'denoised_v1' for part in cache.parts)
+    intermediate = ensure_denoised(row,cache,offset,frames,cleanup_block_seconds,progress,
+                                   require_prepared or archived_cache)
     cleaned = Path(intermediate['file'])
     clean_stat = cleaned.stat()
     progress(f'Preparing continuous map for CH{channel}: {frames/row["sample_rate"]/3600:.2f} hours')
@@ -656,7 +676,9 @@ def render_channel_review(plan_path, channel, destination, *, start=0., duration
                    methodology=plan.get('methodology', 'legacy'), joined_map_checks=joined,
                    evidence_status=dict(numeric_pass_is_listening_approval=False,
                                         transfer_groups_accepted=False, production_accepted=False),
-                   cleanup=intermediate['cleanup'])
+                   cleanup=intermediate.get('cleanup', intermediate.get('quality')))
+    if cleanup_version(intermediate) == 'v2':
+        summary['pipeline'] = [intermediate['algorithm'], 'continuous_deflutter', 'constant_peak_normalization']
     # Exclusive claim prevents concurrently started jobs sharing an output.
     with (destination/'review.json').open('x',encoding='utf-8') as f:
         json.dump(summary,f,indent=2,allow_nan=False)

@@ -21,6 +21,7 @@ sys.path.insert(0,str(REPO/'scripts'))
 from flutter_tracking import discover, trajectory
 from carrier_capture import capture_candidates
 from continuous_planning import competing_carriers
+from denoise_archive import CANONICAL, historical_path
 
 BASE = REPO/'reports/deflutter_discovery_audit_20261030'
 
@@ -39,7 +40,7 @@ def main():
         sources = {r['channel']:r for r in inv['channels']}
         for ch in (3,14,22):
             contexts = [e for e in tape['excerpts'] if e['version']=='denoised' and e['channel']==ch]
-            folder = Path('D:/Apollo_15_30-Track/denoised')/tape['tape']/f'CH{ch:02d}'
+            folder = historical_path(CANONICAL/tape['tape']/f'CH{ch:02d}')
             log_path = folder/'cleanup.jsonl'
             log_hash = hashlib.sha256(log_path.read_bytes()).hexdigest()
             metadata = json.loads((folder/'denoised.json').read_text())

@@ -20,6 +20,7 @@ from rich.table import Table
 from rich.text import Text
 from normalization import DEFAULT_TARGET_DBFS, DEFAULT_MAX_BOOST_DB, validate_settings
 from audio_processing import DEFAULT_BROADBAND_CAP_DB
+from denoise_archive import CANONICAL, ORIGINALS, root_marker
 from flutter_plan_store import DEFAULT_PLANNING_ROOT, DEFAULT_DENOISED_ROOT, DEFAULT_DEFLUTTERED_ROOT, planning_directory, tape_directory
 from quindar_retime import DEFAULT_RETIMED_ROOT
 from quindar_survey import DEFAULT_ANALYSIS_ROOT
@@ -53,8 +54,10 @@ def parse_args(argv=None):
     channels.add_argument('--channel', type=int, help='Whole-channel mode; defaults to stages 03,05a,05b,05c for one tape')
     channels.add_argument('--all-channels', action='store_true', help='Process all available channels; stage 03 includes CH01/IRIG, stage 05b excludes IRIG')
     parser.add_argument('--denoised-root', type=Path, default=DEFAULT_DENOISED_ROOT)
-    parser.add_argument('--denoise-workers', type=int, default=14,
-                        help='Whole-channel stage 03 workers (default: 14); 0 selects up to 16, 1 is serial')
+    parser.add_argument('--denoise-version', choices=['v1', 'v2'], default='v1')
+    parser.add_argument('--denoise-workers', type=int,
+                        help='V1 workers per channel (default 14) or v2 concurrent channel workers (default 3)')
+    parser.add_argument('--denoise-tapes', type=int, default=3, help='Maximum active tapes for v2')
     parser.add_argument('--defluttered-root', type=Path, default=DEFAULT_DEFLUTTERED_ROOT)
     parser.add_argument('--retimed-root', type=Path, default=DEFAULT_RETIMED_ROOT)
     parser.add_argument('--quindar-analysis-root', type=Path, default=DEFAULT_ANALYSIS_ROOT)
@@ -86,6 +89,8 @@ def parse_args(argv=None):
     parser.add_argument('--max-boost-db', type=float, default=DEFAULT_MAX_BOOST_DB, help='Stages 05b/05c maximum boost (default: 12 dB)')
     parser.add_argument('--plain', action='store_true', help='Print sequential logs without a live dashboard')
     args = parser.parse_args(argv)
+    if args.denoise_workers is None:
+        args.denoise_workers = 3 if args.denoise_version == 'v2' else 14
     if args.flutter_planning_root is None:
         args.flutter_planning_root = DEFAULT_V5_PLANNING_ROOT if args.flutter_planner == 'v5' else DEFAULT_PLANNING_ROOT
     # Explicit tape selection without excerpt input is also a whole-tape denoise request.
@@ -111,6 +116,12 @@ def parse_args(argv=None):
     if args.batch and selected not in ({'03'}, {'05a'}, {'05b'}, {'05c'}):
         parser.error('Batch mode supports one stage at a time; use --stages 03, 05a, 05b, or 05c')
     args.batch_denoise = args.batch and selected == {'03'}
+    if args.denoise_version == 'v2':
+        if (selected != {'03'} or not (args.all_tapes or args.channel is not None)
+                or args.concatenated.absolute() != ORIGINALS or args.denoised_root.absolute() != CANONICAL
+                or args.exclude_tape or args.denoise_workers < 1 or args.denoise_tapes < 1
+                or (args.all_tapes and args.channel is not None)):
+            parser.error('V2 requires stage 03 alone, the frozen roots, and all tapes or one tape/channel')
     args.batch_flutter = args.batch and bool(selected & {'05a', '05b'})
     if args.batch and selected == {'05b'} and args.experimental_transfer:
         parser.error('Experimental transfer is review-only; production batches require accepted conservative maps')
@@ -194,7 +205,7 @@ def make_denoise_batch(args):
             if args.channel is not None and channel != args.channel:
                 continue
             output = tape_directory(inv['tape'], args.denoised_root) / f'CH{channel:02d}'
-            status = 'skipped existing' if completed_denoised(row, output, 0, row['frames']) else 'pending'
+            status = 'skipped existing' if completed_denoised(row, output, 0, row['frames'], version='v1') else 'pending'
             jobs.append(dict(number='03', name=f"{inv['tape']} CH{channel:02d}",
                 tape=inv['tape'], channel=channel, script='03_denoise.py',
                 description='Denoise whole channel',
@@ -311,7 +322,7 @@ def make_tape_jobs(args, selected, run_dir):
                 row = next((r for r in inv['channels'] if r['channel'] == args.channel), None)
                 if row is None:
                     raise ValueError('Requested channel is unavailable')
-                if completed_denoised(row, output, 0, row['frames']):
+                if completed_denoised(row, output, 0, row['frames'], version='v1'):
                     status = 'skipped existing'
         elif number == '05b' and args.channel is not None:
             output = tape_directory(args.tape,args.defluttered_root)/f'CH{args.channel:02d}'
@@ -508,8 +519,21 @@ def main(argv=None):
         sys.stdout.reconfigure(encoding='utf-8')
     args, selected = parse_args(argv)
     console = Console()
+    if args.denoise_version == 'v2':
+        command = [sys.executable, '-u', str(SCRIPTS/'denoise_v2_rollout.py'), '--version', 'v2',
+                   '--mode', 'dry-run' if args.action == 'plan' else 'resume',
+                   '--workers', str(args.denoise_workers), '--tapes', str(args.denoise_tapes)]
+        if args.channel is not None and args.action == 'run':
+            command += ['--tape', args.tape, '--channel', str(args.channel)]
+        return subprocess.call(command)
     run_dir = args.output.resolve() / (datetime.now().strftime('%Y%m%d_%H%M%S') + '_' + uuid.uuid4().hex[:8])
     try:
+        if '03' in selected and (args.batch_denoise or args.channel is not None):
+            # Cache inspection must never queue a legacy write against v2.
+            if root_marker(args.denoised_root.resolve()):
+                raise ValueError('The denoise root is v2; use --denoise-version v2')
+            if args.denoised_root.resolve().name.lower() == 'denoised_v1':
+                raise ValueError('The archived denoised_v1 tree is read-only')
         jobs = make_jobs(args, selected, run_dir)
     except (ValueError, OSError, RuntimeError) as error:
         console.print(Text(f'Cannot prepare pipeline: {error}'))

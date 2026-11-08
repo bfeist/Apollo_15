@@ -17,8 +17,12 @@ from flutter_planning import write_json
 
 
 def assessment_implementation_digest():
+    from v5_compatibility import ASSESSMENT_DIGESTS
+
     names = ('v5_safe_assessment.py', 'continuous_maps.py', 'flutter_policy.py')
-    return hashlib.sha256(b''.join(Path(__file__).with_name(name).read_bytes() for name in names)).hexdigest()
+    content = b''.join(Path(__file__).with_name(name).read_bytes() for name in names)
+    normalized = hashlib.sha256(content.replace(b'\r\n', b'\n')).hexdigest()
+    return ASSESSMENT_DIGESTS.get(normalized) or hashlib.sha256(content).hexdigest()
 
 
 def rejected_map(row, target, start, end, error):

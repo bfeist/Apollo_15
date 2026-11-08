@@ -14,9 +14,34 @@ import shutil
 import v5_allchannel as engine
 from flutter_planning import inventory
 from flutter_policy import implementation_digest, digest
+from denoise_archive import CANONICAL
+from v5_compatibility import SURVEY_STORAGE_DIGESTS
 
 CHECKPOINT = 'survey_checkpoint.json'
 JOURNAL = 'survey_windows.jsonl'
+
+
+def resume_root(requested, saved, windows):
+    resolved = engine.discovery_root(saved, windows)
+    key = engine.denoised_root_key(requested)
+    if key == resolved or (key == saved and key is not None and CANONICAL in Path(key).parents):
+        return resolved
+    raise ValueError('V5 denoised discovery root changed')
+
+
+def saved_survey_root(output, requested):
+    for name in ('survey_manifest.json', 'survey_live_snapshot.json'):
+        path = output/name
+        if path.is_file():
+            saved = json.loads(path.read_text(encoding='utf-8'))
+            return resume_root(requested, saved.get('denoised_root'), saved['windows'])
+    path = output/CHECKPOINT
+    if path.is_file():
+        state = json.loads(path.read_text(encoding='utf-8'))
+        with (output/JOURNAL).open('rb') as stream:
+            windows = [json.loads(line)['window'] for line in stream.read(state['journal_bytes']).splitlines()]
+        return resume_root(requested, state['signature']['denoised_root'], windows)
+    return requested
 
 
 def _sync(stream):
@@ -124,8 +149,6 @@ def repair_planner_tails(output):
 
 def _load(output, signature):
     state = json.loads((output/CHECKPOINT).read_text(encoding='utf-8'))
-    if state['signature'] != signature:
-        raise ValueError('Survey checkpoint sources/settings/implementation changed')
     hashes = {}
     for name, prefix in (('survey.jsonl', 'coverage'), (JOURNAL, 'journal')):
         path = output/name
@@ -133,12 +156,21 @@ def _load(output, signature):
         if value.hexdigest() != state[prefix+'_sha256']:
             raise ValueError(f'Survey checkpoint file changed: {name}')
         hashes[prefix] = value
-    # Check both committed files before trimming either uncommitted tail.
+    with (output/JOURNAL).open('rb') as stream:
+        windows = [json.loads(line)['window'] for line in stream.read(state['journal_bytes']).splitlines()]
+    stored = dict(state['signature'])
+    stored['denoised_root'] = engine.discovery_root(stored['denoised_root'], windows)
+    current = hashlib.sha256(Path(__file__).read_bytes().replace(b'\r\n', b'\n')).hexdigest()
+    if stored['storage_sha256'] == SURVEY_STORAGE_DIGESTS.get(current):
+        stored['storage_sha256'] = signature['storage_sha256']
+    if stored != signature:
+        raise ValueError('Survey checkpoint sources/settings/implementation changed')
+    _validate_discovery(windows, signature['denoised_identity'])
+    # Check both committed files and identities before trimming uncommitted tails.
     for name, prefix in (('survey.jsonl', 'coverage'), (JOURNAL, 'journal')):
         with (output/name).open('r+b') as stream:
             stream.truncate(state[prefix+'_bytes'])
             _sync(stream)
-    windows = [json.loads(line)['window'] for line in (output/JOURNAL).read_text(encoding='utf-8').splitlines()]
     if len(windows) != state['windows'] or (windows and windows[-1]['end_seconds'] != state['cursor']):
         raise ValueError('Survey checkpoint journal and cursor disagree')
     return state, hashes, windows
@@ -166,13 +198,14 @@ def import_live_snapshot(source, output, *, start=0., duration=None,
                          denoised_root=None):
     """Import the pre-reboot capture; retain only complete coverage windows."""
     output = Path(output)
+    denoised_root = saved_survey_root(output, denoised_root)
     signature = _signature(source, start, duration, monitor_seconds, context_seconds,
                            candidates_per_channel, denoised_root)
     snapshot = json.loads((output/'survey_live_snapshot.json').read_text(encoding='utf-8'))
     if (snapshot['inv'] != signature['inventory'] or snapshot['start'] != start
         or snapshot['monitor_seconds'] != monitor_seconds or snapshot['context_seconds'] != context_seconds
         or snapshot['candidates_per_channel'] != candidates_per_channel
-        or snapshot['denoised_root'] != signature['denoised_root']):
+        or engine.discovery_root(snapshot['denoised_root'], snapshot['windows']) != signature['denoised_root']):
         raise ValueError('Captured survey sources or settings changed')
     if (output/CHECKPOINT).exists():
         return _load(output, signature)[0]
@@ -247,6 +280,8 @@ def survey_tape(source, output, *, start=0., duration=None, monitor_seconds=60.,
     output = Path(output)
     if resume and not (output/CHECKPOINT).exists() and not (output/'survey_live_snapshot.json').exists():
         raise ValueError('No survey checkpoint; this older interrupted survey needs a fresh destination')
+    if resume:
+        denoised_root = saved_survey_root(output, denoised_root)
     signature = _signature(source, start, duration, monitor_seconds, context_seconds,
                            candidates_per_channel, denoised_root)
     if resume and not (output/CHECKPOINT).exists() and (output/'survey_live_snapshot.json').exists():
@@ -334,6 +369,8 @@ def plan_tape(source, output, *, resume=False, **settings):
     if source == output or source in output.parents or output in source.parents:
         raise ValueError('Input and output must be non-overlapping')
     manifest_path = output/'survey_manifest.json'
+    if resume or manifest_path.exists():
+        settings['denoised_root'] = saved_survey_root(output, settings.get('denoised_root'))
     if resume and (output/'plan'/'plan.json').exists():
         repair_planner_tails(output)
         return engine.plan_tape(source, output, resume=True, **settings)
@@ -355,7 +392,7 @@ def plan_tape(source, output, *, resume=False, **settings):
         or manifest['monitor_seconds'] != expected['monitor_seconds']
         or manifest['context_seconds'] != expected['context_seconds']
         or manifest['candidates_per_channel'] != expected['candidates_per_channel']
-        or manifest.get('denoised_root') != expected['denoised_root']):
+        or engine.discovery_root(manifest.get('denoised_root'), manifest['windows']) != expected['denoised_root']):
         raise ValueError('V5 survey source or settings changed')
     expected_end = min(manifest['source_end_seconds'], expected['start']+expected['duration']) if expected['duration'] is not None else manifest['source_end_seconds']
     if manifest['requested_end_seconds'] != expected_end:

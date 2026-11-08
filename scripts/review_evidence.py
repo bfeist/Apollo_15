@@ -20,6 +20,7 @@ import soundfile as sf
 
 from carrier_survey import load_survey
 from carrier_inventory import load_inventory
+from denoise_archive import ARCHIVE, CANONICAL, bound_path, historical_path, root_marker
 from channel_review import (completed_denoised, continuous_map, denoised_signature,
                             joined_map_checks, prepare, check_source)
 from flutter import resample_at
@@ -85,6 +86,8 @@ class Roots:
     def __init__(self, config):
         self.roots = [Path(config[k]).resolve() for k in ('originals', 'surveys', 'plans', 'denoised', 'state')]
         self.roots += [Path(p).resolve() for p in config.get('evidence_roots', [])]
+        if CANONICAL in self.roots and historical_path(CANONICAL) == ARCHIVE:
+            self.roots.append(ARCHIVE)
 
     def check(self, path):
         path = Path(path).resolve()
@@ -119,7 +122,7 @@ class Desk:
     def verify(self, bindings, force=False):
         """Cache file identity for browsing; deliberate approval always rehashes."""
         for item in bindings:
-            path = self.guard.check(item['path'])
+            path = self.guard.check(bound_path(item))
             stat = path.stat()
             key = (str(path), stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns, item['sha256'])
             if force or key not in self.hash_cache:
@@ -471,6 +474,8 @@ class Desk:
 
     def map_directory(self, item, diagnostic=False):
         identity = [item['plan_sha256'], item['channel'], implementation_digest(), policy_hash()]
+        if root_marker(Path(item['denoised'])):
+            identity.append(digest(Path(item['denoised'])/'denoised.json'))
         if diagnostic:
             identity.append('diagnostic-pilot')
         return self.state/'maps'/fingerprint(identity)
@@ -512,7 +517,7 @@ class Desk:
         bindings += item['clock_reports']
         audio_path = den/'denoised.wav'
         before = audio_path.stat()
-        audio_binding = dict(path=str(audio_path.resolve()), sha256=file_hash(audio_path))
+        audio_binding = bound(audio_path)
         tt, nominal, speed, stats, markers, evidence = continuous_map(map_plan_path.parent, regions, row['channel'], start, frames, row['sample_rate'], diagnostic, progress)
         progress(f'{item["tape"]} CH{item["channel"]}: checking reserved events through the full joined map')
         checks = joined_map_checks(map_plan_path.parent, regions, row, row['channel'], start, tt, nominal, speed)
@@ -742,7 +747,9 @@ class Desk:
             grid[-1] = (item['source']['frames']-1)/sr
         pos = np.interp(times, nominal[lo:hi], grid)*sr
         left, right = max(0, int(np.floor(pos[0]))-256), min(item['source']['frames'], int(np.ceil(pos[-1]))+257)
-        with sf.SoundFile(Path(item['denoised'])/'denoised.wav') as stream:
+        audio_binding = review['audio_provenance']
+        self.verify([audio_binding])
+        with sf.SoundFile(self.guard.check(bound_path(audio_binding))) as stream:
             stream.seek(begin); a = stream.read(frames, dtype='float64')
             stream.seek(left); x = stream.read(right-left, dtype='float64')
         b = x[begin-left:begin-left+frames] if np.max(abs(pos-np.arange(begin,begin+frames))) < 1e-7 else resample_at(x, pos-left)

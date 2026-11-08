@@ -21,6 +21,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO/'scripts'))
 from flutter_tracking import discover
 from flutter_policy import implementation_digest
+from v5_allchannel import discovery_root
 
 ROOT = Path('D:/Apollo_15_30-Track/deflutter_planning_v5_allchannel')
 OUTPUT = REPO/'reports/deflutter_discovery_audit_20261030/evidence.json'
@@ -86,6 +87,7 @@ def audit_tape(tape):
                 frequencies[str(c['carrier_hz'])] += 1
     # Fixed temporal/channel sampling; no final event measurements are read.
     excerpts = []
+    denoised_root = discovery_root(manifest['denoised_root'], manifest['windows'])
     inventory = {row['channel']:row for row in manifest['inventory']['channels']}
     for fraction in FRACTIONS:
         window = manifest['windows'][int(fraction*(len(manifest['windows'])-1))]
@@ -97,8 +99,8 @@ def audit_tape(tape):
             a, b = item['context_start'], item['context_end']
             original = read_excerpt(row, a, b)
             versions = {'original':original}
-            clean_path = Path(manifest['denoised_root'])/f'CH{ch:02d}'/'denoised.wav'
             if item.get('discovery_sources',{}).get('denoised',{}).get('status') == 'analyzed':
+                clean_path = Path(denoised_root)/f'CH{ch:02d}'/'denoised.wav'
                 versions['denoised'] = read_excerpt(dict(row,path=str(clean_path)),a,b)
             for version, x in versions.items():
                 decoded_hash = hashlib.sha256(x.tobytes()).hexdigest()

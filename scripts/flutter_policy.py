@@ -28,12 +28,16 @@ def digest(path):
 
 
 def implementation_digest():
+    from v5_compatibility import PLANNING_DIGESTS
+
     names = ('flutter_policy.py', 'flutter_planning.py', 'flutter_tracking.py',
              'flutter.py', 'carrier_survey.py', 'channel_review.py', 'irig_clock.py', 'flutter_groups.py',
              'continuous_tracking.py', 'continuous_planning.py', 'continuous_maps.py',
              'continuous_acquisition.py', 'continuous_quality.py', 'carrier_capture.py',
              'v5_allchannel.py', 'v5_assessment.py')
-    return hashlib.sha256(b''.join(Path(__file__).with_name(n).read_bytes() for n in names)).hexdigest()
+    content = b''.join(Path(__file__).with_name(n).read_bytes() for n in names)
+    normalized = hashlib.sha256(content.replace(b'\r\n', b'\n')).hexdigest()
+    return PLANNING_DIGESTS.get(normalized) or hashlib.sha256(content).hexdigest()
 
 
 def policy_digest():

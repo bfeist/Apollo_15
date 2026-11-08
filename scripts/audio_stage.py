@@ -2,11 +2,14 @@
 import argparse
 import json
 from pathlib import Path
+import subprocess
+import sys
 
 import numpy as np
 import soundfile as sf
 
 from audio_processing import clean_tones, denoise, DEFAULT_BROADBAND_CAP_DB
+from denoise_archive import CANONICAL, ORIGINALS, legacy_write
 from flutter_plan_store import DEFAULT_DENOISED_ROOT
 
 
@@ -18,6 +21,7 @@ def main(stage):
     parser.add_argument('--input', type=Path, required=True,
                         help='Speech excerpt folder, or canonical tape folder with --channel')
     parser.add_argument('--output', type=Path, required=False)
+    parser.add_argument('--cleanup-version', choices=['v1', 'v2'], default='v1')
     if stage == 'denoise':
         parser.add_argument('--channel', type=int, choices=range(1, 31), metavar='1-30',
                             help='Denoise one whole channel independently of deflutter planning')
@@ -29,6 +33,15 @@ def main(stage):
     args = parser.parse_args()
     if stage == 'denoise' and args.workers < 0:
         parser.error('--workers must be nonnegative')
+    if args.cleanup_version == 'v2':
+        expected = CANONICAL/args.input.name/f'CH{args.channel:02d}' if args.channel else None
+        if (expected is None or args.input.absolute().parent != ORIGINALS
+                or args.denoised_root.absolute() != CANONICAL
+                or (args.output is not None and args.output.absolute() != expected)):
+            parser.error('V2 stage 03 requires a frozen canonical tape, channel, and output path')
+        raise SystemExit(subprocess.call([sys.executable, '-u', str(Path(__file__).with_name('denoise_v2_rollout.py')),
+            '--version', 'v2', '--mode', 'resume', '--tape', args.input.name, '--channel', str(args.channel),
+            '--workers', '1', '--tapes', '1']))
     if stage == 'denoise' and args.channel is not None:
         from channel_review import ensure_denoised, denoised_directory
         from flutter_planning import inventory
@@ -40,13 +53,20 @@ def main(stage):
                 raise ValueError('Requested channel is unavailable')
             output = args.output or denoised_directory(args.denoised_root, inv['tape'], args.channel)
             ensure_denoised(row, output, 0, row['frames'], args.cleanup_block_seconds,
-                            lambda s: print(s, flush=True), workers=args.workers)
+                            lambda s: print(s, flush=True), workers=args.workers, version='v1')
         except (ValueError, KeyError, TypeError, OSError, RuntimeError) as exc:
             parser.error(str(exc))
         return
     if args.output is None:
         parser.error('Excerpt processing requires --output')
-    source, destination = args.input.resolve(), args.output.resolve()
+    try:
+        with legacy_write(args.output, args.output.with_name(args.output.name+'_removed')):
+            render_excerpts(args.input.resolve(), args.output.resolve(), parser)
+    except (ValueError, OSError, RuntimeError) as exc:
+        parser.error(str(exc))
+
+
+def render_excerpts(source, destination, parser):
     if not source.is_dir() or source == destination or source in destination.parents or destination in source.parents:
         parser.error('Input and output must be separate, non-overlapping folders')
     files = sorted(source.rglob('*.wav'))
@@ -61,22 +81,21 @@ def main(stage):
         if info.channels != 1 or not 15 <= info.duration <= 120 or not 1000 <= info.samplerate <= 48000:
             parser.error(f'Only mono review excerpts of 15–120 seconds at 1–48 kHz are supported: {path}')
     for index, path in enumerate(files, 1):
-        print(f'[{index}/{len(files)}] {stage}: {path.name}', flush=True)
+        print(f'[{index}/{len(files)}] denoise: {path.name}', flush=True)
         x, sr = sf.read(path, dtype='float64')
         if not np.all(np.isfinite(x)):
             raise ValueError(f'Non-finite input samples: {path}')
-        metadata = dict(stage=stage, source=str(path), sample_rate=sr, frames=len(x))
-        if stage == 'denoise':
-            y, cleanup = clean_tones(x, sr)
-            for p in cleanup['passes']:
-                print(f'  Tone pass {p["iteration"]}/6: removed {len(p["lines"])} persistent tones', flush=True)
-            for p in cleanup['hum_passes']:
-                print(f'  Residual hum pass {p["iteration"]}/3: removed {len(p["lines"])} harmonics', flush=True)
-            metadata.update(cleanup)
-            y, profile = denoise(y, sr)
-            metadata.update(noise_profile_seconds=profile, noise_profile_approved=False,
-                            reduction_cap_db=DEFAULT_BROADBAND_CAP_DB,
-                            noise_origin_classified=False)
+        metadata = dict(stage='denoise', cleanup_version='v1', source=str(path), sample_rate=sr, frames=len(x))
+        y, cleanup = clean_tones(x, sr)
+        for p in cleanup['passes']:
+            print(f'  Tone pass {p["iteration"]}/6: removed {len(p["lines"])} persistent tones', flush=True)
+        for p in cleanup['hum_passes']:
+            print(f'  Residual hum pass {p["iteration"]}/3: removed {len(p["lines"])} harmonics', flush=True)
+        metadata.update(cleanup)
+        y, profile = denoise(y, sr)
+        metadata.update(noise_profile_seconds=profile, noise_profile_approved=False,
+                        reduction_cap_db=DEFAULT_BROADBAND_CAP_DB,
+                        noise_origin_classified=False)
         if len(y) != len(x) or not np.all(np.isfinite(y)):
             raise ValueError('Invalid output length or non-finite samples')
         target = destination / path.relative_to(source)

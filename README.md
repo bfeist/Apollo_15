@@ -2,6 +2,9 @@
 
 Processing tools for the Apollo 15 30-track recordings. The current work is flutter correction and tape-speed retiming. Concatenation, original-file archiving, and denoising are complete pipeline stages.
 
+For the current denoise rollout, use the [v2.16 runbook](docs/denoise_v2_all_tapes_runbook.md)
+and the [latest findings and local evidence index](docs/denoise_v2_plan.md).
+
 The new **version 5 all-channel planner** is `scripts/05a_plan_deflutter_v5.py`.
 It surveys originals and existing denoised channels throughout the requested
 timeline, then validates correction against original timing evidence. See the
@@ -20,7 +23,8 @@ generated reports and listening-site exports remain local.
 | --- | --- | --- | --- |
 | 01 | `01_concatenate.py` | Verify fragment order and assemble canonical channels | Done |
 | 01a | `01a_zip_originals.py` | ZIP each canonical tape folder, skipping existing ZIPs | Done |
-| 03 | `03_denoise.py` | Remove tones/hum and reduce broadband noise by at most 3 dB | Done |
+| 03 v1 | `03_denoise.py` | Remove tones/hum and reduce broadband noise by at most 3 dB | Existing archive |
+| 03 v2 | `denoise_v2_background.py` | Run source-bound hum subtraction with checkpoints | Canary and listening gate |
 | 05a v5 | `05a_plan_deflutter_v5.py` | Continuous all-channel original/denoised discovery and validated original-signal motion | Planning and assessment |
 | 05a legacy | `05a_plan_deflutter.py` | Earlier continuous-reference planner, the batch default | Historical compatibility |
 | 05b | `05b_deflutter.py` | Apply accepted saved maps to denoised channels and normalize | Active |

@@ -8,6 +8,7 @@ from flutter_policy import (METHODOLOGY, implementation_digest,
                             policy_digest, require_rollout, require_production)
 from flutter_planning import inventory
 from channel_review import completed_denoised
+from denoise_archive import root_marker
 
 
 def rollout_template():
@@ -18,7 +19,10 @@ def rollout_template():
 
 
 def readiness(originals, plans, denoised, approvals, rollout):
-    result = dict(ready_for_batch_planning=False, ready_for_production=False, tapes=[], rollout_error=None)
+    denoised = Path(denoised).resolve()
+    version = 'v2' if root_marker(denoised) else 'v1'
+    result = dict(ready_for_batch_planning=False, ready_for_production=False, tapes=[], rollout_error=None,
+                  cleanup_version=version)
     try:
         require_rollout(rollout)
         rollout_ok = True
@@ -36,7 +40,10 @@ def readiness(originals, plans, denoised, approvals, rollout):
             targets = [r for r in inv['channels'] if r['role'] != 'timing_only']
             row['originals_valid'] = bool(targets)
             row['expected_channels'] = len(targets)
-            row['denoised_channels'] = sum(completed_denoised(r, Path(denoised)/folder.name/f'CH{r["channel"]:02d}', 0, r['frames']) for r in targets)
+            row['denoised_channels'] = sum(completed_denoised(r, denoised/folder.name/f'CH{r["channel"]:02d}',
+                                           0, r['frames'], version=version) for r in targets)
+            row['timing_copies'] = sum(completed_denoised(r, denoised/folder.name/f'CH{r["channel"]:02d}',
+                                       0, r['frames'], version='v2') for r in inv['channels'] if r['role'] == 'timing_only')
             plan_path = Path(plans)/folder.name/'plan.json'
             try:
                 plan = load_saved_plan(plan_path, expand_regions=False)
@@ -56,7 +63,7 @@ def readiness(originals, plans, denoised, approvals, rollout):
             row['errors'].append(str(exc))
         result['tapes'].append(row)
     result['ready_for_batch_planning'] = all(t['originals_valid'] for t in result['tapes'])
-    result['ready_for_production'] = rollout_ok and result['ready_for_batch_planning'] and all(t['plan_complete'] and
+    result['ready_for_production'] = version == 'v1' and rollout_ok and result['ready_for_batch_planning'] and all(t['plan_complete'] and
         t['production_channels'] == t['denoised_channels'] == t['expected_channels'] and t['expected_channels'] > 0 for t in result['tapes'])
     return result
 

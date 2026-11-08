@@ -12,6 +12,7 @@ import random
 import numpy as np
 from scipy import signal
 
+from denoise_archive import bound_path, cleanup_version
 from flutter_policy import METHODOLOGY, digest, implementation_digest, policy_digest
 
 POLICY = 'representative-listening-v1'
@@ -94,12 +95,18 @@ def immutable_json(path, value):
 
 
 def bound(path):
-    return dict(path=str(Path(path).resolve()), sha256=digest(path))
+    path = Path(path).resolve()
+    result = dict(path=str(path), sha256=digest(path))
+    if path.name in {'denoised.wav', 'denoised.json', 'cleanup.jsonl'}:
+        manifest = path.with_name('denoised.json')
+        if manifest.is_file():
+            result['cleanup_version'] = cleanup_version(read_json(manifest))
+    return result
 
 
 def verify_bindings(bindings):
     for item in bindings:
-        if digest(item['path']) != item['sha256']:
+        if digest(bound_path(item)) != item['sha256']:
             raise ValueError('Stale evidence: '+item['path'])
 
 

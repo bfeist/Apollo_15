@@ -6,12 +6,13 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
 from flutter_planning import inventory,read_channel
 from flutter_tracking import beeps,evaluate_events
 from continuous_tracking import track_array
+from denoise_archive import CANONICAL, historical_path
 root=Path(r'D:\Apollo_15_30-Track'); inv=inventory(root/'orig_concatenated/A15_T510073'); out=[]
 for start in (10920,13140):
  xs={}
  for ch in (1,3,5,13,14):
   row=next(r for r in inv['channels'] if r['channel']==ch); orig,sr,_=read_channel(row,start,start+40)
-  with sf.SoundFile(root/f'denoised/A15_T510073/CH{ch:02}/denoised.wav') as f:
+  with sf.SoundFile(historical_path(CANONICAL/f'A15_T510073/CH{ch:02}/denoised.wav')) as f:
    f.seek(start*sr); den=f.read(40*sr,dtype='float64')
   xs[ch]={'original':orig,'denoised':den}
   spectra={}

@@ -33,6 +33,9 @@ def main():
             raise ValueError('Requested channel is unavailable in the saved plan')
         output=args.output or tape_directory(args.tape,DEFAULT_DEFLUTTERED_ROOT)/f'CH{args.channel:02d}'
         denoised=args.denoised_input or denoised_directory(DEFAULT_DENOISED_ROOT,args.tape,args.channel)
+        from denoise_archive import root_marker
+        if root_marker(denoised.resolve()):
+            raise ValueError('Stage 05b legacy approvals require the explicit historical v1 input. V2 requires the shared-map workflow and fresh evidence.')
         render_channel_review(plan,args.channel,output,start=row['start_seconds'],experimental=args.experimental_transfer,
                               denoised_input=denoised,require_prepared=True,target_dbfs=args.target_dbfs,max_boost_db=args.max_boost_db,progress=lambda s:print(s,flush=True))
     except (ValueError,KeyError,TypeError,OSError,RuntimeError) as exc:parser.error(str(exc))
