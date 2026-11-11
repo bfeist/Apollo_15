@@ -9,6 +9,8 @@ import sys
 import numpy as np
 from scipy import signal
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
+from _bootstrap import install as _install
+_install()
 from continuous_tracking import CarrierStream,RATE
 
 VERSION='high-rejection-carrier-research-v1'

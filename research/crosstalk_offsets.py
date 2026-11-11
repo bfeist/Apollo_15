@@ -4,10 +4,16 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import sys
 
 import numpy as np
 import soundfile as sf
 from scipy import signal
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
+from _bootstrap import install as _install
+_install()
+from denoise_archive import denoised_audio_path
 
 if __package__:
     from .crosstalk_probe import CONTEXT, RATE, read_window
@@ -20,7 +26,7 @@ def denoised_sources(folder):
     for manifest in sorted(folder.glob('CH*/denoised.json')):
         saved = json.loads(manifest.read_text(encoding='utf-8'))
         signature = saved['signature']
-        path = manifest.with_name('denoised.wav')
+        path = denoised_audio_path(manifest.parent, saved)
         info = sf.info(path)
         channel = signature['source']['channel']
         if (saved['status'] != 'complete' or signature['offset_frames'] != 0

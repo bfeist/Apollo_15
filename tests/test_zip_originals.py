@@ -8,7 +8,7 @@ from unittest import mock
 import zipfile
 
 
-archive = runpy.run_path(str(Path(__file__).resolve().parents[1] / 'scripts/01a_zip_originals.py'))
+archive = runpy.run_path(str(Path(__file__).resolve().parents[1] / 'scripts/01_ingest/01a_zip_originals.py'))
 
 
 class ZipOriginalsTests(unittest.TestCase):

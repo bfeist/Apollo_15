@@ -1,0 +1,526 @@
+{
+  "schema": 1,
+  "backend": {
+    "backend_id": "apollo15-v2.16-numba-platform-kernels-v2",
+    "numba": "0.68.0",
+    "fastmath": false,
+    "parallel": false,
+    "cache": true,
+    "feature_policy": {
+      "windows": [
+        "observations",
+        "complex_exp"
+      ],
+      "genus": [
+        "observations"
+      ]
+    },
+    "active_features": [
+      "observations"
+    ]
+  },
+  "platform": "Linux-7.0.0-43-generic-x86_64-with-glibc2.43",
+  "versions": {
+    "python": "3.13.11 (main, Jan 28 2026, 00:01:45) [Clang 21.1.4 ]",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "soundfile": "0.14.0",
+    "libsndfile": "1.2.2"
+  },
+  "implementation_sha256": {
+    "scripts/denoise_v2.py": "3d4bc9ac3203874d1c2a23db4371ec20fa723aff68362714fc4e2e655269f27e",
+    "scripts/denoise_v2_refinement.py": "17aa401863020e31dd9e0bb9174a158f0e806704ea7c58ca3ad1a2338e70abb3",
+    "scripts/denoise_v2_numba.py": "adda96b975d9a3fbf0c9021090cb0901ae6bf0ae2add1a51b7fc13fc49d6aa2a",
+    "research/qualify_denoise_numba.py": "0d9d2a1ac553e8a9e5adc0595f6075f52c0f293f18119fafc858a9e3daeed17b"
+  },
+  "cases": [
+    {
+      "name": "short_context",
+      "type": "synthetic_model",
+      "input_sha256": "03827db9ed82eb24f4320e5f3dd627c6752d6ff0c8ca5f3e008e7c5aa6c0afd6",
+      "samples": 120000,
+      "seeds": [],
+      "seconds": [
+        1.7779999325284734e-05,
+        1.5560000065306667e-05
+      ],
+      "model_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "corrected_float32_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "records_equal": true,
+      "record_sha256": "8b36b1305f4008cd058989626b2f2d9d4a75bb7c9079604c30d36c3e1c386769",
+      "coverage": {
+        "component_kinds": {},
+        "refinement_passes": 0,
+        "bypasses": [
+          "insufficient_context"
+        ],
+        "saved_noncomb_candidates": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "silence",
+      "type": "synthetic_model",
+      "input_sha256": "7b331c02e313c7599d5a90212e17e6d3cb729bd2e1c9b873c302a63c95a2f9bf",
+      "samples": 128000,
+      "seeds": [],
+      "seconds": [
+        0.00895892999960779,
+        0.008456608999949822
+      ],
+      "model_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "corrected_float32_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "records_equal": true,
+      "record_sha256": "806902f6bf4f06d103cff978f944efa1149884fdcf25b7ffdd7bf30f2c728730",
+      "coverage": {
+        "component_kinds": {},
+        "refinement_passes": 0,
+        "bypasses": [
+          "no_supported_components"
+        ],
+        "saved_noncomb_candidates": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "voice_no_comb",
+      "type": "synthetic_model",
+      "input_sha256": "dbc258e4bb742ee6331d5b2b6523936200a0784605dcf55921fc887c2fd405fe",
+      "samples": 384000,
+      "seeds": [],
+      "seconds": [
+        0.018874163999498705,
+        0.016764006999437697
+      ],
+      "model_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "corrected_float32_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "records_equal": true,
+      "record_sha256": "697fc221a87b5b01b08ef347629829ccd450e049f81c73ce26b086b21572f354",
+      "coverage": {
+        "component_kinds": {},
+        "refinement_passes": 0,
+        "bypasses": [
+          "no_supported_components"
+        ],
+        "saved_noncomb_candidates": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "comb_outage",
+      "type": "synthetic_model",
+      "input_sha256": "5375b948eeca0c3a775cd36f3fdf0dd0752e20fd3641e4f4168c89b60ad5683a",
+      "samples": 384000,
+      "seeds": [],
+      "seconds": [
+        0.017848130999482237,
+        0.01700857699961489
+      ],
+      "model_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "corrected_float32_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "records_equal": true,
+      "record_sha256": "b90b235ec329edb94f7eb5653abab4b4f123b334d2ec5bdce916c10f351e4a17",
+      "coverage": {
+        "component_kinds": {},
+        "refinement_passes": 0,
+        "bypasses": [
+          "no_supported_components"
+        ],
+        "saved_noncomb_candidates": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "tracked_refinement",
+      "type": "synthetic_model",
+      "input_sha256": "781d712123f49f744fa6a85241d3a9ec68fc2c4505430046dc84660c1ff76f3d",
+      "samples": 384000,
+      "seeds": [],
+      "seconds": [
+        0.8564378619994386,
+        0.8870334249995722
+      ],
+      "model_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "corrected_float32_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "records_equal": true,
+      "record_sha256": "1fdf3ffdd9fd3f858bec7d5156a798bb02e84629c62e5952d9eff408c1855404",
+      "coverage": {
+        "component_kinds": {
+          "harmonic": 5,
+          "low_envelope": 2
+        },
+        "refinement_passes": 2,
+        "bypasses": [],
+        "saved_noncomb_candidates": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "shifted_comb",
+      "type": "synthetic_model",
+      "input_sha256": "0261b72fc7b79bb8c2d9d45b50a716b11588957241a58edd2e3fbb8d3eb3d202",
+      "samples": 384000,
+      "seeds": [],
+      "seconds": [
+        1.0674580670001887,
+        0.9884644590001699
+      ],
+      "model_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "corrected_float32_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "records_equal": true,
+      "record_sha256": "0c883872f06e1cbd3a30149900279b798a9173795fa862e9c9e52b77f5da029c",
+      "coverage": {
+        "component_kinds": {
+          "harmonic": 5,
+          "low_envelope": 2,
+          "shifted_comb": 5
+        },
+        "refinement_passes": 3,
+        "bypasses": [],
+        "saved_noncomb_candidates": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "saved_noncomb",
+      "type": "synthetic_model",
+      "input_sha256": "0280aee416cd02c5cf76d76a90fcf85678d48ff3b1a6ebfffae3fce6d3b1c960",
+      "samples": 384000,
+      "seeds": [
+        837.0,
+        1234.0
+      ],
+      "seconds": [
+        0.8312865069992768,
+        0.7912720309996075
+      ],
+      "model_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "corrected_float32_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "records_equal": true,
+      "record_sha256": "d095332501507c6d9d7c44f8a0c01d1250d72423ce9483170d9b710aa82c6e9b",
+      "coverage": {
+        "component_kinds": {
+          "harmonic": 5,
+          "low_envelope": 2,
+          "other_tone": 2
+        },
+        "refinement_passes": 1,
+        "bypasses": [],
+        "saved_noncomb_candidates": 2
+      },
+      "passed": true
+    },
+    {
+      "name": "real_render_0",
+      "type": "real_corrected_chunks",
+      "source": "/mnt/d/Apollo_15_30-Track/orig_concatenated/A15_T510083/A15_T510083_HR2L_CH20_3_FD_L_210-11-49-00_211-04-54-40.wav",
+      "interval": [
+        0,
+        512000
+      ],
+      "seconds": [
+        6.720623440999589,
+        6.030928113999835
+      ],
+      "corrected_float64_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "corrected_float32_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "records_equal": true,
+      "record_sha256": "ff7577b23d13ebb649df02b59a190bea87c75a659b7409a5547e7d0d5f49641c",
+      "output_float32_sha256": "cfe586403e780a52dfd9b57b8274b1a29ba35a74dd6e78798268029ce2743df5",
+      "coverage": {
+        "component_kinds": {
+          "harmonic": 99,
+          "low_envelope": 4,
+          "other_tone": 8,
+          "shifted_comb": 1,
+          "compact_low_residual": 1
+        },
+        "refinement_passes": 13,
+        "bypasses": [],
+        "saved_noncomb_candidates": 1
+      },
+      "passed": true,
+      "saved_probe": "/mnt/d/Apollo_15_30-Track/.denoise_v2_rollout/v2-f0ba61776e7e0735d5d0571f/cluster/genus-0.npy",
+      "saved_probe_file_sha256": "0615757952b87fb56f026e3b818459612f8e11406f37ad01cd04d521eb3aceb7",
+      "saved_probe_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      }
+    },
+    {
+      "name": "real_render_1",
+      "type": "real_corrected_chunks",
+      "source": "/mnt/d/Apollo_15_30-Track/orig_concatenated/A15_T510083/A15_T510083_HR2L_CH20_3_FD_L_210-11-49-00_211-04-54-40.wav",
+      "interval": [
+        110080000,
+        110592000
+      ],
+      "seconds": [
+        9.337814409999737,
+        8.459969014999842
+      ],
+      "corrected_float64_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "corrected_float32_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "records_equal": true,
+      "record_sha256": "75e2f04df7378d0c90c7717fab28ac554e7bd80f86d6031d8f8e4bf0ffa0773f",
+      "output_float32_sha256": "3982dc9f670b44b2aa85988987645ee879f5c0954d21e3cd7aa869e352132a60",
+      "coverage": {
+        "component_kinds": {
+          "harmonic": 95,
+          "low_envelope": 4,
+          "other_tone": 14
+        },
+        "refinement_passes": 13,
+        "bypasses": [],
+        "saved_noncomb_candidates": 11
+      },
+      "passed": true,
+      "saved_probe": "/mnt/d/Apollo_15_30-Track/.denoise_v2_rollout/v2-f0ba61776e7e0735d5d0571f/cluster/genus-1.npy",
+      "saved_probe_file_sha256": "944b6e4a1d4e1d500e97e9789a81de91f02d0f7e002bfa8134b82156a38bd906",
+      "saved_probe_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      }
+    },
+    {
+      "name": "real_render_2",
+      "type": "real_corrected_chunks",
+      "source": "/mnt/d/Apollo_15_30-Track/orig_concatenated/A15_T510083/A15_T510083_HR2L_CH20_3_FD_L_210-11-49-00_211-04-54-40.wav",
+      "interval": [
+        117760000,
+        118272000
+      ],
+      "seconds": [
+        12.088847041000008,
+        10.938528534000397
+      ],
+      "corrected_float64_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "corrected_float32_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "records_equal": true,
+      "record_sha256": "08794eb2e5b00b2a9ebd67d8eec08cd2175f9a4c0fe2390324f8a7180d1aa758",
+      "output_float32_sha256": "d6c7dda2769d8d4c4de60fea8ea83d4b88758474260540824416ecf7d4dc85af",
+      "coverage": {
+        "component_kinds": {
+          "harmonic": 87,
+          "low_envelope": 4,
+          "other_tone": 13,
+          "compact_shifted_line": 39,
+          "compact_low_residual": 16
+        },
+        "refinement_passes": 65,
+        "bypasses": [],
+        "saved_noncomb_candidates": 10
+      },
+      "passed": true,
+      "saved_probe": "/mnt/d/Apollo_15_30-Track/.denoise_v2_rollout/v2-f0ba61776e7e0735d5d0571f/cluster/genus-2.npy",
+      "saved_probe_file_sha256": "16af8b88dbc67dd88ad88c4b4936438b98ba6e3d9acbc90e5e1a513759d25124",
+      "saved_probe_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      }
+    },
+    {
+      "name": "real_render_3",
+      "type": "real_corrected_chunks",
+      "source": "/mnt/d/Apollo_15_30-Track/orig_concatenated/A15_T510083/A15_T510083_HR2L_CH20_3_FD_L_210-11-49-00_211-04-54-40.wav",
+      "interval": [
+        491520000,
+        492032000
+      ],
+      "seconds": [
+        6.018489011999918,
+        5.509794079999665
+      ],
+      "corrected_float64_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "corrected_float32_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "records_equal": true,
+      "record_sha256": "b7172377d12e169989d22eb66b68144f459f0f6307b88fa110e0ed66ab6b0088",
+      "output_float32_sha256": "3949487477f90a357ce43d156cd52df39f4e066d14a9ed26b81a516e3381d1fd",
+      "coverage": {
+        "component_kinds": {
+          "harmonic": 56,
+          "low_envelope": 4,
+          "other_tone": 6
+        },
+        "refinement_passes": 10,
+        "bypasses": [],
+        "saved_noncomb_candidates": 8
+      },
+      "passed": true,
+      "saved_probe": "/mnt/d/Apollo_15_30-Track/.denoise_v2_rollout/v2-f0ba61776e7e0735d5d0571f/cluster/genus-3.npy",
+      "saved_probe_file_sha256": "701826775bfe4e3dd1f695d96c6440cca0652c61f0f0d63abc40563debe5f1f9",
+      "saved_probe_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      }
+    },
+    {
+      "name": "real_render_492319683",
+      "type": "real_corrected_chunks",
+      "source": "/mnt/d/Apollo_15_30-Track/orig_concatenated/A15_T510083/A15_T510083_HR2L_CH20_3_FD_L_210-11-49-00_211-04-54-40.wav",
+      "interval": [
+        492319683,
+        492327683
+      ],
+      "seconds": [
+        3.7599780099999407,
+        3.5054231479998634
+      ],
+      "corrected_float64_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "corrected_float32_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "records_equal": true,
+      "record_sha256": "b640b4ef8d7ee51316f11faad34fd2b02fd0d18439becace2ac61dbe9b284201",
+      "output_float32_sha256": "f524f3adea667e86ae6710bbe1c4408accbdc66c228e20ad0cacbafb3a2d5792",
+      "coverage": {
+        "component_kinds": {
+          "harmonic": 54,
+          "low_envelope": 4,
+          "other_tone": 6
+        },
+        "refinement_passes": 10,
+        "bypasses": [],
+        "saved_noncomb_candidates": 10
+      },
+      "passed": true
+    },
+    {
+      "name": "real_render_110080123",
+      "type": "real_corrected_chunks",
+      "source": "/mnt/d/Apollo_15_30-Track/orig_concatenated/A15_T510083/A15_T510083_HR2L_CH20_3_FD_L_210-11-49-00_211-04-54-40.wav",
+      "interval": [
+        110080123,
+        110088123
+      ],
+      "seconds": [
+        9.24462116399991,
+        8.457674367000436
+      ],
+      "corrected_float64_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "corrected_float32_difference": {
+        "exact": true,
+        "peak": 0.0,
+        "rms": 0.0
+      },
+      "records_equal": true,
+      "record_sha256": "75e2f04df7378d0c90c7717fab28ac554e7bd80f86d6031d8f8e4bf0ffa0773f",
+      "output_float32_sha256": "3caa3b219a68fa91ffba01d51ebba1b3013eba594178d8d29d10d08ec8224f6c",
+      "coverage": {
+        "component_kinds": {
+          "harmonic": 95,
+          "low_envelope": 4,
+          "other_tone": 14
+        },
+        "refinement_passes": 13,
+        "bypasses": [],
+        "saved_noncomb_candidates": 11
+      },
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "probe_sha256": "de1f53c2ef9a02a1dde92560af424e5acbddad406347860c45b052c1dce282a3"
+}

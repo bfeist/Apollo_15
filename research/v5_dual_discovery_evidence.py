@@ -2,6 +2,8 @@ import sys,json
 from pathlib import Path
 import numpy as np,soundfile as sf
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
+from _bootstrap import install as _install
+_install()
 from flutter_planning import inventory,read_channel
 from flutter_tracking import discover
 from denoise_archive import CANONICAL, historical_path

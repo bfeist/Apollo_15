@@ -10,6 +10,7 @@ __pycache__/
 reports/
 runs/
 /archive/
+/2 delete/
 /research/archives/
 /docs/IRIG_FREE_FLUTTER_RESEARCH.md
 
@@ -34,3 +35,6 @@ runs/
 !.env.example
 Thumbs.db
 .DS_Store
+
+# Retain compact, checksummed denoising development evidence.
+!research/benchmarks/denoise_numba_20261110/history.zip

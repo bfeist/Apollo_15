@@ -12,6 +12,8 @@ import numpy as np
 import soundfile as sf
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
+from _bootstrap import install as _install
+_install()
 from review_sampling import (POLICY, PILOTS, select_samples, assess, fingerprint,
                              immutable_json, read_json, bound, verify_bindings, policy_hash, audio_activity,
                              comparison_change, automatic_no_change)

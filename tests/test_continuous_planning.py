@@ -12,6 +12,8 @@ import numpy as np
 import soundfile as sf
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
+from _bootstrap import install as _install
+_install()
 import continuous_planning
 from continuous_planning import plan_tape
 from continuous_tracking import track_array

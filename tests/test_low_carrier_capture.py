@@ -7,6 +7,8 @@ import numpy as np
 from scipy.integrate import cumulative_trapezoid
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
+from _bootstrap import install as _install
+_install()
 from carrier_capture import capture_candidates
 from continuous_planning import competing_carriers
 from continuous_tracking import track_array

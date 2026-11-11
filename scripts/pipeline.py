@@ -1,4 +1,12 @@
 """Numbered Apollo 15 audio pipeline with a Rich terminal dashboard."""
+
+# Resolve shared modules from the stage folders.
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from _bootstrap import install as _install
+_install()
+
 import argparse
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
@@ -12,6 +20,7 @@ import sys
 import threading
 import time
 import uuid
+from _bootstrap import command as script_command, source_path
 
 from rich.console import Console, Group
 from rich.live import Live
@@ -25,7 +34,6 @@ from flutter_plan_store import DEFAULT_PLANNING_ROOT, DEFAULT_DENOISED_ROOT, DEF
 from quindar_retime import DEFAULT_RETIMED_ROOT
 from quindar_survey import DEFAULT_ANALYSIS_ROOT
 
-SCRIPTS = Path(__file__).resolve().parent
 DEFAULT_V5_PLANNING_ROOT = Path('D:/Apollo_15_30-Track/deflutter_planning_v5_allchannel')
 STAGES = [
     ('01', 'Concatenate', '01_concatenate.py', 'Verify fragment order and join channels'),
@@ -209,7 +217,7 @@ def make_denoise_batch(args):
             jobs.append(dict(number='03', name=f"{inv['tape']} CH{channel:02d}",
                 tape=inv['tape'], channel=channel, script='03_denoise.py',
                 description='Denoise whole channel',
-                command=[sys.executable, '-u', str(SCRIPTS/'03_denoise.py'),
+                command=[sys.executable, '-u', str(source_path('03_denoise.py')),
                          '--input', str(folder), '--output', str(output),
                          '--channel', str(channel), '--workers', str(args.denoise_workers)],
                 log=f"03_{inv['tape']}_CH{channel:02d}.log",
@@ -263,7 +271,7 @@ def make_jobs(args, selected, run_dir):
         for folder in folders:
             if not list(folder.glob('CH*/deflutter.wav')):
                 continue
-            command = [sys.executable, '-u', str(SCRIPTS/'05c_retime.py'), '--tape', folder.name,
+            command = [sys.executable, '-u', str(source_path('05c_retime.py')), '--tape', folder.name,
                        '--defluttered-root', str(args.defluttered_root), '--retimed-root', str(args.retimed_root),
                        '--quindar-analysis-root', str(args.quindar_analysis_root),
                        '--target-dbfs', str(args.target_dbfs), '--max-boost-db', str(args.max_boost_db)]
@@ -291,7 +299,7 @@ def make_tape_jobs(args, selected, run_dir):
             description = 'Survey originals and existing denoised audio, then plan and assess'
         if number == '05b' and number in selected and args.skip_deflutter:
             status = 'skipped explicitly'
-        command = [sys.executable, '-u', str(SCRIPTS / script)]
+        command = [sys.executable, '-u', str(source_path(script))]
         output = run_dir / f'{number}_{name.lower().replace(" ", "_").replace("/", "_")}'
         if number == '01':
             command += ['--input', str(args.delivery), '--output', str(args.concatenated), '--min-age', str(args.min_age), '--strict']
@@ -312,7 +320,7 @@ def make_tape_jobs(args, selected, run_dir):
         elif number == '03' and args.channel is not None:
             output = tape_directory(args.tape,args.denoised_root)/f'CH{args.channel:02d}'
             name, description = 'Denoise channel', 'Cache tone/hum removal and 3 dB broadband denoising'
-            command = [sys.executable,'-u',str(SCRIPTS/script),'--input',str(args.concatenated/args.tape),
+            command = [sys.executable,'-u',str(source_path(script)),'--input',str(args.concatenated/args.tape),
                        '--output',str(output),'--channel',str(args.channel),'--workers',str(args.denoise_workers)]
             if number in selected:
                 from flutter_planning import inventory
@@ -520,9 +528,9 @@ def main(argv=None):
     args, selected = parse_args(argv)
     console = Console()
     if args.denoise_version == 'v2':
-        command = [sys.executable, '-u', str(SCRIPTS/'denoise_v2_rollout.py'), '--version', 'v2',
+        command = script_command('denoise_v2_rollout.py', '--version', 'v2',
                    '--mode', 'dry-run' if args.action == 'plan' else 'resume',
-                   '--workers', str(args.denoise_workers), '--tapes', str(args.denoise_tapes)]
+                   '--workers', str(args.denoise_workers), '--tapes', str(args.denoise_tapes))
         if args.channel is not None and args.action == 'run':
             command += ['--tape', args.tape, '--channel', str(args.channel)]
         return subprocess.call(command)

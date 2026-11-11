@@ -43,13 +43,24 @@ have their own finite responses.
 ## Processing contract
 
 Fit and subtract from original samples. Use source-grid anchors, retain
-bounded neighboring-model context, and preserve offsets, length and unity
-gain in production. Confirm candidate lines using independent observations.
+bounded neighboring-model context, and preserve offsets and length. Confirm
+candidate lines using independent observations. Apply constant peak gain after
+subtraction with a −3 dBFS program peak target and a +12 dB boost cap. Exclude
+qualifying endpoint impulses from gain measurement while preserving those
+samples in the float WAV.
+
+A full scan of the 30 previous v1 outputs for T510083 measured a CH26 peak
+of −29.62 dBFS. The owner heard no program content in a spot check, so its
+peak is excluded from the gain-policy comparison. CH01 is timing-only.
+The largest computed gain among the remaining 28 channels is +9.38 dB.
+The [local scan](../reports/denoise_v2_rollout_20261108/v1_gain_scan_T510083.json)
+records the measured peaks and endpoint checks for every channel.
 Keep sustained absence distinct from missing or masked evidence. Apply the
 qualified compact bank once after baseline blending and taper the end of
 its coverage over up to six seconds. Record unsupported intervals and
-residual flags for review. Timing-only channels retain the original WAV
-bytes. Denoising precedes crosstalk subtraction, followed by the shared tape
+residual flags for review. Process all numbered channels, including CH01.
+Use the unchanged originals for timing evidence. Denoising precedes
+crosstalk subtraction, followed by the shared tape
 timing map.
 
 ## Local evidence

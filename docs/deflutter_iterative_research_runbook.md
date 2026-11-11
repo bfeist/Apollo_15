@@ -31,14 +31,14 @@ Read these before changing the scientific engine:
 | `reports/deflutter_discovery_audit_20261030/cleaned_evidence.json` | Short-window diagnostic and cleanup-log evidence; extra peaks are not qualified carriers |
 | `docs/deflutter_v5.md` | Current v5 operation and checkpoint behavior |
 | `docs/continuous_reference_pipeline.md` | Earlier architecture and limitations; distinguish historical claims from current evidence |
-| `scripts/flutter_tracking.py` | Spectral discovery, tracking, check-event detection |
-| `scripts/v5_allchannel.py`, `scripts/v5_resume.py` | All-channel survey, candidate provider, durable survey storage |
-| `scripts/continuous_acquisition.py` | Event roles, dependence handling, acquisition horizons |
-| `scripts/continuous_planning.py`, `scripts/flutter_planning.py` | Candidate screening, shortlist, reference lifetimes, calibration/validation |
-| `scripts/continuous_tracking.py`, `scripts/continuous_maps.py` | Persistent motion extraction and joined maps |
-| `scripts/continuous_quality.py`, `scripts/flutter_policy.py` | Actual eligibility gates, controls, hashes, production contract |
-| `scripts/v5_safe_assessment.py` | Exact-map evaluation and explicit rejection of invalid maps |
-| `scripts/audio_processing.py`, `scripts/channel_review.py` | Cleanup, cached denoised audio, rendering, source identity |
+| `scripts/05_deflutter/flutter_tracking.py` | Spectral discovery, tracking, check-event detection |
+| `scripts/05_deflutter/v5_allchannel.py`, `scripts/05_deflutter/v5_resume.py` | All-channel survey, candidate provider, durable survey storage |
+| `scripts/05_deflutter/continuous_acquisition.py` | Event roles, dependence handling, acquisition horizons |
+| `scripts/05_deflutter/continuous_planning.py`, `scripts/05_deflutter/flutter_planning.py` | Candidate screening, shortlist, reference lifetimes, calibration/validation |
+| `scripts/05_deflutter/continuous_tracking.py`, `scripts/05_deflutter/continuous_maps.py` | Persistent motion extraction and joined maps |
+| `scripts/05_deflutter/continuous_quality.py`, `scripts/05_deflutter/flutter_policy.py` | Actual eligibility gates, controls, hashes, production contract |
+| `scripts/05_deflutter/v5_safe_assessment.py` | Exact-map evaluation and explicit rejection of invalid maps |
+| `scripts/05_deflutter/audio_processing.py`, `scripts/05_deflutter/channel_review.py` | Cleanup, cached denoised audio, rendering, source identity |
 | `tests/test_v5_*.py`, `tests/test_continuous_*.py` | Existing scientific/storage regression coverage |
 
 Canonical data roots:
@@ -376,7 +376,7 @@ uv run --with pytest python -m pytest tests/test_v5_allchannel.py tests/test_v5_
 A bounded **development-only baseline** example, using a fresh destination:
 
 ```powershell
-uv run python scripts/05a_plan_deflutter_v5.py --input D:/Apollo_15_30-Track/orig_concatenated/A15_T510073 --start 10920 --duration 180 --denoised-root D:/Apollo_15_30-Track/denoised --output reports/deflutter_iterative_20261030/baseline/dev_T510073_10920_180
+uv run python scripts/05_deflutter/05a_plan_deflutter_v5.py --input D:/Apollo_15_30-Track/orig_concatenated/A15_T510073 --start 10920 --duration 180 --denoised-root D:/Apollo_15_30-Track/denoised --output reports/deflutter_iterative_20261030/baseline/dev_T510073_10920_180
 ```
 
 That passage is a known historical development example, not the campaign's unbiased cross-tape sample. This command automatically evaluates reserved events after planning; **do not use it on sealed promotion/audit passages**. It is the old baseline, not an implementation of this proposed methodology. Always specify `--duration` for a bounded run. `--max-windows` limits planning after the full requested survey; it does not bound initial survey cost. Reusing a compatible interrupted destination requires explicit `--resume`.
@@ -401,7 +401,7 @@ Produce matched excerpts from the same existing denoised input, applying identit
 
 Evaluate the full intended map first, then crop excerpts. Do not recompute duration anchoring separately for a short listening excerpt and claim it demonstrates the saved full map. Include transitions, dropouts, sparse-evidence passages, apparent wins, failures, and a fixed random sample, not only the best examples.
 
-`scripts/render_channel_review.py` exists, but bounded rendering selects a bounded denoised cache path and can invoke cleanup when it is absent. Before using it, inspect its behavior and adapt a separate research renderer to crop the already-cached full-channel denoised audio without re-denoising. A dry run must confirm the exact source and saved map. Do not use experimental-transfer flags to silently apply failed or unsupported decisions.
+`scripts/05_deflutter/render_channel_review.py` exists, but bounded rendering selects a bounded denoised cache path and can invoke cleanup when it is absent. Before using it, inspect its behavior and adapt a separate research renderer to crop the already-cached full-channel denoised audio without re-denoising. A dry run must confirm the exact source and saved map. Do not use experimental-transfer flags to silently apply failed or unsupported decisions.
 
 Create blinded A/B labels with a stored mapping and randomized presentation. Queue short excerpts with concrete questions about pitch stability, warble, transients, speech clarity, and new artifacts. If no listener is available, mark `listening_pending` and continue other work. Numerical results and visual inspection are not human listening approval.
 

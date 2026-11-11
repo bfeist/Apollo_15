@@ -65,7 +65,7 @@ the first recorded instance of this rejection.
 For a single bounded trial:
 
 ```powershell
-uv run python scripts/05a_plan_deflutter_v5.py --input D:/Apollo_15_30-Track/orig_concatenated/A15_T510073 --start 10920 --duration 240 --output reports/my_fresh_v5_trial
+uv run python scripts/05_deflutter/05a_plan_deflutter_v5.py --input D:/Apollo_15_30-Track/orig_concatenated/A15_T510073 --start 10920 --duration 240 --output reports/my_fresh_v5_trial
 ```
 
 The default destination root is

@@ -10,6 +10,8 @@ import numpy as np
 import soundfile as sf
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
+from _bootstrap import install as _install
+_install()
 from deflutter_readiness import readiness
 from flutter_policy import METHODOLOGY, digest, implementation_digest, policy_digest
 from review_evidence import Desk, review_intervals

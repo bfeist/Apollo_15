@@ -6,6 +6,8 @@ import sys
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
+from _bootstrap import install as _install
+_install()
 from channel_review import prepare, continuous_map
 from continuous_maps import detail
 from flutter_planning import read_channel, write_json

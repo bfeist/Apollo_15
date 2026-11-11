@@ -83,7 +83,7 @@ def make_demo(parent):
         survey_dir = root/'surveys'/tape
         survey_dir.mkdir(parents=True,exist_ok=True)
         immutable_json(survey_dir/'source.json',dict(source=source_record(source),settings=SETTINGS,
-                       implementation_sha256=digest(Path(__file__).resolve().parents[1]/'scripts'/'carrier_survey.py'),
+                       implementation_sha256=digest(Path(__file__).resolve().parents[1]/'scripts/05_deflutter'/'carrier_survey.py'),
                        complete=True,next_sample=len(x),feature_blocks=[],islands=[]))
         immutable_json(survey_dir/'survey.json',dict(source=str(original),tape=tape,complete=True,settings=SETTINGS,
                        files=[dict(path=str(source),cache='source.json',sha256=digest(survey_dir/'source.json'),complete=True)],demo=True))

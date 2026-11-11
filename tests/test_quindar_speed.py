@@ -9,6 +9,8 @@ import soundfile as sf
 from scipy import signal
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
+from _bootstrap import install as _install
+_install()
 from quindar_speed import detect, fit_events, corrected_time, render_excerpt
 
 

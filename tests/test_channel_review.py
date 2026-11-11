@@ -14,6 +14,8 @@ from scipy.signal import hilbert
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'scripts'))
+from _bootstrap import install as _install
+_install()
 from channel_review import continuous_map, cleanup_channel, cleanup_block, cleanup_results, prepare, render_channel_review, render_warp, ensure_denoised
 from flutter import resample_at
 

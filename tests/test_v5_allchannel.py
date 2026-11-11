@@ -1,6 +1,8 @@
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
+from _bootstrap import install as _install
+_install()
 import json
 import numpy as np
 import v5_allchannel as v5

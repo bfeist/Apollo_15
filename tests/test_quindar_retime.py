@@ -14,6 +14,8 @@ from scipy import signal
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT/'scripts'))
+from _bootstrap import install as _install
+_install()
 from quindar_retime import curve_model, timing_map, render_stream, retime
 import pipeline
 

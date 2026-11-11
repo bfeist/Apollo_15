@@ -3,6 +3,8 @@ import argparse, json, sys
 from pathlib import Path
 import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
+from _bootstrap import install as _install
+_install()
 from channel_review import prepare, continuous_map, joined_map_checks
 
 p = argparse.ArgumentParser()

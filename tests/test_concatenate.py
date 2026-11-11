@@ -7,7 +7,7 @@ import unittest
 import wave
 
 
-concat = runpy.run_path(str(Path(__file__).resolve().parents[1] / 'scripts/01_concatenate.py'))
+concat = runpy.run_path(str(Path(__file__).resolve().parents[1] / 'scripts/01_ingest/01_concatenate.py'))
 
 
 class ConcatenateTests(unittest.TestCase):

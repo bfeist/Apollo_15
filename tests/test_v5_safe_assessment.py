@@ -11,6 +11,8 @@ import numpy as np
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
+from _bootstrap import install as _install
+_install()
 import v5_safe_assessment as assessment
 import v5_assessment as legacy
 
@@ -83,7 +85,7 @@ def test_valid_map_assessments_match_the_frozen_evaluator(tmp_path):
 
 @pytest.mark.parametrize('cache_state', ['current', 'missing_hash', 'changed_hash', 'changed_plan', 'incomplete'])
 def test_cli_resume_reuses_only_a_complete_bound_assessment(tmp_path, monkeypatch, cache_state):
-    script = Path(__file__).resolve().parents[1]/'scripts'/'05a_plan_deflutter_v5.py'
+    script = Path(__file__).resolve().parents[1]/'scripts/05_deflutter'/'05a_plan_deflutter_v5.py'
     spec = importlib.util.spec_from_file_location('v5_cli', script)
     cli = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(cli)

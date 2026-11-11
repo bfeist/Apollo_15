@@ -11,6 +11,8 @@ from scipy import signal
 import soundfile as sf
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
+from _bootstrap import install as _install
+_install()
 from denoise_v2 import SETTINGS, Settings, corrected_chunks, model_window, rising_cosine
 from render_denoise_v2 import render
 

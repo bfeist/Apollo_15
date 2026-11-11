@@ -1,0 +1,89 @@
+"""Relocation must preserve saved identities and initialize every child worker."""
+import hashlib
+import json
+from pathlib import Path
+import shlex
+import subprocess
+import sys
+from types import SimpleNamespace
+import unittest
+from unittest.mock import Mock
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
+import _bootstrap as layout
+
+
+class ScriptLayoutTests(unittest.TestCase):
+    def test_frozen_runtime_preserves_every_bound_source_byte(self):
+        manifest = json.loads((layout.RUNTIME/'source_manifest.json').read_text())
+        for name, expected in manifest.items():
+            with self.subTest(source=name):
+                self.assertEqual(hashlib.sha256((layout.RUNTIME/name).read_bytes()).hexdigest(), expected)
+        self.assertEqual((layout.SCRIPTS/'05_deflutter/normalization.py').read_bytes(),
+                         layout.source_path('normalization.py').read_bytes())
+
+    def test_flutter_fingerprints_reuse_existing_evidence_after_move(self):
+        from flutter_policy import implementation_digest
+        from v5_safe_assessment import assessment_implementation_digest
+        self.assertEqual(implementation_digest(),
+                         'e7b11fcf1e6e93473ea1b0b830f1f04b0c09ffda0c6c72ef79fabc37aa17aae5')
+        self.assertEqual(assessment_implementation_digest(),
+                         '9f2df71bb659950bc7ecff427a2769927fd58515082d9d69b68c82368d437dcf')
+
+    def test_external_artifacts_stay_in_the_checkout(self):
+        import denoise_v2_cluster as cluster
+        import denoise_v2_rollout as rollout
+        import review_evidence
+        self.assertEqual(rollout.INVENTORY, layout.REPO/'reports/denoise_v2_rollout_20261108/inventory.json')
+        self.assertEqual(cluster.INVENTORY, rollout.INVENTORY)
+        self.assertEqual(cluster.REVIEW, rollout.REVIEW)
+        self.assertEqual(review_evidence.HERE.parent, layout.REPO)
+
+    def test_all_indexed_sources_exist_and_unknown_paths_are_rejected(self):
+        for name in layout.LAYOUT:
+            self.assertTrue(layout.source_path(name).is_file(), name)
+        for name in ('../outside.py', 'unknown.py', '/tmp/anything.py'):
+            with self.assertRaises(ValueError):
+                layout.source_path(name)
+
+    def test_local_worker_dispatches_through_bootstrap_and_preserves_arguments(self):
+        api = SimpleNamespace(Popen=Mock(return_value='worker'))
+        processes = layout.ScriptProcesses(api)
+        for name in ('denoise_v2_cluster.py', 'denoise_v2_accelerated.py'):
+            result = processes.Popen([sys.executable, '-u', str(layout.source_path(name)),
+                                      'worker', '--key', 'A15_T510076/CH28'], stdout='same')
+            self.assertEqual(result, 'worker')
+            self.assertEqual(api.Popen.call_args.args[0],
+                layout.command(name, 'worker', '--key', 'A15_T510076/CH28'))
+            self.assertEqual(api.Popen.call_args.kwargs, dict(stdout='same'))
+        processes.Popen(['ssh', 'host', 'uptime'])
+        self.assertEqual(api.Popen.call_args.args[0], ['ssh', 'host', 'uptime'])
+
+    def test_maintenance_ssh_dispatch_keeps_options_and_quoted_arguments(self):
+        api = SimpleNamespace(run=Mock(return_value='checked'))
+        processes = layout.ScriptProcesses(api)
+        for name in ('denoise_v2_cluster.py', 'denoise_v2_accelerated.py'):
+            words = ['exec', '/uv path', 'run', '--python', '/python path',
+                     '/repo with spaces/scripts/'+name, 'check', '--config', '/config path']
+            command = ['ssh', '-o', 'BatchMode=yes', 'host', shlex.join(words)]
+            self.assertEqual(processes.run(command, check=True), 'checked')
+            actual = api.run.call_args.args[0]
+            self.assertEqual(actual[:-1], command[:-1])
+            self.assertEqual(shlex.split(actual[-1]), [*words[:5],
+                '/repo with spaces/scripts/run.py', name, *words[6:]])
+
+    def test_stage_and_runtime_help_start_in_fresh_processes(self):
+        for name in ('pipeline.py', '01_concatenate.py', '01a_zip_originals.py', '03_denoise.py',
+                     'denoise_v2_console.py', 'denoise_v2_launcher.py', 'denoise_v2_cluster.py',
+                     'denoise_v2_accelerated.py', 'denoise_v2_rollout.py', 'qualify_denoise_numba.py',
+                     '05a_plan_deflutter.py', '05a_plan_deflutter_v5.py', '05b_deflutter.py',
+                     '05c_retime.py', 'quindar_survey.py', 'irig_search.py'):
+            with self.subTest(script=name):
+                result = subprocess.run(layout.command(name, '--help'), capture_output=True,
+                                        text=True, timeout=45, cwd=layout.REPO)
+                self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+                self.assertIn('usage:', result.stdout.lower())
+
+
+if __name__ == '__main__':
+    unittest.main()

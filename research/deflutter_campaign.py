@@ -22,6 +22,8 @@ import soundfile as sf
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO/'scripts'))
+from _bootstrap import install as _install
+_install()
 from flutter_planning import inventory, read_channel, STAMP, seconds
 from flutter_policy import implementation_digest, policy_digest, LIMITS
 from deflutter_catalog import CatalogConfig, discover_ridges, allocation_only, identity, matching_truth
@@ -76,7 +78,8 @@ def append(path, value):
 
 def snapshot(destination):
     destination.mkdir(parents=True, exist_ok=False)
-    files = list((REPO/'scripts').glob('*.py'))+list((REPO/'tests').glob('test_*continuous*.py'))+list((REPO/'tests').glob('test_v5*.py'))
+    files = list((REPO/'scripts').rglob('*.py'))+[REPO/'scripts/layout.json']
+    files += list((REPO/'tests').glob('test_*continuous*.py'))+list((REPO/'tests').glob('test_v5*.py'))
     files += list((REPO/'research').glob('deflutter_*.py'))
     files += list((REPO/'tests').glob('test_deflutter_*.py'))
     files += [REPO/'pyproject.toml', REPO/'uv.lock', REPO/'docs/deflutter_iterative_research_runbook.md']
@@ -93,6 +96,8 @@ def snapshot(destination):
 
 def frozen_discover():
     p = ROOT/'baseline/implementation/scripts/flutter_tracking.py'
+    if not p.exists():
+        p = ROOT/'baseline/implementation/scripts/05_deflutter/flutter_tracking.py'
     spec = importlib.util.spec_from_file_location('frozen_flutter_tracking', p)
     module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
     return module.discover

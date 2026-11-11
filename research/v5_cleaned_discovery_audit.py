@@ -18,6 +18,8 @@ import soundfile as sf
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(REPO/'scripts'))
+from _bootstrap import install as _install
+_install()
 from flutter_tracking import discover, trajectory
 from carrier_capture import capture_candidates
 from continuous_planning import competing_carriers

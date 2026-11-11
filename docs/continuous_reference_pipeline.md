@@ -14,7 +14,7 @@ listening pilots; headless evidence and acceptance utilities remain available.
 
 ```powershell
 uv run python scripts/pipeline.py run --stages 05a --tape A15_T510083 --plain
-uv run python scripts/05a_plan_deflutter.py --input D:/Apollo_15_30-Track/orig_concatenated/A15_T510083 --max-windows 1
+uv run python scripts/05_deflutter/05a_plan_deflutter.py --input D:/Apollo_15_30-Track/orig_concatenated/A15_T510083 --max-windows 1
 ```
 
 The second command checkpoints after one new monitoring passage. Repeat it
@@ -187,7 +187,7 @@ historical time anchoring is a future process, not part of this redesign.
 
 ## Independent IRIG-B discovery
 
-`scripts/irig_search.py` implements a separate full-timeline search on numbered
+`scripts/run.py irig_search.py` implements a separate full-timeline search on numbered
 channels 1, 2, 3 and 4 of each canonical tape. Labels do not decide which of those
 channels are searched. Channels outside that scope and unlabelled recordings
 are not silently substituted. Missing channels make negative coverage incomplete.
@@ -268,7 +268,7 @@ export remain future work.
 Generate an unapproved methodology record outside the source tree:
 
 ```powershell
-uv run python scripts/deflutter_readiness.py --write-rollout-template reports/acceptance/rollout.json
+uv run python scripts/05_deflutter/deflutter_readiness.py --write-rollout-template reports/acceptance/rollout.json
 ```
 
 After review, the record must identify the reviewer/date, current implementation
@@ -279,7 +279,7 @@ must explicitly be accepted. Development fixtures cannot authorize production.
 Render a review from a saved plan, using the channel's original-timeline start:
 
 ```powershell
-uv run python scripts/render_channel_review.py --help
+uv run python scripts/05_deflutter/render_channel_review.py --help
 ```
 
 Whole-channel production uses prepared denoised intermediates. Bounded pilots
@@ -319,7 +319,7 @@ identities remain binding. Historical schema-1 map reading is retained for saved
 evidence; it does not expose a second planning engine.
 
 ```powershell
-uv run python scripts/deflutter_readiness.py --rollout-approval reports/acceptance/rollout.json
+uv run python scripts/05_deflutter/deflutter_readiness.py --rollout-approval reports/acceptance/rollout.json
 ```
 
 Exit code 2 means production is not ready. Batches continue after individual

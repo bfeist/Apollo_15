@@ -15,6 +15,8 @@ import soundfile as sf
 ROOT = Path(__file__).resolve().parents[1]
 RUNNER = ROOT / 'scripts' / 'pipeline.py'
 sys.path.insert(0, str(ROOT/'scripts'))
+from _bootstrap import install as _install
+_install()
 from audio_processing import clean_tones, denoise
 from flutter_planning import inventory
 import pipeline
@@ -192,7 +194,7 @@ class BatchDenoiseTests(CanonicalTapeTests):
         self.assertEqual(len(jobs), 5)
         self.assertTrue(all(j['status'] == 'pending' for j in jobs))
         # Exercise the same inventory path used by the stage-03 subprocess.
-        command = [sys.executable, str(ROOT/'scripts'/'03_denoise.py'),
+        command = [sys.executable, str(ROOT/'scripts/03_denoise'/'03_denoise.py'),
                    '--input', str(folder), '--output', str(self.cache/'CH02'),
                    '--channel', '2', '--workers', '1']
         result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
@@ -356,7 +358,7 @@ class BatchFlutterTests(CanonicalTapeTests):
             path.unlink()
         sf.write(unfinished/'A15_T002_HR1U_CH2_VOICE_207-00-00-00_207-00-02-00.wav',
                  np.zeros(120*8000), 8000, subtype='FLOAT')
-        stage = ROOT/'scripts'/'05a_plan_deflutter.py'
+        stage = ROOT/'scripts/05_deflutter'/'05a_plan_deflutter.py'
         for tape in ('A15_T001', 'A15_T002'):
             result = subprocess.run([sys.executable, str(stage), '--input', str(self.originals/tape),
                                      '--output', str(self.plans/tape), '--max-windows', '1'],
@@ -633,7 +635,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(states['03'], 'failed')
 
     def test_standalone_denoise_excerpts(self):
-        result = subprocess.run([sys.executable, str(ROOT/'scripts/03_denoise.py'),
+        result = subprocess.run([sys.executable, str(ROOT/'scripts/03_denoise/03_denoise.py'),
                                  '--input', str(self.source), '--output', str(self.output)],
                                 capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -655,7 +657,7 @@ class PipelineTests(unittest.TestCase):
     def test_standalone_channel_denoise_without_plan(self):
         from test_continuous_planning import fixture
         original, channel = fixture(self.root, duration=60)
-        command = [sys.executable, str(ROOT/'scripts/03_denoise.py'), '--input', str(original),
+        command = [sys.executable, str(ROOT/'scripts/03_denoise/03_denoise.py'), '--input', str(original),
                    '--channel', str(channel), '--denoised-root', str(self.output)]
         result = subprocess.run(command, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

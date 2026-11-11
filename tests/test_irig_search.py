@@ -12,6 +12,8 @@ import numpy as np
 import soundfile as sf
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
+from _bootstrap import install as _install
+_install()
 from flutter_policy import digest
 from irig_search import first_four, search_tape
 

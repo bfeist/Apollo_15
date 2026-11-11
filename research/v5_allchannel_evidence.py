@@ -3,6 +3,8 @@ from pathlib import Path
 import numpy as np
 from scipy import signal
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
+from _bootstrap import install as _install
+_install()
 from flutter_planning import inventory, read_channel
 
 root = Path(r'D:\Apollo_15_30-Track\orig_concatenated\A15_T510073')

@@ -2,6 +2,8 @@
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
+from _bootstrap import install as _install
+_install()
 from unittest.mock import patch
 import numpy as np
 import v5_assessment as assessment

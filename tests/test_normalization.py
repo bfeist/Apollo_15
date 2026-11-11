@@ -7,6 +7,8 @@ import numpy as np
 import soundfile as sf
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
+from _bootstrap import install as _install
+_install()
 from normalization import gain_for_peak, normalize_pending_file, verify_peak
 
 

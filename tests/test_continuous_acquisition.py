@@ -5,6 +5,8 @@ import sys
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
+from _bootstrap import install as _install
+_install()
 from continuous_acquisition import AcquisitionEvidence, local_roles
 
 

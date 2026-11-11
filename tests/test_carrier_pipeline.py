@@ -13,6 +13,8 @@ import numpy as np
 import soundfile as sf
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
+from _bootstrap import install as _install
+_install()
 from carrier_survey import scan_file, survey_tape, load_survey, screen
 from flutter_planning import inventory, fair_shortlist
 from continuous_planning import plan_tape

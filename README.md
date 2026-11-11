@@ -1,11 +1,22 @@
 # Apollo 15 audio processing
 
-Processing tools for the Apollo 15 30-track recordings. The current work is flutter correction and tape-speed retiming. Concatenation, original-file archiving, and denoising are complete pipeline stages.
+Processing tools for the Apollo 15 30-track recordings. Current work includes the denoise v2 rollout, flutter correction, and tape-speed retiming. Concatenation, original-file archiving, and the earlier denoise v1 pass are complete.
 
-For the current denoise rollout, use the [v2.16 runbook](docs/denoise_v2_all_tapes_runbook.md)
-and the [latest findings and local evidence index](docs/denoise_v2_plan.md).
+**Flutter correction is tape-level:** use evidence from all simultaneous tracks
+to select one shared timing map, applied across channels at the same tape time.
+Missing check tones on an output channel do not independently disable correction.
+See [the governing rule and saved-data workflow](docs/tape_level_deflutter.md).
+Older per-target rendering paths require the shared-map adapter for new reviews.
 
-The new **version 5 all-channel planner** is `scripts/05a_plan_deflutter_v5.py`.
+Start with the [project status and local artifact guide](docs/project_status.md)
+for the November 3 repository audit, research outcome, retained listening
+examples, and cleanup/restore locations.
+
+For the current denoise rollout, use the [Windows/Genus production console guide](docs/denoise_cluster.md).
+The [v2.16 rollout history](docs/denoise_v2_all_tapes_runbook.md) and
+[findings and local evidence index](docs/denoise_v2_plan.md) retain review and migration context.
+
+The new **version 5 all-channel planner** is `scripts/05_deflutter/05a_plan_deflutter_v5.py`.
 It surveys originals and existing denoised channels throughout the requested
 timeline, then validates correction against original timing evidence. See the
 [v5 methodology and planning](docs/deflutter_v5.md). Its separate
@@ -21,15 +32,15 @@ generated reports and listening-site exports remain local.
 
 | Stage | Entry point in `scripts/` | Purpose | Status |
 | --- | --- | --- | --- |
-| 01 | `01_concatenate.py` | Verify fragment order and assemble canonical channels | Done |
-| 01a | `01a_zip_originals.py` | ZIP each canonical tape folder, skipping existing ZIPs | Done |
-| 03 v1 | `03_denoise.py` | Remove tones/hum and reduce broadband noise by at most 3 dB | Existing archive |
-| 03 v2 | `denoise_v2_background.py` | Run source-bound hum subtraction with checkpoints | Canary and listening gate |
-| 05a v5 | `05a_plan_deflutter_v5.py` | Continuous all-channel original/denoised discovery and validated original-signal motion | Planning and assessment |
-| 05a legacy | `05a_plan_deflutter.py` | Earlier continuous-reference planner, the batch default | Historical compatibility |
-| 05b | `05b_deflutter.py` | Apply accepted saved maps to denoised channels and normalize | Active |
-| 05c | `05c_retime.py` | Apply one shared Quindar speed curve per completed tape | Active |
-| Future 06 or 05c integration | `irig_search.py` | Find provisional IRIG clock snapshots on original CH01–CH04 | Search utility available; integration undecided |
+| 01 | `01_ingest/01_concatenate.py` | Verify fragment order and assemble canonical channels | Done |
+| 01a | `01_ingest/01a_zip_originals.py` | ZIP each canonical tape folder, skipping existing ZIPs | Done |
+| 03 v1 | `03_denoise/03_denoise.py` | Remove tones/hum and reduce broadband noise by at most 3 dB | Existing archive |
+| 03 v2 | `03_denoise/denoise_v2_console.py` | Qualified accelerated denoising on Windows and Genus | Active rollout; automatic Windows day/night limits |
+| 05a v5 | `05_deflutter/05a_plan_deflutter_v5.py` | Continuous all-channel original/denoised discovery and validated original-signal motion | Planning and assessment |
+| 05a legacy | `05_deflutter/05a_plan_deflutter.py` | Earlier continuous-reference planner, the batch default | Historical compatibility |
+| 05b | `05_deflutter/05b_deflutter.py` | Apply accepted saved maps to denoised channels and normalize | Active |
+| 05c | `05c_retime/05c_retime.py` | Apply one shared Quindar speed curve per completed tape | Active |
+| Future 06 or 05c integration | `run.py irig_search.py` | Find provisional IRIG clock snapshots on original CH01-CH04 | Standalone utility in `06_irig/`; integration undecided |
 
 ```mermaid
 flowchart TD
@@ -59,8 +70,8 @@ Python 3.10+ and `uv` are required. Run from the repository root:
 ```powershell
 uv sync --locked
 uv run python scripts/pipeline.py run --stages 05a --all-tapes --flutter-planner v5 --flutter-plan-workers 4 --plain
-uv run python scripts/05a_plan_deflutter_v5.py --help
-uv run python scripts/05a_plan_deflutter_v5.py --input D:/Apollo_15_30-Track/orig_concatenated/A15_T510073 --start 10920 --duration 240 --output reports/my_fresh_v5_trial
+uv run python scripts/05_deflutter/05a_plan_deflutter_v5.py --help
+uv run python scripts/05_deflutter/05a_plan_deflutter_v5.py --input D:/Apollo_15_30-Track/orig_concatenated/A15_T510073 --start 10920 --duration 240 --output reports/my_fresh_v5_trial
 ```
 
 The v5 batch surveys whole tapes by default and creates plans and assessments;
@@ -74,8 +85,8 @@ intermediate, and matching production acceptance.
 
 ```powershell
 uv run python scripts/pipeline.py run --stages 05b --all-tapes --plain
-uv run python scripts/quindar_survey.py --tape A15_T510083 --workers 8
-uv run python scripts/05c_retime.py --tape A15_T510083 --plan-only
+uv run python scripts/run.py quindar_survey.py --tape A15_T510083 --workers 8
+uv run python scripts/05c_retime/05c_retime.py --tape A15_T510083 --plan-only
 uv run python scripts/pipeline.py run --stages 05c --tape A15_T510083 --all-channels --plain
 ```
 
@@ -88,7 +99,7 @@ The [operating and evidence guide](docs/continuous_reference_pipeline.md) covers
 Search the full originals on CH01–CH04 regardless of labels:
 
 ```powershell
-uv run --extra irig python scripts/irig_search.py --input D:/Apollo_15_30-Track/orig_concatenated --all-tapes --legacy-repo F:/_repos/Apollo_Audio_Processing
+uv run --extra irig python scripts/run.py irig_search.py --input D:/Apollo_15_30-Track/orig_concatenated --all-tapes --legacy-repo F:/_repos/Apollo_Audio_Processing
 ```
 
 The external checkout supplies the decoder. Use `--screen-only` without it for carrier screening; `--max-windows 30` bounds a trial. Resume by rerunning without the budget. Reports distinguish incomplete searches, carrier candidates, and qualifying sequential decodes. Clock basis remains provisional until authenticated. This search does not yet anchor the final audio to mission time.
@@ -109,7 +120,7 @@ Defaults are beneath `D:/Apollo_15_30-Track`; overrides are available in `--help
 | `defluttered_retimed_v5/` | Stage-05c audio | `--retimed-root` |
 | `irig_search/` | Independent IRIG screening and clock evidence | Standalone search `--output` |
 
-- `scripts/`: supported stage commands, shared processing, and listening-evidence utilities.
+- `scripts/`: the top-level `pipeline.py`, the `run.py` dispatcher, and numbered stage folders described in [the script layout guide](docs/script_layout.md).
 - `tests/`: processing, checkpoint integrity, acceptance, and pipeline integration checks. Synthetic demo generation lives here.
 - `docs/`: the current operating guide and explanatory measurement images.
 - Local `reports/`, `runs/`, and `archive/` are ignored artifacts. Recordings and processing outputs are not distributed with the source.

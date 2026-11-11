@@ -1,0 +1,15 @@
+{
+  "research/qualify_denoise_numba.py": "0d9d2a1ac553e8a9e5adc0595f6075f52c0f293f18119fafc858a9e3daeed17b",
+  "scripts/denoise_archive.py": "8370b4d7ea2e7630f18cbc9dcaa017eeff0b321e92db3a58f268f123e4cff02c",
+  "scripts/denoise_v2.py": "3d4bc9ac3203874d1c2a23db4371ec20fa723aff68362714fc4e2e655269f27e",
+  "scripts/denoise_v2_accelerated.py": "5ecec5f6edacef27759100b832a8a58f68a886ba3aaf4d028870bbe4d2ac2d1a",
+  "scripts/denoise_v2_cluster.py": "740868f96bf82be58e572de4f3d88703bd49ecd867b5e19dc748228758767280",
+  "scripts/denoise_v2_gain.py": "1edebe2451b4982b09f7943a2b11557be8b4111b1874a49e6d194de83ec2897c",
+  "scripts/denoise_v2_numba.py": "adda96b975d9a3fbf0c9021090cb0901ae6bf0ae2add1a51b7fc13fc49d6aa2a",
+  "scripts/denoise_v2_production.py": "cf0af779ab34e728435f0af0ab4324a01af08887b53d1ac91541af7412570974",
+  "scripts/denoise_v2_quality.py": "ce55e424505cf5cc5025a0fe7a402ee92d22756cb7dea29d5de177410bb0c407",
+  "scripts/denoise_v2_refinement.py": "17aa401863020e31dd9e0bb9174a158f0e806704ea7c58ca3ad1a2338e70abb3",
+  "scripts/denoise_v2_rollout.py": "14c28c043e03f21cb5985ce6dc34880bab55f4ce590c75c984a450fdcfd03fa2",
+  "scripts/normalization.py": "7cd77bd909c49d8291e2c35d9e73da3494af7c830891bb306b03aa105bf2a20b",
+  "scripts/render_denoise_v2.py": "fb43eea379fc52cf09ea341ed41d31f3345c2dcd94e2398a9a3afe0b3f63f54c"
+}

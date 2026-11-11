@@ -5,6 +5,8 @@ import unittest
 import numpy as np
 from scipy.integrate import cumulative_trapezoid
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
+from _bootstrap import install as _install
+_install()
 from flutter import positions, resample_at
 from flutter_tracking import signed_map, trajectory
 

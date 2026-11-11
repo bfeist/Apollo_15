@@ -11,6 +11,8 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT/'scripts'))
+from _bootstrap import install as _install
+_install()
 from flutter_plan_store import load_saved_plan, planning_directory, planning_lock
 from continuous_planning import plan_tape
 from pipeline import make_jobs, parse_args

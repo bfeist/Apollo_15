@@ -1,8 +1,10 @@
 # All-tapes denoise v2 rollout
 
-Prepared November 8, 2026. The production launcher uses the frozen v2.16
-candidate. The full-channel listening decision gates the archive cutover.
-The production tree is still v1.
+Historical rollout plan prepared November 8, 2026. For current operation, use
+the [Windows/Genus production console guide](denoise_cluster.md), including the
+qualified accelerated backend and checkpoint provenance. At the time this plan
+was prepared, the full-channel listening decision gated cutover and the
+production tree was still v1.
 
 The three v2.13 spots received "sounded okay" feedback. The requested long
 comparison is in `reports/denoise_v2_original_review_20261108/`. Preserve that
@@ -45,11 +47,10 @@ metadata, existing manifests, and saved cleanup-log hashes; it does not claim
 to have decoded and independently rehashed every old audio file.
 
 - 39 tapes; 1,169 numbered source channels, all mono 8 kHz.
-- 1,130 denoise jobs, totaling **18,551.60 channel-hours**.
-- 39 timing-only jobs: copy the original timing WAV bytes without denoising.
-  Record a distinct `copy_original_timing` action. This fills the new channel
-  layout while preserving timing/reference evidence.
-- All 1,130 denoise jobs have saved v1 hint logs whose source metadata and
+- 1,169 denoise jobs, totaling **19,191.88 channel-hours**. This includes all
+  39 CH01 recordings whose filenames are marked IRIG. A filename does not
+  identify which digitized track actually carries the timing signal.
+- All 1,169 denoise jobs have saved v1 hint logs whose source metadata and
   recorded log hashes match. After cutover, read those hints from `denoised_v1`.
   They are frequency hints; always fit and subtract from original samples.
 - T510084 CH11 is absent. The one unlabelled T510078 recording is retained in
@@ -78,25 +79,38 @@ configuration change requires a different run identity and review of reuse.
 
 For each numbered channel use `denoised/<tape>/CHnn/` containing:
 
-- `denoised.wav`: original-length mono float32 for denoised channels, at
-  original rate and **unity gain**. No peak normalization or limiting. Float
-  output may represent samples above full scale without clipping; report them
-  and use matched fixed gain for later PCM listening exports. Timing jobs
-  retain the source file's original encoding and bytes.
+- `CHnn.wav` is original-length mono float32 for denoised channels at
+  the original rate. Apply one constant gain per channel to target a −3 dBFS
+  program peak, with a +12 dB maximum boost. Leave digitally silent channels
+  at unity gain. The first and last five seconds
+  can contain isolated tape-machine transients. Exclude a burst from peak
+  measurement only if it is at least twice the interior peak and lasts at
+  most 40 ms, grouping excursions up to 20 ms apart. Count sustained endpoint
+  content and all interior peaks. Short files with less than one second of
+  interior use the whole-file peak. Preserve the transient samples at the
+  same constant gain and record any samples above full scale in the float WAV.
+  Use the original, unchanged recordings for timing evidence. The processed
+  CH01 files use the same gain and audio format as the other channels.
 - `denoised.json`: schema 2, explicit cleanup version/algorithm/action, source
   identity, complete source-frame range, canonical channel start offset,
   settings and implementation hashes, hint provenance, output format and
-  hashes, measured peak, and `running`/`failed`/`complete` status.
+  hashes, measured peak, and `running`/`failed`/`complete` status. Gain evidence
+  includes the channel WAV filename, unity WAV hash, program and absolute peaks, excluded source
+  frame ranges, and measured output peak.
 - `cleanup.jsonl`: streamed per-anchor decisions and compact-bank coverage,
   accepted residual updates/rollbacks, boundaries and source/context hashes.
-  Write each anchor once, not once per overlapping output interval. Timing
-  copies use an explicit bypass record instead of fabricated model evidence.
+  Write each anchor once, not once per overlapping output interval.
 
 Use the same `corrected_chunks` DSP, source-grid anchors, neighboring-bank
 union and finite-response context as the review. No splitting independent
 audio windows and concatenating differently fitted results. Process source
 frames `[0, frames)` and record existing canonical offsets; do not trim,
 pad, stretch, align, or apply a different tape-motion map.
+
+The writer checkpoints the unity render, then writes and verifies a separate
+float WAV at the measured gain before publishing. An interruption during the
+gain pass can resume from the verified unity render. Disk preflight budgets
+one extra channel file per active worker.
 
 Do not use the listening pair exporter for whole-channel production: it
 writes an original copy, corrected copy and float64 scratch. The production
@@ -105,7 +119,7 @@ or regenerating old surveys is needed for this denoise run.
 
 ## Production code and cutover requirements
 
-The dedicated `scripts/denoise_v2_rollout.py` launcher owns v2 preparation,
+The dedicated `scripts/run.py denoise_v2_rollout.py` launcher owns v2 preparation,
 cutover and batch scheduling. Stage 03 supports explicit v2 dispatch after
 cutover. The v1 stage 03 writer checks the canonical version before writing,
 and `render_denoise_v2.py` remains a review exporter.
@@ -115,6 +129,7 @@ and `render_denoise_v2.py` remains a review exporter.
 | `denoise_v2_background.py` | Starts the rollout with lower Windows process priority |
 | `denoise_v2_rollout.py` | Entry point for the canary, archive cutover and batch scheduling |
 | `denoise_v2_production.py` | Streams whole channels, checkpoints work and verifies published WAVs |
+| `denoise_v2_gain.py` | Measures the program peak and identifies isolated endpoint impulses |
 | `denoise_v2_quality.py` | Measures residuals and checks the canary against the saved review |
 | `denoise_v2.py` and `denoise_v2_refinement.py` | Fit and subtract hum using the frozen model |
 | `denoise_archive.py` | Shares version checks and historical path resolution across writers and readers |
@@ -168,7 +183,7 @@ synthetic chunks without the compact stage.
 ## Canary, cutover and launch sequence
 
 1. Complete the integration and tests above. Dry-run the frozen inventory:
-   expect 1,130 v2 cleanup jobs and 39 timing copies, with zero unidentified
+   expect 1,169 v2 cleanup jobs and zero timing copies, with zero unidentified
    format/source failures. The existing legacy `--all-tapes` command is not
    a substitute for this dry-run.
 2. Run one full-channel canary from original T510083 CH20 to a run-owned staging
@@ -185,7 +200,8 @@ synthetic chunks without the compact stage.
    Any retry must start from the original and its recorded model, preserve
    both versions, and stop at the declared iteration limit rather than silently
    stacking additional denoise passes or widening suppression indefinitely.
-   Run a timing-copy canary as well. Publish neither into the old v1 tree.
+   Publish the canary into its run-owned root. Benchmark an IRIG-labeled
+   channel through the same writer before the all-channel run.
 3. Benchmark one channel worker, then a small concurrent set. This host had
    32 logical processors, 125.7 GiB physical RAM and about 70.5 GiB free RAM
    at inspection. Start with 2–4 channel workers, then use measured throughput
@@ -243,12 +259,32 @@ v2 cleanup, crosstalk using v2 target and donors, then the existing single
 shared tape map with original offsets. Do not mix v1 donors into v2 targets,
 and do not infer new listening approval from old approval-bound v1 exports.
 This rollout does not refit per-channel timing maps or run downstream stages.
+Later v2 stages should retain the recorded gain or apply the same endpoint
+policy when setting a new delivery level. A whole-file peak pass can make an
+excluded tape-machine impulse control the level again.
 
 ## Commands
 
+For current production, use the same console command to start or resume from
+the repository root. It manages both machines and the Windows day/night schedule.
+
+```powershell
+uv run python -u scripts/03_denoise/denoise_v2_console.py
+```
+
+Press Ctrl+C to checkpoint and stop; repeat the same command to continue.
+See the [current guide](denoise_cluster.md) for worker limits and backend
+selection. The older batch/background modules remain compatibility dependencies;
+do not use their direct entry points to resume accelerated checkpoints.
+
+### Review and audit commands
+
+The commands below document the earlier rollout and recovery workflow. They are
+not the current production resume commands.
+
 Run these from the repository root. The dry run validates the frozen sources,
 frequency hints and disk budget. The canary processes the entire 17.1-hour
-T510083 CH20 source into its own folder and verifies the IRIG copy. Repeating
+T510083 CH20 source into its own folder. Repeating
 the canary command resumes its checkpoints.
 
 The inventory JSON and the `CH20_30min` review manifest and reference WAV
@@ -258,14 +294,20 @@ See the [local evidence index](denoise_v2_plan.md#local-evidence) for retained
 inputs and archived findings.
 
 ```powershell
-uv run python -u scripts/denoise_v2_rollout.py --version v2 --mode dry-run
-uv run python -u scripts/denoise_v2_background.py --version v2 --mode canary
+uv run python -u scripts/run.py denoise_v2_rollout.py --version v2 --mode dry-run
+uv run python -u scripts/03_denoise/denoise_v2_background.py --version v2 --mode canary
 ```
 
-Inspect `canary.json` and the matched passages in Adobe Audition using the
-original source and the canary WAV at unity gain. The report includes the
-numerical comparison with the saved 30-minute review and measurements from
-active and quiet windows, including the two reported trouble spots. The canary
+If a unity-gain canary for the same DSP and inventory already finished, use
+`--mode canary --reuse-unity-canary RUN_ID` instead. This verifies the earlier
+channel, produces a separate normalized canary, and keeps the unity output
+at its original path. The normalized run needs its own listening acceptance.
+
+Inspect `canary.json` and the matched passages in Adobe Audition. Use the
+recorded constant gain to level-match the original or unity canary when
+comparing hum subtraction. The report records excluded impulses and verifies
+the saved 30-minute crop after accounting for the new gain. It also retains
+the active and quiet residual measurements from the denoise pass. The canary
 and all logs are under `D:/Apollo_15_30-Track/.denoise_v2_rollout/<run-id>/`.
 Run `approve-canary` only after accepting the listening result. Before the
 first full launch, close audio editors, review renderers and any legacy writers
@@ -273,20 +315,30 @@ using the denoise tree. The launcher also checks for open file handles before
 rotation on Windows.
 
 ```powershell
-uv run python -u scripts/denoise_v2_rollout.py --version v2 --mode approve-canary
-uv run python -u scripts/denoise_v2_background.py --version v2 --mode full --tapes 3 --workers 6 --readers-stopped
+uv run python -u scripts/run.py denoise_v2_rollout.py --version v2 --mode approve-canary
+uv run python -u scripts/03_denoise/denoise_v2_background.py --version v2 --mode benchmark --tapes 3 --workers 6 --benchmark-seconds 256
+uv run python -u scripts/03_denoise/denoise_v2_background.py --version v2 --mode full --tapes 3 --workers 6 --readers-stopped
 ```
 
 The background launcher runs the scheduler and its workers at below-normal
 Windows priority. Six workers across three tapes leave headroom for software
-development. Both launchers use the same run identity and checkpoints. The
-launcher requires a compatible throughput benchmark. The current frozen run
-has a report for these limits. Use these commands to resume after an
+development. Both launchers use the same normalized run identity and checkpoints.
+The normalization benchmark measures both the hum model and the gain write.
+Use these commands to resume after an
 interruption and to verify the finished archive.
 
+If replacing a stopped run that copied CH01, prepare the successor with
+`--mode adopt-run --prior-timing-copy-run RUN_ID` and benchmark that successor.
+Adoption verifies that the approved CH20 WAV and its gain are identical and
+records the prior approval under the new `CH20.wav` filename. A compatible
+all-channel benchmark can be reused with `--prior-benchmark-run RUN_ID` for
+the filename-only change. On the first `resume`, add `--readers-stopped`.
+The launcher preserves the prior production tree in a separate quarantine and
+reuses the existing v1 archive. Old checkpoints stay with the stopped run.
+
 ```powershell
-uv run python -u scripts/denoise_v2_background.py --version v2 --mode resume --tapes 3 --workers 6
-uv run python -u scripts/denoise_v2_rollout.py --version v2 --mode reconcile
+uv run python -u scripts/03_denoise/denoise_v2_background.py --version v2 --mode resume --tapes 3 --workers 6
+uv run python -u scripts/run.py denoise_v2_rollout.py --version v2 --mode reconcile
 ```
 
 If interrupted during cutover, close the same readers and add
@@ -301,7 +353,7 @@ restores the original canonical v1 name.
 
 ### Throughput and GPU
 
-The 256-second excerpt trials measured approximately 5.6–6.0 channel-hours per
+The unity-gain 256-second excerpt trials measured approximately 5.6–6.0 channel-hours per
 wall-hour with one worker, 13.4 with three workers on three tapes, 26.0–26.9
 with nine workers and 31.6 with fifteen workers. The fifteen-worker trial
 corresponds to roughly 24 days, but used enough CPU that it is a poor starting

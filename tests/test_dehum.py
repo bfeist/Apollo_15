@@ -8,6 +8,8 @@ from scipy import ndimage
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT/'scripts'))
+from _bootstrap import install as _install
+_install()
 from audio_processing import clean_tones, denoise, detect_residual_hum, frequency_median, remove
 
 

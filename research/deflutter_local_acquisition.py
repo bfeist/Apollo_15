@@ -9,6 +9,8 @@ from pathlib import Path
 import sys
 import numpy as np
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
+from _bootstrap import install as _install
+_install()
 from continuous_acquisition import AcquisitionEvidence
 
 VERSION='source-island-acquisition-research-v1'

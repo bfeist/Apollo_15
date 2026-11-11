@@ -3,6 +3,8 @@ import argparse, sys, json, hashlib
 from pathlib import Path
 import numpy as np, soundfile as sf
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
+from _bootstrap import install as _install
+_install()
 from channel_review import prepare, continuous_map
 from flutter import resample_at
 p=argparse.ArgumentParser(); p.add_argument('plan',type=Path); p.add_argument('channel',type=int); p.add_argument('plan_start',type=float); p.add_argument('plan_duration',type=float); p.add_argument('excerpt_start',type=float); p.add_argument('duration',type=float); p.add_argument('output',type=Path); p.add_argument('--denoised',type=Path); a=p.parse_args()

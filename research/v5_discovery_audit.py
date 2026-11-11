@@ -19,8 +19,11 @@ import soundfile as sf
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO/'scripts'))
+from _bootstrap import install as _install
+_install()
 from flutter_tracking import discover
 from flutter_policy import implementation_digest
+from denoise_archive import denoised_audio_path
 from v5_allchannel import discovery_root
 
 ROOT = Path('D:/Apollo_15_30-Track/deflutter_planning_v5_allchannel')
@@ -100,7 +103,7 @@ def audit_tape(tape):
             original = read_excerpt(row, a, b)
             versions = {'original':original}
             if item.get('discovery_sources',{}).get('denoised',{}).get('status') == 'analyzed':
-                clean_path = Path(denoised_root)/f'CH{ch:02d}'/'denoised.wav'
+                clean_path = denoised_audio_path(Path(denoised_root)/f'CH{ch:02d}')
                 versions['denoised'] = read_excerpt(dict(row,path=str(clean_path)),a,b)
             for version, x in versions.items():
                 decoded_hash = hashlib.sha256(x.tobytes()).hexdigest()

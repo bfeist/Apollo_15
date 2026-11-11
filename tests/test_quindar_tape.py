@@ -12,6 +12,8 @@ import soundfile as sf
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'scripts'))
+from _bootstrap import install as _install
+_install()
 from quindar_tape import pair_matches,consolidate,build_shared_plan,target_map
 from quindar_survey import inventory_all,scan_file,implementation,survey
 from quindar_retime import retime,write_json
