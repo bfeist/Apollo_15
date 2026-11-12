@@ -27,6 +27,7 @@
   "denoise_v2_console.py": "03_denoise/denoise_v2_console.py",
   "denoise_v2_gain.py": "03_denoise/runtime/scripts/denoise_v2_gain.py",
   "denoise_v2_launcher.py": "03_denoise/denoise_v2_launcher.py",
+  "denoise_v2_verification.py": "03_denoise/denoise_v2_verification.py",
   "denoise_v2_numba.py": "03_denoise/runtime/scripts/denoise_v2_numba.py",
   "denoise_v2_production.py": "03_denoise/runtime/scripts/denoise_v2_production.py",
   "denoise_v2_quality.py": "03_denoise/runtime/scripts/denoise_v2_quality.py",

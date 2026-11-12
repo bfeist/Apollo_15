@@ -19,7 +19,8 @@ and back to 6 at **9am**, including daylight-saving time changes. The console
 checkpoints both machines at a boundary, then automatically resumes with the
 new Windows limit; Genus retains its configured count. Leave the console open.
 Ctrl+C still stops it rather than triggering an automatic restart. Worker
-failures also stop rather than restart. `--run-seconds` remains a bounded trial.
+failures that exhaust storage recovery also stop rather than restart.
+`--run-seconds` remains a bounded trial.
 
 Omit `--local-workers` to use the schedule. An explicit `--local-workers 0` through
 `8` sets a fixed limit and disables automatic switching; twelve workers are
@@ -66,6 +67,15 @@ Ctrl+C stops new assignments and asks both machines to stop at their next
 committed checkpoint. Keep the console open until that finishes. The master
 also stops scheduling after a worker/SSH failure. Repeat the same command to
 resume. Windows checkpoints stay on Windows; Genus checkpoints stay on Genus.
+The console, coordinator and worker runtime retry Windows access-denied/sharing-lock
+errors during atomic JSON writes up to seven times over 3.55 seconds. This covers a heartbeat
+reader briefly holding `checkpoint.json` open or a status reader holding
+`status.json` or `progress.json` open while the writer replaces it. Startup
+verification/cache writes and coordinator shutdown snapshots have the same retries.
+The last committed JSON record stays intact until replacement succeeds; a
+persistent lock still fails the process. Both local and remote workers use the
+runtime wrapper with either backend. Resume verifies the committed audio and
+log hashes and discards any uncommitted tail; do not promote a `.partial` file.
 Do not launch the legacy batch concurrently: the same archive lock prevents
 two coordinators from owning production.
 
@@ -88,12 +98,30 @@ format, sample count, finite samples, audio hash, cleanup log and normalization,
 then publishes under the existing per-channel lock. Publication uses hard links
 on D: and preserves any prior output required by the existing writer.
 Genus reclaims local completed files only after Windows acknowledges publication.
+Genus workers recover from Linux I/O, stale-handle and network timeout/connection
+errors with 19 retries and about 15 minutes of backoff (2, 5, 10, 20, 30 seconds,
+then 60 seconds). The console reports `storage retry` and keeps receiving
+heartbeats while other workers continue. The unchanged writer verifies and reuses
+completed local results or resumes a verified checkpoint; a failed upload does
+not require another render. Only the private `.upload` inbox uses buffered,
+flushed copies, avoiding Linux fast-copy calls across local/CIFS filesystems.
+An already transferred private file is reused only after its full byte hash
+matches the local source and its flush succeeds, including after a late CIFS error.
+Publication still requires the existing Windows verification and atomic inbox
+handoff. Retries preserve local audio and execution manifests. Ctrl+C can stop
+the backoff; a shared stop flag that is temporarily unreadable is checked again.
+Disk-full, permission, identity, provenance and quality failures are not blindly
+retried. Exhausting the retry budget remains a reported worker failure; this
+policy does not automatically restart failed SSH connections or coordinators.
+Storage exceptions now include tracebacks in the worker log.
 If an acknowledged channel directory contains unexpected files, housekeeping
 retains the entire directory and logs its extra or missing filenames while the
 worker continues. The existing free-space check still applies. This housekeeping
 wrapper applies to both the reference and accelerated backends; it leaves the
 qualified implementation and completed audio unchanged. After a worker failure,
 the console prints the channel, exit code, log path and recent worker log output.
+An interrupted worker without a recorded exit code is reported as unconfirmed;
+resume verifies its checkpoint. It does not trigger an automatic scheduled restart.
 
 Linux has its own execution identity, including its actual Python/library
 versions and mount mapping. Imported manifests retain that execution identity
@@ -164,6 +192,10 @@ Control artifacts are in
 - `status.json`: all channel states, host assignments, progress, and heartbeat times.
 - `progress.json`: derived per-worker, per-host, per-tape and archive rates/ETAs.
 - `console.log`: coordinator startup, verification and error messages.
+- `startup.json`: current startup verification phase, channel, elapsed time and
+  cached/fresh check counts, displayed by the console before workers start.
+- `verification_cache.json`: successful completed-channel checks bound to the
+  session, verifier code, job, root marker and source/output/evidence metadata.
 - `logs/<tape>_CHnn.log`: worker stdout and errors, including SSH failures.
 - `inbox/`, `adopting/`, `executions/`, `acks/`: verification/publication records.
 - `stop_requested`: shared graceful-stop signal; the coordinator clears it on resume.
@@ -171,4 +203,13 @@ Control artifacts are in
 The master also updates the original run's `status.json`, so existing progress
 readers see the combined archive count. `--plain` provides periodic text status
 instead of the live console. `--run-seconds 120` runs a bounded checkpoint trial.
-Do not edit this launcher or frozen implementation files while workers run.
+The launcher caches completed-channel verification on the first launch using
+this adapter. Later launches reuse it when the source, WAV, manifest and cleanup
+log retain their size, timestamps and file identity. Source checks still run;
+changed files use the original verifier. Newly published results and explicit
+full checks always use the original verifier. Missing or corrupt cache files
+cause fresh verification. The cache is a startup optimization, not a full audio
+integrity audit; metadata-preserving content changes require a full check.
+The scan still visits every job, but avoids rehashing unchanged cleanup logs.
+Do not edit frozen implementation files while workers run. Console/launcher
+adapters can be updated for the next launch without changing checkpoint identity.

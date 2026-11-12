@@ -20,6 +20,7 @@ import sys
 import denoise_v2_cluster as cluster
 import denoise_v2_worker_runtime as worker_runtime
 from _bootstrap import ScriptProcesses
+from denoise_v2_verification import cached_verification
 
 GENUS_CPUS = '0,2,4,8,10,12'
 
@@ -91,13 +92,16 @@ def coordinate(args):
     # including replacement jobs. A coordinator-local proxy redirects local
     # workers too; qualification and subprocesses elsewhere remain unchanged.
     cluster.remote_command = remote_command
+    processes = worker_runtime.WorkerProcesses(ScriptProcesses(original_processes))
     if accelerated:
-        cluster.subprocess = accelerated.WorkerProcesses(ScriptProcesses(original_processes), execution_id, requested_backend)
+        cluster.subprocess = accelerated.WorkerProcesses(processes, execution_id, requested_backend)
         print('Qualified accelerated execution: '+execution_id, flush=True)
     else:
-        cluster.subprocess = ScriptProcesses(original_processes)
+        cluster.subprocess = processes
     try:
-        return cluster.coordinate(args)
+        with worker_runtime.resilient_json_writes(), \
+             cached_verification(config or cluster.read_json(args.config)):
+            return cluster.coordinate(args)
     finally:
         cluster.remote_command = original
         cluster.subprocess = original_processes

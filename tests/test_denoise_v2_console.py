@@ -1,8 +1,10 @@
 from pathlib import Path
+from contextlib import nullcontext, redirect_stderr
+import io
 import sys
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from types import SimpleNamespace
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
@@ -15,6 +17,63 @@ from denoise_v2_console import Rates, duration, metrics, render, worker_ssh_desc
 
 
 class ConsoleTests(unittest.TestCase):
+    def test_progress_writes_retry_and_coordinator_failure_is_not_a_worker_failure(self):
+        from rich.console import Console
+        cluster = console_module.cluster
+        original_json, original_replace = cluster.atomic_json, Path.replace
+        with tempfile.TemporaryDirectory() as temp:
+            folder = Path(temp)
+            job = dict(tape='tape', channel=1, source=dict(frames=8000, sample_rate=8000))
+            status = dict(updated=float('inf'), stop_reason='Stopping at checkpoints',
+                          jobs={'tape/CH01':dict(status='interrupted', host='windows', cursor=4000)})
+            def read(path):
+                return {'config.json':{}, cluster.MARKER:dict(run_id='test'),
+                        'jobs.json':[job], 'status.json':status}[path.name]
+            attempts = []
+            def replace(pending, target):
+                attempts.append(target)
+                if len(attempts) % 2:
+                    error = PermissionError('Windows reader holds progress open')
+                    error.winerror = 32
+                    raise error
+                return original_replace(pending, target)
+            child = SimpleNamespace(pid=123, returncode=2, poll=Mock(side_effect=[None, 2, 2]))
+            args = SimpleNamespace(genus_cpus='none', backend='reference', local_workers=6,
+                genus_workers=6, tapes=3, run_seconds=None, user_cancelled=False,
+                plain=True, auto_workers=False, all_tapes=False)
+            console = Console(file=io.StringIO(), record=True, width=160)
+            with patch.object(cluster, 'read_json', side_effect=read), \
+                 patch.object(cluster, 'session_path', return_value=folder), \
+                 patch.object(cluster, 'planning_lock', return_value=nullcontext()), \
+                 patch.object(console_module, 'Console', return_value=console), \
+                 patch.object(console_module.subprocess, 'Popen', return_value=child), \
+                 patch.object(console_module, 'release_stopped_connections', return_value=0), \
+                 patch.object(Path, 'replace', replace), \
+                 patch.object(console_module.time, 'sleep'), redirect_stderr(io.StringIO()):
+                self.assertEqual(console_module.run_session(args), (2, False))
+            self.assertIs(cluster.atomic_json, original_json)
+            self.assertEqual(attempts, [folder/'progress.json']*4)
+            output = console.export_text()
+            self.assertIn('Worker exit unconfirmed: tape/CH01', output)
+            self.assertIn('Coordinator failed', output)
+            self.assertNotIn('Worker failed:', output)
+            self.assertNotIn('Workers failed;', output)
+            self.assertNotIn('Stopped. Run the same command', output)
+
+    def test_startup_progress_shows_counts_and_rejects_previous_session(self):
+        with tempfile.TemporaryDirectory() as temp:
+            folder = Path(temp)
+            self.assertIsNone(console_module.startup_text(folder, 100))
+            console_module.cluster.atomic_json(folder/'startup.json', dict(
+                started=101, elapsed_seconds=75, phase='Checking completed channel',
+                key='TAPE/CH03', checked=42, cached=40, verified=2))
+            with patch.object(console_module.time, 'time', return_value=176):
+                text = console_module.startup_text(folder, 100).plain
+            self.assertIn('TAPE/CH03', text)
+            self.assertIn('42 completed channels checked (40 cached, 2 verified)', text)
+            self.assertIn('1m 15s', text)
+            self.assertIsNone(console_module.startup_text(folder, 102))
+
     def test_worker_failure_shows_actual_log_error_and_ignores_clean_checkpoints(self):
         from rich.console import Console
         with tempfile.TemporaryDirectory() as temp:

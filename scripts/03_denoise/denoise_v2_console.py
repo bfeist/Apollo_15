@@ -31,6 +31,7 @@ from rich.text import Text
 import denoise_v2_cluster as cluster
 from denoise_v2_launcher import GENUS_CPUS, cpu_list
 from denoise_v2_accelerated import CHECKPOINT_EXIT
+from denoise_v2_worker_runtime import resilient_json_writes
 
 
 def duration(seconds):
@@ -240,9 +241,13 @@ def scheduled_windows_workers(now=None):
 
 def report_worker_failures(console, folder, status):
     """A coordinator stop caused by a worker is a failure, not a user pause."""
+    for key, state in status.get('jobs', {}).items():
+        if state.get('status') == 'interrupted' and state.get('exit_code') is None:
+            console.print(f'Worker exit unconfirmed: {key} ({state.get("host", "unknown host")}); '
+                          'resume to verify checkpoint.', markup=False)
     failures = [(key, state) for key, state in status.get('jobs', {}).items()
                 if state.get('status') == 'failed' or
-                (state.get('status') == 'interrupted' and state.get('exit_code') != CHECKPOINT_EXIT)]
+                (state.get('status') == 'interrupted' and state.get('exit_code') not in (None, CHECKPOINT_EXIT))]
     for key, state in failures:
         console.print(f'Worker failed: {key} ({state.get("host", "unknown host")}), '
                       f'exit {state.get("exit_code", "unknown")}', markup=False)
@@ -260,6 +265,21 @@ def report_worker_failures(console, folder, status):
         except OSError:
             pass  # The failed job and log location must still be visible.
     return bool(failures)
+
+
+def startup_text(folder, launched):
+    """Ignore progress from an earlier console session."""
+    try:
+        state = cluster.read_json(folder/'startup.json')
+        if state['started'] < launched:
+            return None
+        elapsed = max(0, int(time.time()-state['started']))
+        return Text(f'{state["phase"]}' + (f': {state["key"]}' if state['key'] else '')
+                    + f'\n{state["checked"]} completed channels checked '
+                    + f'({state["cached"]} cached, {state["verified"]} verified)'
+                    + f' | Elapsed: {elapsed//60}m {elapsed%60:02d}s')
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
 
 
 def main():
@@ -315,7 +335,8 @@ def run_session(args):
     original_handler = signal.signal(signal.SIGINT, request_stop)
     # One console prevents a second wrapper from signalling somebody else's coordinator.
     try:
-        with cluster.planning_lock(folder/'console'), (folder/'console.log').open('a', encoding='utf-8') as log:
+        with resilient_json_writes(), cluster.planning_lock(folder/'console'), \
+             (folder/'console.log').open('a', encoding='utf-8') as log:
             if args.user_cancelled:
                 return 130, False
             launched = time.time()
@@ -362,6 +383,14 @@ def run_session(args):
                                 f'{rate_text(progress["rate"])}; archive ETA {"stopping" if pausing else duration(progress["eta_seconds"])}; '
                                 + ' '.join(f'{h}={progress["hosts"].get(h,{}).get("active",0)}/{n}' for h,n in limits.items()))
                             last_plain = time.time()
+                    else:
+                        startup = startup_text(folder, launched)
+                        if startup is not None:
+                            if live is not None:
+                                live.update(startup)
+                            if args.plain and time.time()-last_plain >= 10:
+                                console.print(startup)
+                                last_plain = time.time()
                     time.sleep(1)
                 # Leave a truthful final display/snapshot rather than the last seven
                 # workers that happened to be visible while they were winding down.
@@ -384,7 +413,7 @@ def run_session(args):
                 console.print((folder/'console.log').read_text(encoding='utf-8')[-4000:])
             worker_failed = report_worker_failures(console, folder, status)
             console.print('Workers failed; see the errors above. Run the same command after resolving them.' if worker_failed else
-                          'Stopped. Run the same command to resume.' if stopping else
+                          'Stopped. Run the same command to resume.' if stopping and child.returncode in (0, 1, 130) else
                           'Archive finished.' if child.returncode == 0 else 'Coordinator failed; see console.log.')
             return child.returncode, False
     finally:
