@@ -1,4 +1,4 @@
-"""Stream v2 denoised audio through the saved tape map, preserving channel offsets."""
+"""Stream stage-04 or explicit v2 comparison audio through the same saved tape map."""
 import hashlib
 import json
 import math
@@ -15,6 +15,9 @@ from shared_tape import bound, load_tape_plan, verify_bindings, METHODOLOGY
 
 def prepared_source(row, folder):
     folder = Path(folder).resolve()
+    if (folder/'crosstalk.json').is_file():
+        from crosstalk_stage import prepared_crosstalk
+        return prepared_crosstalk(row, folder)
     saved = json.loads((folder/'denoised.json').read_text(encoding='utf-8'))
     path = validate_binding(folder, saved, row, 0, row['frames'], version='v2')
     if saved['action'] != 'denoise_v2':
@@ -32,6 +35,9 @@ def render_shared_channel(plan_path, channel, denoised, output, *, start=None, d
     if row is None:
         raise ValueError('Requested channel is absent from the tape')
     source, saved = prepared_source(row, denoised)
+    crosstalk = saved.get('stage') == '04'
+    source_bindings = ([bound(Path(denoised)/'crosstalk.json'), *saved['input_bindings']]
+                       if crosstalk else [bound(Path(denoised)/'denoised.json'), bound(Path(denoised)/'cleanup.jsonl')])
     start = row['start_seconds'] if start is None else start
     if not math.isfinite(start) or duration is not None and not math.isfinite(duration):
         raise ValueError('Review interval must be finite')
@@ -66,15 +72,16 @@ def render_shared_channel(plan_path, channel, denoised, output, *, start=None, d
         map_sha256=plan['map']['sha256'], plan_sha256=sha256(plan_path),
         tape_level=True, per_channel_anchoring=False, cleanup_version='v2',
         denoised_intermediate=dict(file=str(source), reused=True, algorithm=saved['algorithm']),
-        input_bindings=[bound(Path(denoised)/'denoised.json'), bound(Path(denoised)/'cleanup.jsonl')],
+        input_bindings=source_bindings, crosstalk_removed=crosstalk,
         source_audio_sha256=saved['audio']['sha256'], gain=1.,
         gain_policy='Retain the completed v2 channel gain in both comparison files',
-        pipeline=[saved['algorithm'], 'shared_tape_inverse_resampling'],
+        pipeline=([saved['sources'][str(channel)]['algorithm'], saved['algorithm']] if crosstalk
+                  else [saved['algorithm']])+['shared_tape_inverse_resampling'],
         comparison=comparison, experimental_transfer=False, listening_approved=False,
         production_accepted=False, implementation_sha256=sha256(__file__))
     if dry_run:
         return summary
-    progress('Verifying completed v2 audio hash; no denoising or tone fitting')
+    progress('Verifying completed input audio hash; no denoising or tone fitting')
     if sha256(source) != saved['audio']['sha256']:
         raise ValueError('Completed denoised audio hash changed')
     output.mkdir(parents=True)

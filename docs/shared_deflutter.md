@@ -34,9 +34,10 @@ Coverage is a union of tape-time intervals, with both eligible duration and
 effective duration after support fades reported. Bypasses retain zero local
 speed correction and may retain a constant displacement for continuity.
 
-Stage 05b requires this native shared plan and completed **v2** denoised audio.
-It reads the WAV filename from `denoised.json`, verifies source and cleanup
-bindings and audio hashes, and streams inverse resampling. It retains the v2
+Stage 05b requires this native shared plan and completed [stage-04 crosstalk
+output](crosstalk_stage.md), derived from **v2** denoised audio. It verifies
+`crosstalk.json`, source/evidence bindings and audio hashes, then streams inverse
+resampling. An intentional denoised-only comparison requires an explicit bypass. It retains the v2
 gain, frame count, and sample rate. It does not denoise again or independently
 normalize or anchor a channel. It rejects a map that reaches unavailable
 samples rather than changing it for that channel. New destinations prevent
@@ -46,7 +47,7 @@ Compile one tape, then render one channel when ready:
 
 ```powershell
 uv run python scripts/05_deflutter/05a_plan_deflutter.py --input D:/Apollo_15_30-Track/orig_concatenated/A15_T510076
-uv run python scripts/pipeline.py run --stages 05b --tape A15_T510076 --channel 20 --plain
+uv run python scripts/pipeline.py run --stages 04,05b --tape A15_T510076 --channel 20 --plain
 ```
 
 Map output defaults to `deflutter_planning_shared`; audio output defaults to
@@ -69,15 +70,15 @@ authorize this workflow. Previous WAVs, maps, and approval records are unchanged
 uv run python scripts/05_deflutter/render_channel_review.py --tape A15_T510076 --channel 20 --output reports/full_channel_review
 ```
 
-This writes matched mono float WAVs: `A.wav` is the completed denoised source;
+This writes matched mono float WAVs: `A.wav` is the completed stage-04 source;
 `B.wav` adds the shared tape map. Both use identical interval, duration, cleanup,
 sample rate, PCM representation, and gain. Float WAVs retain resampling overshoot
 without clipping or an unmatched level adjustment; peaks are recorded. No page
 or server is created. `--start` and `--duration` use the same full-scope map and
-complete denoised source with source halos, never reanchoring an excerpt.
-Earlier listening files and approvals are untouched. Crosstalk subtraction,
-when prepared, belongs before tape-map application; this refactor does not
-introduce or claim crosstalk cleanup.
+complete stage-04 source with source halos, never reanchoring an excerpt.
+Earlier listening files and approvals are untouched. The review exporter accepts
+`--skip-crosstalk` to explicitly compare the denoised-only source with de-flutter.
+Stage-04 bypass intervals remain unchanged before applying the common map.
 
 ## Visual tone sightings
 

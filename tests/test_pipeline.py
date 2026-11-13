@@ -314,8 +314,8 @@ class BatchFlutterTests(CanonicalTapeTests):
         for job in jobs:
             command = job['command']
             self.assertEqual(command[command.index('--flutter-plan')+1], str(self.plans/job['tape']/'plan.json'))
-            self.assertEqual(command[command.index('--denoised-input')+1],
-                             str(self.cache/job['tape']/f'CH{job["channel"]:02d}'))
+            self.assertEqual(command[command.index('--crosstalk-input')+1],
+                             str(pipeline.DEFAULT_CROSSTALK_ROOT/job['tape']/f'CH{job["channel"]:02d}'))
             self.assertNotIn('--production-approval', command)
             self.assertNotIn('--target-dbfs', command)
         channel = self.jobs('--all-tapes', '--stages', '05b', '--channel', '4')
@@ -362,8 +362,11 @@ class BatchFlutterTests(CanonicalTapeTests):
         fixture(native)
         options = ['--concatenated', str(native/'originals'), '--denoised-root', str(native/'denoised'),
             '--planning-root', str(native/'maps'), '--flutter-evidence-root', str(native/'evidence'),
-            '--defluttered-root', str(native/'final'), '--output', str(native/'runs'), '--plain']
-        for stage in ('05a', '05b'):
+            '--defluttered-root', str(native/'final'), '--crosstalk-root', str(native/'crosstalk'),
+            '--crosstalk-evidence-root', str(native/'echo_evidence'), '--output', str(native/'runs'), '--plain']
+        (native/'echo_evidence').mkdir()
+        (native/'echo_evidence/directions.json').write_text('{}')
+        for stage in ('04', '05a', '05b'):
             result = subprocess.run([sys.executable, str(RUNNER), 'run', *options,
                 '--all-tapes', '--stages', stage], capture_output=True, text=True, encoding='utf-8')
             self.assertEqual(result.returncode, 0, result.stdout+result.stderr)

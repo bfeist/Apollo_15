@@ -67,7 +67,7 @@ class ScriptLayoutTests(unittest.TestCase):
         for name in ('pipeline.py', '01_concatenate.py', '01a_zip_originals.py', '03_denoise.py',
                      'denoise_v2_console.py', 'denoise_v2_launcher.py', 'denoise_v2_cluster.py',
                      'denoise_v2_accelerated.py', 'denoise_v2_rollout.py', 'qualify_denoise_numba.py',
-                     '05a_plan_deflutter.py', '05b_deflutter.py', 'render_channel_review.py', 'inspect_tone.py',
+                     '04_crosstalk.py', '05a_plan_deflutter.py', '05b_deflutter.py', 'render_channel_review.py', 'inspect_tone.py',
                      '06_retime.py', '05c_retime.py', '07_normalize.py', 'quindar_survey.py', 'irig_search.py'):
             with self.subTest(script=name):
                 result = subprocess.run(layout.command(name, '--help'), capture_output=True,

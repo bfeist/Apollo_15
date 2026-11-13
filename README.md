@@ -1,12 +1,13 @@
 # Apollo 15 audio processing
 
-Processing tools for the Apollo 15 30-track recordings. Current work includes the denoise v2 rollout, flutter correction, and tape-speed retiming. Concatenation, original-file archiving, and the earlier denoise v1 pass are complete.
+Processing tools for the Apollo 15 30-track recordings. Current work includes the denoise v2 rollout, crosstalk removal, flutter correction, and tape-speed retiming. Concatenation, original-file archiving, and the earlier denoise v1 pass are complete.
 
 **Flutter correction is tape-level:** use evidence from all simultaneous tracks
 to select one shared timing map, applied across channels at the same tape time.
 Missing check tones on an output channel do not independently disable correction.
 See [the governing rule and saved-data workflow](docs/tape_level_deflutter.md).
-Stage 05 compiles one shared tape map and applies it to completed v2 denoised audio.
+Stage 04 adds [evidence-bounded crosstalk removal](docs/crosstalk_stage.md) after v2
+denoising. Stage 05 compiles one shared tape map and applies it to stage-04 audio.
 Stage 07 adds [speech-level normalization](docs/speech_normalization.md) after
 deflutter or retiming, with constant gain to a speech target and a bypass for uncertain channels.
 New denoise runs write unity-gain float WAVs; stage 07 sets the final speech level.
@@ -23,7 +24,7 @@ The [v2.16 rollout history](docs/denoise_v2_all_tapes_runbook.md) and
 The active [shared tape workflow](docs/shared_deflutter.md) reuses completed
 all-channel surveys, tracking curves, and assessments. Stage 05a selects one
 curve per tape-time interval and saves one integrated map. Stage 05b applies
-that artifact to completed v2 denoised channels. Historical evidence stays
+that artifact to completed stage-04 channels derived from v2 denoising. Historical evidence stays
 immutable; per-target planners are no longer active processing entry points.
 
 The [October 30 research findings](docs/deflutter_research_findings.md) qualify
@@ -38,8 +39,9 @@ generated reports and listening-site exports remain local.
 | 01a | `01_ingest/01a_zip_originals.py` | ZIP each canonical tape folder, skipping existing ZIPs | Done |
 | 03 v1 | `03_denoise/03_denoise.py` | Remove tones/hum and reduce broadband noise by at most 3 dB | Existing archive |
 | 03 v2 | `03_denoise/denoise_v2_console.py` | Qualified accelerated denoising on Windows and Genus | Active rollout; automatic Windows day/night limits |
+| 04 | `04_crosstalk/04_crosstalk.py` | Remove evidenced weaker repeats; preserve timing and gain | Available; bounded evidence, bypass elsewhere |
 | 05a | `05_deflutter/05a_plan_deflutter.py` | Compile one map from saved tone evidence across all channels | Shared tape maps |
-| 05b | `05_deflutter/05b_deflutter.py` | Apply the tape map to completed v2 channels at their existing gain | Shared tape maps |
+| 05b | `05_deflutter/05b_deflutter.py` | Apply the tape map to stage-04 channels at their existing gain | Shared tape maps |
 | 06 | `06_retime/06_retime.py` | Apply one shared Quindar speed curve per completed tape | Active |
 | 07 | `07_normalize/07_normalize.py` | Constant gain to a speech target, noise-only bypass and transient peak limiting | New; listening calibration pending |
 | 08 utility | `run.py irig_search.py` | Find provisional IRIG clock snapshots on original CH01-CH04 | Standalone utility in `08_irig/`; integration undecided |
@@ -50,7 +52,8 @@ flowchart TD
     B --> C[01a · ZIP originals]
     B --> D[03 · Denoise]
     B --> E[05a · Compile shared tape map from saved evidence]
-    D --> F[05b · Apply shared map to v2 audio]
+    D --> X[04 · Crosstalk removal]
+    X --> F[05b · Apply shared tape map]
     E --> F
     F --> G[Survey Quindars and freeze shared tape curve]
     G --> H[06 · Retime]
@@ -62,7 +65,7 @@ V5 discovers reference candidates in originals and denoised audio, then tracks
 and validates their motion in originals because cleanup can remove useful tones.
 The 60 Hz harmonic comb is digitization contamination, according to the source
 provenance supplied by the project owner; it is excluded as timing evidence.
-Flutter maps apply to completed denoised channels. Quindars measure slow
+Flutter maps apply after stage-04 crosstalk removal. Quindars measure slow
 tape-speed drift. IRIG clock discovery remains independent, preserving original
 sample coordinates for future anchoring.
 
@@ -80,7 +83,7 @@ uv run python scripts/05_deflutter/inspect_tone.py --help
 Stage 05a compiles existing evidence without running new discovery or fitting.
 Use `--flutter-plan-workers 1` to limit simultaneous map builds while denoising
 continues. `plan` previews commands without writes. Stage 05b requires a completed
-shared map and completed v2 input. A single tape/channel defaults to stage 05b.
+shared map and completed stage-04 input derived from v2. A single tape/channel defaults to stage 05b.
 Readiness to render does not imply listening acceptance.
 
 See [the shared-map guide](docs/shared_deflutter.md) for commands to compile,
@@ -107,9 +110,10 @@ Defaults are beneath `D:/Apollo_15_30-Track`; overrides are available in `--help
 | `orig_delivery/` | Delivered fragments | `--delivery` |
 | `orig_concatenated/` | Canonical originals | `--concatenated` |
 | `denoised/` | Completed stage-03 channels | `--denoised-root` |
+| `crosstalk_removed/` | Stage-04 audio, interval decisions and evidence bindings | `--crosstalk-root` |
 | `deflutter_planning_v5_allchannel/` | Preserved all-channel tone evidence | `--flutter-evidence-root` |
 | `deflutter_planning_shared/` | One map and selection provenance per tape | `--flutter-planning-root` |
-| `defluttered_shared/` | Stage-05b audio from v2 channels | `--defluttered-root` |
+| `defluttered_shared/` | Stage-05b audio after stage-04 crosstalk | `--defluttered-root` |
 | `quindar_post_deflutter_analysis_v5/` | Surveys and frozen tape curves | `--quindar-analysis-root` |
 | `defluttered_retimed_v5/` | Stage-06 audio | `--retimed-root` |
 | `speech_normalized/` | Stage-07 listening WAVs and measurement reports | `--normalized-root` |

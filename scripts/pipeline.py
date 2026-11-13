@@ -35,13 +35,15 @@ from shared_tape import DEFAULT_PLANNING_ROOT, DEFAULT_DEFLUTTERED_ROOT, DEFAULT
 from quindar_retime import DEFAULT_RETIMED_ROOT
 from quindar_survey import DEFAULT_ANALYSIS_ROOT
 from speech_normalization import DEFAULT_NORMALIZED_ROOT, Settings as SpeechSettings
+from crosstalk_stage import DEFAULT_CROSSTALK_ROOT, DEFAULT_EVIDENCE_ROOT as DEFAULT_CROSSTALK_EVIDENCE_ROOT
 
 STAGES = [
     ('01', 'Concatenate', '01_concatenate.py', 'Verify fragment order and join channels'),
     ('03', 'Denoise', '03_denoise.py',
      f'Remove tones and residual hum, then reduce broadband noise by up to {DEFAULT_BROADBAND_CAP_DB} dB'),
+    ('04', 'Crosstalk', '04_crosstalk.py', 'Subtract evidenced weaker repeats; preserve gain and source timing'),
     ('05a', 'Plan deflutter', '05a_plan_deflutter.py', 'Compile one tape map from saved tone evidence on all channels'),
-    ('05b', 'Deflutter', '05b_deflutter.py', 'Apply the shared tape map to new denoised audio at its existing gain'),
+    ('05b', 'Deflutter', '05b_deflutter.py', 'Apply the shared tape map to stage-04 audio at its existing gain'),
     ('06', 'Retime', '06_retime.py', 'Apply a smoothed Quindar anchor curve to defluttered audio'),
     ('07', 'Normalize', '07_normalize.py', 'Reach the speech target with one constant gain; bypass noise-only channels'),
 ]
@@ -57,13 +59,16 @@ def parse_args(argv=None):
     parser.add_argument('--concatenated', type=Path, default=Path('D:/Apollo_15_30-Track/orig_concatenated'))
     tapes = parser.add_mutually_exclusive_group()
     tapes.add_argument('--tape', help='Select one canonical tape folder')
-    tapes.add_argument('--all-tapes', action='store_true', help='Process all tapes for stage 03, 05a, 05b, 06, or 07')
+    tapes.add_argument('--all-tapes', action='store_true', help='Process all tapes for stage 03, 04, 05a, 05b, 06, or 07')
     parser.add_argument('--exclude-tape', action='append', default=[], metavar='TAPE',
                         help='Skip a tape in an all-tapes batch; may be repeated')
     channels = parser.add_mutually_exclusive_group()
-    channels.add_argument('--channel', type=int, help='Whole-channel mode; defaults to shared deflutter from completed v2 audio')
+    channels.add_argument('--channel', type=int, help='Whole-channel mode; defaults to shared deflutter from completed stage-04 audio')
     channels.add_argument('--all-channels', action='store_true', help='Process all available numbered channels, including CH01')
     parser.add_argument('--denoised-root', type=Path, default=DEFAULT_DENOISED_ROOT)
+    parser.add_argument('--crosstalk-root', type=Path, default=DEFAULT_CROSSTALK_ROOT)
+    parser.add_argument('--crosstalk-evidence-root', type=Path, default=DEFAULT_CROSSTALK_EVIDENCE_ROOT)
+    parser.add_argument('--skip-crosstalk', action='store_true', help='Explicitly use v2 denoised audio for a stage-05b comparison')
     parser.add_argument('--denoise-version', choices=['v1', 'v2'], default='v1')
     parser.add_argument('--denoise-workers', type=int,
                         help='V1 workers per channel (default 14) or v2 concurrent channel workers (default 3)')
@@ -118,11 +123,20 @@ def parse_args(argv=None):
         requested = requested.lower().replace('05c', '06')  # old retime command alias
         selected = {value.strip() if value.strip() in {'05a','05b'} else f'{int(value):02d}' for value in requested.split(',')}
     except ValueError:
-        parser.error('--stages must contain 01,03,05a,05b,06,07')
+        parser.error('--stages must contain 01,03,04,05a,05b,06,07')
     if not selected or not selected <= {s[0] for s in STAGES}:
-        parser.error('--stages must contain 01,03,05a,05b,06,07')
-    if args.batch and selected not in ({'03'}, {'05a'}, {'05b'}, {'06'}, {'07'}):
-        parser.error('Batch mode supports one stage at a time; use --stages 03, 05a, 05b, 06, or 07')
+        parser.error('--stages must contain 01,03,04,05a,05b,06,07')
+    if args.batch and selected not in ({'03'}, {'04'}, {'05a'}, {'05b'}, {'06'}, {'07'}):
+        parser.error('Batch mode supports one stage at a time; use --stages 03, 04, 05a, 05b, 06, or 07')
+    args.batch_crosstalk = args.batch and selected == {'04'}
+    if args.skip_crosstalk and ('04' in selected or '05b' not in selected):
+        parser.error('--skip-crosstalk requires stage 05b without stage 04')
+    if '04' in selected and not args.batch and args.channel is None:
+        parser.error('Stage 04 requires --channel, --all-channels, or --all-tapes')
+    if '04' in selected and selected & {'06', '07'} and ('05b' not in selected or args.skip_deflutter):
+        parser.error('Run stage 05b between stage 04 and retiming/normalization')
+    if args.batch_crosstalk and args.input:
+        parser.error('Batch 04 uses completed v2 channels under --denoised-root; omit --input')
     args.batch_normalize = args.batch and selected == {'07'}
     if args.batch_normalize and args.input:
         parser.error('Batch 07 uses --normalize-from and stage roots; omit --input')
@@ -242,8 +256,10 @@ def make_flutter_batch(args, selected, run_dir):
             try:
                 inv = inventory(folder)
             except (ValueError, OSError, RuntimeError) as error:
-                jobs.append(dict(number='05b', name=f'{folder.name} inventory', tape=folder.name,
-                                 channel=None, script='05b_deflutter.py', description=str(error),
+                number = '04' if selected == {'04'} else '05b'
+                script = '04_crosstalk.py' if number == '04' else '05b_deflutter.py'
+                jobs.append(dict(number=number, name=f'{folder.name} inventory', tape=folder.name,
+                                 channel=None, script=script, description=str(error),
                                  command=[], status='failed', elapsed=0., returncode=2, error=str(error)))
                 continue
             channels = [r['channel'] for r in inv['channels']
@@ -304,7 +320,7 @@ def make_jobs(args, selected, run_dir):
         return jobs
     if args.batch_denoise:
         return make_denoise_batch(args)
-    if args.batch_flutter:
+    if args.batch_flutter or args.batch_crosstalk:
         return make_flutter_batch(args, selected, run_dir)
     return make_tape_jobs(args, selected, run_dir)
 
@@ -343,12 +359,19 @@ def make_tape_jobs(args, selected, run_dir):
                     raise ValueError('Requested channel is unavailable')
                 if completed_denoised(row, output, 0, row['frames'], version='v1'):
                     status = 'skipped existing'
+        elif number == '04' and args.channel is not None:
+            output = args.crosstalk_root/args.tape/f'CH{args.channel:02d}'
+            command += ['--tape', args.tape, '--channel', str(args.channel), '--output', str(output),
+                        '--concatenated', str(args.concatenated), '--denoised-root', str(args.denoised_root),
+                        '--evidence-root', str(args.crosstalk_evidence_root)]
         elif number == '05b' and args.channel is not None:
             output = tape_directory(args.tape,args.defluttered_root)/f'CH{args.channel:02d}'
             plan = args.flutter_plan or planning_directory(args.tape,args.flutter_planning_root)/'plan.json'
-            denoised = tape_directory(args.tape,args.denoised_root)/f'CH{args.channel:02d}'
+            root = args.denoised_root if args.skip_crosstalk else args.crosstalk_root
+            source = tape_directory(args.tape,root)/f'CH{args.channel:02d}'
             command += ['--tape',args.tape,'--channel',str(args.channel),'--output',str(output),
-                        '--flutter-plan',str(plan),'--denoised-input',str(denoised)]
+                        '--flutter-plan',str(plan),
+                        '--denoised-input' if args.skip_crosstalk else '--crosstalk-input',str(source)]
         elif number == '06':
             command += ['--quindar-analysis-root', str(args.quindar_analysis_root)]
             if args.quindar_plan:
@@ -578,7 +601,7 @@ def main(argv=None):
             if job['status'] == 'pending':
                 console.print(Text(subprocess.list2cmdline(job['command'])))
         console.print('Commands only; no outputs written.' if args.batch else
-                      'Commands only. Whole-channel order: 03 denoise, 05a plan on originals, 05b deflutter, 06 Quindar retime, 07 speech normalization.')
+                      'Commands only. Whole-channel order: 03 denoise, 04 crosstalk, 05a plan on originals, 05b deflutter, 06 Quindar retime, 07 speech normalization.')
         return 2 if invalid else 0
     run_dir.mkdir(parents=True)
     live = None if args.plain or not console.is_terminal else Live(console=console, refresh_per_second=5)

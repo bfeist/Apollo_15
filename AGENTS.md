@@ -32,6 +32,9 @@ Determine the actual signed interchannel delay from matching signals, including
 local variation and fractional-sample alignment, before fitting subtraction.
 The approximately 1.3-second offset is a search lead, not a fixed delay to assume.
 Crosstalk subtraction precedes application of the shared de-flutter map.
+Official stage 04 writes separate, provenance-bound crosstalk outputs from v2
+denoised targets and donors. Stage 05b consumes these by default; denoised-only
+comparisons require an explicit bypass. See `docs/crosstalk_stage.md`.
 Adjacent channels may intentionally record the same monitored source. Such a
 channel remains a valid reference. Establish the extra delayed copy within the
 target, preserve its main utterance, and subtract only the unwanted repeat.

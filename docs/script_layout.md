@@ -9,6 +9,7 @@ grouped by step:
 | `scripts/00_common/` | Shared process I/O utilities |
 | `scripts/01_ingest/` | Concatenation and original-tape archiving |
 | `scripts/03_denoise/` | Denoise commands, Windows/Genus coordination and housekeeping |
+| `scripts/04_crosstalk/` | Evidence-bounded two-path repeat subtraction before shared de-flutter |
 | `scripts/05_deflutter/` | Stage 05a planning, stage 05b application, shared audio processing and review evidence |
 | `scripts/06_retime/` | Quindar surveys and shared tape-speed retiming |
 | `scripts/07_normalize/` | Conservative speech-level measurement, constant gain to target and separate listening WAVs |
