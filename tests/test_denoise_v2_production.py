@@ -21,7 +21,7 @@ from denoise_v2_production import (STEP, IdentityError, job_key, validate_source
 from denoise_v2_quality import compare_review
 from denoise_v2_rollout import archive_snapshot, marker, rollback, rotate, supersede_timing_copy_root
 from channel_review import completed_denoised, ensure_denoised
-from review_sampling import verify_bindings
+from shared_tape import verify_bindings
 from v5_resume import resume_root
 
 RATE = 8000

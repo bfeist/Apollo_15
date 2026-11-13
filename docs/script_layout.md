@@ -10,8 +10,9 @@ grouped by step:
 | `scripts/01_ingest/` | Concatenation and original-tape archiving |
 | `scripts/03_denoise/` | Denoise commands, Windows/Genus coordination and housekeeping |
 | `scripts/05_deflutter/` | Stage 05a planning, stage 05b application, shared audio processing and review evidence |
-| `scripts/05c_retime/` | Quindar surveys and shared tape-speed retiming |
-| `scripts/06_irig/` | Standalone IRIG search; its pipeline integration remains undecided |
+| `scripts/06_retime/` | Quindar surveys and shared tape-speed retiming |
+| `scripts/07_normalize/` | Conservative speech-level measurement, constant gain to target and separate listening WAVs |
+| `scripts/08_irig/` | Standalone IRIG search; its pipeline integration remains undecided |
 
 Run the current denoise console from the repository root:
 
@@ -22,7 +23,7 @@ uv run python -u scripts/03_denoise/denoise_v2_console.py
 The general pipeline keeps its existing entry point:
 
 ```powershell
-uv run python scripts/pipeline.py plan --stages 05a --all-tapes --flutter-planner v5
+uv run python scripts/pipeline.py plan --stages 05a --all-tapes
 ```
 
 `scripts/run.py` accepts any registered script's basename or its path relative
@@ -52,10 +53,16 @@ run IDs, code-hash checks, checkpoint files or completed audio. Windows workers
 and SSH workers initialize the same layout before loading the frozen runtime.
 
 The identical normalization module beside the deflutter engine preserves its
-existing source-fingerprint calculation. Flutter planning and assessment
-fingerprints also retain their pre-move values, allowing existing saved evidence
-to remain usable. Existing manifests, source paths inside historical records,
-and local experiment snapshots are not rewritten.
+existing source-fingerprint calculation. The shared-map importer verifies
+saved evidence by its recorded artifact hashes, independently of the current
+legacy engine fingerprint. The removed review/approval implementation is
+recoverable from Git commit `9e888c5` and saved research snapshots. Existing
+manifests, recorded source paths, audio, and snapshots are not rewritten.
 
 New scripts must be listed in `scripts/layout.json`. Tests and research tools
 initialize `scripts/_bootstrap.py` before importing shared processing modules.
+
+Stage 06 was formerly 05c. `pipeline.py --stages 05c` and
+`scripts/run.py 05c_retime.py` remain command aliases. Saved audio, plans and
+historical report paths are not renamed. See [speech normalization](speech_normalization.md)
+for stage 07 commands and its measurement limitations.

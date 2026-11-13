@@ -17,6 +17,11 @@ import denoise_v2_launcher as launcher
 
 
 class LauncherTests(unittest.TestCase):
+    def setUp(self):
+        policy = patch.object(launcher, 'unity_outputs', return_value=nullcontext())
+        self.policy = policy.start()
+        self.addCleanup(policy.stop)
+
     def test_status_and_verification_writes_retry_through_shutdown(self):
         args = SimpleNamespace(genus_workers=0, genus_cpus='none', config='config')
         cluster = launcher.cluster

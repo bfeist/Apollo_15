@@ -1,5 +1,13 @@
 # Shared tape-level defluttering
 
+## November 13 implementation
+
+Active stage-05 commands now use native shared tape maps and completed v2
+denoised inputs. See [the current operating guide](shared_deflutter.md).
+The bounded adapter described below is historical: its source remains in Git
+and the saved comparison snapshot, and it has been deleted from active code.
+No new audio trial was run as part of this refactor.
+
 ## Governing rule
 
 The project owner reaffirmed on November 3, 2026 that each tape's 30 channels
@@ -51,10 +59,10 @@ fade/blend rules join the selected curves before one integration and inverse
 resampling. Numerical integrity checks remain required. C is a new listening
 trial; B's approval does not automatically approve C's added corrections.
 
-The adapter produces a bounded shared map for this 30-minute comparison, not
-an already qualified full-tape production plan. Older planner and production
-entry points still carry per-target application decisions; migrate those to
-shared tape plans before whole-tape rendering. Saved surveys remain reusable.
+The historical adapter produced a bounded shared map for this 30-minute
+comparison, not a qualified full-tape production plan. The November 13 refactor
+replaced active per-target application with native shared plans. Saved surveys
+remain reusable; old audio approvals retain their original bounded scope.
 
 ## Delivery
 

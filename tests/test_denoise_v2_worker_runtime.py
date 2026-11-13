@@ -67,6 +67,12 @@ class WorkerRuntimeTests(unittest.TestCase):
             self.assertEqual(call.kwargs['frames'], 100)
 
     def test_upload_io_failure_reuses_completed_result_and_keeps_inbox_private(self):
+        self.assert_upload_recovery(late_flush=False)
+
+    def test_upload_eagain_on_final_flush_reuses_completed_audio_and_matching_upload(self):
+        self.assert_upload_recovery(late_flush=True)
+
+    def assert_upload_recovery(self, *, late_flush):
         cluster = runtime.cluster
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp).resolve()
@@ -89,7 +95,7 @@ class WorkerRuntimeTests(unittest.TestCase):
             def copy(reader, writer, length):
                 attempts.append(Path(writer.name).name)
                 self.assertFalse(inbox.exists())
-                if len(attempts) == 1:
+                if len(attempts) == 1 and not late_flush:
                     writer.write(reader.read(17))
                     raise OSError(errno.EIO, 'CIFS temporarily unavailable')
                 return original_copy(reader, writer, length)
@@ -97,6 +103,11 @@ class WorkerRuntimeTests(unittest.TestCase):
                 self.assertTrue(pending.exists())
                 self.assertFalse(inbox.exists())
                 self.assertEqual({p.name:p.read_bytes() for p in source.iterdir()}, before)
+            flushes = []
+            def fsync(_):
+                flushes.append(None)
+                if late_flush and len(flushes) == 1:
+                    raise BlockingIOError(errno.EAGAIN, 'CIFS flush temporarily unavailable')
             with patch.object(cluster, 'os', SimpleNamespace(name='posix')), \
                  patch.object(cluster, 'session_path', return_value=folder), \
                  patch.object(cluster, 'check_code'), \
@@ -108,13 +119,19 @@ class WorkerRuntimeTests(unittest.TestCase):
                  patch.object(cluster, 'write_channel', side_effect=lambda *args, **kwargs:cluster.read_json(source/'denoised.json')) as writer, \
                  patch.object(cluster.shutil, 'copyfileobj', side_effect=copy), \
                  patch.object(cluster.shutil, 'copyfile', side_effect=AssertionError('fast copy must not run')), \
+                 patch.object(runtime.os, 'fsync', side_effect=fsync), \
                  patch.object(cluster, 'emit') as emit, \
                  patch.object(runtime.time, 'sleep', side_effect=wait), redirect_stderr(io.StringIO()):
                 runtime.retry_storage_worker(cluster.worker, dict(remote_data='/data'), key, 'genus')
             self.assertEqual(writer.call_count, 2)
             for call in writer.call_args_list:
                 self.assertTrue(call.kwargs['resume'])
-            self.assertEqual(attempts, ['CH27.wav', 'CH27.wav', 'cleanup.jsonl', 'denoised.json', 'genus.execution.json'])
+            expected = ['CH27.wav', 'cleanup.jsonl', 'denoised.json', 'genus.execution.json']
+            if not late_flush:
+                expected.insert(0, 'CH27.wav')
+            self.assertEqual(attempts, expected)
+            if late_flush:
+                self.assertGreaterEqual(len(flushes), 5)  # Matching upload must be flushed again.
             self.assertFalse(pending.exists())
             self.assertEqual((inbox/'CH27.wav').read_bytes(), before['CH27.wav'])
             self.assertEqual((inbox/'cleanup.jsonl').read_bytes(), before['cleanup.jsonl'])
@@ -125,6 +142,7 @@ class WorkerRuntimeTests(unittest.TestCase):
 
     def test_storage_retries_are_bounded_and_non_io_failures_are_not_retried(self):
         for error, expected in ((OSError(errno.EIO, 'share unavailable'), len(runtime.STORAGE_DELAYS)+1),
+                                (BlockingIOError(errno.EAGAIN, 'flush temporarily unavailable'), len(runtime.STORAGE_DELAYS)+1),
                                 (OSError(errno.ENOSPC, 'disk full'), 1),
                                 (PermissionError(errno.EACCES, 'denied'), 1),
                                 (ValueError('source identity changed'), 1)):
@@ -348,7 +366,10 @@ class WorkerRuntimeTests(unittest.TestCase):
             self.assertEqual(sys.argv[1:], arguments[2:])
             return 75
         original_atomic = runtime.archive.atomic_json
-        with patch.object(sys, 'argv', arguments), patch.object(runtime.cluster, 'main', side_effect=run):
+        from contextlib import nullcontext
+        with (patch.object(sys, 'argv', arguments), patch.object(runtime.cluster, 'main', side_effect=run),
+              patch.object(runtime.cluster, 'read_json', return_value={}),
+              patch.object(runtime, 'unity_outputs', return_value=nullcontext())):
             self.assertEqual(runtime.main(), 75)
             self.assertIs(sys.argv, arguments)
         self.assertIs(runtime.cluster.release_acknowledged, original_cleanup)
@@ -359,15 +380,18 @@ class WorkerRuntimeTests(unittest.TestCase):
         original_cleanup = runtime.cluster.release_acknowledged
         original_worker = runtime.cluster.worker
         arguments = ['runtime', 'denoise_v2_accelerated.py', 'worker', '--config', 'config']
-        def run(path, run_name):
+        def run():
             self.assertIs(runtime.cluster.release_acknowledged, runtime.release_acknowledged)
             self.assertIsNot(runtime.archive.atomic_json, original_atomic)
             self.assertIsNot(runtime.cluster.worker, original_worker)
-            self.assertEqual(run_name, '__main__')
-            self.assertEqual(Path(path).name, arguments[1])
+            self.assertEqual(Path(sys.argv[0]).name, arguments[1])
             raise SystemExit(75)
         original_atomic = runtime.archive.atomic_json
-        with patch.object(sys, 'argv', arguments), patch.object(runtime.runpy, 'run_path', side_effect=run):
+        from contextlib import nullcontext
+        import denoise_v2_accelerated as accelerated
+        with (patch.object(sys, 'argv', arguments), patch.object(accelerated, 'main', side_effect=run),
+              patch.object(runtime.cluster, 'read_json', return_value={}),
+              patch.object(runtime, 'unity_outputs', return_value=nullcontext())):
             with self.assertRaises(SystemExit) as exit_status:
                 runtime.main()
             self.assertEqual(exit_status.exception.code, 75)

@@ -319,15 +319,34 @@ def load_shared_plan(path):
 def differential_displacement(references):
     """Compare actual 05b maps at 200 Hz; never infer synchrony from content lag."""
     maps, results = [], []
+    shared = []
+    checked_shared = {}
     for row in references:
         folder = Path(row['path']).parent
         review = json.loads((folder/'review.json').read_text(encoding='utf-8'))
+        if review.get('methodology') == 'shared-tape-motion-v1':
+            path = Path(review['shared_map'])
+            from denoise_archive import sha256
+            key = str(path.resolve())
+            if key not in checked_shared:
+                checked_shared[key] = sha256(path)
+            if checked_shared[key] != review['map_sha256']:
+                raise ValueError('Applied shared deflutter map changed')
+            shared.append((row['channel'], key, review['map_sha256']))
+            continue
         path = folder/'nominal_seconds.npy'
         if not path.exists() or not review.get('timing_artifacts'):
             return dict(status='unmeasured_legacy_maps', synchronized_channels=False)
         if hashlib.sha256(path.read_bytes()).hexdigest() != review['timing_artifacts']['nominal_seconds.npy']:
             raise ValueError('Applied deflutter map changed')
         maps.append((row['channel'], review['start_seconds'], np.load(path, mmap_mode='r'), review['timing']['last_sample_seconds']))
+    if shared:
+        if maps or len({digest for _, _, digest in shared}) != 1:
+            raise ValueError('Channels were rendered with different tape-motion maps')
+        return dict(status='shared_tape_map', synchronized_channels=True,
+                    map_sha256=shared[0][2], channels=[ch for ch, _, _ in shared],
+                    maximum_displacement_difference_seconds=0.,
+                    interpretation='All channels use one saved canonical tape map, preserving their source offsets')
     if maps:
         base_ch, base_start, base, base_last = maps[0]
         for ch, start, values, last in maps[1:]:

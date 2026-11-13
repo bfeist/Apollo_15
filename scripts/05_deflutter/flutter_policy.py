@@ -1,8 +1,6 @@
-"""Versioned, explicit deflutter evidence and production acceptance contracts.
+"""Historical numerical thresholds and fingerprints used by saved tone evidence.
 
-These initial absolute thresholds are development limits, not qualified claims.
-A signed-off rollout record must bind the exact implementation/policy and
-evidence before production rendering. Planning produces evidence for review.
+Legacy per-channel approval and rollout machinery has been retired.
 """
 import hashlib
 import json
@@ -89,71 +87,3 @@ def numeric_pass(main, controls, time_controls=()):
         and sum(np.median(ratios)+LIMITS['control_margin'] <
                 np.median([m['residual_ratio'] for e in c for m in e['margins']]) for c in time_controls)
                 >= LIMITS['minimum_wrong_time_losses'])
-
-
-def checked_evidence(record, base):
-    path = (Path(base)/record['path']).resolve()
-    if digest(path) != record['sha256']:
-        raise ValueError(f'Acceptance evidence changed: {path}')
-    return json.loads(path.read_text(encoding='utf-8'))
-
-
-def require_rollout(path):
-    if path is None:
-        raise ValueError('Production requires --rollout-approval after carrier qualification and fresh holdout/listening acceptance')
-    path = Path(path)
-    value = json.loads(path.read_text(encoding='utf-8'))
-    if value.get('demo'):
-        raise ValueError('Synthetic demo evidence cannot authorize production')
-    if (value.get('methodology') != METHODOLOGY or value.get('implementation_sha256') != implementation_digest()
-            or value.get('policy_sha256') != policy_digest() or value.get('status') != 'accepted'
-            or not value.get('reviewer') or not value.get('reviewed_at')):
-        raise ValueError('Rollout approval must accept the current implementation and frozen policy')
-    for name in ('carrier_qualification', 'fresh_holdouts', 'speech_listening'):
-        evidence = checked_evidence(value[name], path.parent)
-        if evidence.get('status') != 'accepted':
-            raise ValueError(f'{name} evidence is not accepted')
-        if name == 'speech_listening' and evidence.get('sampling_certificate'):
-            from review_sampling import require_methodology
-            require_methodology(evidence['sampling_certificate'], path.parent)
-    return value
-
-
-def require_production(path, plan_path, channel, experimental=False):
-    if experimental:
-        raise ValueError('Experimental transfer is review-only; it cannot fill production coverage')
-    if path is None:
-        raise ValueError('Production rendering requires --production-approval bound to this plan and channel; use render_channel_review.py for pilots')
-    path, plan_path = Path(path), Path(plan_path)
-    if plan_path.is_dir():
-        plan_path /= 'plan.json'
-    value = json.loads(path.read_text(encoding='utf-8'))
-    require_rollout(path.parent/value['rollout_approval'])
-    plan = json.loads(plan_path.read_text(encoding='utf-8'))
-    if plan.get('demo') or plan.get('review_only'):
-        raise ValueError('Synthetic or pilot-only plans cannot authorize production')
-    if plan.get('methodology') != METHODOLOGY or plan.get('implementation_sha256') != implementation_digest():
-        raise ValueError('Production plan uses an incompatible methodology or implementation')
-    if value.get('plan_sha256') != digest(plan_path) or value.get('status') != 'accepted':
-        raise ValueError('Production acceptance does not match the saved plan')
-    if value.get('acceptance_policy'):
-        from review_sampling import POLICY, require_sampled
-        if value['acceptance_policy'] != POLICY:
-            raise ValueError('Unknown production acceptance policy')
-        require_sampled(value, path, plan_path, channel)
-        return value
-    row = next((r for r in value['channels'] if r['channel'] == channel), None)
-    if row is None or row.get('speech_preserved') is not True or row.get('transitions_accepted') is not True:
-        raise ValueError('Channel speech and transition listening acceptance is missing')
-    review = checked_evidence(row['continuous_review'], path.parent)
-    original = next(r for r in plan['inventory']['channels'] if r['channel'] == channel)
-    if (review.get('status') != 'complete' or review.get('experimental_transfer')
-            or review.get('plan_sha256') != digest(plan_path) or review.get('channel') != channel
-            or review.get('frames') != original['frames'] or review.get('start_seconds') != original['start_seconds']
-            or review.get('joined_map_checks', {}).get('status') != 'passed'):
-        raise ValueError('Acceptance requires a matching conservative continuous review with passed joined-map checks')
-    for name, expected in review.get('timing_artifacts', {}).items():
-        review_path = (path.parent/row['continuous_review']['path']).resolve()
-        if digest(review_path.parent/name) != expected:
-            raise ValueError('Accepted continuous map artifact changed')
-    return value

@@ -38,18 +38,15 @@ def command(name, *arguments):
 class _ArtifactLoader(importlib.machinery.SourceFileLoader):
     def exec_module(self, module):
         super().exec_module(module)
-        if module.__name__ == 'denoise_v2_rollout':
-            module.REPO = REPO
-            module.INVENTORY = REPO/'reports/denoise_v2_rollout_20261108/inventory.json'
-            module.REVIEW = REPO/'reports/denoise_v2_late_hum_20261108'
-        else:
-            module.HERE = SCRIPTS
+        module.REPO = REPO
+        module.INVENTORY = REPO/'reports/denoise_v2_rollout_20261108/inventory.json'
+        module.REVIEW = REPO/'reports/denoise_v2_late_hum_20261108'
 
 
 class _ArtifactFinder:
     """Preserve frozen code and hashes; resolve the same external artifacts."""
     def find_spec(self, fullname, path=None, target=None):
-        if fullname not in ('denoise_v2_rollout', 'review_evidence'):
+        if fullname != 'denoise_v2_rollout':
             return None
         filename = source_path(fullname+'.py')
         loader = _ArtifactLoader(fullname, str(filename))

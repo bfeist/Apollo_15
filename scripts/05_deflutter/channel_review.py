@@ -1,19 +1,16 @@
-"""Denoise, then continuously deflutter a canonical channel for A/B review.
+"""Historical map evaluation and stage-03 cache helpers.
 
-Audio is processed in bounded blocks. The 200 Hz map spans the selected range;
-regional speed curves are joined before one integration and inverse resampling.
+The active deflutter renderer is shared_render; this module does not publish
+channel reviews or listening pages.
 """
-import csv
 from collections import deque
 from concurrent.futures import ProcessPoolExecutor
 from contextlib import closing, nullcontext
 from multiprocessing import get_context
 import hashlib
-import html
 import inspect
 import json
 import os
-import shutil
 import math
 from pathlib import Path
 import time
@@ -25,7 +22,6 @@ from scipy.integrate import cumulative_trapezoid
 from audio_processing import clean_tones, denoise, DEFAULT_BROADBAND_CAP_DB, TONAL_CLEANUP_METHOD
 from denoise_archive import (cleanup_version, denoised_audio_path, historical_path, legacy_write,
                              read_json, root_marker, sha256, validate_binding)
-from normalization import DEFAULT_TARGET_DBFS, DEFAULT_MAX_BOOST_DB, normalize_pending_file, verify_peak, validate_settings
 from flutter import resample_at
 from flutter_plan_store import checked_artifact, load_saved_plan, planning_lock, tape_directory
 
@@ -583,129 +579,3 @@ def _ensure_v1(row, folder, offset, frames, block_seconds, progress, require_exi
             write_json(manifest,record)
             raise
         return record
-
-
-def review_page(destination, title, markers, start, cleaned_path=None, gain=1.):
-    fields = ('start_seconds','end_seconds','kind','region','selected','reason','overlap_supported_fraction','speed_rms_difference',
-              'reference_channel','method','quality_level')
-    with (destination/'markers.csv').open('w', newline='',encoding='utf-8') as f:
-        writer = csv.DictWriter(f,fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(markers)
-    rows = []
-    for m in markers:
-        s = m['start_seconds']; stamp = f'{int(s)//3600:02}:{int(s)//60%60:02}:{s%60:05.2f}'
-        detail = ' '.join(filter(None, (m.get('selected'), m.get('quality_level'), m['reason'])))
-        rows.append(f'<tr data-kind="{m["kind"]}"><td><button onclick="seek({s})">{stamp}</button></td>'
-                    f'<td>{m["kind"]}</td><td>{html.escape(m["region"])}</td><td>{html.escape(detail)}</td></tr>')
-    page = '''<!doctype html><meta charset="utf-8"><title>Channel review</title>
-<style>body{font:16px system-ui;max-width:1200px;margin:30px auto;padding:0 20px;background:#15191e;color:#e8edf4}
-header{position:sticky;top:0;background:#15191e;padding:15px 0}button,select{padding:8px;margin:3px}audio{display:block;width:100%;margin:10px 0}
-td,th{text-align:left;padding:8px;border-bottom:1px solid #39424d}a{color:#95caff}small{color:#bec9d7}</style>
-<header><h1>__TITLE__</h1><p>Same denoised input; playback levels matched to compensate for final export normalization. Experimental regions have unvalidated transfer.
-Bypassed regions have zero local speed correction; continuous timing may retain an offset.</p>
-<button id="before" onclick="switchVersion(false)">A: Denoised</button><button id="after" onclick="switchVersion(true)">B: Denoised + deflutter</button>
-<strong id="version">A: Denoised</strong><audio id="player" controls preload="metadata" src="cleaned.wav"></audio>
-<label>Markers <select onchange="filter(this.value)"><option value="">All</option><option>numeric_pass</option><option>experimental</option><option>bypassed</option><option>fade</option><option>blend</option><option>support_gap</option></select></label>
-<small>Times are relative to this review; canonical start: __START__ seconds. <a href="markers.csv">Markers CSV</a> · <a href="review.json">Measurements</a></small></header>
-<table><thead><tr><th>Seek</th><th>Status</th><th>Region</th><th>Evidence</th></tr></thead><tbody>__ROWS__</tbody></table>
-<script>const p=document.getElementById('player'); let revision=0; const gain=__GAIN__;
-function matchLevel(after){p.volume=after?Math.min(1,1/gain):Math.min(1,gain);}
-matchLevel(false);
-function seek(t){p.currentTime=t;}
-function switchVersion(after){const stamp=p.currentTime,playing=!p.paused,id=++revision;p.pause();matchLevel(after);p.src=after?'deflutter.wav':'cleaned.wav';
-document.getElementById('version').textContent=after?'B: Denoised + deflutter':'A: Denoised';
-p.onloadedmetadata=()=>{if(id!==revision)return;p.currentTime=Math.min(stamp,p.duration);if(playing)p.play().catch(()=>{});};p.load();}
-function filter(kind){document.querySelectorAll('tbody tr').forEach(r=>r.hidden=kind&&r.dataset.kind!==kind);}</script>'''
-    if cleaned_path is not None:
-        try:
-            from urllib.parse import quote
-            source = quote(os.path.relpath(cleaned_path,destination).replace('\\','/'),safe='/')
-        except ValueError:  # Different Windows drives.
-            source = Path(cleaned_path).resolve().as_uri()
-        page = page.replace('src="cleaned.wav"','src="'+html.escape(source,quote=True)+'"')
-        page = page.replace("after?'deflutter.wav':'cleaned.wav'", "after?'deflutter.wav':"+json.dumps(source))
-    page = page.replace('__GAIN__',json.dumps(gain)).replace('__TITLE__',html.escape(title)).replace('__START__',str(start)).replace('__ROWS__',''.join(rows))
-    (destination/'index.html').write_text(page,encoding='utf-8')
-
-
-def render_channel_review(plan_path, channel, destination, *, start=0., duration=None, experimental=False,
-                          cleanup_block_seconds=60., render_block_seconds=5., dry_run=False, progress=print,
-                          denoised_input=None, require_prepared=False,
-                          target_dbfs=DEFAULT_TARGET_DBFS, max_boost_db=DEFAULT_MAX_BOOST_DB):
-    validate_settings(target_dbfs, max_boost_db)
-    started = time.monotonic()
-    destination = Path(destination).resolve()
-    progress('Verifying saved plan artifacts and original source identities...')
-    plan_path, plan, row, regions, start, offset, frames = prepare(plan_path,channel,start,duration)
-    cache = Path(denoised_input).resolve() if denoised_input else destination.parent/'.denoised_temp'/destination.name
-    separate(cache,[destination,plan_path.parent]+[Path(r['path']).parent for r in plan['inventory']['channels']])
-    separate(destination,[plan_path.parent]+[Path(r['path']).parent for r in plan['inventory']['channels']])
-    if destination.exists() and (not destination.is_dir() or any(destination.iterdir())):
-        raise ValueError('Output directory must be empty; choose a new directory for another review')
-    if not np.isfinite(cleanup_block_seconds) or not 20<=cleanup_block_seconds<=120:
-        raise ValueError('Cleanup block must be 20-120 seconds')
-    if not np.isfinite(render_block_seconds) or not .1<=render_block_seconds<=30:
-        raise ValueError('Render block must be 0.1-30 seconds')
-    summary = dict(status='preflight',tape=plan['inventory']['tape'],channel=channel,source=row,
-                   start_seconds=start,duration_seconds=frames/row['sample_rate'],frames=frames,
-                   sample_rate=row['sample_rate'],experimental_transfer=experimental,planning_recomputed=False,
-                   saved_plan=str(plan_path),plan_sha256=hashlib.sha256(plan_path.read_bytes()).hexdigest(),
-                   output=str(destination),normalization_settings=dict(target_dbfs=target_dbfs,max_boost_db=max_boost_db),pipeline=['tonal_and_residual_hum_removal','broadband_denoise_3dB','continuous_deflutter','constant_peak_normalization'],
-                   analysis_audio='original canonical audio',denoised_directory=str(cache),
-                   estimated_audio_bytes=frames*8,regions=len(regions),
-                   implementation_sha256=hashlib.sha256(b''.join(Path(__file__).with_name(n).read_bytes()
-                       for n in ('channel_review.py','flutter.py','audio_processing.py','normalization.py'))).hexdigest())
-    counts = {}
-    for r in regions:
-        action = next(t['action'] for t in r['targets'] if t['channel']==channel)
-        counts[action] = counts.get(action,0)+1
-    summary['target_actions'] = counts
-    if dry_run:
-        progress(json.dumps(summary,indent=2))
-        return summary
-    archived_cache = any(part.lower() == 'denoised_v1' for part in cache.parts)
-    intermediate = ensure_denoised(row,cache,offset,frames,cleanup_block_seconds,progress,
-                                   require_prepared or archived_cache)
-    cleaned = Path(intermediate['file'])
-    clean_stat = cleaned.stat()
-    progress(f'Preparing continuous map for CH{channel}: {frames/row["sample_rate"]/3600:.2f} hours')
-    tt, nominal, speed, timing, markers, evidence = continuous_map(plan_path.parent,regions,channel,start,frames,row['sample_rate'],experimental,progress)
-    joined = joined_map_checks(plan_path.parent, regions, row, channel, start, tt, nominal, speed)
-    destination.mkdir(parents=True,exist_ok=True)
-    summary.update(status='running',timing=timing,evidence=evidence,denoised_intermediate=intermediate,
-                   methodology=plan.get('methodology', 'legacy'), joined_map_checks=joined,
-                   evidence_status=dict(numeric_pass_is_listening_approval=False,
-                                        transfer_groups_accepted=False, production_accepted=False),
-                   cleanup=intermediate.get('cleanup', intermediate.get('quality')))
-    if cleanup_version(intermediate) == 'v2':
-        summary['pipeline'] = [intermediate['algorithm'], 'continuous_deflutter', 'constant_peak_normalization']
-    # Exclusive claim prevents concurrently started jobs sharing an output.
-    with (destination/'review.json').open('x',encoding='utf-8') as f:
-        json.dump(summary,f,indent=2,allow_nan=False)
-    corrected = destination/'deflutter.partial'
-    try:
-        np.save(destination/'nominal_seconds.npy',nominal,allow_pickle=False)
-        np.save(destination/'speed_error.npy',speed,allow_pickle=False)
-        summary['timing_artifacts'] = {name: hashlib.sha256((destination/name).read_bytes()).hexdigest()
-                                       for name in ('nominal_seconds.npy', 'speed_error.npy')}
-        shutil.copyfile(cache/'cleanup.jsonl',destination/'cleanup.jsonl')
-        summary['render'] = render_warp(cleaned,corrected,tt,nominal,render_block_seconds,progress)
-        summary['normalization'] = normalize_pending_file(corrected,target_dbfs,max_boost_db,progress)
-        summary['gain'] = summary['normalization']['gain']
-        summary['audio'] = dict(cleaned=verify_audio(cleaned,frames,row['sample_rate']),
-                                deflutter=verify_audio(corrected,frames,row['sample_rate']))
-        verify_peak(summary['audio']['deflutter']['peak'],summary['normalization'])
-        check_source(row)
-        if (cleaned.stat().st_size,cleaned.stat().st_mtime_ns) != (clean_stat.st_size,clean_stat.st_mtime_ns):
-            raise ValueError('Denoised intermediate changed during rendering')
-        corrected.replace(destination/'deflutter.wav')
-        review_page(destination,f'{summary["tape"]} · CH{channel} · Denoise then deflutter',markers,start,cleaned,summary['gain'])
-        summary.update(status='complete',elapsed_seconds=time.monotonic()-started,markers=markers)
-        write_json(destination/'review.json',summary)
-    except BaseException as exc:
-        summary.update(status='failed',error=str(exc))
-        write_json(destination/'review.json',summary)
-        raise
-    progress(f'Review complete: {destination/"index.html"}')
-    return summary

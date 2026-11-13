@@ -18,7 +18,7 @@ import continuous_planning
 from continuous_planning import plan_tape
 from continuous_tracking import track_array
 from flutter_plan_store import load_saved_plan, is_continuous_plan
-from channel_review import prepare, continuous_map, joined_map_checks, render_warp, review_page
+from channel_review import prepare, continuous_map, joined_map_checks, render_warp
 from flutter_tracking import burst_track
 from flutter_planning import calibration_proxy
 
@@ -194,9 +194,6 @@ class ContinuousPlanningTests(unittest.TestCase):
             result, checks, row = self.map(root/'plan', ch)
             self.assertEqual(checks['status'], 'passed')
             self.assertFalse(checks['restoration_target_met'])
-            review_page(root, 'Partial correction evidence', result[4], 0.)
-            self.assertIn('supported_improvement', (root/'markers.csv').read_text())
-            self.assertIn('supported_improvement', (root/'index.html').read_text())
             self.assertTrue(any(m['after_rms_hz'] > 6 for e in checks['reserved_events'] for b in e['metrics'] for m in b['margins']))
             path, _, _, regions, start, _, _ = prepare(root/'plan', ch)
             failed = joined_map_checks(path.parent, regions, row, ch, start, result[0], result[0], np.zeros_like(result[2]))

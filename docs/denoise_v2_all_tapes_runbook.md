@@ -323,7 +323,12 @@ uv run python -u scripts/03_denoise/denoise_v2_background.py --version v2 --mode
 The background launcher runs the scheduler and its workers at below-normal
 Windows priority. Six workers across three tapes leave headroom for software
 development. Both launchers use the same normalized run identity and checkpoints.
-The normalization benchmark measures both the hum model and the gain write.
+The frozen benchmark here still measures both the hum model and the gain write.
+Current console/launcher workers use the separate unity-gain output policy
+described in [the production guide](denoise_cluster.md): they retain the frozen
+DSP and checkpoints, bypass the gain scan and WAV rewrite, and defer final gain
+to stage 07. The benchmark and normalized outputs above retain their original
+settings and evidence.
 Use these commands to resume after an
 interruption and to verify the finished archive.
 

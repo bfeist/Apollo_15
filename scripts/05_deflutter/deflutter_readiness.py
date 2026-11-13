@@ -1,111 +1,68 @@
-"""Read-only batch readiness and reviewable, unapproved acceptance templates."""
-
-# Resolve shared modules from the stage folders.
-import sys as _sys
-from pathlib import Path as _Path
-_sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
-from _bootstrap import install as _install
-_install()
+"""Read-only readiness for shared tape maps and completed v2 render inputs."""
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _bootstrap import install
+install()
 
 import argparse
 import json
-from pathlib import Path
-
-from flutter_plan_store import DEFAULT_PLANNING_ROOT, DEFAULT_DENOISED_ROOT, load_saved_plan
-from flutter_policy import (METHODOLOGY, implementation_digest,
-                            policy_digest, require_rollout, require_production)
+from denoise_archive import CANONICAL
 from flutter_planning import inventory
-from channel_review import completed_denoised
-from denoise_archive import ALL_NUMBERED, root_marker
+from shared_render import prepared_source
+from shared_tape import DEFAULT_PLANNING_ROOT, DEFAULT_EVIDENCE_ROOT, load_tape_plan, identity
 
 
-def rollout_template():
-    return dict(status='pending', methodology=METHODOLOGY, implementation_sha256=implementation_digest(),
-                policy_sha256=policy_digest(), reviewer=None, reviewed_at=None,
-                **{name: dict(path='', sha256='') for name in
-                   ('carrier_qualification', 'fresh_holdouts', 'speech_listening')})
-
-
-def readiness(originals, plans, denoised, approvals, rollout):
-    denoised = Path(denoised).resolve()
-    marker = root_marker(denoised)
-    version = 'v2' if marker else 'v1'
-    all_numbered = bool(marker and marker.get('frozen', {}).get('channel_policy') == ALL_NUMBERED)
-    result = dict(ready_for_batch_planning=False, ready_for_production=False, tapes=[], rollout_error=None,
-                  cleanup_version=version)
-    try:
-        require_rollout(rollout)
-        rollout_ok = True
-    except (ValueError, OSError, KeyError, TypeError) as exc:
-        rollout_ok = False
-        result['rollout_error'] = str(exc)
-    folders = sorted(Path(originals).glob('A15_T*'))
-    if not folders:
-        raise ValueError('No canonical tapes found')
-    for folder in folders:
-        row = dict(tape=folder.name, originals_valid=False, plan_complete=False, denoised_channels=0,
-                   expected_channels=0, production_channels=0, errors=[])
+def readiness(originals, plans=DEFAULT_PLANNING_ROOT, denoised=CANONICAL, evidence=DEFAULT_EVIDENCE_ROOT):
+    rows = []
+    for folder in sorted(Path(originals).glob('A15_T*')):
+        row = dict(tape=folder.name, cleanup_version='v2', shared_map_ready=False,
+                   denoised_channels=0, expected_channels=0, errors=[])
         try:
             inv = inventory(folder)
-            targets = [r for r in inv['channels'] if r['role'] != 'timing_only']
-            row['originals_valid'] = bool(targets)
-            row['expected_channels'] = len(targets)
-            row['denoised_channels'] = sum(completed_denoised(r, denoised/folder.name/f'CH{r["channel"]:02d}',
-                                           0, r['frames'], version=version) for r in targets)
-            timing_count = sum(completed_denoised(r, denoised/folder.name/f'CH{r["channel"]:02d}',
-                               0, r['frames'], version='v2') for r in inv['channels'] if r['role'] == 'timing_only')
-            row['timing_copies'] = 0 if all_numbered else timing_count
-            row['denoised_timing_labeled_channels'] = timing_count if all_numbered else 0
-            plan_path = Path(plans)/folder.name/'plan.json'
-            try:
-                plan = load_saved_plan(plan_path, expand_regions=False)
-                row['plan_complete'] = (plan.get('methodology') == METHODOLOGY
-                    and plan.get('implementation_sha256') == implementation_digest()
-                    and plan.get('policy_sha256') == policy_digest() and plan.get('full_tape', False))
-                row['coverage'] = plan.get('summary', {}).get('duration_weighted_coverage', [])
-                for target in targets:
-                    try:
-                        require_production(Path(approvals)/folder.name/'production_acceptance.json', plan_path, target['channel'])
-                        row['production_channels'] += 1
-                    except (ValueError, OSError, KeyError, TypeError) as exc:
-                        row['errors'].append(f'CH{target["channel"]}: {exc}')
-            except (ValueError, OSError, KeyError) as exc:
-                row['errors'].append('plan: '+str(exc))
-        except (ValueError, OSError) as exc:
-            row['errors'].append(str(exc))
-        result['tapes'].append(row)
-    result['ready_for_batch_planning'] = all(t['originals_valid'] for t in result['tapes'])
-    result['ready_for_production'] = version == 'v1' and rollout_ok and result['ready_for_batch_planning'] and all(t['plan_complete'] and
-        t['production_channels'] == t['denoised_channels'] == t['expected_channels'] and t['expected_channels'] > 0 for t in result['tapes'])
-    return result
+            row['expected_channels'] = len(inv['channels'])
+            row['completed_tone_evidence'] = all((Path(evidence)/folder.name/name).is_file()
+                for name in ('plan/plan.json', 'joined_assessment.json', 'survey_manifest.json'))
+            for target in inv['channels']:
+                try:
+                    prepared_source(target, Path(denoised)/folder.name/f'CH{target["channel"]:02d}')
+                    row['denoised_channels'] += 1
+                except (ValueError, OSError, KeyError, TypeError, RuntimeError) as error:
+                    row['errors'].append(f'CH{target["channel"]:02d}: {error}')
+            path = Path(plans)/folder.name/'plan.json'
+            if path.is_file():
+                _, plan, data = load_tape_plan(path)
+                if plan['inventory']['tape'] != inv['tape'] or identity(plan['inventory']) != identity(inv):
+                    raise ValueError('Shared plan belongs to a different source inventory')
+                row.update(shared_map_ready=plan['full_tape'], tape_time_coverage=plan['map']['coverage'],
+                    map_sha256=plan['map']['sha256'])
+                del data
+            row['ready_for_render'] = (row['shared_map_ready'] and row['expected_channels'] > 0
+                and row['denoised_channels'] == row['expected_channels'])
+        except (ValueError, OSError, KeyError, TypeError, RuntimeError) as error:
+            row['errors'].append(str(error))
+            row['ready_for_render'] = False
+        rows.append(row)
+    if not rows:
+        raise ValueError('No canonical tapes found')
+    return dict(methodology='shared-tape-motion-v1', cleanup_version='v2', tapes=rows,
+        ready_for_render=all(r['ready_for_render'] for r in rows),
+        interpretation='Rendering readiness is not listening or production acceptance')
 
 
-def main():
+def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--originals', type=Path, default=Path('D:/Apollo_15_30-Track/orig_concatenated'))
     p.add_argument('--planning-root', type=Path, default=DEFAULT_PLANNING_ROOT)
-    p.add_argument('--denoised-root', type=Path, default=DEFAULT_DENOISED_ROOT)
-    p.add_argument('--approval-root', type=Path)
-    p.add_argument('--rollout-approval', type=Path)
-    p.add_argument('--write-rollout-template', type=Path)
-    p.add_argument('--output', type=Path)
-    args = p.parse_args()
+    p.add_argument('--denoised-root', type=Path, default=CANONICAL)
+    p.add_argument('--evidence-root', type=Path, default=DEFAULT_EVIDENCE_ROOT)
+    args = p.parse_args(argv)
     try:
-        if args.write_rollout_template:
-            args.write_rollout_template.parent.mkdir(parents=True, exist_ok=True)
-            with args.write_rollout_template.open('x', encoding='utf-8') as stream:
-                json.dump(rollout_template(), stream, indent=2)
-            return 0
-        result = readiness(args.originals, args.planning_root, args.denoised_root,
-                           args.approval_root or args.planning_root, args.rollout_approval)
-        if args.output:
-            args.output.parent.mkdir(parents=True, exist_ok=True)
-            with args.output.open('x', encoding='utf-8') as stream:
-                json.dump(result, stream, indent=2)
+        result = readiness(args.originals, args.planning_root, args.denoised_root, args.evidence_root)
         print(json.dumps(result, indent=2))
-        return 0 if result['ready_for_production'] else 2
-    except (ValueError, OSError, KeyError, TypeError) as exc:
-        p.error(str(exc))
+        return 0 if result['ready_for_render'] else 2
+    except (OSError, ValueError, RuntimeError, KeyError, TypeError) as error:
+        p.error(str(error))
 
 
 if __name__ == '__main__':

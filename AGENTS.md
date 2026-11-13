@@ -19,8 +19,9 @@ model is one shared tape-motion correction at each canonical tape time.
 - Reuse completed survey, planning, and map artifacts before considering new
   analysis. Keep previous results and approval-bound audio immutable.
 - Legacy per-target plan decisions describe evidence gathered on that target;
-  they are not the application gate for the shared tape map. Use the shared-map
-  adapter for new reviews; legacy rendering entry points still need migration.
+  they are not the application gate for the shared tape map. Use the native
+  shared tape map for new reviews. Active stage-05 commands require v2 denoised
+  inputs; historical scientific modules are evidence readers only.
 
 See `docs/tape_level_deflutter.md` for selection and provenance details.
 

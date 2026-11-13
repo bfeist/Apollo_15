@@ -308,7 +308,7 @@ Numbered neighbors are the starting hypothesis. The channel-assignment photo
 describes console routing, and the physical track layout still needs evidence
 for these reels. The Quindar code also considers longer offsets for identifying
 duplicate events. Its delay search serves a different purpose. [Project provenance](deflutter_v5.md)
-· [Quindar event matching](../scripts/05c_retime/quindar_tape.py)
+· [Quindar event matching](../scripts/06_retime/quindar_tape.py)
 · [NASA playback-head history](https://www.nasa.gov/podcasts/houston-we-have-a-podcast/the-heroes-behind-the-heroes-part-2/)
 
 ## Research sequence

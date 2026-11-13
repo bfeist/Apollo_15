@@ -17,7 +17,6 @@ from contextlib import contextmanager
 import errno
 import os
 from pathlib import Path, PurePosixPath
-import runpy
 import shlex
 import sys
 import time
@@ -26,6 +25,7 @@ import traceback
 import denoise_archive as archive
 import denoise_v2_cluster as cluster
 import denoise_v2_production as production
+from denoise_v2_output_policy import unity_outputs
 from _bootstrap import LAYOUT, source_path
 
 WORKER_SCRIPTS = ('denoise_v2_cluster.py', 'denoise_v2_accelerated.py')
@@ -33,7 +33,9 @@ REPLACE_DELAYS = (.05, .1, .2, .4, .8, 1., 1.)
 # Each worker keeps its slot while recovering; other workers continue normally.
 # About fifteen minutes of backoff, with ten-second heartbeats and one-second stop checks.
 STORAGE_DELAYS = (2, 5, 10, 20, 30, *([60]*14))
-STORAGE_ERRORS = {errno.EIO, errno.ESTALE, errno.ETIMEDOUT, errno.ECONNRESET,
+# CIFS can return EAGAIN on fsync after all bytes have been copied. Retry the
+# worker so the completed local result and fully matching private upload survive.
+STORAGE_ERRORS = {errno.EAGAIN, errno.EIO, errno.ESTALE, errno.ETIMEDOUT, errno.ECONNRESET,
                   errno.ECONNABORTED, errno.ENOTCONN, errno.ENETUNREACH,
                   errno.EHOSTUNREACH}
 
@@ -244,7 +246,9 @@ def main():
     cluster.release_acknowledged = release_acknowledged
     sys.argv = [str(script), *sys.argv[2:]]
     try:
-        with resilient_json_writes(), resilient_worker_io():
+        config_index = sys.argv.index('--config')+1
+        config = cluster.read_json(sys.argv[config_index])
+        with unity_outputs(config), resilient_json_writes(), resilient_worker_io():
             return run_worker(script)
     finally:
         cluster.release_acknowledged = original_cleanup
@@ -260,7 +264,20 @@ def run_worker(script):
         except (ValueError, OSError, KeyError, RuntimeError, cluster.subprocess.CalledProcessError) as exc:
             print(f'Cluster stopped: {exc}', file=sys.stderr, flush=True)
             return 2
-    runpy.run_path(str(script), run_name='__main__')
+    # Use the imported accelerator so the output-policy context can wrap its
+    # private writer factory without changing hash-bound accelerator source.
+    import denoise_v2_accelerated as accelerated
+    try:
+        return accelerated.main()
+    except InterruptedError as exc:
+        clean = str(exc) in {'Stopped after the last committed checkpoint',
+                            'Stopped before publishing normalized audio'}
+        print(f'Worker {"checkpointed" if clean else "interrupted unexpectedly"}: {exc}',
+              file=sys.stderr, flush=True)
+        return accelerated.CHECKPOINT_EXIT if clean else 2
+    except (ValueError, OSError, KeyError, RuntimeError, cluster.subprocess.SubprocessError) as exc:
+        print(f'Accelerated worker stopped: {exc}', file=sys.stderr, flush=True)
+        return 2
 
 
 if __name__ == '__main__':

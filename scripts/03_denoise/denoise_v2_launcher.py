@@ -21,6 +21,7 @@ import denoise_v2_cluster as cluster
 import denoise_v2_worker_runtime as worker_runtime
 from _bootstrap import ScriptProcesses
 from denoise_v2_verification import cached_verification
+from denoise_v2_output_policy import unity_outputs
 
 GENUS_CPUS = '0,2,4,8,10,12'
 
@@ -99,7 +100,8 @@ def coordinate(args):
     else:
         cluster.subprocess = processes
     try:
-        with worker_runtime.resilient_json_writes(), \
+        with unity_outputs(config or cluster.read_json(args.config), prepare=True), \
+             worker_runtime.resilient_json_writes(), \
              cached_verification(config or cluster.read_json(args.config)):
             return cluster.coordinate(args)
     finally:

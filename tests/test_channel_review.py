@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'scripts'))
 from _bootstrap import install as _install
 _install()
-from channel_review import continuous_map, cleanup_channel, cleanup_block, cleanup_results, prepare, render_channel_review, render_warp, ensure_denoised
+from channel_review import continuous_map, cleanup_channel, cleanup_block, cleanup_results, prepare, render_warp, ensure_denoised
 from flutter import resample_at
 
 
@@ -123,31 +123,6 @@ class ChannelReviewTests(unittest.TestCase):
         self.assertLessEqual(max(calls),28*8000)
         self.assertGreaterEqual(min(calls),15*8000)
 
-    def test_end_to_end_cleanup_precedes_deflutter_and_emits_review(self):
-        path,_,row=fixture(self.root,actions=['validate_transfer']*3)
-        output=self.root/'review'
-        seen=[]
-        def tones(x,sr):
-            seen.append('tones'); return x*.75,{}
-        def noise(x,sr,cap):
-            self.assertEqual(seen[-1],'tones'); seen.append('noise')
-            self.assertEqual(cap,3); return x*.8,[1,5]
-        with patch('channel_review.clean_tones',side_effect=tones),patch('channel_review.denoise',side_effect=noise):
-            result=render_channel_review(path,2,output,start=2.345,duration=23.007,progress=lambda _:None)
-        self.assertEqual(result['status'],'complete')
-        self.assertEqual(result['pipeline'],['tonal_and_residual_hum_removal','broadband_denoise_3dB','continuous_deflutter','constant_peak_normalization'])
-        before,_=sf.read(result['denoised_intermediate']['file']); after,_=sf.read(output/'deflutter.wav')
-        original,_=sf.read(row['path'],start=round(2.345*8000),frames=len(before))
-        np.testing.assert_allclose(before,original*.6,atol=2e-8,rtol=0)
-        np.testing.assert_allclose(before*result['gain'],after,atol=3e-8,rtol=0)
-        self.assertAlmostEqual(float(np.max(abs(after))),10**(-3/20),places=6)
-        self.assertIn('matchLevel', (output/'index.html').read_text())
-        self.assertEqual(len(before),round(23.007*8000))
-        for name in ('index.html','markers.csv','review.json','cleanup.jsonl','nominal_seconds.npy','speed_error.npy'):
-            self.assertTrue((output/name).is_file())
-        self.assertFalse(list(output.glob('*.partial')))
-        with self.assertRaisesRegex(ValueError,'empty'):
-            render_channel_review(path,2,output,progress=lambda _:None)
 
     def test_parallel_cleanup_matches_serial_with_offset_and_short_tail(self):
         _,_,row=fixture(self.root)
@@ -198,20 +173,6 @@ class ChannelReviewTests(unittest.TestCase):
                     self.assertNotEqual(result['signature']['cleanup_sha256'],'previous implementation')
                     self.assertTrue(any('reprocessing channel' in m for m in messages))
 
-    def test_preflight_is_read_only_and_corrupt_evidence_stops_before_output(self):
-        path,plan,_=fixture(self.root)
-        output=self.root/'review'
-        result=render_channel_review(path,2,output,dry_run=True,progress=lambda _:None)
-        self.assertEqual(result['status'],'preflight'); self.assertFalse(output.exists())
-        with self.assertRaisesRegex(ValueError,'overlap'):
-            render_channel_review(path,2,path.parent/'rendered',dry_run=True,progress=lambda _:None)
-        with self.assertRaisesRegex(ValueError,'non-IRIG'):
-            prepare(path,1)
-        map_path=path.parent/plan['regions'][0]['maps']['file']
-        map_path.write_bytes(map_path.read_bytes()+b'corrupt')
-        with self.assertRaisesRegex(ValueError,'artifact changed'):
-            render_channel_review(path,2,output,progress=lambda _:None)
-        self.assertFalse(output.exists())
 
     def test_intermediate_reuse_and_corruption_rejection(self):
         _,_,row=fixture(self.root)
@@ -234,13 +195,6 @@ class ChannelReviewTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'intermediate changed'):
             ensure_denoised(row,cache,0,row['frames'],progress=lambda _:None)
 
-    def test_deflutter_requires_prepared_cache_without_silent_cleanup(self):
-        path,_,_=fixture(self.root)
-        output=self.root/'review'
-        with patch('channel_review.cleanup_channel',side_effect=AssertionError('Cleanup reran')):
-            with self.assertRaisesRegex(ValueError,'run stage 03'):
-                render_channel_review(path,2,output,denoised_input=self.root/'missing',require_prepared=True,progress=lambda _:None)
-        self.assertFalse(output.exists())
 
 
 if __name__=='__main__':

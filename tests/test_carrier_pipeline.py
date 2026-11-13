@@ -18,7 +18,7 @@ _install()
 from carrier_survey import scan_file, survey_tape, load_survey, screen
 from flutter_planning import inventory, fair_shortlist
 from continuous_planning import plan_tape
-from flutter_policy import shifted_curve, numeric_pass, evidence_strength, require_rollout, require_production
+from flutter_policy import shifted_curve, numeric_pass, evidence_strength
 from flutter_tracking import trajectory
 from irig_clock import sequential_runs, promote_run, carry_anchors, clock_constraints
 from channel_review import continuous_map, joined_map_checks
@@ -135,13 +135,6 @@ class CarrierPipelineTests(unittest.TestCase):
         mapped[2]['get_seconds'] += .5
         self.assertEqual(clock_constraints(mapped, model)['status'], 'conflict')
 
-    def test_production_cannot_use_experimental_or_unapproved_plans(self):
-        with self.assertRaisesRegex(ValueError, 'review-only'):
-            require_production(None, None, 2, experimental=True)
-        with self.assertRaisesRegex(ValueError, 'rollout-approval'):
-            require_rollout(None)
-        with self.assertRaisesRegex(ValueError, 'production-approval'):
-            require_production(None, None, 2)
 
     def test_reserved_events_check_actual_joined_map_and_keep_failure(self):
         from test_channel_review import fixture

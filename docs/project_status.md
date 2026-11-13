@@ -1,5 +1,24 @@
 # Project status and local artifacts
 
+## November 13 shared-map refactor
+
+Stage 05a now imports saved all-channel tone evidence and compiles one native
+shared tape map. Stage 05b and the Audition comparison exporter use completed
+v2 denoised inputs and that identical map, preserving recorded channel offsets
+and v2 gain. Excerpts crop the common map without independent anchoring.
+Legacy planner/transfer/v1 rendering options, the old command alias, review
+desk, sampling/approval machinery, and bounded shared-map adapter are removed.
+The numerical readers needed for saved evidence remain. Removed source is
+recoverable from Git and research snapshots; approval-bound artifacts are unchanged.
+See [the operating guide](shared_deflutter.md), including the read-only tone
+sighting lookup. The refactor ran synthetic regression checks only; no new
+archive survey, map compilation, or listening render was performed.
+
+The approximately 20% saved eligible coverage on T510076 is not an estimate of
+tone occurrence or the final correctable fraction. Visual sightings in original
+WAVs can be compared against discovery, tracking, and shared selection records
+before deciding whether targeted new analysis is needed.
+
 Reviewed November 3, 2026, against repository history through `b72d45e`, the
 local research records, and the data folders. The listening updates below
 record subsequent work and user feedback.

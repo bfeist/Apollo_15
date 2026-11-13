@@ -1,5 +1,10 @@
 # Version 5: continuous all-channel deflutter planning
 
+**Historical evidence guide.** As of November 13, active stage 05 reuses these
+saved surveys and maps through [the shared tape workflow](shared_deflutter.md).
+The commands and per-target assessment contracts below describe the former
+planner. The old v5 command alias has been deleted; use shared stage 05a.
+
 The new methodology is `continuous-allchannel-v5`. It is a research planner,
 with reproducible bounded audio evaluation. Batch planning creates plans and
 assessments; it does not render corrected WAVs. The stopped v4 plan and earlier `continuous-carrier-v5`

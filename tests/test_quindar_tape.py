@@ -178,7 +178,7 @@ class TapeQuindarTests(unittest.TestCase):
             root=Path(tmp)
             for tape in ('A15_T510001','A15_T510002'):
                 p=root/tape/'CH01';p.mkdir(parents=True);(p/'deflutter.wav').touch()
-            args,selected=pipeline.parse_args(['plan','--all-tapes','--stages','05c','--defluttered-root',str(root)])
+            args,selected=pipeline.parse_args(['plan','--all-tapes','--stages','06','--defluttered-root',str(root)])
             jobs=pipeline.make_jobs(args,selected,root/'runs')
             self.assertEqual(len(jobs),2)
             self.assertTrue(all('--all-channels' in j['command'] for j in jobs))

@@ -6,7 +6,11 @@ Processing tools for the Apollo 15 30-track recordings. Current work includes th
 to select one shared timing map, applied across channels at the same tape time.
 Missing check tones on an output channel do not independently disable correction.
 See [the governing rule and saved-data workflow](docs/tape_level_deflutter.md).
-Older per-target rendering paths require the shared-map adapter for new reviews.
+Stage 05 compiles one shared tape map and applies it to completed v2 denoised audio.
+Stage 07 adds [speech-level normalization](docs/speech_normalization.md) after
+deflutter or retiming, with constant gain to a speech target and a bypass for uncertain channels.
+New denoise runs write unity-gain float WAVs; stage 07 sets the final speech level.
+Completed denoise outputs retain their existing gain.
 
 Start with the [project status and local artifact guide](docs/project_status.md)
 for the November 3 repository audit, research outcome, retained listening
@@ -16,13 +20,11 @@ For the current denoise rollout, use the [Windows/Genus production console guide
 The [v2.16 rollout history](docs/denoise_v2_all_tapes_runbook.md) and
 [findings and local evidence index](docs/denoise_v2_plan.md) retain review and migration context.
 
-The new **version 5 all-channel planner** is `scripts/05_deflutter/05a_plan_deflutter_v5.py`.
-It surveys originals and existing denoised channels throughout the requested
-timeline, then validates correction against original timing evidence. See the
-[v5 methodology and planning](docs/deflutter_v5.md). Its separate
-`deflutter_planning_v5_allchannel` destination preserves v4 and the earlier
-v5-labelled experiments. Select it explicitly for batch planning; the legacy
-planner remains the default. Full corrected WAV rendering is a separate step.
+The active [shared tape workflow](docs/shared_deflutter.md) reuses completed
+all-channel surveys, tracking curves, and assessments. Stage 05a selects one
+curve per tape-time interval and saves one integrated map. Stage 05b applies
+that artifact to completed v2 denoised channels. Historical evidence stays
+immutable; per-target planners are no longer active processing entry points.
 
 The [October 30 research findings](docs/deflutter_research_findings.md) qualify
 these numerical results: no experimental correction is approved for production.
@@ -36,22 +38,23 @@ generated reports and listening-site exports remain local.
 | 01a | `01_ingest/01a_zip_originals.py` | ZIP each canonical tape folder, skipping existing ZIPs | Done |
 | 03 v1 | `03_denoise/03_denoise.py` | Remove tones/hum and reduce broadband noise by at most 3 dB | Existing archive |
 | 03 v2 | `03_denoise/denoise_v2_console.py` | Qualified accelerated denoising on Windows and Genus | Active rollout; automatic Windows day/night limits |
-| 05a v5 | `05_deflutter/05a_plan_deflutter_v5.py` | Continuous all-channel original/denoised discovery and validated original-signal motion | Planning and assessment |
-| 05a legacy | `05_deflutter/05a_plan_deflutter.py` | Earlier continuous-reference planner, the batch default | Historical compatibility |
-| 05b | `05_deflutter/05b_deflutter.py` | Apply accepted saved maps to denoised channels and normalize | Active |
-| 05c | `05c_retime/05c_retime.py` | Apply one shared Quindar speed curve per completed tape | Active |
-| Future 06 or 05c integration | `run.py irig_search.py` | Find provisional IRIG clock snapshots on original CH01-CH04 | Standalone utility in `06_irig/`; integration undecided |
+| 05a | `05_deflutter/05a_plan_deflutter.py` | Compile one map from saved tone evidence across all channels | Shared tape maps |
+| 05b | `05_deflutter/05b_deflutter.py` | Apply the tape map to completed v2 channels at their existing gain | Shared tape maps |
+| 06 | `06_retime/06_retime.py` | Apply one shared Quindar speed curve per completed tape | Active |
+| 07 | `07_normalize/07_normalize.py` | Constant gain to a speech target, noise-only bypass and transient peak limiting | New; listening calibration pending |
+| 08 utility | `run.py irig_search.py` | Find provisional IRIG clock snapshots on original CH01-CH04 | Standalone utility in `08_irig/`; integration undecided |
 
 ```mermaid
 flowchart TD
     A[01 · Concatenate] --> B[Canonical originals]
     B --> C[01a · ZIP originals]
     B --> D[03 · Denoise]
-    B --> E[05a · Plan continuous flutter correction]
-    D --> F[05b · Apply accepted correction]
+    B --> E[05a · Compile shared tape map from saved evidence]
+    D --> F[05b · Apply shared map to v2 audio]
     E --> F
     F --> G[Survey Quindars and freeze shared tape curve]
-    G --> H[05c · Retime]
+    G --> H[06 · Retime]
+    H --> I[07 · Speech normalization]
     B --> I[IRIG search · future clock anchoring]
 ```
 
@@ -69,30 +72,21 @@ Python 3.10+ and `uv` are required. Run from the repository root:
 
 ```powershell
 uv sync --locked
-uv run python scripts/pipeline.py run --stages 05a --all-tapes --flutter-planner v5 --flutter-plan-workers 4 --plain
-uv run python scripts/05_deflutter/05a_plan_deflutter_v5.py --help
-uv run python scripts/05_deflutter/05a_plan_deflutter_v5.py --input D:/Apollo_15_30-Track/orig_concatenated/A15_T510073 --start 10920 --duration 240 --output reports/my_fresh_v5_trial
+uv run python scripts/pipeline.py plan --stages 05a --tape A15_T510076 --all-channels --plain
+uv run python scripts/05_deflutter/05a_plan_deflutter.py --help
+uv run python scripts/05_deflutter/inspect_tone.py --help
 ```
 
-The v5 batch surveys whole tapes by default and creates plans and assessments;
-it does not render corrected WAVs. Set `--flutter-plan-workers 1` for serial
-processing, or another positive number for concurrent tape processes. Use `plan`
-instead of `run` to preview without writing outputs. See the v5 guide for
-checkpoint recovery and interrupted surveys. Batch runs accept one stage per
-command. Use `--tape A15_T510083` for a single tape, and `--channel 20` for a
-specific audio channel. Stage 05b requires a complete plan, a prepared stage-03
-intermediate, and matching production acceptance.
+Stage 05a compiles existing evidence without running new discovery or fitting.
+Use `--flutter-plan-workers 1` to limit simultaneous map builds while denoising
+continues. `plan` previews commands without writes. Stage 05b requires a completed
+shared map and completed v2 input. A single tape/channel defaults to stage 05b.
+Readiness to render does not imply listening acceptance.
 
-```powershell
-uv run python scripts/pipeline.py run --stages 05b --all-tapes --plain
-uv run python scripts/run.py quindar_survey.py --tape A15_T510083 --workers 8
-uv run python scripts/05c_retime/05c_retime.py --tape A15_T510083 --plan-only
-uv run python scripts/pipeline.py run --stages 05c --tape A15_T510083 --all-channels --plain
-```
-
-Finish 05b for all expected audio channels before surveying Quindars. IRIG-only channels are excluded from rendering. The frozen curve is shared by every audio channel, including those without usable tones, while preserving historical head offsets.
-
-The [operating and evidence guide](docs/continuous_reference_pipeline.md) covers checkpoint/resume, bounded listening reviews, qualification, and acceptance. Numeric planning success does not provide listening approval.
+See [the shared-map guide](docs/shared_deflutter.md) for commands to compile,
+render, export matched Audition WAVs, and trace visual tone sightings. Stage 05b
+supports every numbered channel, including CH01; downstream Quindar analysis
+retains its existing audio-channel scope. All outputs preserve source offsets.
 
 ## IRIG search
 
@@ -113,11 +107,12 @@ Defaults are beneath `D:/Apollo_15_30-Track`; overrides are available in `--help
 | `orig_delivery/` | Delivered fragments | `--delivery` |
 | `orig_concatenated/` | Canonical originals | `--concatenated` |
 | `denoised/` | Completed stage-03 channels | `--denoised-root` |
-| `deflutter_planning_v5_allchannel/` | New v5 survey bundles and nested `plan/` maps | Standalone v5 `--planning-root` |
-| `deflutter_planning_v5/` | Continuous reference plans, evidence, maps | `--flutter-planning-root` |
-| `defluttered_v5/` | Stage-05b audio | `--defluttered-root` |
+| `deflutter_planning_v5_allchannel/` | Preserved all-channel tone evidence | `--flutter-evidence-root` |
+| `deflutter_planning_shared/` | One map and selection provenance per tape | `--flutter-planning-root` |
+| `defluttered_shared/` | Stage-05b audio from v2 channels | `--defluttered-root` |
 | `quindar_post_deflutter_analysis_v5/` | Surveys and frozen tape curves | `--quindar-analysis-root` |
-| `defluttered_retimed_v5/` | Stage-05c audio | `--retimed-root` |
+| `defluttered_retimed_v5/` | Stage-06 audio | `--retimed-root` |
+| `speech_normalized/` | Stage-07 listening WAVs and measurement reports | `--normalized-root` |
 | `irig_search/` | Independent IRIG screening and clock evidence | Standalone search `--output` |
 
 - `scripts/`: the top-level `pipeline.py`, the `run.py` dispatcher, and numbered stage folders described in [the script layout guide](docs/script_layout.md).

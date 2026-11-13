@@ -1,58 +1,70 @@
-"""Stage 05a: plan flutter correction from original canonical timing evidence."""
-
-# Resolve shared modules from the stage folders.
-import sys as _sys
-from pathlib import Path as _Path
-_sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
-from _bootstrap import install as _install
-_install()
-
-import os
-for name in ('OPENBLAS_NUM_THREADS', 'OMP_NUM_THREADS', 'MKL_NUM_THREADS'):
-    os.environ.setdefault(name, '1')
+"""Stage 05a: compile one shared tape map from completed all-channel tone evidence."""
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _bootstrap import install
+install()
 
 import argparse
-from pathlib import Path
-from continuous_planning import plan_tape
-from flutter_plan_store import DEFAULT_PLANNING_ROOT, planning_directory, planning_lock
+import json
+from flutter_plan_store import planning_directory, planning_lock
+from shared_tape import DEFAULT_EVIDENCE_ROOT, DEFAULT_PLANNING_ROOT, build_tape_plan, identity
+from flutter_planning import inventory
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--input', type=Path, required=True, help='Canonical tape folder, one timestamped WAV per channel')
-    parser.add_argument('--output', type=Path, help='Override the persistent per-tape destination')
-    parser.add_argument('--planning-root', type=Path, default=DEFAULT_PLANNING_ROOT)
-    parser.add_argument('--monitor-seconds', type=float, default=60, help='Quality-check cadence; does not end a reference lifetime')
-    parser.add_argument('--chunk-seconds', type=float, default=7, help='Bounded reference I/O size; does not change the estimator')
-    parser.add_argument('--context-seconds', type=float, default=4)
-    parser.add_argument('--start', type=float, default=0)
-    parser.add_argument('--duration', type=float, help='Optional bounded audit; omitted means the whole tape')
-    parser.add_argument('--candidates-per-channel', type=int, default=8)
-    parser.add_argument('--reference-limit', type=int, default=8)
-    parser.add_argument('--max-windows', type=int, help='Checkpoint after this many new monitoring windows')
-    parser.add_argument('--resume', action='store_true', help='Resume an incomplete plan (also automatic without this flag)')
-    args = parser.parse_args()
+def discover_regional_plans(data_root, tape):
+    """Find completed whole-tape and bounded regional evidence in saved stores."""
+    found = []
+    for root in sorted(Path(data_root).glob('deflutter_planning*')):
+        folder = root/tape
+        for path in [folder/'plan.json', *sorted(folder.glob('audits/*/plan.json'))]:
+            if path.is_file():
+                meta = json.loads(path.read_text(encoding='utf-8'))
+                if meta.get('complete') and meta.get('schema') == 1:
+                    found.append(path.resolve())
+    return found
+
+
+def main(argv=None):
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--input', type=Path, required=True, help='Canonical original tape folder')
+    p.add_argument('--output', type=Path)
+    p.add_argument('--planning-root', type=Path, default=DEFAULT_PLANNING_ROOT)
+    p.add_argument('--evidence-root', type=Path, default=DEFAULT_EVIDENCE_ROOT,
+                   help='Completed all-channel survey bundles; reused without new analysis')
+    p.add_argument('--regional-plan', type=Path, action='append', default=[],
+                   help='Additional completed regional evidence; may be repeated')
+    p.add_argument('--start', type=float, default=0)
+    p.add_argument('--duration', type=float)
+    args = p.parse_args(argv)
     try:
-        output = args.output or planning_directory(args.input.name, args.planning_root, args.start, args.duration)
-        if args.input.resolve() == output.resolve() or args.input.resolve() in output.resolve().parents or output.resolve() in args.input.resolve().parents:
-            raise ValueError('Input and output must be non-overlapping')
+        source = inventory(args.input)
+        bundle = args.evidence_root/source['tape']
+        output = args.output or planning_directory(source['tape'], args.planning_root, args.start, args.duration)
+        evidence, assessment = bundle/'plan/plan.json', bundle/'joined_assessment.json'
+        if not evidence.is_file() or not assessment.is_file():
+            raise ValueError('Completed all-channel tone evidence is unavailable; no automatic resurvey is run')
+        saved = json.loads(evidence.read_text(encoding='utf-8'))
+        if source['tape'] != saved['inventory']['tape'] or identity(source) != identity(saved['inventory']):
+            raise ValueError('Saved tone evidence does not match the canonical originals')
+        regional = list(args.regional_plan)
+        regional.extend(discover_regional_plans(args.input.resolve().parent.parent, source['tape']))
+        regional = sorted({(path/'plan.json' if path.is_dir() else path).resolve() for path in regional})
+        destination = output.resolve()
+        protected = [args.input.resolve(), bundle.resolve(), *[path.parent for path in regional]]
+        if any(destination == path or destination in path.parents or path in destination.parents
+               for path in protected):
+            raise ValueError('Shared output must not overlap originals or saved evidence')
         with planning_lock(output):
-            if (output/'plan.json').exists():
-                print(f'{args.input.name}: existing plan found; checking compatibility and resuming if incomplete', flush=True)
-            plan = plan_tape(args.input, output, start=args.start, duration=args.duration,
-                monitor_seconds=args.monitor_seconds, chunk_seconds=args.chunk_seconds,
-                context_seconds=args.context_seconds, candidates_per_channel=args.candidates_per_channel,
-                reference_limit=args.reference_limit, max_windows=args.max_windows, resume=args.resume, reuse=True)
-            outcome = plan.get('optimization_outcome', {})
-            if not plan.get('complete'):
-                print(f'{args.input.name}: checkpoint saved; repeat the same command to continue', flush=True)
-            print(f"{args.input.name}: {outcome.get('status', 'incomplete')}; "
-                  f"supported correction coverage={outcome.get('correction_coverage', 0.):.2%}; "
-                  f"restoration-goal channel-seconds={outcome.get('restoration_goal_seconds', 0.):.3f}; "
-                  f"supported-improvement channel-seconds={outcome.get('supported_improvement_seconds', 0.):.3f}; "
-                  'planning evidence only, no production acceptance', flush=True)
-    except (ValueError, OSError, RuntimeError, KeyError) as exc:
-        parser.error(str(exc))
+            plan = build_tape_plan(evidence, assessment, output, regional_paths=regional,
+                start=args.start, end=None if args.duration is None else args.start+args.duration)
+        print(json.dumps(dict(tape=source['tape'], output=str(output),
+            eligible_seconds=plan['map']['eligible_seconds'], supported_seconds=plan['map']['supported_seconds'],
+            bypass_seconds=plan['map']['bypass_seconds'], tape_time_coverage=plan['map']['coverage'],
+            new_analysis=False, map_sha256=plan['map']['sha256']), indent=2))
+        return 0
+    except (OSError, ValueError, RuntimeError, KeyError, TypeError) as error:
+        p.error(str(error))
 
 
 if __name__ == '__main__':

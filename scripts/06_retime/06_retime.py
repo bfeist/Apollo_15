@@ -1,4 +1,4 @@
-"""Stage 05c: retime defluttered audio using a smoothed Quindar anchor curve."""
+"""Stage 06: retime defluttered audio using a smoothed Quindar anchor curve."""
 
 # Resolve shared modules from the stage folders.
 import sys as _sys

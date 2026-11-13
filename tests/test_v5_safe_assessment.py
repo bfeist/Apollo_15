@@ -1,7 +1,5 @@
 """A rejected map remains explicit while other channels finish assessment."""
 import json
-import importlib.util
-from contextlib import nullcontext
 from contextlib import ExitStack
 from pathlib import Path
 import sys
@@ -81,37 +79,3 @@ def test_valid_map_assessments_match_the_frozen_evaluator(tmp_path):
     for key in ('assessment_implementation_sha256','assessment_complete','assessment_status','invalid_map_channels'):
         reports[1].pop(key)
     assert reports[0]==reports[1]
-
-
-@pytest.mark.parametrize('cache_state', ['current', 'missing_hash', 'changed_hash', 'changed_plan', 'incomplete'])
-def test_cli_resume_reuses_only_a_complete_bound_assessment(tmp_path, monkeypatch, cache_state):
-    script = Path(__file__).resolve().parents[1]/'scripts/05_deflutter'/'05a_plan_deflutter_v5.py'
-    spec = importlib.util.spec_from_file_location('v5_cli', script)
-    cli = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(cli)
-    plan = tmp_path/'plan'
-    plan.mkdir()
-    (plan/'plan.json').write_text('{}')
-    report = dict(assessment_complete=True, plan_sha256=cli.digest(plan/'plan.json'),
-        assessment_implementation_sha256=cli.assessment_implementation_digest(),
-        proposed_correction_channel_seconds=0., spans_with_reserved_improvement_channel_seconds=0.)
-    cached = dict(report)
-    if cache_state == 'missing_hash':
-        cached.pop('assessment_implementation_sha256')
-    elif cache_state == 'changed_hash':
-        cached['assessment_implementation_sha256'] = 'old implementation'
-    elif cache_state == 'changed_plan':
-        cached['plan_sha256'] = 'old plan'
-    elif cache_state == 'incomplete':
-        cached['assessment_complete'] = False
-    (tmp_path/'joined_assessment.json').write_text(json.dumps(cached))
-    monkeypatch.setattr(sys, 'argv', [str(script), '--input', str(tmp_path/'source'),
-        '--output', str(tmp_path), '--resume'])
-    monkeypatch.setattr(cli, 'planning_lock', lambda _: nullcontext())
-    monkeypatch.setattr(cli, 'plan_tape', lambda *args, **kwargs: dict(complete=True))
-    with patch.object(cli, 'assess_plan', return_value=report) as assess:
-        cli.main()
-    if cache_state == 'current':
-        assess.assert_not_called()
-    else:
-        assess.assert_called_once_with(plan, tmp_path/'joined_assessment.json')

@@ -2,10 +2,25 @@
 
 `scripts/03_denoise/denoise_v2_console.py` provides the master console, backed by
 `denoise_v2_launcher.py` and the frozen `denoise_v2_cluster.py` coordinator.
-The default backend is now the qualified Numba execution adapter. Frozen
-reference DSP/writer files, originals, v1 archive and approved listening files
-remain unchanged; new rendered spans use the separately identified accelerated
+The default backend is now the qualified Numba execution adapter. Originals,
+v1 archive and approved listening files remain unchanged; new rendered spans use the separately identified accelerated
 backend, with provenance added to checkpoints and newly completed manifests.
+
+The console and launcher apply `denoise_v2_output_policy.py` to newly finished
+channels on both machines. The already verified unity-gain WAV is published as
+`CHxx.wav` through a hard link, without a gain scan or a second audio write.
+Stage 07 sets the final speech level after deflutter or retiming.
+Frozen source bytes, run identities, checkpoint prefixes, qualifications,
+approvals and completed normalized outputs stay unchanged. Existing checkpoints
+resume their denoise work and finish at unity gain.
+
+The separate `cluster/output_policy.json` binds the policy implementation hash
+and original cluster configuration. New manifests explicitly record
+`normalization.method = unity_gain_deferred_to_stage07`, `gain = 1`, the policy
+descriptor and the verified unity-audio hash. Verification checks that bypass
+contract as well as the original source, timing, WAV and cleanup bindings.
+Older normalized outputs use their original verifier. The frozen reference
+commands remain historical; use the console/launcher for current production.
 
 Run the master console on Windows from `F:\_repos\Apollo_15`:
 
@@ -91,15 +106,16 @@ Commands run through `/home/bfeist/.local/bin/uv run --no-project --python ...`
 so uv never tries to replace the shared Windows environment.
 
 Genus reads originals and saved v1 frequency hints from D:, but renders unity
-audio, normalization scratch, and resumable checkpoints under
+audio and resumable checkpoints under
 `/home/bfeist/.local/share/apollo15-denoise` on its local disk. Completed results
 upload to an isolated inbox on D:. Windows verifies their source binding,
-format, sample count, finite samples, audio hash, cleanup log and normalization,
+format, sample count, finite samples, audio hash, cleanup log and recorded gain,
 then publishes under the existing per-channel lock. Publication uses hard links
 on D: and preserves any prior output required by the existing writer.
 Genus reclaims local completed files only after Windows acknowledges publication.
 Genus workers recover from Linux I/O, stale-handle and network timeout/connection
-errors with 19 retries and about 15 minutes of backoff (2, 5, 10, 20, 30 seconds,
+errors, including `EAGAIN` (`Resource temporarily unavailable`) on upload flush,
+with 19 retries and about 15 minutes of backoff (2, 5, 10, 20, 30 seconds,
 then 60 seconds). The console reports `storage retry` and keeps receiving
 heartbeats while other workers continue. The unchanged writer verifies and reuses
 completed local results or resumes a verified checkpoint; a failed upload does

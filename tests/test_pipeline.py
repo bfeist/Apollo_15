@@ -215,71 +215,37 @@ class BatchFlutterTests(CanonicalTapeTests):
         self.final = self.root/'final'
         self.options += ['--planning-root', str(self.plans), '--defluttered-root', str(self.final)]
 
-    def test_plan_all_tapes_is_read_only_and_uses_per_tape_settings(self):
-        jobs = self.jobs('--all-tapes', '--stages', '05a', '--flutter-monitor-seconds', '20', '--flutter-plan-start', '5',
+
+    def test_plan_all_tapes_reuses_evidence_and_writes_nothing(self):
+        jobs = self.jobs('--all-tapes', '--stages', '05a', '--flutter-plan-start', '5',
                          '--flutter-plan-duration', '10')
         self.assertEqual([(j['tape'], j['channel']) for j in jobs],
                          [('A15_T001', None), ('A15_T002', None)])
         for job in jobs:
             command = job['command']
-            self.assertEqual(command[command.index('--input')+1], str(self.originals/job['tape']))
+            self.assertEqual(Path(command[2]).name, '05a_plan_deflutter.py')
+            self.assertEqual(command[command.index('--evidence-root')+1], str(pipeline.DEFAULT_EVIDENCE_ROOT))
             self.assertEqual(command[command.index('--output')+1],
                              str(self.plans/job['tape']/'audits'/'start_5_duration_10'))
-            for flag, value in [('--monitor-seconds', '20.0'),
-                                ('--start', '5.0'), ('--duration', '10.0')]:
-                self.assertEqual(command[command.index(flag)+1], value)
-        self.assertEqual(len({j['log'] for j in jobs}), 2)
+            self.assertNotIn('--reference-limit', command)
         self.assertEqual(pipeline.main(['plan', *self.options, '--all-tapes', '--stages', '05a']), 0)
         self.assertFalse(self.plans.exists())
         self.assertFalse(self.runs.exists())
-        self.assertFalse(self.cache.exists())
 
-    def test_v5_batch_commands_and_resume_selection(self):
-        flags = ('--all-tapes', '--stages', '05a', '--flutter-planner', 'v5')
-        jobs = self.jobs(*flags)
-        for job in jobs:
-            command = job['command']
-            self.assertEqual(Path(command[2]).name, '05a_plan_deflutter_v5.py')
-            self.assertEqual(command[command.index('--denoised-root')+1], str(self.cache))
-            self.assertEqual(command[command.index('--output')+1], str(self.plans/job['tape']))
-            self.assertNotIn('--resume', command)
-        (self.plans/'A15_T001').mkdir(parents=True)
-        resumed = self.jobs(*flags, '--flutter-plan-resume')
-        self.assertIn('--resume', resumed[0]['command'])
-        self.assertNotIn('--resume', resumed[1]['command'])
-        args, _ = pipeline.parse_args(['--all-tapes', '--stages', '05a', '--flutter-planner', 'v5'])
-        self.assertEqual(args.flutter_planning_root, pipeline.DEFAULT_V5_PLANNING_ROOT)
-        for extra in [('--flutter-plan-resume',), ('--stages', '05b', '--flutter-planner', 'v5'),
-                      ('--all-tapes', '--stages', '05a', '--flutter-planner', 'v5', '--channel', '2')]:
+
+    def test_legacy_planner_and_transfer_options_are_removed(self):
+        for extra in [('--flutter-planner', 'v5'), ('--flutter-planner', 'legacy'),
+                      ('--experimental-transfer',), ('--flutter-plan-resume',)]:
             with self.subTest(extra=extra), self.assertRaises(SystemExit):
-                pipeline.parse_args(list(extra))
+                pipeline.parse_args(['--all-tapes', '--stages', '05a', *extra])
 
     def test_all_tapes_can_exclude_active_tapes(self):
-        jobs = self.jobs('--all-tapes', '--stages', '05a', '--flutter-planner', 'v5',
+        jobs = self.jobs('--all-tapes', '--stages', '05a',
                          '--exclude-tape', 'A15_T001')
         self.assertEqual([job['tape'] for job in jobs], ['A15_T002'])
         with self.assertRaises(SystemExit):
             pipeline.parse_args(['--exclude-tape', 'A15_T001'])
 
-    def test_v5_batch_executes_and_reports_interrupted_survey(self):
-        command = [sys.executable, str(RUNNER), 'run', *self.options, '--planning-root', str(self.plans),
-                   '--all-tapes', '--stages', '05a', '--flutter-planner', 'v5', '--flutter-plan-workers', '2']
-        result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
-        self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-        for tape in ('A15_T001', 'A15_T002'):
-            self.assertTrue((self.plans/tape/'joined_assessment.json').is_file())
-            self.assertTrue((self.plans/tape/'plan'/'plan.json').is_file())
-        # An occupied survey with no planning checkpoint must fail, not restart or overwrite it.
-        partial = self.originals/'A15_T003'
-        partial.mkdir()
-        occupied = self.plans/'A15_T003'
-        occupied.mkdir()
-        marker = occupied/'survey.jsonl'
-        marker.write_text('preserved')
-        result = subprocess.run([*command, '--flutter-plan-resume'], capture_output=True, text=True, encoding='utf-8')
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn('No survey checkpoint', ' '.join(result.stdout.split()))
-        self.assertEqual(marker.read_text(), 'preserved')
 
     def test_planning_batch_runs_tapes_concurrently_and_continues_after_failure(self):
         jobs = self.jobs('--all-tapes', '--stages', '05a')
@@ -337,91 +303,23 @@ class BatchFlutterTests(CanonicalTapeTests):
         with self.assertRaises(SystemExit):
             pipeline.parse_args(['--flutter-plan-workers', '0'])
 
-    def test_default_continuous_planning_forwards_monitor_and_io_sizes_without_survey(self):
-        jobs = self.jobs('--all-tapes', '--stages', '05a',
-                         '--flutter-monitor-seconds', '45', '--flutter-chunk-seconds', '3.7',
-                         '--flutter-reference-limit', '6')
-        for job in jobs:
-            command = job['command']
-            for flag, value in [('--monitor-seconds', '45.0'),
-                                ('--chunk-seconds', '3.7'), ('--reference-limit', '6')]:
-                self.assertEqual(command[command.index(flag)+1], value)
-            self.assertNotIn('--carrier-survey-root', command)
-            self.assertNotIn('--region-seconds', command)
-            self.assertNotIn('--workers', command)
 
-    def test_restart_reuses_completed_tapes_and_resumes_checkpoint(self):
-        # One tape is already finished, while another has only one committed
-        # monitoring window, as after an interruption of the batch.
-        unfinished = self.originals/'A15_T002'
-        for path in unfinished.glob('*.wav'):
-            path.unlink()
-        sf.write(unfinished/'A15_T002_HR1U_CH2_VOICE_207-00-00-00_207-00-02-00.wav',
-                 np.zeros(120*8000), 8000, subtype='FLOAT')
-        stage = ROOT/'scripts/05_deflutter'/'05a_plan_deflutter.py'
-        for tape in ('A15_T001', 'A15_T002'):
-            result = subprocess.run([sys.executable, str(stage), '--input', str(self.originals/tape),
-                                     '--output', str(self.plans/tape), '--max-windows', '1'],
-                                    capture_output=True, text=True, encoding='utf-8')
-            self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-        done = self.plans/'A15_T001'/'plan.json'
-        pending = self.plans/'A15_T002'/'plan.json'
-        completed_bytes = done.read_bytes()
-        before = json.loads(pending.read_text())
-        self.assertTrue(json.loads(completed_bytes)['complete'])
-        self.assertFalse(before['complete'])
-        self.assertEqual(before['summary']['monitor_windows'], 1)
-        checkpoint = self.plans/'A15_T002'/before['checkpoint_file']
-        checkpoint_bytes = checkpoint.read_bytes()
 
-        result = subprocess.run([sys.executable, str(RUNNER), 'run', *self.options,
-                                 '--all-tapes', '--stages', '05a'],
-                                capture_output=True, text=True, encoding='utf-8')
-        self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-        self.assertIn('existing plan found; checking compatibility and resuming if incomplete',
-                      ' '.join(result.stdout.split()))
-        self.assertEqual(done.read_bytes(), completed_bytes)
-        self.assertEqual(checkpoint.read_bytes(), checkpoint_bytes)
-        after = json.loads(pending.read_text())
-        self.assertTrue(after['complete'])
-        self.assertEqual(after['summary']['monitor_windows'], 2)
-        resumed_bytes = pending.read_bytes()
-        changed = subprocess.run([sys.executable, str(RUNNER), 'run', *self.options,
-                                  '--all-tapes', '--stages', '05a', '--flutter-reference-limit', '9'],
-                                 capture_output=True, text=True, encoding='utf-8')
-        self.assertNotEqual(changed.returncode, 0)
-        self.assertIn('Stored continuous plan sources/settings/implementation changed',
-                      ' '.join(changed.stdout.split()))
-        self.assertEqual(done.read_bytes(), completed_bytes)
-        self.assertEqual(pending.read_bytes(), resumed_bytes)
 
-    def test_deflutter_all_tapes_selects_audio_channels_and_forwards_roots(self):
-        jobs = self.jobs('--all-tapes', '--stages', '05b',
-                         '--target-dbfs', '-6', '--max-boost-db', '9')
+    def test_shared_render_batch_uses_one_plan_and_v2_folders_for_every_channel(self):
+        jobs = self.jobs('--all-tapes', '--stages', '05b')
         self.assertEqual([(j['tape'], j['channel']) for j in jobs],
-                         [('A15_T001', 2), ('A15_T001', 4), ('A15_T002', 2)])
-        self.assertEqual(len({j['log'] for j in jobs}), 3)
+                         [('A15_T001', 1), ('A15_T001', 2), ('A15_T001', 4),
+                          ('A15_T002', 1), ('A15_T002', 2)])
         for job in jobs:
             command = job['command']
-            channel = f'CH{job["channel"]:02d}'
-            for flag, value in [('--flutter-plan', self.plans/job['tape']/'plan.json'),
-                                ('--denoised-input', self.cache/job['tape']/channel),
-                                ('--output', self.final/job['tape']/channel),
-                                ('--target-dbfs', '-6.0'), ('--max-boost-db', '9.0')]:
-                self.assertEqual(command[command.index(flag)+1], str(value))
-            self.assertIn('--production-approval', command)
-            self.assertNotIn('--experimental-transfer', command)
-        with self.assertRaises(SystemExit):
-            self.jobs('--all-tapes', '--stages', '05b', '--experimental-transfer')
+            self.assertEqual(command[command.index('--flutter-plan')+1], str(self.plans/job['tape']/'plan.json'))
+            self.assertEqual(command[command.index('--denoised-input')+1],
+                             str(self.cache/job['tape']/f'CH{job["channel"]:02d}'))
+            self.assertNotIn('--production-approval', command)
+            self.assertNotIn('--target-dbfs', command)
         channel = self.jobs('--all-tapes', '--stages', '05b', '--channel', '4')
         self.assertEqual([(j['tape'], j['channel']) for j in channel], [('A15_T001', 4)])
-        tape = self.jobs('--tape', 'A15_T002', '--all-channels', '--stages', '05b')
-        self.assertEqual([(j['tape'], j['channel']) for j in tape], [('A15_T002', 2)])
-        self.assertEqual(pipeline.main(['plan', *self.options, '--all-tapes', '--stages', '05b']), 0)
-        self.assertFalse(self.final.exists())
-        self.assertFalse(self.runs.exists())
-        with self.assertRaisesRegex(ValueError, 'No available non-IRIG'):
-            self.jobs('--all-tapes', '--stages', '05b', '--channel', '1')
 
     def test_invalid_batch_overrides(self):
         for stage in ('05a', '05b'):
@@ -434,7 +332,7 @@ class BatchFlutterTests(CanonicalTapeTests):
                 pipeline.parse_args(['run', '--all-tapes', '--stages', '05b', *extra])
 
     def test_batch_continues_after_stage_failure_or_exception(self):
-        for stage, status, expected in [('05a', 'failed', 2), ('05b', 'blocked', 3)]:
+        for stage, status, expected in [('05a', 'failed', 2), ('05b', 'blocked', 5)]:
             for exception in (False, True):
                 with self.subTest(stage=stage, exception=exception):
                     calls = []
@@ -453,69 +351,31 @@ class BatchFlutterTests(CanonicalTapeTests):
     def test_invalid_tape_does_not_prevent_other_deflutter_jobs(self):
         sf.write(self.originals/'A15_T001'/'unidentified.wav', np.zeros(8000), 8000)
         jobs = self.jobs('--all-tapes', '--stages', '05b')
-        self.assertEqual([j['status'] for j in jobs], ['failed', 'pending'])
+        self.assertEqual([j['status'] for j in jobs], ['failed', 'pending', 'pending'])
         self.assertEqual(jobs[1]['tape'], 'A15_T002')
-        self.assertEqual(jobs[1]['channel'], 2)
+        self.assertEqual(jobs[1]['channel'], 1)
 
-    def test_all_tapes_plan_and_render_end_to_end(self):
-        # A later channel starts five seconds into the common acquisition clock.
-        original = next((self.originals/'A15_T001').glob('*CH4*'))
-        original.rename(original.with_name(original.name.replace('207-00-00-00_207-00-00-15',
-                                                                 '207-00-00-05_207-00-00-20')))
-        before = {p: p.read_bytes() for p in self.originals.rglob('*.wav')}
-        from deflutter_readiness import rollout_template
-        from flutter_policy import digest
-        from channel_review import render_channel_review
-        from flutter_plan_store import load_saved_plan
-        # Plan the full tapes without a standalone survey or rollout acceptance.
-        for stage in ('05a', '03'):
-            command = [sys.executable, str(RUNNER), 'run', *self.options,
-                       '--all-tapes', '--stages', stage]
-            result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
+
+    def test_shared_compile_and_v2_render_pipeline(self):
+        from test_shared_tape import fixture
+        native = self.root/'native'
+        fixture(native)
+        options = ['--concatenated', str(native/'originals'), '--denoised-root', str(native/'denoised'),
+            '--planning-root', str(native/'maps'), '--flutter-evidence-root', str(native/'evidence'),
+            '--defluttered-root', str(native/'final'), '--output', str(native/'runs'), '--plain']
+        for stage in ('05a', '05b'):
+            result = subprocess.run([sys.executable, str(RUNNER), 'run', *options,
+                '--all-tapes', '--stages', stage], capture_output=True, text=True, encoding='utf-8')
             self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-        rollout = self.root/'rollout.json'
-        record = rollout_template()
-        record.update(status='accepted', reviewer='synthetic integration fixture', reviewed_at='2026-10-24')
-        for name in ('carrier_qualification', 'fresh_holdouts', 'speech_listening'):
-            evidence = self.root/(name+'.json')
-            evidence.write_text(json.dumps(dict(status='accepted', scope='Synthetic integration fixture only')))
-            record[name] = dict(path=str(evidence), sha256=digest(evidence))
-        rollout.write_text(json.dumps(record))
-        for plan_path in self.plans.glob('*/plan.json'):
-            plan = load_saved_plan(plan_path)
-            approved = dict(status='accepted', rollout_approval=str(rollout), plan_sha256=digest(plan_path), channels=[])
-            for row in plan['inventory']['channels']:
-                if row['role'] == 'timing_only':
-                    continue
-                review_dir = self.root/'reviews'/plan['inventory']['tape']/f'CH{row["channel"]:02d}'
-                render_channel_review(plan_path, row['channel'], review_dir, start=row['start_seconds'],
-                    denoised_input=self.cache/plan['inventory']['tape']/f'CH{row["channel"]:02d}', require_prepared=True, progress=lambda _:None)
-                approved['channels'].append(dict(channel=row['channel'], speech_preserved=True, transitions_accepted=True,
-                    continuous_review=dict(path=str(review_dir/'review.json'), sha256=digest(review_dir/'review.json'))))
-            (plan_path.parent/'production_acceptance.json').write_text(json.dumps(approved))
-        command = [sys.executable, str(RUNNER), 'run', *self.options, '--all-tapes', '--stages', '05b']
-        result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
-        self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-        self.assertEqual(len(list(self.plans.glob('*/plan.json'))), 2)
-        self.assertEqual(len(list(self.cache.glob('*/CH*/denoised.wav'))), 5)
-        outputs = sorted(self.final.glob('*/CH*/deflutter.wav'))
-        self.assertEqual(len(outputs), 3)
-        self.assertFalse(list(self.final.glob('*/CH01')))
-        for output in outputs:
-            self.assertEqual(sf.info(output).frames, 15*8000)
-            review = json.loads((output.parent/'review.json').read_text())
-            self.assertEqual(review['status'], 'complete')
-            self.assertEqual(review['start_seconds'], 5 if output.parent.name == 'CH04' else 0)
-            self.assertTrue(review['denoised_intermediate']['reused'])
-        manifest = next(json.loads(p.read_text()) for p in self.runs.glob('*/run.json')
-                        if all(j['number'] == '05b' for j in json.loads(p.read_text())['stages']))
-        self.assertEqual([j['status'] for j in manifest['stages']], ['done']*3)
-        stamps = {p: p.stat().st_mtime_ns for p in outputs}
-        again = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
-        self.assertNotEqual(again.returncode, 0)
-        self.assertIn('blocked', again.stdout)
-        self.assertEqual(stamps, {p: p.stat().st_mtime_ns for p in outputs})
-        self.assertTrue(all(p.read_bytes() == content for p, content in before.items()))
+        reviews = [json.loads(p.read_text()) for p in (native/'final').glob('*/CH*/review.json')]
+        self.assertEqual(len(reviews), 3)
+        self.assertEqual(len({r['map_sha256'] for r in reviews}), 1)
+        self.assertTrue(all(r['cleanup_version'] == 'v2' and r['status'] == 'complete' for r in reviews))
+        self.assertTrue(all(r['gain'] == 1 and not r['per_channel_anchoring'] for r in reviews))
+        repeated = subprocess.run([sys.executable, str(RUNNER), 'run', *options,
+            '--all-tapes', '--stages', '05a'], capture_output=True, text=True, encoding='utf-8')
+        self.assertEqual(repeated.returncode, 0, repeated.stdout+repeated.stderr)
+        self.assertFalse(list((native/'final').rglob('index.html')))
 
 
 @unittest.skipUnless(os.name == 'nt', 'Windows process-tree cancellation')
@@ -648,7 +508,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(json.loads((self.output/'speech.json').read_text())['stage'], 'denoise')
 
     def test_retired_stages_are_rejected(self):
-        for stage in ('02', '02b', '04', '05', '06'):
+        for stage in ('02', '02b', '04', '05', '08'):
             with self.subTest(stage=stage):
                 result = self.run_pipeline('--stages', stage)
                 self.assertEqual(result.returncode, 2)

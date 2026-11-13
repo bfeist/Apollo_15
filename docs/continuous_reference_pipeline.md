@@ -1,5 +1,10 @@
 # Continuous-reference pipeline design
 
+**Historical design.** Active planning, rendering, and readiness now use the
+[shared tape-map workflow](shared_deflutter.md). The commands and per-target
+acceptance flows below are retained as historical documentation, not current
+operating instructions.
+
 This guide describes the existing pipeline and earlier `continuous-carrier-v5`
 experiment. The new version 5 methodology is `continuous-allchannel-v5` and
 uses the separate [all-channel planner](deflutter_v5.md). Use its documented command
