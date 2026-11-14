@@ -1,6 +1,8 @@
 import sys, numpy as np
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parent/'fast'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]/'scripts'))
+from _bootstrap import install
+install()
 import fast_kernels as fk
 n, sr = 136*8000, 8000.
 t = np.arange(n)/sr

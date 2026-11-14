@@ -1,4 +1,4 @@
-"""Fused single-thread Numba kernels for the v2.16 hum model (prototype)."""
+"""Fused single-thread Numba kernels for the v2.16 hum model."""
 import numba
 import numpy as np
 
@@ -7,7 +7,7 @@ from fast_sincos import _sincos
 TWO_PI = 2*np.pi
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def tone(hz, n, sr, block=256):
     """exp(2j*pi*hz*arange(n)/sr) via block-reseeded phasor recurrence."""
     out = np.empty(n, dtype=np.complex128)
@@ -21,7 +21,7 @@ def tone(hz, n, sr, block=256):
     return out
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def tone_phase(scale, phase, offset):
     """exp(1j*(scale*phase + offset)) for an arbitrary phase array."""
     out = np.empty(len(phase), dtype=np.complex128)
@@ -31,7 +31,7 @@ def tone_phase(scale, phase, offset):
     return out
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def _fill_tone(buffer, hz, sr, start, count):
     """buffer[:count] = exp(2j*pi*hz*(start+arange(count))/sr), reseeded every 256."""
     w = np.exp(1j*(TWO_PI*hz/sr))
@@ -43,7 +43,7 @@ def _fill_tone(buffer, hz, sr, start, count):
             z = z*w
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def _tone_observations(samples, hz, sr, starts, window):
     n = len(window)
     hop = starts[1]-starts[0]
@@ -67,7 +67,7 @@ def _tone_observations(samples, hz, sr, starts, window):
     return result
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def _tone_observations_residual(samples, model, hz, sr, starts, window):
     n = len(window)
     hop = starts[1]-starts[0]
@@ -99,7 +99,7 @@ def tone_observations(samples, model, use_model, hz, sr, starts, window):
     return _tone_observations(samples, hz, sr, starts, window)
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def phase_observations(samples, scale, phase, starts, window):
     """observations(samples, exp(1j*scale*phase)) without materializing the oscillator."""
     n = len(window)
@@ -127,7 +127,7 @@ def phase_observations(samples, scale, phase, starts, window):
     return result
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def accumulate_tone(model, coef, hz, sr):
     """model += real(coef*tone(hz))."""
     w = np.exp(1j*(TWO_PI*hz/sr))
@@ -140,7 +140,7 @@ def accumulate_tone(model, coef, hz, sr):
             z = z*w
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def demodulate_tone(samples, hz, sr):
     """2*samples*conj(tone(hz))."""
     n = len(samples)
@@ -156,13 +156,13 @@ def demodulate_tone(samples, hz, sr):
     return out
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def multiply_inplace(a, b):
     for i in range(len(a)):
         a[i] = a[i]*b[i]
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def observations(samples, oscillator, starts, window):
     """Projection of 2*samples*conj(osc) onto window frames (production kernel)."""
     result = np.empty(len(starts), dtype=np.complex128)
@@ -177,7 +177,7 @@ def observations(samples, oscillator, starts, window):
     return result
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def observations_residual(samples, model, oscillator, starts, window):
     """observations(samples-model, ...) without materializing the residual."""
     result = np.empty(len(starts), dtype=np.complex128)
@@ -193,7 +193,7 @@ def observations_residual(samples, model, oscillator, starts, window):
     return result
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def observations_real_product(coef, oscillator, gate, starts, window):
     """observations(real(coef*osc)*gate, osc) without materializing the product."""
     result = np.empty(len(starts), dtype=np.complex128)
@@ -211,7 +211,7 @@ def observations_real_product(coef, oscillator, gate, starts, window):
     return result
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def accumulate(model, coef, oscillator, gate_a, gate_b):
     """model += gate_a*gate_b*real(coef*osc)."""
     for i in range(len(model)):
@@ -219,7 +219,7 @@ def accumulate(model, coef, oscillator, gate_a, gate_b):
         model[i] += gate_a[i]*gate_b[i]*(coef.real*o.real-coef.imag*o.imag)
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def accumulate_gated(model, coef, oscillator, gate):
     """model += gate*real(coef*osc)."""
     for i in range(len(model)):
@@ -227,14 +227,14 @@ def accumulate_gated(model, coef, oscillator, gate):
         model[i] += gate[i]*(coef.real*o.real-coef.imag*o.imag)
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def accumulate_plain(model, coef, oscillator):
     for i in range(len(model)):
         o = oscillator[i]
         model[i] += coef.real*o.real-coef.imag*o.imag
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def real_product_gated(coef, oscillator, gate):
     """real(coef*osc)*gate as a new array."""
     out = np.empty(len(oscillator))
@@ -244,7 +244,7 @@ def real_product_gated(coef, oscillator, gate):
     return out
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def interp_uniform(n, sr, xp, fp):
     """np.interp(arange(n)/sr, xp, fp) for increasing xp; segment-wise evaluation."""
     out = np.empty(n)
@@ -267,7 +267,7 @@ def interp_uniform(n, sr, xp, fp):
     return out
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def interp_uniform_complex(n, sr, xp, fp):
     out = np.empty(n, dtype=np.complex128)
     m = len(xp)
@@ -289,7 +289,7 @@ def interp_uniform_complex(n, sr, xp, fp):
     return out
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def tone_piecewise(hz, n, sr, xp, fp, block=256):
     """exp(1j*(2*pi*hz*t + interp(t, xp, fp))) for t = arange(n)/sr.
 
@@ -331,7 +331,7 @@ def tone_piecewise(hz, n, sr, xp, fp, block=256):
     return out
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def envelope_apply(model, env, osc, low_gate, cap, floor_amp):
     """model += low_gate*real(env*(subtract/(|env|+eps))*osc) with subtract = max(0,min(|env|,cap)-floor_amp)."""
     for i in range(len(model)):
@@ -345,7 +345,7 @@ def envelope_apply(model, env, osc, low_gate, cap, floor_amp):
         model[i] += low_gate[i]*(scaled.real*o.real-scaled.imag*o.imag)
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def demodulate(samples, oscillator):
     """2*samples*conj(osc)."""
     out = np.empty(len(samples), dtype=np.complex128)
@@ -380,7 +380,7 @@ def warmup():
     accumulate_harmonics(m, np.zeros(n), g, np.array([3, 4]), np.ones(2, dtype=np.complex128), np.array([.25, .5]), np.ones((2, 2)), 8000.)
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def real_complex_product_gated(env, oscillator, gate):
     """real(env*osc)*gate as a new array."""
     out = np.empty(len(oscillator))
@@ -390,7 +390,7 @@ def real_complex_product_gated(env, oscillator, gate):
     return out
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def accumulate_complex_gated(out, env, oscillator, gate):
     """out += gate*real(env*osc)."""
     for i in range(len(out)):
@@ -398,7 +398,7 @@ def accumulate_complex_gated(out, env, oscillator, gate):
         out[i] += gate[i]*(e.real*o.real-e.imag*o.imag)
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def fit_groups(groups, centers, valid, training, validation, levels, residual,
                amplitude_floor, original_level, percentile, threshold, improve_ratio):
     """Local phasor fits for residual_refinement, one 8-second group at a time."""
@@ -432,7 +432,7 @@ def fit_groups(groups, centers, valid, training, validation, levels, residual,
     return local_coeffs, measured_zero
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def harmonic_observations(samples, phase, first, last, starts, window):
     """observations(samples, exp(1j*j*phase)) for j in [first, last), shape (last-first, frames).
 
@@ -468,7 +468,7 @@ def harmonic_observations(samples, phase, first, last, starts, window):
     return result
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def accumulate_harmonics(model, phase, gate, harmonics, coefs, centers, presences, sr):
     """model += gate * sum_j interp(t, centers, presences[j]) * real(coefs[j]*exp(1j*harmonics[j]*phase)).
 
@@ -530,7 +530,7 @@ def accumulate_harmonics(model, phase, gate, harmonics, coefs, centers, presence
         block_start = block_end
 
 
-@numba.njit(cache=True, fastmath=False, inline='always')
+@numba.njit(cache=True, fastmath=False, parallel=False, inline='always')
 def _rising_cosine(fraction):
     if fraction <= 0.:
         return 0.
@@ -539,7 +539,7 @@ def _rising_cosine(fraction):
     return .5-.5*np.cos(np.pi*fraction)
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def compact_weight_and_oscillator(first_frame, n, sr, center, step, taper, hz_a, hz_b, mode,
                                   gain_a, gain_b, absences):
     """Blended gain*gate weight and exp(2j*pi*phase) for one compact-bank harmonic.

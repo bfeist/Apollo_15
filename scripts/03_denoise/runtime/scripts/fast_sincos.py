@@ -15,7 +15,7 @@ C0, C1, C2, C3, C4, C5 = (-1.13585365213876817300E-11, 2.08757008419747316778E-9
                           -1.38888888888730564116E-3, 4.16666666666665929218E-2)
 
 
-@numba.njit(cache=True, fastmath=False, inline='always')
+@numba.njit(cache=True, fastmath=False, parallel=False, inline='always')
 def _sincos(x):
     k = np.rint(x*TWO_OVER_PI)
     r = ((x-k*PIO2_1)-k*PIO2_2)-k*PIO2_3
@@ -31,7 +31,7 @@ def _sincos(x):
     return sin_v, cos_v
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def exp_1j_affine(scale, phase, offset):
     """exp(1j*(scale*phase+offset)) with vectorizable sincos."""
     n = len(phase)
@@ -47,7 +47,7 @@ def exp_1j_affine(scale, phase, offset):
     return out
 
 
-@numba.njit(cache=True, fastmath=False)
+@numba.njit(cache=True, fastmath=False, parallel=False)
 def exp_1j_affine_direct(scale, phase, offset):
     out = np.empty(len(phase), dtype=np.complex128)
     for i in range(len(phase)):

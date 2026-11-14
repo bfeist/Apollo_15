@@ -11,7 +11,6 @@ from pathlib import Path
 HERE = Path(sys.argv[1]); backend = sys.argv[2]; reps = int(sys.argv[3]); barrier = float(sys.argv[4])
 sys.path.insert(0, str(HERE.parents[1]/'scripts'))
 from _bootstrap import install; install()
-sys.path.insert(0, str(HERE/'fast'))
 import numpy as np, soundfile as sf
 from render_denoise_v2 import gather_seeds, saved_seeds
 if backend == 'production':

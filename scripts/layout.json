@@ -65,5 +65,9 @@
   "v5_safe_assessment.py": "05_deflutter/v5_safe_assessment.py",
   "05c_retime.py": "06_retime/06_retime.py",
   "07_normalize.py": "07_normalize/07_normalize.py",
-  "speech_normalization.py": "07_normalize/speech_normalization.py"
+  "speech_normalization.py": "07_normalize/speech_normalization.py",
+  "fast_kernels.py": "03_denoise/runtime/scripts/fast_kernels.py",
+  "fast_sincos.py": "03_denoise/runtime/scripts/fast_sincos.py",
+  "denoise_v2_fast.py": "03_denoise/runtime/scripts/denoise_v2_fast.py",
+  "denoise_v2_refinement_fast.py": "03_denoise/runtime/scripts/denoise_v2_refinement_fast.py"
 }

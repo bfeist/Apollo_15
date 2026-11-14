@@ -7,7 +7,6 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parents[1]/'scripts'))
 from _bootstrap import install; install()
-sys.path.insert(0, str(HERE/'fast'))
 import numpy as np, soundfile as sf
 import denoise_v2_numba as production
 import denoise_v2_fast as fast
