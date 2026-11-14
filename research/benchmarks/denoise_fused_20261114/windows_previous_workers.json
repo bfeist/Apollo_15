@@ -1,0 +1,87 @@
+[
+  {
+    "workers": 6,
+    "repeats": 4,
+    "backend": "numba",
+    "backend_snapshot": "research\\benchmarks\\denoise_fused_20261114\\previous_backend\\denoise_v2_numba.py",
+    "cpu_affinity": null,
+    "elapsed_seconds": 41.540795800014166,
+    "model_audio_h_per_h": 36.97569992146073,
+    "peak_temperature": {},
+    "measurements": [
+      {
+        "wall_seconds": 41.05826150000212,
+        "cpu_seconds": 40.609375,
+        "iterations": [
+          10.279514599998947,
+          10.29068279999774,
+          10.26771430001827,
+          10.220328900002642
+        ],
+        "components": 58,
+        "output_sha256": "9683b79d1b2624fa46777d3d1d5d9a07694c1bd63dd26c92e1662af677d26fa1"
+      },
+      {
+        "wall_seconds": 41.07980669999961,
+        "cpu_seconds": 40.90625,
+        "iterations": [
+          10.205146899999818,
+          10.231436499976553,
+          10.34529999998631,
+          10.29790000000503
+        ],
+        "components": 58,
+        "output_sha256": "9683b79d1b2624fa46777d3d1d5d9a07694c1bd63dd26c92e1662af677d26fa1"
+      },
+      {
+        "wall_seconds": 41.3275689999864,
+        "cpu_seconds": 40.984375,
+        "iterations": [
+          10.308458799991058,
+          10.312784000008833,
+          10.379833700018935,
+          10.326463200006401
+        ],
+        "components": 58,
+        "output_sha256": "9683b79d1b2624fa46777d3d1d5d9a07694c1bd63dd26c92e1662af677d26fa1"
+      },
+      {
+        "wall_seconds": 41.393680899986066,
+        "cpu_seconds": 40.90625,
+        "iterations": [
+          10.29176710001775,
+          10.43638679999276,
+          10.372574400011217,
+          10.29293160000816
+        ],
+        "components": 58,
+        "output_sha256": "9683b79d1b2624fa46777d3d1d5d9a07694c1bd63dd26c92e1662af677d26fa1"
+      },
+      {
+        "wall_seconds": 41.394734000001336,
+        "cpu_seconds": 41.0,
+        "iterations": [
+          10.38925300000119,
+          10.374086600000737,
+          10.418865599989658,
+          10.212503699993249
+        ],
+        "components": 58,
+        "output_sha256": "9683b79d1b2624fa46777d3d1d5d9a07694c1bd63dd26c92e1662af677d26fa1"
+      },
+      {
+        "wall_seconds": 41.535384299990255,
+        "cpu_seconds": 41.234375,
+        "iterations": [
+          10.422547699999996,
+          10.518345500022406,
+          10.33877269999357,
+          10.255690699996194
+        ],
+        "components": 58,
+        "output_sha256": "9683b79d1b2624fa46777d3d1d5d9a07694c1bd63dd26c92e1662af677d26fa1"
+      }
+    ],
+    "input_sha256": "c1a3a8cebd1abb2bed869272017e230574efa5f8d18b819c7ad62cb170214c7b"
+  }
+]

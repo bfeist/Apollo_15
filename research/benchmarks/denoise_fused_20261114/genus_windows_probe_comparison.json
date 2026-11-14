@@ -1,0 +1,87 @@
+{
+  "host": "genus",
+  "backend": {
+    "backend_id": "apollo15-v2.16-numba-fused-v3",
+    "numba": "0.68.0",
+    "fastmath": false,
+    "parallel": false,
+    "cache": true,
+    "feature_policy": {
+      "windows": [
+        "fused_observations",
+        "phasor_recurrence",
+        "harmonic_banks",
+        "uniform_interp",
+        "fused_accumulation",
+        "compact_union"
+      ],
+      "genus": [
+        "fused_observations",
+        "phasor_recurrence",
+        "harmonic_banks",
+        "uniform_interp",
+        "fused_accumulation",
+        "compact_union"
+      ]
+    },
+    "active_features": [
+      "fused_observations",
+      "phasor_recurrence",
+      "harmonic_banks",
+      "uniform_interp",
+      "fused_accumulation",
+      "compact_union"
+    ]
+  },
+  "passed": true,
+  "probes": [
+    {
+      "index": 0,
+      "interval": [
+        0,
+        512000
+      ],
+      "windows_file_sha256": "1387a9c0d7e636d05af517ae729ac023d8db9d4378dddca828d1e03dbd6ded29",
+      "comparison": {
+        "maximum_error": 1.862645149230957e-09,
+        "rms_error": 5.78785665233259e-12
+      }
+    },
+    {
+      "index": 1,
+      "interval": [
+        110080000,
+        110592000
+      ],
+      "windows_file_sha256": "2011a373da4444d5627199c212e03cf39393353be67d1fce9a1127beaa602175",
+      "comparison": {
+        "maximum_error": 3.725290298461914e-09,
+        "rms_error": 8.954896853082527e-12
+      }
+    },
+    {
+      "index": 2,
+      "interval": [
+        117760000,
+        118272000
+      ],
+      "windows_file_sha256": "28728472a680db9e046a44b31829d3e52349d27f1705c4b0278d655eaea83843",
+      "comparison": {
+        "maximum_error": 7.450580596923828e-09,
+        "rms_error": 1.3672877275583339e-11
+      }
+    },
+    {
+      "index": 3,
+      "interval": [
+        491520000,
+        492032000
+      ],
+      "windows_file_sha256": "c8205aec13d5839964f4f6800daa609d8ed07b57727d47ddf7b7cdb59503e3be",
+      "comparison": {
+        "maximum_error": 1.4901161193847656e-08,
+        "rms_error": 2.6044160123175806e-11
+      }
+    }
+  ]
+}

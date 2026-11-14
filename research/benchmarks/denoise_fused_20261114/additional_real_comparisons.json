@@ -1,0 +1,79 @@
+{
+  "host": "windows",
+  "command": "uv run python research/profile_denoise/compare_fast.py A15_T510077 3 2048,2112,2176",
+  "passed": true,
+  "cases": [
+    {
+      "tape": "A15_T510077",
+      "channel": 3,
+      "interval": [
+        16384000,
+        17408000
+      ],
+      "seconds": [
+        29.95699250002508,
+        6.446240899997065
+      ],
+      "model_difference": {
+        "exact": false,
+        "peak": 1.522764553341105e-12,
+        "rms": 6.55802772179042e-14
+      },
+      "corrected_float32_difference": {
+        "exact": false,
+        "peak": 4.656612873077393e-10,
+        "rms": 1.2389386382333414e-12
+      },
+      "decisions_equal": true,
+      "passed": true
+    },
+    {
+      "tape": "A15_T510077",
+      "channel": 3,
+      "interval": [
+        16896000,
+        17920000
+      ],
+      "seconds": [
+        31.853031700011343,
+        6.97550980001688
+      ],
+      "model_difference": {
+        "exact": false,
+        "peak": 2.122469734688881e-12,
+        "rms": 6.599577245497579e-14
+      },
+      "corrected_float32_difference": {
+        "exact": false,
+        "peak": 2.3283064365386963e-10,
+        "rms": 1.0456905940867715e-12
+      },
+      "decisions_equal": true,
+      "passed": true
+    },
+    {
+      "tape": "A15_T510077",
+      "channel": 3,
+      "interval": [
+        17408000,
+        18432000
+      ],
+      "seconds": [
+        29.90565869997954,
+        6.768053500010865
+      ],
+      "model_difference": {
+        "exact": false,
+        "peak": 2.122469734688881e-12,
+        "rms": 6.6784517039988e-14
+      },
+      "corrected_float32_difference": {
+        "exact": false,
+        "peak": 1.1641532182693481e-10,
+        "rms": 9.936997374871799e-13
+      },
+      "decisions_equal": true,
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "host": "genus",
+  "checkpoints": [
+    {
+      "key": "A15_T510076/CH30",
+      "cursor": 23552000,
+      "checkpoint_sha256": "bcc197b9671721d6bffc3eb215ab6bae02a3dac7217699a71c84551a8f422d20",
+      "header_equal": true,
+      "audio_prefix_equal": true,
+      "log_prefix_equal": true,
+      "identity_equal": true,
+      "passed": true
+    },
+    {
+      "key": "A15_T510077/CH06",
+      "cursor": 24576000,
+      "checkpoint_sha256": "c53a34243df2918f8b8904120a77cc6ec7ec2ed8aab39283f0f36c686e844c2c",
+      "header_equal": true,
+      "audio_prefix_equal": true,
+      "log_prefix_equal": true,
+      "identity_equal": true,
+      "passed": true
+    },
+    {
+      "key": "A15_T510077/CH07",
+      "cursor": 21504000,
+      "checkpoint_sha256": "9812d4cad6659c247de57fefae906c68be60f4730e46726ee51e59b4bf6a9af1",
+      "header_equal": true,
+      "audio_prefix_equal": true,
+      "log_prefix_equal": true,
+      "identity_equal": true,
+      "passed": true
+    },
+    {
+      "key": "A15_T510077/CH08",
+      "cursor": 19968000,
+      "checkpoint_sha256": "fb0eb8b5228a20af8aee974f0a311c6753ef16a3347857d03691189d8bcd65c8",
+      "header_equal": true,
+      "audio_prefix_equal": true,
+      "log_prefix_equal": true,
+      "identity_equal": true,
+      "passed": true
+    },
+    {
+      "key": "A15_T510077/CH09",
+      "cursor": 25600000,
+      "checkpoint_sha256": "352e37bcf68a69fc92710f7595484611cd7596e89a8794790f5c70932e65cc0c",
+      "header_equal": true,
+      "audio_prefix_equal": true,
+      "log_prefix_equal": true,
+      "identity_equal": true,
+      "passed": true
+    },
+    {
+      "key": "A15_T510077/CH10",
+      "cursor": 23040000,
+      "checkpoint_sha256": "7f847dd6af20424c3c6eb341d635f27be84fc3b06f53e4e43464d42b8e4077c0",
+      "header_equal": true,
+      "audio_prefix_equal": true,
+      "log_prefix_equal": true,
+      "identity_equal": true,
+      "passed": true
+    },
+    {
+      "key": "A15_T510086/CH11",
+      "cursor": 284672000,
+      "checkpoint_sha256": "07204bc7f4c0f6c6dfe116b8f4604c700608331604c78941a49d15d6a1041b5a",
+      "header_equal": true,
+      "audio_prefix_equal": true,
+      "log_prefix_equal": true,
+      "identity_equal": true,
+      "passed": true
+    },
+    {
+      "key": "A15_T510086/CH12",
+      "cursor": 234496000,
+      "checkpoint_sha256": "610b47e421aaf2094f6c9330126fd86078cfc74d16de60d1a692e1472928e5e8",
+      "header_equal": true,
+      "audio_prefix_equal": true,
+      "log_prefix_equal": true,
+      "identity_equal": true,
+      "passed": true
+    },
+    {
+      "key": "A15_T510086/CH13",
+      "cursor": 236544000,
+      "checkpoint_sha256": "c1c668212170dc9c061935f46b08df8d81b70f885f0d17278c02878ac8b20805",
+      "header_equal": true,
+      "audio_prefix_equal": true,
+      "log_prefix_equal": true,
+      "identity_equal": true,
+      "passed": true
+    },
+    {
+      "key": "A15_T510086/CH14",
+      "cursor": 239104000,
+      "checkpoint_sha256": "1dc828eb286e6e15a0bec35c8a97334fbf034cf8db6528b14b23c979c2f9bf7d",
+      "header_equal": true,
+      "audio_prefix_equal": true,
+      "log_prefix_equal": true,
+      "identity_equal": true,
+      "passed": true
+    },
+    {
+      "key": "A15_T510086/CH15",
+      "cursor": 223744000,
+      "checkpoint_sha256": "c5cdf70e943ea8c2d0190e03381914eb045f886da7a2dc0eb65d3b7723290682",
+      "header_equal": true,
+      "audio_prefix_equal": true,
+      "log_prefix_equal": true,
+      "identity_equal": true,
+      "passed": true
+    },
+    {
+      "key": "A15_T510086/CH17",
+      "cursor": 52736000,
+      "checkpoint_sha256": "59a327baacceb3e79c36984051fe088092c3cbe491d2abbe6a457cf12e0ead6c",
+      "header_equal": true,
+      "audio_prefix_equal": true,
+      "log_prefix_equal": true,
+      "identity_equal": true,
+      "passed": true
+    }
+  ],
+  "passed": true
+}

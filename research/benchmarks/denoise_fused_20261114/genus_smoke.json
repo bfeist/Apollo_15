@@ -1,0 +1,51 @@
+{
+  "host": "genus",
+  "key": "A15_T510086/CH17",
+  "isolated": true,
+  "execution_id": "numba-00f8bef508a7a5b15bb7509f",
+  "source_stage": "/home/bfeist/.local/share/apollo15-denoise/remote-9453ab74e9ca03bb579e56a8/work/A15_T510086/CH17",
+  "sandbox": "/home/bfeist/.local/share/apollo15-smoke/denoise_fused_20261114",
+  "run_seconds": 180.0,
+  "elapsed_seconds": 180.33466528801364,
+  "exit_code": 75,
+  "cursor_before": 52736000,
+  "cursor_after": 103424000,
+  "source_audio_h_per_h": 35.13467579780479,
+  "acceleration": {
+    "schema": 1,
+    "executor": "numba-00f8bef508a7a5b15bb7509f",
+    "segments": [
+      {
+        "execution_id": "numba-6f139b80fb62bde0c2bbd876",
+        "start_frame": 0,
+        "end_frame": 52736000
+      },
+      {
+        "execution_id": "numba-00f8bef508a7a5b15bb7509f",
+        "start_frame": 52736000,
+        "end_frame": 103424000
+      }
+    ],
+    "execution_sha256": "69830d37738be21657aa496cdc0eaf9d9cd9d74dfa11a001414dc89e641ce805",
+    "execution_id": "numba-00f8bef508a7a5b15bb7509f",
+    "backend": "numba"
+  },
+  "preserved_prefix": {
+    "unity.wav": true,
+    "cleanup.jsonl": true
+  },
+  "source_sha256_before": {
+    "checkpoint.json": "59a327baacceb3e79c36984051fe088092c3cbe491d2abbe6a457cf12e0ead6c",
+    "denoised.json": "799a97894f86a845048163a27a9128b24ca098b22c38f56a8c47bb0f6ae7c94e",
+    "cleanup.jsonl": "aa662b36a101490d586784c05acb0efe49d3f87d9cca7f573fadbce842d305d3",
+    "unity.wav": "0caea9b51b6917283693e7a8f6a1c7b0d4096277efe98d4eb9a99fdbc2d204ed"
+  },
+  "source_sha256_after": {
+    "checkpoint.json": "59a327baacceb3e79c36984051fe088092c3cbe491d2abbe6a457cf12e0ead6c",
+    "denoised.json": "799a97894f86a845048163a27a9128b24ca098b22c38f56a8c47bb0f6ae7c94e",
+    "cleanup.jsonl": "aa662b36a101490d586784c05acb0efe49d3f87d9cca7f573fadbce842d305d3",
+    "unity.wav": "0caea9b51b6917283693e7a8f6a1c7b0d4096277efe98d4eb9a99fdbc2d204ed"
+  },
+  "error": null,
+  "passed": true
+}

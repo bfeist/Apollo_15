@@ -1,0 +1,42 @@
+{
+  "backend_id": "apollo15-v2.16-numba-fused-v3",
+  "execution_id": "numba-00f8bef508a7a5b15bb7509f",
+  "measured_model_source_hours_per_wall_hour": {
+    "windows": {
+      "previous": 36.97569992146073,
+      "fused": 115.18760063068527,
+      "speedup": 3.1152243466750518
+    },
+    "genus": {
+      "previous": 35.71902171538467,
+      "fused": 103.66119926760771,
+      "speedup": 2.9021287339165682
+    }
+  },
+  "windows_worker_cap": 6,
+  "genus_workers": 6,
+  "genus_cpus": "0,2,4,8,10,12",
+  "remaining_channel_hours": 12917.424087916666,
+  "projected_wall_hours": 59.02442277005798,
+  "projection_excludes": [
+    "production I/O",
+    "verification",
+    "archive content variation"
+  ],
+  "tests": [
+    {
+      "command": "uv run python -m pytest tests -k denoise -q",
+      "passed": 128,
+      "subtests_passed": 20,
+      "seconds": 45.61
+    },
+    {
+      "command": "uv run python -m pytest tests/test_script_layout.py -q",
+      "passed": 6,
+      "subtests_passed": 37,
+      "seconds": 12.55
+    }
+  ],
+  "benchmark_script_sha256": "e47a379678e55c070c4e7d990997d9157e7b39b1cc305d260a23c1d12bb1b4ac",
+  "smoke_script_sha256": "d7dedb8f5e4b17b86a80da8aca4021859aea4b18ba73ffe74d79dbc80c54a092"
+}

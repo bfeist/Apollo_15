@@ -1,0 +1,66 @@
+{
+  "host": "windows",
+  "checkpoints": [
+    {
+      "key": "A15_T510086/CH04",
+      "cursor": 437248000,
+      "checkpoint_sha256": "8975d2e130476b36b362ae3a66dc83f4065eb49e9358998f0cedeeeaa5a6005d",
+      "header_equal": true,
+      "audio_prefix_equal": true,
+      "log_prefix_equal": true,
+      "identity_equal": true,
+      "passed": true
+    },
+    {
+      "key": "A15_T510086/CH07",
+      "cursor": 358912000,
+      "checkpoint_sha256": "108e57264380034940e7ff32ecfb6bab34cc05810a02dfc8ae42f7a5bb4f1ec6",
+      "header_equal": true,
+      "audio_prefix_equal": true,
+      "log_prefix_equal": true,
+      "identity_equal": true,
+      "passed": true
+    },
+    {
+      "key": "A15_T510086/CH09",
+      "cursor": 327680000,
+      "checkpoint_sha256": "4847b976ba12fd26ebd8a19c54fb62f71d3fa06694cf367126024b5983f35058",
+      "header_equal": true,
+      "audio_prefix_equal": true,
+      "log_prefix_equal": true,
+      "identity_equal": true,
+      "passed": true
+    },
+    {
+      "key": "A15_T510086/CH10",
+      "cursor": 290304000,
+      "checkpoint_sha256": "e3c8781e3a218e9af0f738d44f4785e51b2bc71ba080ec31467a4c25480a2c73",
+      "header_equal": true,
+      "audio_prefix_equal": true,
+      "log_prefix_equal": true,
+      "identity_equal": true,
+      "passed": true
+    },
+    {
+      "key": "A15_T510086/CH16",
+      "cursor": 52736000,
+      "checkpoint_sha256": "6efd8685eaa6148a37c2bfd49877d9fa7826f55e845996615a03bf4f47b803be",
+      "header_equal": true,
+      "audio_prefix_equal": true,
+      "log_prefix_equal": true,
+      "identity_equal": true,
+      "passed": true
+    },
+    {
+      "key": "A15_T510086/CH18",
+      "cursor": 29696000,
+      "checkpoint_sha256": "35f39f61b7bec6711687501242fab4b71520ca746a91794c99f7402cae6bc5de",
+      "header_equal": true,
+      "audio_prefix_equal": true,
+      "log_prefix_equal": true,
+      "identity_equal": true,
+      "passed": true
+    }
+  ],
+  "passed": true
+}

@@ -1,0 +1,110 @@
+{
+  "execution_id": "numba-00f8bef508a7a5b15bb7509f",
+  "identity": {
+    "schema": 1,
+    "base_config_sha256": "56d564bda70cf096516e416df6d54f4f21ce6a0a770b2627ad2b035fe2c8a32a",
+    "backend_by_host": {
+      "windows": {
+        "backend_id": "apollo15-v2.16-numba-fused-v3",
+        "numba": "0.68.0",
+        "fastmath": false,
+        "parallel": false,
+        "cache": true,
+        "feature_policy": {
+          "windows": [
+            "fused_observations",
+            "phasor_recurrence",
+            "harmonic_banks",
+            "uniform_interp",
+            "fused_accumulation",
+            "compact_union"
+          ],
+          "genus": [
+            "fused_observations",
+            "phasor_recurrence",
+            "harmonic_banks",
+            "uniform_interp",
+            "fused_accumulation",
+            "compact_union"
+          ]
+        },
+        "active_features": [
+          "fused_observations",
+          "phasor_recurrence",
+          "harmonic_banks",
+          "uniform_interp",
+          "fused_accumulation",
+          "compact_union"
+        ]
+      },
+      "genus": {
+        "backend_id": "apollo15-v2.16-numba-fused-v3",
+        "numba": "0.68.0",
+        "fastmath": false,
+        "parallel": false,
+        "cache": true,
+        "feature_policy": {
+          "windows": [
+            "fused_observations",
+            "phasor_recurrence",
+            "harmonic_banks",
+            "uniform_interp",
+            "fused_accumulation",
+            "compact_union"
+          ],
+          "genus": [
+            "fused_observations",
+            "phasor_recurrence",
+            "harmonic_banks",
+            "uniform_interp",
+            "fused_accumulation",
+            "compact_union"
+          ]
+        },
+        "active_features": [
+          "fused_observations",
+          "phasor_recurrence",
+          "harmonic_banks",
+          "uniform_interp",
+          "fused_accumulation",
+          "compact_union"
+        ]
+      }
+    },
+    "remote_python": "/home/bfeist/.local/share/apollo15-numba-venv/bin/python",
+    "implementation_sha256": {
+      "scripts/denoise_v2_numba.py": "46c8293aead5fe637ae6c6b837897967b6fe2235d39af0b6b30ce6fd3644c03b",
+      "scripts/denoise_v2_accelerated.py": "4c73bc59e79342bf650ca7f4f1282de5ebf4cedde2d3bff5355d3299d75ef162",
+      "scripts/fast_kernels.py": "43108bd98da54db455ffd22abca90243c7a0654869409dbb536dfd7812d35856",
+      "scripts/fast_sincos.py": "ab44fba01616870fcabad3e1c8536c623f52e662b0430e8319adee3af1ee7822",
+      "scripts/denoise_v2_fast.py": "c8d585841f0bfcd2577d91a72b1d515cd2274177d11911c21d6c0872cf610f8a",
+      "scripts/denoise_v2_refinement_fast.py": "c4c6ad4e24dbe15e2443deefb9806c30c771ced3fa54c558b4cd580b5d918a3a"
+    },
+    "qualification_sha256": {
+      "windows": "84f50b6f4d86f2048ddfc89eff700fa43872065b3b03650b66e2e3d6e12009c8",
+      "genus": "69c276d4a9d966c8d803a044595259398e1cacb5aecd2b65e35736810aaab441"
+    },
+    "environments": {
+      "windows": {
+        "python": "3.13.11 (main, Dec  9 2025, 19:02:08) [MSC v.1944 64 bit (AMD64)]",
+        "packages": {
+          "numpy": "2.5.4",
+          "scipy": "1.18.1",
+          "soundfile": "0.14.0",
+          "numba": "0.68.0",
+          "llvmlite": "0.50.0"
+        }
+      },
+      "genus": {
+        "python": "3.13.11 (main, Jan 28 2026, 00:01:45) [Clang 21.1.4 ]",
+        "packages": {
+          "numpy": "2.5.4",
+          "scipy": "1.18.1",
+          "soundfile": "0.14.0",
+          "numba": "0.68.0",
+          "llvmlite": "0.50.0"
+        }
+      }
+    }
+  }
+}
