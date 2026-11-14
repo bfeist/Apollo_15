@@ -6,6 +6,7 @@ for name in ('OPENBLAS_NUM_THREADS', 'MKL_NUM_THREADS', 'OMP_NUM_THREADS',
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import multiprocessing as mp
 from pathlib import Path
@@ -23,11 +24,19 @@ from denoise_v2 import model_window
 from render_denoise_v2 import saved_seeds, gather_seeds
 
 
-def worker(event, queue, repeats, backend='numpy'):
+def worker(event, queue, repeats, backend='numpy', backend_snapshot=None):
     try:
+        os.environ['NUMBA_CACHE_DIR'] = str(Path.home()/'.cache'/'apollo15-benchmark'/
+                                           ('previous' if backend_snapshot else 'fused'))
         render_model = model_window
         if backend == 'numba':
-            import denoise_v2_numba as accelerated
+            if backend_snapshot:
+                spec = importlib.util.spec_from_file_location('_benchmark_numba', backend_snapshot)
+                accelerated = importlib.util.module_from_spec(spec)
+                sys.modules[spec.name] = accelerated
+                spec.loader.exec_module(accelerated)
+            else:
+                import denoise_v2_numba as accelerated
             accelerated.warmup()
             render_model = accelerated.model_window
         base = Path('D:/Apollo_15_30-Track' if os.name == 'nt' else '/mnt/d/Apollo_15_30-Track')
@@ -37,6 +46,8 @@ def worker(event, queue, repeats, backend='numpy'):
             stream.seek(a)
             samples = stream.read(b-a, dtype='float64')
         hints = gather_seeds(saved_seeds(base/'denoised_v1/A15_T510077/CH03/cleanup.jsonl', a, b), a, b)
+        # Compile all exercised paths and load source data before synchronization.
+        render_model(samples, hints, defer_compact=True)
         queue.put(dict(ready=True, input_sha256=hashlib.sha256(samples.tobytes()).hexdigest()))
         event.wait()
         start, cpu = time.perf_counter(), time.process_time()
@@ -70,6 +81,8 @@ def main():
     parser.add_argument('--counts', type=int, nargs='+', default=[1, 4, 8, 12, 16, 24, 32])
     parser.add_argument('--repeats', type=int, default=2)
     parser.add_argument('--backend', choices=['numpy', 'numba'], default='numpy')
+    parser.add_argument('--backend-snapshot', type=Path,
+                        help='Benchmark a preserved previous Numba adapter in isolation')
     parser.add_argument('--balanced-affinity', action='store_true',
                         help='Spread each worker count across both Genus cache groups')
     parser.add_argument('--output', type=Path, required=True)
@@ -89,7 +102,8 @@ def main():
                 parser.error('Balanced Genus affinity requires 1–32 workers')
             os.sched_setaffinity(0, order[:count])
         event, queue = ctx.Event(), ctx.Queue()
-        workers = [ctx.Process(target=worker, args=(event, queue, args.repeats, args.backend)) for _ in range(count)]
+        workers = [ctx.Process(target=worker, args=(event, queue, args.repeats, args.backend,
+                   args.backend_snapshot)) for _ in range(count)]
         try:
             for process in workers:
                 process.start()
@@ -113,6 +127,7 @@ def main():
                 raise RuntimeError(rows)
             assert len({row['output_sha256'] for row in rows}) == 1
             row = dict(workers=count, repeats=args.repeats, backend=args.backend,
+                       backend_snapshot=str(args.backend_snapshot) if args.backend_snapshot else None,
                        cpu_affinity=sorted(os.sched_getaffinity(0)) if original_affinity is not None else None,
                        elapsed_seconds=elapsed,
                        model_audio_h_per_h=count*args.repeats*64/elapsed,

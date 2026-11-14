@@ -24,6 +24,9 @@ from denoise_v2_verification import cached_verification
 from denoise_v2_output_policy import unity_outputs
 
 GENUS_CPUS = '0,2,4,8,10,12'
+# The fused-backend 6/8/12/16-worker sweep peaked at six balanced cores.
+GENUS_WORKERS = 6
+WINDOWS_MAX_WORKERS = 6
 
 
 def cpu_list(value):
@@ -62,6 +65,8 @@ def check_affinity(config, cpus):
 
 
 def coordinate(args):
+    if not 0 <= getattr(args, 'local_workers', 6) <= WINDOWS_MAX_WORKERS:
+        raise ValueError('Windows workers must be between 0 and 6 for developer headroom')
     if args.genus_cpus != 'none' and args.genus_workers > len(args.genus_cpus.split(',')):
         raise ValueError('Genus workers exceed the CPU mask; expand --genus-cpus or use --genus-cpus none')
     accelerated = None
@@ -113,7 +118,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config', type=Path, required=True)
     parser.add_argument('--local-workers', type=int, default=6)
-    parser.add_argument('--genus-workers', type=int, default=6)
+    parser.add_argument('--genus-workers', type=int, default=GENUS_WORKERS)
     parser.add_argument('--genus-cpus', type=cpu_list, default=GENUS_CPUS)
     parser.add_argument('--backend', choices=['reference', 'numba'], default='numba')
     parser.add_argument('--tapes', type=int, default=3)

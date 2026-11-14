@@ -24,7 +24,9 @@ import denoise_v2_cluster as cluster
 os.environ.setdefault('NUMBA_CACHE_DIR', str(
     Path(os.environ.get('LOCALAPPDATA', Path.home()/'.cache'))/'apollo15-numba'))
 
-CODE_FILES = ('scripts/denoise_v2_numba.py', 'scripts/denoise_v2_accelerated.py')
+CODE_FILES = ('scripts/denoise_v2_numba.py', 'scripts/denoise_v2_accelerated.py',
+              'scripts/fast_kernels.py', 'scripts/fast_sincos.py',
+              'scripts/denoise_v2_fast.py', 'scripts/denoise_v2_refinement_fast.py')
 PACKAGES = ('numpy', 'scipy', 'soundfile', 'numba', 'llvmlite')
 CHECKPOINT_EXIT = 75
 
@@ -66,7 +68,9 @@ def load_execution(config, execution_id, host=None):
 def validate_report(report, config):
     import denoise_v2_numba as backend
     expected_keys = {'scripts/denoise_v2.py', 'scripts/denoise_v2_refinement.py',
-                     'scripts/denoise_v2_numba.py', 'research/qualify_denoise_numba.py'}
+                     'scripts/denoise_v2_numba.py', 'research/qualify_denoise_numba.py',
+                     'scripts/fast_kernels.py', 'scripts/fast_sincos.py',
+                     'scripts/denoise_v2_fast.py', 'scripts/denoise_v2_refinement_fast.py'}
     if (not report.get('passed') or len(report.get('cases', [])) < 13
             or not all(row.get('passed') for row in report['cases'])
             or sum(row.get('type') == 'real_corrected_chunks' for row in report['cases']) < 6):

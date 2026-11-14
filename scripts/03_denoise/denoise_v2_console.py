@@ -29,7 +29,7 @@ from rich.table import Table
 from rich.text import Text
 
 import denoise_v2_cluster as cluster
-from denoise_v2_launcher import GENUS_CPUS, cpu_list
+from denoise_v2_launcher import GENUS_CPUS, GENUS_WORKERS, WINDOWS_MAX_WORKERS, cpu_list
 from denoise_v2_accelerated import CHECKPOINT_EXIT
 from denoise_v2_worker_runtime import resilient_json_writes
 
@@ -236,7 +236,7 @@ def scheduled_windows_workers(now=None):
     """User's Eastern schedule, including daylight-saving transitions."""
     eastern = ZoneInfo('America/New_York')
     now = datetime.now(eastern) if now is None else now.astimezone(eastern)
-    return 12 if 1 <= now.hour < 9 else 6
+    return min(WINDOWS_MAX_WORKERS, 12 if 1 <= now.hour < 9 else 6)
 
 
 def report_worker_failures(console, folder, status):
@@ -285,8 +285,8 @@ def startup_text(folder, launched):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--local-workers', type=int,
-                        help='Fixed Windows limit, 0–8; omit for 6 daytime / 12 from 1–9am Eastern')
-    parser.add_argument('--genus-workers', type=int, default=6)
+                        help='Fixed Windows limit, 0-6; Eastern day/night schedule is capped at 6')
+    parser.add_argument('--genus-workers', type=int, default=GENUS_WORKERS)
     parser.add_argument('--genus-cpus', type=cpu_list, default=GENUS_CPUS,
                         help='Genus CPU affinity (default: balanced six cores); none disables affinity')
     parser.add_argument('--backend', choices=['reference', 'numba'], default='numba',
@@ -298,8 +298,8 @@ def main():
     args = parser.parse_args()
     if sys.platform != 'win32':
         parser.error('Run this console on Windows; it manages Genus through SSH')
-    if args.local_workers is not None and not 0 <= args.local_workers <= 8:
-        parser.error('Fixed Windows limits are 0–8; omit --local-workers for the overnight 12-worker schedule')
+    if args.local_workers is not None and not 0 <= args.local_workers <= WINDOWS_MAX_WORKERS:
+        parser.error('Windows limits are 0-6 for developer headroom')
     args.auto_workers = args.local_workers is None
     args.user_cancelled = False
     try:

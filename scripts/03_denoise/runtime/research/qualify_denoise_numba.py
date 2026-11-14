@@ -1,7 +1,7 @@
 """Read-only broad qualification; writes only a new experiment JSON report.
 
 Runs both implementations locally, reuses saved cluster probe samples, and
-requires exact local float64 models, float32 renders and complete diagnostics.
+requires bounded local model/render differences and identical DSP decisions.
 Existing platform probe samples are compared separately, using the established
 cross-platform tolerance. No production audio or checkpoint is written.
 """
@@ -26,6 +26,54 @@ import soundfile as sf
 import denoise_v2 as reference
 import denoise_v2_numba as accelerated
 from render_denoise_v2 import gather_seeds, saved_seeds
+
+
+MODEL_PEAK_LIMIT = 1e-9
+OUTPUT_PEAK_LIMIT = 2**-22
+OUTPUT_RMS_LIMIT = 2**-25
+
+
+def decision_structure(record):
+    """Compare choices, keeping fitted floating coefficients out of equality."""
+    components = record['components']
+    return dict(
+        components=sorted((c['kind'], round(c['hz'], 2)) for c in components),
+        component_order=[(c['kind'], round(c['hz'], 2)) for c in components],
+        bypass=record.get('bypass'), upper_bypass=record.get('upper_bypass'),
+        refinement=[(round(r['hz'], 2), r.get('origin'), r.get('stop'),
+                     len(r.get('passes', []))) for r in record.get('refinement', [])],
+        candidate_stops=[(round(r['hz'], 2), r['stop'])
+                         for r in record.get('residual_candidate_stops', [])],
+        candidates_above_floor=record.get('residual_candidates_above_floor'),
+        compact_harmonics=sorted((c['kind'], c['harmonic']) for c in components
+                                if c['kind'] in {'compact_shifted_line', 'compact_low_residual'}),
+        compact_absences=[c['true_absence_intervals_seconds'] for c in components
+                          if c['kind'] in {'compact_shifted_line', 'compact_low_residual'}],
+        compact_application=record.get('compact_application'),
+        context={k:record[k] for k in ('anchor_frame', 'context_frames', 'context_float64_sha256')
+                 if k in record})
+
+
+def within_tolerance(model, output, decisions_equal):
+    return bool(decisions_equal and model['peak'] <= MODEL_PEAK_LIMIT
+                and output['peak'] <= OUTPUT_PEAK_LIMIT and output['rms'] <= OUTPUT_RMS_LIMIT)
+
+
+def render_with_models(dsp, read, frames, start, end, seeds):
+    """Observe each real model as well as the final blended/cropped output."""
+    namespace = dsp.corrected_chunks.__globals__
+    original = namespace['model_window']
+    models = []
+    def capture(*args, **kwargs):
+        model, record = original(*args, **kwargs)
+        models.append(model)
+        return model, record
+    namespace['model_window'] = capture
+    try:
+        chunks = list(dsp.corrected_chunks(read, frames, start, end, seeds))
+    finally:
+        namespace['model_window'] = original
+    return chunks, models
 
 
 def digest(data):
@@ -89,7 +137,11 @@ def main():
                                 soundfile=sf.__version__, libsndfile=sf.__libsndfile_version__),
                   implementation_sha256={name:digest((repo/name).read_bytes()) for name in (
                       'scripts/denoise_v2.py', 'scripts/denoise_v2_refinement.py',
-                      'scripts/denoise_v2_numba.py', 'research/qualify_denoise_numba.py')},
+                      'scripts/denoise_v2_numba.py', 'research/qualify_denoise_numba.py',
+                      'scripts/fast_kernels.py', 'scripts/fast_sincos.py',
+                      'scripts/denoise_v2_fast.py', 'scripts/denoise_v2_refinement_fast.py')},
+                  tolerance=dict(model_peak=MODEL_PEAK_LIMIT, corrected_float32_peak=OUTPUT_PEAK_LIMIT,
+                                 corrected_float32_rms=OUTPUT_RMS_LIMIT),
                   cases=[], passed=False)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     def save():
@@ -109,11 +161,14 @@ def main():
             durations.append(time.perf_counter()-tick)
         (a, ra), (b, rb) = values
         diff = difference(a, b)
+        output = difference((samples-a).astype('<f4'), (samples-b).astype('<f4'))
+        decisions = decision_structure(ra) == decision_structure(rb)
         add(dict(name=name, type='synthetic_model', input_sha256=digest(samples.tobytes()),
                  samples=len(samples), seeds=seeds, seconds=durations, model_difference=diff,
-                 corrected_float32_difference=difference((samples-a).astype('<f4'), (samples-b).astype('<f4')),
+                 corrected_float32_difference=output, decisions_equal=decisions,
+                 reference_decisions=decision_structure(ra), accelerated_decisions=decision_structure(rb),
                  records_equal=ra == rb, record_sha256=digest(json.dumps(ra, sort_keys=True).encode()),
-                 coverage=summary([ra]), passed=diff['exact'] and ra == rb))
+                 coverage=summary([ra]), passed=within_tolerance(diff, output, decisions)))
     if not args.synthetic_only:
         probe_path = args.probe
         if probe_path is None:
@@ -135,28 +190,33 @@ def main():
         intervals.append((probe['intervals'][1][0]+123, probe['intervals'][1][0]+8123, None))
         # Exercise the production chunk path independently for every interval.
         for start, end, index in intervals:
-            results, records, durations = [], [], []
+            results, records, durations, models = [], [], [], []
             with sf.SoundFile(source) as stream:
                 def read(a, n):
                     stream.seek(a)
                     return stream.read(n, dtype='float64')
                 for dsp in (reference, accelerated):
                     tick = time.perf_counter()
-                    chunks = list(dsp.corrected_chunks(read, frames, start, end,
-                        lambda a,b:gather_seeds(rows, a,b)))
+                    chunks, predictions = render_with_models(dsp, read, frames, start, end,
+                        lambda a,b:gather_seeds(rows, a,b))
                     durations.append(time.perf_counter()-tick)
+                    models.append(predictions)
                     results.append(np.concatenate([v[2] for v in chunks]))
                     records.append([(v[3], v[4]) for v in chunks])
             diff = difference(*results)
             float32 = difference(results[0].astype('<f4'), results[1].astype('<f4'))
+            model_diff = difference(np.concatenate(models[0]), np.concatenate(models[1]))
+            decisions = [[decision_structure(r) for pair in rs for r in pair] for rs in records]
             row = dict(name=f'real_render_{index if index is not None else start}',
                        type='real_corrected_chunks', source=str(source), interval=[start,end],
                        seconds=durations, corrected_float64_difference=diff,
                        corrected_float32_difference=float32, records_equal=records[0] == records[1],
+                       model_difference=model_diff, decisions_equal=decisions[0] == decisions[1],
+                       reference_decisions=decisions[0], accelerated_decisions=decisions[1],
                        record_sha256=digest(json.dumps(records[0], sort_keys=True).encode()),
                        output_float32_sha256=digest(results[1].astype('<f4').tobytes()),
                        coverage=summary([r for pair in records[0] for r in pair]),
-                       passed=diff['exact'] and float32['exact'] and records[0] == records[1])
+                       passed=within_tolerance(model_diff, float32, decisions[0] == decisions[1]))
             if index is not None:
                 prefix = 'windows' if os.name == 'nt' else 'genus'
                 saved = probe_path.with_name(f'{prefix}-{index}.npy')

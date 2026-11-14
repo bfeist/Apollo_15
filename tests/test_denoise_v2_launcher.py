@@ -17,6 +17,15 @@ import denoise_v2_launcher as launcher
 
 
 class LauncherTests(unittest.TestCase):
+    def test_windows_headroom_cap_and_measured_genus_default(self):
+        self.assertEqual(launcher.GENUS_WORKERS, 6)
+        self.assertEqual(len(launcher.GENUS_CPUS.split(',')), launcher.GENUS_WORKERS)
+        with patch.object(launcher.cluster, 'coordinate') as run:
+            for count in (-1, 7, 12):
+                with self.assertRaisesRegex(ValueError, 'Windows workers'):
+                    launcher.coordinate(SimpleNamespace(local_workers=count))
+            run.assert_not_called()
+
     def setUp(self):
         policy = patch.object(launcher, 'unity_outputs', return_value=nullcontext())
         self.policy = policy.start()

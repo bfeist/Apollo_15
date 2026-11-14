@@ -5,7 +5,7 @@ import sys
 import tempfile
 from types import SimpleNamespace
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import numpy as np
 import soundfile as sf
@@ -22,6 +22,29 @@ EXECUTION = 'numba-'+'a'*24
 
 
 class AcceleratedTests(unittest.TestCase):
+    def test_fused_qualification_binds_all_new_modules(self):
+        import denoise_v2_numba as backend
+        keys = {'scripts/denoise_v2.py', 'scripts/denoise_v2_refinement.py',
+                'research/qualify_denoise_numba.py', *accelerated.CODE_FILES}
+        keys.remove('scripts/denoise_v2_accelerated.py')
+        report = dict(passed=True, cases=[dict(passed=True, type='real_corrected_chunks')]*6+
+                      [dict(passed=True, type='synthetic_model')]*7,
+                      implementation_sha256={name:'hash' for name in keys},
+                      backend=backend.backend_configuration(), platform='Windows', probe_sha256='hash')
+        with patch.object(accelerated.cluster, 'session_path', return_value=Path('/session')), \
+             patch.object(accelerated.cluster, 'sha256', return_value='hash'):
+            accelerated.validate_report(report, {})
+            for name in ('fast_kernels.py', 'fast_sincos.py', 'denoise_v2_fast.py',
+                         'denoise_v2_refinement_fast.py'):
+                missing = dict(report, implementation_sha256=dict(report['implementation_sha256']))
+                missing['implementation_sha256'].pop('scripts/'+name)
+                with self.assertRaisesRegex(ValueError, 'qualification identity'):
+                    accelerated.validate_report(missing, {})
+            changed = dict(report, implementation_sha256=dict(report['implementation_sha256']))
+            changed['implementation_sha256']['scripts/fast_kernels.py'] = 'changed'
+            with self.assertRaisesRegex(ValueError, 'implementation changed'):
+                accelerated.validate_report(changed, {})
+
     def test_segments_retain_reference_prefix_and_coalesce_resumes(self):
         meta = accelerated.extend_segments(dict(cursor=100), 120, EXECUTION)
         self.assertEqual(meta['segments'], [dict(execution_id='reference', start_frame=0, end_frame=100),

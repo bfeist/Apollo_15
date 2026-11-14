@@ -17,6 +17,14 @@ from denoise_v2_console import Rates, duration, metrics, render, worker_ssh_desc
 
 
 class ConsoleTests(unittest.TestCase):
+    def test_explicit_windows_limit_cannot_exceed_six(self):
+        with patch.object(sys, 'argv', ['console', '--local-workers', '7']), \
+             patch.object(console_module, 'run_session') as session, redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit) as stopped:
+                console_module.main()
+            self.assertEqual(stopped.exception.code, 2)
+            session.assert_not_called()
+
     def test_progress_writes_retry_and_coordinator_failure_is_not_a_worker_failure(self):
         from rich.console import Console
         cluster = console_module.cluster
@@ -95,12 +103,12 @@ class ConsoleTests(unittest.TestCase):
 
     def test_eastern_day_night_boundaries_and_dst(self):
         eastern = ZoneInfo('America/New_York')
-        for hour, minute, expected in ((0,59,6), (1,0,12), (8,59,12), (9,0,6), (23,59,6)):
+        for hour, minute, expected in ((0,59,6), (1,0,6), (8,59,6), (9,0,6), (23,59,6)):
             value = datetime(2026, 11, 10, hour, minute, tzinfo=eastern)
             self.assertEqual(console_module.scheduled_windows_workers(value), expected)
         for fold in (0, 1):
             self.assertEqual(console_module.scheduled_windows_workers(
-                datetime(2026,11,1,1,30,tzinfo=eastern,fold=fold)), 12)
+                datetime(2026,11,1,1,30,tzinfo=eastern,fold=fold)), 6)
         self.assertEqual(console_module.scheduled_windows_workers(
             datetime(2026,11,10,14,0,tzinfo=timezone.utc)), 6)
 
@@ -110,16 +118,16 @@ class ConsoleTests(unittest.TestCase):
             limits.append(args.local_workers)
             return 0, len(limits) == 1
         with patch.object(sys, 'argv', ['console']), \
-             patch.object(console_module, 'scheduled_windows_workers', side_effect=[6,12]), \
+             patch.object(console_module, 'scheduled_windows_workers', side_effect=[5,6]), \
              patch.object(console_module, 'run_session', side_effect=session):
             self.assertEqual(console_module.main(), 0)
-        self.assertEqual(limits, [6,12])
-        with patch.object(sys, 'argv', ['console', '--local-workers', '8']), \
+        self.assertEqual(limits, [5,6])
+        with patch.object(sys, 'argv', ['console', '--local-workers', '6']), \
              patch.object(console_module, 'scheduled_windows_workers') as schedule, \
              patch.object(console_module, 'run_session', return_value=(0,False)) as run:
             self.assertEqual(console_module.main(), 0)
             schedule.assert_not_called()
-            self.assertEqual(run.call_args.args[0].local_workers, 8)
+            self.assertEqual(run.call_args.args[0].local_workers, 6)
 
     def test_shutdown_targets_only_this_coordinators_worker_connections(self):
         def process(pid, parent, name, command=''):
