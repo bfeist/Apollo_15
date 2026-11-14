@@ -28,22 +28,24 @@ Run the master console on Windows from `F:\_repos\Apollo_15`:
 uv run python -u scripts/03_denoise/denoise_v2_console.py
 ```
 
-Defaults are **6 Windows workers during the day, 12 overnight, 6 Genus workers,
-and 3 active tapes total**. Windows switches to 12 at **1am America/New_York**
-and back to 6 at **9am**, including daylight-saving time changes. The console
-checkpoints both machines at a boundary, then automatically resumes with the
+Defaults are **6 Windows workers, 6 Genus workers, and 3 active tapes total**.
+Windows is capped at six for developer headroom, including overnight. The
+**1–9am America/New_York** day/night schedule and graceful transition logic
+remain in place, with both periods currently capped at six. If a scheduled
+limit changes, the console checkpoints both machines before resuming with the
 new Windows limit; Genus retains its configured count. Leave the console open.
 Ctrl+C still stops it rather than triggering an automatic restart. Worker
 failures that exhaust storage recovery also stop rather than restart.
 `--run-seconds` remains a bounded trial.
 
 Omit `--local-workers` to use the schedule. An explicit `--local-workers 0` through
-`8` sets a fixed limit and disables automatic switching; twelve workers are
-reserved for the automatic overnight window.
+`6` sets a fixed limit and disables automatic switching. Higher Windows limits
+are rejected by both the console and launcher.
 Genus workers inherit CPU affinity `0,2,4,8,10,12`, spreading the six workers
 across three physical cores in each of its two L3 cache groups. The final
-optimized sweep confirmed about 98.6% of eight workers' peak throughput with
-six workers, so six remains the practical default. The console uses
+fused-backend sweep measured 103.7, 103.2, 98.7 and 95.4 source-hours per wall-hour
+at 6, 8, 12 and 16 workers respectively, using balanced physical-core masks.
+Six remains the measured best default. The console uses
 `denoise_v2_launcher.py` to wrap each remote worker command with `taskset`,
 including replacement workers, and verifies the mask over SSH before starting.
 This wrapper preserves the frozen cluster adapter, qualification, reviewed
@@ -148,17 +150,42 @@ paths are rewritten to make Linux match Windows.
 
 ## Qualified accelerated execution
 
-`denoise_v2_numba.py` loads reference DSP in a private namespace. It fuses the
-observation projection on both hosts and complex128 oscillator exponentials on
-Windows. The latter was slower on Genus and is deliberately disabled there.
-The kernels use strict arithmetic and one thread per worker; no fastmath or
-internal parallel pool is enabled. `numba` is a project dependency, and workers
-keep compiled caches on their own machine.
+`denoise_v2_numba.py` exports the production `denoise_v2_fast.py` backend and
+`denoise_v2_refinement_fast.py`, using `fast_kernels.py` and `fast_sincos.py`.
+Both hosts use the same feature policy: block-reseeded oscillator recurrence,
+fused observations and accumulation, harmonic banks, uniform-grid interpolation
+and compact union application. Every kernel uses `parallel=False` and
+`fastmath=False`, with one thread per worker and host-local compiled caches.
+The reviewed algorithm remains `apollo15-hum-subtraction-v2.16`; the frozen
+reference, settings, decision thresholds, component order and sequential
+shifted-comb residual updates are preserved.
 
-Each host passed 13 synthetic and real qualification cases, including all four
-saved probes, the final partial context, and arbitrary crop boundaries. Samples
-and complete diagnostic records matched the reference exactly on each host.
-See `research/benchmarks/denoise_numba_20261110/` for source-bound evidence.
+The `apollo15-v2.16-numba-fused-v3` backend passed all 13 qualification cases on
+each host: seven synthetic cases and six real corrected-chunk intervals,
+including all four saved probes, the final partial context and an arbitrary
+crop. Qualification requires float64 model peak difference at most `1e-9`,
+and corrected float32 peak/RMS differences at most `2^-22` / `2^-25`.
+Component multisets and order, bypasses, refinement candidates, stops and pass
+counts, compact-bank harmonics/absence intervals and source-context bindings
+must match. Saved platform probe comparisons retain their existing tolerance.
+The largest model difference was `1.80e-11`; float32 peak was `1.49e-8` and RMS
+was at most `2.60e-11`. No decision differences occurred.
+
+The active execution is **`numba-00f8bef508a7a5b15bb7509f`**. Preparation verified
+both actual environments; the previous execution folder remains intact.
+Production remains stopped by owner instruction. Separate 180-second smoke
+runs resume isolated copies of actual Windows and Genus checkpoints; their
+reports verify retained prefixes and new executor spans without publishing
+audio or modifying production checkpoints.
+
+On the synchronized model-window benchmark, six Windows workers improved from
+37.0 to 115.2 source-hours per wall-hour (3.12x), and six Genus workers improved
+from 35.7 to 103.7 (2.90x). At approximately 12,900 remaining channel-hours,
+their combined model rate projects about 59 hours, or 2.5 days of continuous
+processing. This estimate excludes production I/O, verification and content
+variation. See `research/benchmarks/denoise_fused_20261114/` for reports,
+worker masks, comparisons and isolated smoke evidence. The previous exact
+qualification remains in `research/benchmarks/denoise_numba_20261110/`.
 
 The adapter has a distinct `numba-...` execution ID covering its code hashes,
 compiler/numerical environments, feature policy and qualification hashes.

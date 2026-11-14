@@ -42,11 +42,13 @@ uv run python scripts/run.py irig_search.py --help
 
 ## Frozen denoise runtime
 
-`scripts/03_denoise/runtime/` preserves the reviewed source files and accelerator
-qualification script byte-for-byte. Its internal `scripts/` and `research/`
-paths retain the structure expected by the existing qualification descriptors.
-`source_manifest.json` records their original identities. Do not edit these
-files or invoke them directly; use the console or dispatcher.
+`scripts/03_denoise/runtime/` preserves the reviewed reference source files
+byte-for-byte. Its internal `scripts/` and `research/` paths retain the structure
+expected by qualification descriptors. The separate accelerated modules and
+qualification script may be promoted through a new qualified execution ID;
+they are not part of the frozen run identity. `source_manifest.json` records
+the installed source hashes. Never change a source bound by the frozen run's
+`implementation_sha256`. Use the console or dispatcher to invoke runtime code.
 
 The path adapter changes only where external review/inventory artifacts are
 found and how child commands are located. It does not alter settings, saved
