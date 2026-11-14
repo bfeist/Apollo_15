@@ -66,10 +66,11 @@ iterations. Source input hashes match across workers and hosts. Output hashes
 match among workers within each run. Genus masks spread physical cores across
 both cache groups; Windows stays at six workers.
 
-Previous-backend measurements load the preserved previous adapter and an
-unchanged frozen reference copy from `previous_backend/`, without changing the
-active adapter. These are model throughput measurements, excluding publication
-and full production I/O/verification.
+Previous-backend measurements used temporary copies of the previous adapter and
+frozen reference, without changing the active adapter. Those copies and the
+benchmark snapshot option were removed after measurement; Git commit `b685645`
+retains the measurement source history. These are model throughput measurements,
+excluding publication and full production I/O/verification.
 
 | Host, 6 workers | Previous source-hours/hour | Fused source-hours/hour | Speedup |
 | --- | ---: | ---: | ---: |
@@ -111,8 +112,9 @@ manifest. It does not start the coordinator, publish results or change stop flag
 Both retained their original audio/log prefixes, preserved the previous executor
 span, appended contiguous new execution spans, and stopped at committed boundaries
 in approximately 180 seconds. Source staging file SHA-256 hashes match before and
-after. Reports: `windows_smoke.json`, `genus_smoke.json`. Smoke audio remains only
-in the isolated host-local sandboxes named in those reports.
+after. Reports: `windows_smoke.json`, `genus_smoke.json`. The isolated host-local
+smoke sandboxes and old-backend benchmark caches were removed after verification.
+Their recorded paths describe the completed experiment.
 
 Read-only audits verified all 12 active checkpoint identities, WAV headers,
 committed audio and journal hashes. The Genus audit also found six historical
@@ -135,7 +137,8 @@ uv run python scripts/run.py denoise_v2_accelerated.py prepare --config D:/Apoll
 
 Benchmark entry point: `research/profile_genus_workers.py --backend numba` with
 `--counts 6 8 12 16 --repeats 4 --balanced-affinity` on Genus, and `--counts 6`
-on Windows. Old measurements add `--backend-snapshot` with the saved adapter.
+on Windows. The historical measurements used a temporary snapshot option that
+was removed after the comparison finished.
 Never reuse completed output report paths.
 
 Validation passed:
