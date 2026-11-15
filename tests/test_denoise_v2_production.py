@@ -22,7 +22,6 @@ from denoise_v2_quality import compare_review
 from denoise_v2_rollout import archive_snapshot, marker, rollback, rotate, supersede_timing_copy_root
 from channel_review import completed_denoised, ensure_denoised
 from shared_tape import verify_bindings
-from v5_resume import resume_root
 
 RATE = 8000
 TAPE = 'A15_T510083'
@@ -354,15 +353,9 @@ class MigrationTests(unittest.TestCase):
             channel.mkdir(parents=True)
             original.write_bytes(b'unrelated new v2')
             with (patch.object(archive, 'CANONICAL', canonical), patch.object(archive, 'ARCHIVE', archived),
-                  patch.object(archive, 'CONTROL', control), patch('v5_resume.CANONICAL', canonical)):
+                  patch.object(archive, 'CONTROL', control)):
                 self.assertEqual(archive.bound_path(binding), archived/original.relative_to(canonical))
                 verify_bindings([binding])
-                old_root = str(canonical/TAPE)
-                clean = dict(status='analyzed')
-                windows = [dict(channels={'20':dict(discovery_sources={'denoised':clean})})]
-                self.assertEqual(resume_root(old_root, old_root, windows), str(archived/TAPE))
-                clean['cleanup_version'] = 'v2'
-                self.assertEqual(resume_root(old_root, old_root, windows), old_root)
                 with self.assertRaisesRegex(ValueError, 'Stale evidence'):
                     verify_bindings([dict(binding, cleanup_version='v2')])
                 rollback(control, canonical, archived)

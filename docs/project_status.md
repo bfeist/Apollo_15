@@ -14,9 +14,18 @@ the wrong-sign control gave 94.6 Hz. The flutter is common to all channels
 at zero lag (±0.7 ms). A15_T510096's 30 channel files are byte-identical.
 
 The [implementation guide](deflutter_detection_guide.md) specifies the method,
-gates, integration, speed and verification. This is research evidence: stage 05
-is unchanged, and no listening render was made. Local evidence:
+gates, integration, speed and verification. Local evidence:
 `reports/flutter_census_20261115/REPORT.md`.
+
+**Implemented the same day** as stage 05 detection
+([operating guide](deflutter_detection.md)): a Proprius/Genus block pool writes
+`deflutter_detection_census/<run-id>/`, stage 05a imports the joined stream
+below saved regional and v5 evidence, and stage 05b applies the one shared map.
+On the fixed confirmation windows the production code reduced held-out beep FM
+from 50.9 to 9.8 Hz (median ratio 0.181, 0.3 % worse; wrong sign 100.4 Hz).
+The v5 survey/planning engine, the October 30 campaign code and their
+documents were removed. No archive run, worker benchmark or listening render
+has been made; see [next steps](deflutter_next_steps.md).
 
 ## November 13 shared-map refactor
 
@@ -73,7 +82,7 @@ CH17 listening and whole-tape production acceptance are pending.
 share tape motion. The reviews below mistakenly gated application on CH20 alone.
 Their listening approvals remain intact, but that selection rule is superseded
 by one shared tape map drawn from all channels. See
-[the tape-level rule](tape_level_deflutter.md) and repository `AGENTS.md`.
+[the tape-level rule](shared_deflutter.md#governing-rule) and repository `AGENTS.md`.
 
 The corrected 30-minute comparison is now `reports/listening_long_20261103/C.wav`.
 It reuses existing regional maps from all channels and completed v5 all-channel
@@ -174,8 +183,8 @@ needs new source/transfer provenance or a distinct positive reference lead,
 followed by a frozen qualification experiment and listening assessment. More
 tuning on the same consumed examples would not resolve the ambiguity.
 
-See [the research findings](deflutter_research_findings.md) for the numerical
-limits and [the campaign guide](../research/DEFLUTTER_CAMPAIGN.md) for reproduction.
+The campaign's findings summary, runbook and code were removed from the tree on
+November 15; they remain in Git history and in `reports/deflutter_iterative_20261030/`.
 The campaign state records no active workers and no production acceptance.
 There is no evidence here of established speech-quality benefit from that
 campaign; its ASR and NISQA runs were exploratory measurements.
@@ -195,8 +204,8 @@ predate the October 30 campaign and do not approve whole-tape processing.
   current review code also refers to this summary. These are not blanket
   production approvals.
 
-The ignored `docs/IRIG_FREE_FLUTTER_RESEARCH.md` preserves the earlier listening
-decisions and failures. Its October 17 statements about the then-current
+The former local `docs/IRIG_FREE_FLUTTER_RESEARCH.md` (moved on November 15 to
+`archive/docs_retired_20261115/`) preserves the earlier listening decisions and failures. Its October 17 statements about the then-current
 pipeline are historical. Some of its linked trials are now archived and must
 be restored before following their original file links.
 

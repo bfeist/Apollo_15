@@ -1,4 +1,9 @@
-"""Stage 05a: compile one shared tape map from completed all-channel tone evidence."""
+"""Stage 05a: compile one shared tape map from completed all-channel evidence.
+
+Sources are saved v5 tone evidence, completed regional plans and, with
+--detection-root, a completed check-tone-free detection census. No analysis
+is started here; run 05_detect_flutter.py first to produce census evidence.
+"""
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -32,6 +37,8 @@ def main(argv=None):
     p.add_argument('--planning-root', type=Path, default=DEFAULT_PLANNING_ROOT)
     p.add_argument('--evidence-root', type=Path, default=DEFAULT_EVIDENCE_ROOT,
                    help='Completed all-channel survey bundles; reused without new analysis')
+    p.add_argument('--detection-root', type=Path,
+                   help='Completed deflutter_detection_census/<run-id>/ folder; missing or stale is an error')
     p.add_argument('--regional-plan', type=Path, action='append', default=[],
                    help='Additional completed regional evidence; may be repeated')
     p.add_argument('--start', type=float, default=0)
@@ -42,25 +49,32 @@ def main(argv=None):
         bundle = args.evidence_root/source['tape']
         output = args.output or planning_directory(source['tape'], args.planning_root, args.start, args.duration)
         evidence, assessment = bundle/'plan/plan.json', bundle/'joined_assessment.json'
-        if not evidence.is_file() or not assessment.is_file():
-            raise ValueError('Completed all-channel tone evidence is unavailable; no automatic resurvey is run')
-        saved = json.loads(evidence.read_text(encoding='utf-8'))
-        if source['tape'] != saved['inventory']['tape'] or identity(source) != identity(saved['inventory']):
-            raise ValueError('Saved tone evidence does not match the canonical originals')
+        saved_v5 = evidence.is_file() and assessment.is_file()
+        if not saved_v5 and args.detection_root is None:
+            raise ValueError('Completed all-channel tone evidence is unavailable and no --detection-root '
+                             'was given; no automatic resurvey or detection is run')
+        if saved_v5:
+            saved = json.loads(evidence.read_text(encoding='utf-8'))
+            if source['tape'] != saved['inventory']['tape'] or identity(source) != identity(saved['inventory']):
+                raise ValueError('Saved tone evidence does not match the canonical originals')
         regional = list(args.regional_plan)
         regional.extend(discover_regional_plans(args.input.resolve().parent.parent, source['tape']))
         regional = sorted({(path/'plan.json' if path.is_dir() else path).resolve() for path in regional})
         destination = output.resolve()
-        protected = [args.input.resolve(), bundle.resolve(), *[path.parent for path in regional]]
+        protected = [args.input.resolve(), bundle.resolve(), *[path.parent for path in regional],
+                     *([args.detection_root.resolve()] if args.detection_root else [])]
         if any(destination == path or destination in path.parents or path in destination.parents
                for path in protected):
             raise ValueError('Shared output must not overlap originals or saved evidence')
         with planning_lock(output):
-            plan = build_tape_plan(evidence, assessment, output, regional_paths=regional,
+            plan = build_tape_plan(evidence if saved_v5 else None, assessment if saved_v5 else None,
+                output, regional_paths=regional, detection_root=args.detection_root, inventory=source,
                 start=args.start, end=None if args.duration is None else args.start+args.duration)
         print(json.dumps(dict(tape=source['tape'], output=str(output),
             eligible_seconds=plan['map']['eligible_seconds'], supported_seconds=plan['map']['supported_seconds'],
             bypass_seconds=plan['map']['bypass_seconds'], tape_time_coverage=plan['map']['coverage'],
+            saved_v5_evidence=saved_v5, census_run_id=(plan.get('census') or {}).get('run_id'),
+            census_selected_seconds=plan['map'].get('census_selected_seconds'),
             new_analysis=False, map_sha256=plan['map']['sha256']), indent=2))
         return 0
     except (OSError, ValueError, RuntimeError, KeyError, TypeError) as error:

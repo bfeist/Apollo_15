@@ -36,13 +36,16 @@ from quindar_retime import DEFAULT_RETIMED_ROOT
 from quindar_survey import DEFAULT_ANALYSIS_ROOT
 from speech_normalization import DEFAULT_NORMALIZED_ROOT, Settings as SpeechSettings
 from crosstalk_stage import DEFAULT_CROSSTALK_ROOT, DEFAULT_EVIDENCE_ROOT as DEFAULT_CROSSTALK_EVIDENCE_ROOT
+from flutter_detection import DEFAULT_DETECTION_ROOT, WINDOWS_MAX_WORKERS as DETECT_MAX_LOCAL
 
 STAGES = [
     ('01', 'Concatenate', '01_concatenate.py', 'Verify fragment order and join channels'),
     ('03', 'Denoise', '03_denoise.py',
      f'Remove tones and residual hum, then reduce broadband noise by up to {DEFAULT_BROADBAND_CAP_DB} dB'),
     ('04', 'Crosstalk', '04_crosstalk.py', 'Subtract evidenced weaker repeats; preserve gain and source timing'),
-    ('05a', 'Plan deflutter', '05a_plan_deflutter.py', 'Compile one tape map from saved tone evidence on all channels'),
+    ('05', 'Detect flutter', '05_detect_flutter.py',
+     'Blind cross-channel tape-motion census on originals; Proprius and Genus workers'),
+    ('05a', 'Plan deflutter', '05a_plan_deflutter.py', 'Compile one tape map from saved evidence and census on all channels'),
     ('05b', 'Deflutter', '05b_deflutter.py', 'Apply the shared tape map to stage-04 audio at its existing gain'),
     ('06', 'Retime', '06_retime.py', 'Apply a smoothed Quindar anchor curve to defluttered audio'),
     ('07', 'Normalize', '07_normalize.py', 'Reach the speech target with one constant gain; bypass noise-only channels'),
@@ -59,7 +62,7 @@ def parse_args(argv=None):
     parser.add_argument('--concatenated', type=Path, default=Path('D:/Apollo_15_30-Track/orig_concatenated'))
     tapes = parser.add_mutually_exclusive_group()
     tapes.add_argument('--tape', help='Select one canonical tape folder')
-    tapes.add_argument('--all-tapes', action='store_true', help='Process all tapes for stage 03, 04, 05a, 05b, 06, or 07')
+    tapes.add_argument('--all-tapes', action='store_true', help='Process all tapes for stage 03, 04, 05, 05a, 05b, 06, or 07')
     parser.add_argument('--exclude-tape', action='append', default=[], metavar='TAPE',
                         help='Skip a tape in an all-tapes batch; may be repeated')
     channels = parser.add_mutually_exclusive_group()
@@ -91,6 +94,15 @@ def parse_args(argv=None):
                         default=DEFAULT_PLANNING_ROOT, help='Shared tape maps')
     parser.add_argument('--flutter-evidence-root', type=Path, default=DEFAULT_EVIDENCE_ROOT,
                         help='Completed all-channel tone survey/planning bundles to reuse')
+    parser.add_argument('--flutter-detection-root', type=Path,
+                        help='Detection census run folder, deflutter_detection_census/<run-id>/: stage 05 '
+                             'writes it and stage 05a consumes it as --detection-root')
+    parser.add_argument('--flutter-detect-local-workers', type=int,
+                        help='Stage 05 Proprius workers (0-6; default: benchmark selection or 6)')
+    parser.add_argument('--flutter-detect-genus-workers', type=int,
+                        help='Stage 05 Genus SSH workers (default: benchmark selection or 6)')
+    parser.add_argument('--flutter-detect-genus-cpus', help='Stage 05 Genus CPU mask, or none')
+    parser.add_argument('--flutter-detect-tapes', type=int, help='Stage 05 active tapes across both hosts')
     parser.add_argument('--flutter-plan-stop-on-error', action='store_true',
                         help='Stop starting tapes after a planning failure; running tapes finish')
     parser.add_argument('--flutter-plan', type=Path, help='Stage 05b shared tape plan override')
@@ -123,11 +135,17 @@ def parse_args(argv=None):
         requested = requested.lower().replace('05c', '06')  # old retime command alias
         selected = {value.strip() if value.strip() in {'05a','05b'} else f'{int(value):02d}' for value in requested.split(',')}
     except ValueError:
-        parser.error('--stages must contain 01,03,04,05a,05b,06,07')
+        parser.error('--stages must contain 01,03,04,05,05a,05b,06,07')
     if not selected or not selected <= {s[0] for s in STAGES}:
-        parser.error('--stages must contain 01,03,04,05a,05b,06,07')
-    if args.batch and selected not in ({'03'}, {'04'}, {'05a'}, {'05b'}, {'06'}, {'07'}):
-        parser.error('Batch mode supports one stage at a time; use --stages 03, 04, 05a, 05b, 06, or 07')
+        parser.error('--stages must contain 01,03,04,05,05a,05b,06,07')
+    if args.batch and selected not in ({'03'}, {'04'}, {'05'}, {'05a'}, {'05b'}, {'06'}, {'07'}):
+        parser.error('Batch mode supports one stage at a time; use --stages 03, 04, 05, 05a, 05b, 06, or 07')
+    args.batch_detect = args.batch and selected == {'05'}
+    if '05' in selected and (args.channel is not None or args.all_channels or args.input):
+        parser.error('Stage 05 detects once per tape from originals; omit channel and excerpt selections')
+    if (args.flutter_detect_local_workers is not None
+            and not 0 <= args.flutter_detect_local_workers <= DETECT_MAX_LOCAL):
+        parser.error(f'--flutter-detect-local-workers must be 0-{DETECT_MAX_LOCAL} for developer headroom')
     args.batch_crosstalk = args.batch and selected == {'04'}
     if args.skip_crosstalk and ('04' in selected or '05b' not in selected):
         parser.error('--skip-crosstalk requires stage 05b without stage 04')
@@ -320,6 +338,13 @@ def make_jobs(args, selected, run_dir):
         return jobs
     if args.batch_denoise:
         return make_denoise_batch(args)
+    if args.batch_detect:
+        job = next(j for j in make_tape_jobs(args, selected, run_dir) if j['number'] == '05')
+        job['command'] = [c for c in job['command'] if c != args.tape]
+        index = job['command'].index('--tape')
+        job['command'][index:index+1] = ['--all-tapes', *[f'--exclude-tape={t}' for t in args.exclude_tape]]
+        job.update(name='Detect flutter (all tapes)', log='05_detect_all_tapes.log')
+        return [job]
     if args.batch_flutter or args.batch_crosstalk:
         return make_flutter_batch(args, selected, run_dir)
     return make_tape_jobs(args, selected, run_dir)
@@ -336,12 +361,25 @@ def make_tape_jobs(args, selected, run_dir):
         output = run_dir / f'{number}_{name.lower().replace(" ", "_").replace("/", "_")}'
         if number == '01':
             command += ['--input', str(args.delivery), '--output', str(args.concatenated), '--min-age', str(args.min_age), '--strict']
+        elif number == '05':
+            output = args.flutter_detection_root or DEFAULT_DETECTION_ROOT
+            command += ['run', '--originals', str(args.concatenated), '--tape', args.tape]
+            command += (['--run-dir', str(args.flutter_detection_root)] if args.flutter_detection_root
+                        else ['--root', str(DEFAULT_DETECTION_ROOT)])
+            for option, value in (('--local-workers', args.flutter_detect_local_workers),
+                                  ('--genus-workers', args.flutter_detect_genus_workers),
+                                  ('--genus-cpus', args.flutter_detect_genus_cpus),
+                                  ('--tapes', args.flutter_detect_tapes)):
+                if value is not None:
+                    command += [option, str(value)]
         elif number == '05a':
             output = planning_directory(args.tape, args.flutter_planning_root,
                                         args.flutter_plan_start, args.flutter_plan_duration)
             command += ['--input', str(args.concatenated / args.tape), '--output', str(output),
                         '--start', str(args.flutter_plan_start),
                         '--evidence-root', str(args.flutter_evidence_root)]
+            if args.flutter_detection_root is not None:
+                command += ['--detection-root', str(args.flutter_detection_root)]
             if args.flutter_plan_duration is not None:
                 command += ['--duration', str(args.flutter_plan_duration)]
         elif number == '03' and args.channel is not None:
@@ -450,7 +488,7 @@ def execute(job, jobs, tail, run_dir, live, console, stop_event=None, report_que
     job['status'] = 'running'
     messages = queue.Queue()
     env = {**os.environ, 'PYTHONIOENCODING': 'utf-8'}
-    if job['number'] == '05a':
+    if job['number'] in {'05', '05a'}:
         # Each tape is already a separate process; prevent nested BLAS pools
         # from multiplying the configured concurrency.
         env.update(OPENBLAS_NUM_THREADS='1', OMP_NUM_THREADS='1', MKL_NUM_THREADS='1')
@@ -601,7 +639,7 @@ def main(argv=None):
             if job['status'] == 'pending':
                 console.print(Text(subprocess.list2cmdline(job['command'])))
         console.print('Commands only; no outputs written.' if args.batch else
-                      'Commands only. Whole-channel order: 03 denoise, 04 crosstalk, 05a plan on originals, 05b deflutter, 06 Quindar retime, 07 speech normalization.')
+                      'Commands only. Whole-channel order: 03 denoise, 04 crosstalk, 05 detect and 05a plan on originals, 05b deflutter, 06 Quindar retime, 07 speech normalization.')
         return 2 if invalid else 0
     run_dir.mkdir(parents=True)
     live = None if args.plain or not console.is_terminal else Live(console=console, refresh_per_second=5)

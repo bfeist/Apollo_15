@@ -1,46 +1,14 @@
-"""Original-audio reference discovery, signed-frequency tracking and check tones.
+"""Signed-frequency tracking and held-out check-tone measurement.
 
-No report-generator imports or filesystem side effects. Frequency trajectories
-are measured on original audio; target cleanup belongs to stage 03.
+No filesystem side effects. The former narrow-peak ``discover`` was biased
+toward unfluttered post-tape lines and has been removed; carrier discovery is
+the blind census in ``flutter_census``. Check beeps here are audits only.
 """
 import numpy as np
 from scipy import ndimage, signal
 from flutter import positions, resample_at
 
 RATE = 200
-
-
-def discover(x, sr, limit=4):
-    """Search the recorded band, reserving a candidate outside the mains comb."""
-    if len(x) < 4 * sr or np.max(abs(x)) < 1e-12:
-        return []
-    f, _, p = signal.spectrogram(x, sr, nperseg=2*sr, noverlap=sr)
-    power = ndimage.gaussian_filter1d(np.median(p, axis=1), 4)
-    background = ndimage.median_filter(power, size=321)
-    score = 10*np.log10((power+1e-30)/(background+1e-30))
-    peaks, _ = signal.find_peaks(score, distance=60)
-    rows = []
-    for i in peaks:
-        hz = float(f[i])
-        if not 45 < hz < sr/2-100 or 2150 < hz < 2850:
-            continue  # Reserve check tones for target validation.
-        band = abs(f-hz) < 15
-        side = (abs(f-hz) > 45) & (abs(f-hz) < 90)
-        contrast = 10*np.log10((p[band].max(axis=0)+1e-30) /
-                              (np.median(p[side], axis=0)+1e-30))
-        occupancy = float(np.mean(contrast > 10))
-        if occupancy < .5 or np.median(contrast) < 8 or score[i] < 6:
-            continue
-        rows.append(dict(carrier_hz=hz, contrast_db=float(np.median(contrast)),
-                         occupancy=occupancy, spectral_score_db=float(score[i]),
-                         near_mains_family=abs(hz/60-round(hz/60))*60 < 5))
-    rows.sort(key=lambda r: r['spectral_score_db'], reverse=True)
-    # Retain more than just the strongest 60 Hz line: the 120 Hz family supplied
-    # the useful CH21 reference in the CH22 trial.
-    nonmains = [r for r in rows if not r['near_mains_family']][:max(1, limit//2)]
-    mains = [r for r in rows if r['near_mains_family']][:limit-len(nonmains)]
-    chosen = nonmains+mains
-    return chosen+[r for r in rows if r not in chosen][:limit-len(chosen)]
 
 
 def trajectory(x, sr, hz, capture, support_mask=None):

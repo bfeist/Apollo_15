@@ -10,7 +10,7 @@ grouped by step:
 | `scripts/01_ingest/` | Concatenation and original-tape archiving |
 | `scripts/03_denoise/` | Denoise commands, Windows/Genus coordination and housekeeping |
 | `scripts/04_crosstalk/` | Evidence-bounded two-path repeat subtraction before shared de-flutter |
-| `scripts/05_deflutter/` | Stage 05a planning, stage 05b application, shared audio processing and review evidence |
+| `scripts/05_deflutter/` | Stage 05 detection census, 05a planning, 05b application, shared audio processing and review evidence |
 | `scripts/06_retime/` | Quindar surveys and shared tape-speed retiming |
 | `scripts/07_normalize/` | Conservative speech-level measurement, constant gain to target and separate listening WAVs |
 | `scripts/08_irig/` | Standalone IRIG search; its pipeline integration remains undecided |
@@ -35,6 +35,7 @@ evidence. Use it for the hash-bound runtime and engine utilities:
 uv run python scripts/run.py denoise_v2_rollout.py --help
 uv run python scripts/run.py denoise_v2_accelerated.py --help
 uv run python scripts/run.py qualify_denoise_numba.py --help
+uv run python scripts/run.py 05_detect_flutter.py --help
 uv run python scripts/run.py carrier_survey.py --help
 uv run python scripts/run.py quindar_survey.py --help
 uv run python scripts/run.py irig_search.py --help
@@ -59,7 +60,10 @@ The identical normalization module beside the deflutter engine preserves its
 existing source-fingerprint calculation. The shared-map importer verifies
 saved evidence by its recorded artifact hashes, independently of the current
 legacy engine fingerprint. The removed review/approval implementation is
-recoverable from Git commit `9e888c5` and saved research snapshots. Existing
+recoverable from Git commit `9e888c5` and saved research snapshots; the v5
+survey/planning engine and the October 30 research campaign code were removed
+on November 15 and remain in Git history. `carrier_survey.py` stays for the
+IRIG search. Existing
 manifests, recorded source paths, audio, and snapshots are not rewritten.
 
 New scripts must be listed in `scripts/layout.json`. Tests and research tools

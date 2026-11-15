@@ -5,6 +5,19 @@ any of the 30 simultaneous channels can support that correction on every output
 channel. Output-channel tones and legacy per-target eligibility never gate
 application. Existing channel offsets are retained.
 
+## Governing rule
+
+The project owner reaffirmed on November 3, 2026 that each tape's 30 channels
+were recorded simultaneously and must share a single tape-motion correction.
+Reference discovery and evidence collection may be per channel; selection,
+coverage, joining and application are at tape level. Build and anchor one map
+for the intended scope, then crop or apply it to channels. Never anchor a
+channel or a short listening excerpt independently, never average incompatible
+curves, and never promote `validate_transfer`, rejected or untracked
+candidates merely to increase coverage. Regions without usable evidence on any
+channel remain bypassed. The first CH20 reviews gated on CH20 alone; their
+audio and approvals are kept as historical comparisons only.
+
 ## Planning and rendering
 
 `05a_plan_deflutter.py` imports completed saved all-channel plans and their
@@ -12,12 +25,16 @@ hash-bound assessments from `deflutter_planning_v5_allchannel/<tape>/`.
 It also searches completed regional stores and their `audits/*/plan.json`
 bundles alongside that root; additional
 regional plans can be supplied with repeated `--regional-plan` arguments.
+With `--detection-root deflutter_detection_census/<run-id>/` it also imports
+the completed [detection census](deflutter_detection.md) stream for the tape;
+a census-only tape is accepted when no v5 bundle exists.
 The importer validates originals, offsets, saved details, and map hashes.
 Unfinished plans and `validate_transfer` proposals are not promoted.
 
 Selection prefers eligible regional evidence, ranked by support then reference
 quality and key; otherwise it uses eligible continuous evidence ranked by
-reference quality and key. Selection uses each curve's saved support on the
+reference quality and key; the blind census stream (priority 2) fills the
+remaining supported tape time. Selection uses each curve's saved support on the
 common 200 Hz grid: a dropout exposes the next eligible reference, and bypass
 is retained where none has usable support. Copied feeds do not cast independent
 votes. A local
@@ -51,17 +68,21 @@ uv run python scripts/pipeline.py run --stages 04,05b --tape A15_T510076 --chann
 ```
 
 Map output defaults to `deflutter_planning_shared`; audio output defaults to
-`defluttered_shared`. Repeating a compatible completed map build reuses it.
+`defluttered_shared`. For census-based maps use the run-scoped
+`deflutter_planning_census/<run-id>/` and `defluttered_census/<run-id>/` roots
+(commands in [the detection guide](deflutter_detection.md#commands)). Repeating a compatible completed map build reuses it.
 Changed evidence, implementation, or scope requires a new destination.
 Interrupted compilation is not resumable: keep its partial directory and choose
 a fresh output. Saved evidence is never rewritten. Use `pipeline.py plan` to
 preview commands without compiling or rendering.
 
 The former v5 command alias, review desk, sampling/approval machinery, and
-bounded shared-map adapter have been deleted. Stage 05 has one planning command
-and one renderer. Historical numerical readers remain where saved evidence
-needs them; the removed implementation is recoverable from Git commit
-`9e888c5` and the saved research snapshots. Old production approvals cannot
+bounded shared-map adapter have been deleted, and on November 15 the v5
+survey/planning engine itself (continuous planner, assessments, resume and
+per-channel map evaluation) was removed in favour of the detection census.
+Stage 05 has one detection command, one planning command and one renderer.
+The saved-evidence readers remain; removed source is recoverable from Git
+(commit `9e888c5` and the November 15 history) and the saved research snapshots. Old production approvals cannot
 authorize this workflow. Previous WAVs, maps, and approval records are unchanged.
 
 ## Listening in Audition

@@ -511,15 +511,18 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(json.loads((self.output/'speech.json').read_text())['stage'], 'denoise')
 
     def test_retired_stages_are_rejected(self):
-        for stage in ('02', '02b', '04', '05', '08'):
+        for stage in ('02', '02b', '04', '08'):
             with self.subTest(stage=stage):
                 result = self.run_pipeline('--stages', stage)
                 self.assertEqual(result.returncode, 2)
         self.assertFalse(self.output.exists())
 
     def test_standalone_channel_denoise_without_plan(self):
-        from test_continuous_planning import fixture
-        original, channel = fixture(self.root, duration=60)
+        original, channel = self.root/'originals'/'A15_T001', 2
+        original.mkdir(parents=True)
+        t = np.arange(60*8000)/8000
+        voice = .1*np.sin(2*np.pi*2500*t)*((t % 4) < .25)+np.random.default_rng(150).normal(0., .0001, len(t))
+        sf.write(original/'A15_T001_HR1U_CH2_VOICE_207-00-00-00_207-00-01-00.wav', voice, 8000, subtype='FLOAT')
         command = [sys.executable, str(ROOT/'scripts/03_denoise/03_denoise.py'), '--input', str(original),
                    '--channel', str(channel), '--denoised-root', str(self.output)]
         result = subprocess.run(command, capture_output=True, text=True)

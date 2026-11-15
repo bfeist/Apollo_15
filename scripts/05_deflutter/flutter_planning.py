@@ -1,4 +1,4 @@
-"""Canonical tape inventory and reference acquisition helpers for stage 05a."""
+"""Canonical tape inventory and verified original reads, shared by stages 03-05."""
 import hashlib
 import json
 from pathlib import Path
@@ -7,7 +7,6 @@ import warnings
 
 import numpy as np
 import soundfile as sf
-from flutter_tracking import RATE, burst_track
 
 STAMP = re.compile(r'_(\d+-\d+-\d+-\d+)_(\d+-\d+-\d+-\d+)\.wav$', re.I)
 CHANNEL = re.compile(r'_CH(\d+)_', re.I)
@@ -94,46 +93,3 @@ def read_channel(row, start, end):
     if len(x) != round((end-start)*sr) or not np.isfinite(x).all() or not unchanged():
         raise ValueError(f'Changed, short or non-finite source read: {path}')
     return x, sr, hashlib.sha256(x.tobytes()).hexdigest()
-
-
-def loss(metrics):
-    values = [m['residual_ratio'] for b in metrics for m in b['margins']]
-    return float(np.median(values)) if values else None
-
-
-def fair_shortlist(candidates, screening, limit):
-    """Greedy coverage of target winners; a channel number never sets priority."""
-    eligible = {c['key']: c for c in candidates if c['eligible']}
-    scores = {}
-    for s in screening:
-        if s['proxy_loss'] is not None:
-            scores.setdefault(s['target_channel'], []).append(s)
-    winners = {ch: min(rows, key=lambda r: (r['proxy_loss'], r['key']))['key'] for ch, rows in scores.items()}
-    chosen = []
-    while eligible and len(chosen) < limit:
-        best = max(eligible.values(), key=lambda c: (sum(k == c['key'] for k in winners.values()), c['rank'], c['key']))
-        chosen.append(best)
-        eligible.pop(best['key'])
-        winners = {ch: k for ch, k in winners.items() if k != best['key']}
-    return chosen, dict(limit=limit, eligible_candidates=len(chosen)+len(eligible),
-                        exhausted=bool(eligible), targets_without_winner=sorted(winners),
-                        untried_candidates=sorted(eligible),
-                        interpretation='Budget exhaustion is not exhausted evidence; increase reference-limit for calibration before freezing holdouts')
-
-
-def calibration_proxy(x, sr, curve, events):
-    """Cheap signed-frequency screen; final selection uses actual rendered audio."""
-    values = []
-    for b in events:
-        lo, hi = int((b['start']-.15)*sr), int((b['end']+.15)*sr)
-        # A negative Python slice wraps from the end of the excerpt, yielding
-        # an empty or unrelated event. Never screen an incomplete margin.
-        if lo < 0 or hi > len(x) or hi <= lo:
-            return None
-        _, freq = burst_track(x[lo:hi], sr)
-        tt = lo/sr+np.arange(len(freq))/1000
-        keep = (tt > b['start']+.04) & (tt < b['end']-.04)
-        e = np.interp(tt[keep], np.arange(len(curve))/RATE, curve)
-        if keep.sum() >= 40:
-            values.append(float(np.std(freq[keep]/(1+e))/max(np.std(freq[keep]), 1e-9)))
-    return float(np.median(values)) if values else None

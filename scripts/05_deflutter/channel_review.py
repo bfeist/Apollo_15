@@ -1,7 +1,7 @@
-"""Historical map evaluation and stage-03 cache helpers.
+"""Stage-03 v1 cleanup cache helpers.
 
-The active deflutter renderer is shared_render; this module does not publish
-channel reviews or listening pages.
+The former per-channel map evaluation was removed; the active deflutter
+renderer is shared_render with one shared tape map.
 """
 from collections import deque
 from concurrent.futures import ProcessPoolExecutor
@@ -17,18 +17,13 @@ import time
 
 import numpy as np
 import soundfile as sf
-from scipy.integrate import cumulative_trapezoid
 
 from audio_processing import clean_tones, denoise, DEFAULT_BROADBAND_CAP_DB, TONAL_CLEANUP_METHOD
 from denoise_archive import (cleanup_version, denoised_audio_path, historical_path, legacy_write,
                              read_json, root_marker, sha256, validate_binding)
-from flutter import resample_at
-from flutter_plan_store import checked_artifact, load_saved_plan, planning_lock, tape_directory
+from flutter_plan_store import planning_lock, tape_directory
 
 RATE = 200
-
-# Imported lazily in the dispatchers to keep the regional renderer available
-# independently of the continuous methodology's implementation modules.
 
 
 def write_json(path, value):
@@ -50,248 +45,8 @@ def separate(destination, protected):
             raise ValueError('Output must not overlap originals or saved plans')
 
 
-def prepare(plan_path, channel, start=0., duration=None):
-    plan_path = Path(plan_path).resolve()
-    if plan_path.is_dir():
-        plan_path /= 'plan.json'
-    plan = load_saved_plan(plan_path, expand_regions=False)
-    row = next((r for r in plan['inventory']['channels'] if r['channel'] == channel), None)
-    if row is None or row['role'] == 'timing_only':
-        raise ValueError('Choose an available non-IRIG channel')
-    if duration is None:
-        if not plan.get('full_tape'):
-            raise ValueError('A partial plan needs an explicit --start and --duration')
-        duration = row['end_seconds'] - start
-    if not np.isfinite([start, duration]).all() or duration < 15:
-        raise ValueError('Review range must be finite and at least 15 seconds')
-    sr = row['sample_rate']
-    offset = round((start-row['start_seconds'])*sr)
-    frames = round(duration*sr)
-    start = row['start_seconds']+offset/sr
-    end = start+frames/sr
-    if offset < 0 or offset+frames > row['frames']:
-        raise ValueError('Review range exceeds the target channel coverage')
-    regions = [r for r in plan['regions'] if r['end_seconds'] > start and r['start_seconds'] < end]
-    cursor = start
-    for r in regions:
-        if r['status'] != 'analyzed' or r['start_seconds'] > cursor+1e-8:
-            raise ValueError('Saved plan has an unplanned gap in the review range')
-        cursor = max(cursor, r['end_seconds'])
-    if not regions or cursor < end-1e-8:
-        raise ValueError('Saved plan does not cover the review range')
-    info = sf.info(row['path'])
-    if info.channels != 1 or info.frames != row['frames'] or info.samplerate != sr:
-        raise ValueError('Original audio header differs from inventory')
-    return plan_path, plan, row, regions, start, offset, frames
-
-
-def region_curve(folder, summary, channel, experimental):
-    _, raw = checked_artifact(folder, summary['detail_file'], summary['detail_sha256'])
-    r = json.loads(raw)
-    target = next((t for t in r['targets'] if t['channel'] == channel), None)
-    if target is None:
-        raise ValueError(f'{r["id"]}: missing target decision')
-    action = target['action']
-    if action not in ('render_and_review', 'group_render_and_review', 'validate_transfer', 'leave_uncorrected'):
-        raise ValueError('Unknown target decision')
-    enabled = action in {'render_and_review', 'group_render_and_review'} or (action == 'validate_transfer' and experimental)
-    result = dict(region=r, target=target, enabled=enabled, speed=None, support=None)
-    if enabled:
-        if not r.get('maps') or not target.get('selected'):
-            raise ValueError('Enabled region has no saved map')
-        path, _ = checked_artifact(folder, r['maps']['file'], r['maps']['sha256'])
-        with np.load(path, allow_pickle=False) as archive:
-            speed = archive[target['selected']].copy()
-            support = archive[target['selected']+'__support'].copy()
-        n = round((r['analysis_end']-r['analysis_start'])*RATE)
-        if (r['maps']['rate'] != RATE or speed.shape != (n,) or support.shape != (n,)
-                or n < 2 or not np.isfinite(speed).all() or not np.isfinite(support).all()
-                or np.max(abs(speed)) > .05 or np.min(support) < 0 or np.max(support) > 1
-                or np.any(np.abs(speed[support == 0]) > 1e-12)):
-            raise ValueError('Invalid saved speed/support map')
-        result.update(speed=speed, support=support)
-    return result
-
-
-def sample_curve(curve, times):
-    if not curve['enabled']:
-        return np.zeros(len(times)), np.zeros(len(times))
-    r = curve['region']
-    tt = r['analysis_start']+np.arange(len(curve['speed']))/RATE
-    return (np.interp(times, tt, curve['speed'], left=0, right=0),
-            np.interp(times, tt, curve['support'], left=0, right=0))
-
-
 def rising(x):
     return .5-.5*np.cos(np.pi*np.clip(x, 0, 1))
-
-
-def continuous_map(folder, regions, channel, start, frames, sr, experimental=False, progress=print):
-    if regions and regions[0].get('kind') == 'continuous_reference':
-        from continuous_maps import saved_continuous_map
-        if experimental:
-            raise ValueError('Continuous plans do not contain experimental transfer proposals')
-        return saved_continuous_map(folder, regions[0], channel, start, frames, sr)
-    # End at the last sample, including a fractional final tracking interval.
-    last = (frames-1)/sr
-    tt = np.arange(math.floor(last*RATE)+1, dtype=float)/RATE
-    if last > tt[-1]+1e-12:
-        tt = np.r_[tt, last]
-    speed, envelope = np.zeros(len(tt)), np.zeros(len(tt))
-    markers, evidence = [], []
-    previous = None
-    for index, summary in enumerate(regions):
-        current = region_curve(folder, summary, channel, experimental)
-        r, target = current['region'], current['target']
-        a, b = max(start, r['start_seconds']), min(start+frames/sr, r['end_seconds'])
-        lo, hi = np.searchsorted(tt, [a-start, b-start])
-        speed[lo:hi], envelope[lo:hi] = sample_curve(current, start+tt[lo:hi])
-        status = ('numeric_pass' if target['action'] == 'render_and_review' else
-                  'group_numeric_pass' if target['action'] == 'group_render_and_review' else 'experimental') if current['enabled'] else 'bypassed'
-        markers.append(dict(start_seconds=a-start, end_seconds=b-start, kind=status,
-                            region=r['id'], selected=target.get('selected'), reason=target['reason']))
-        evidence.append(dict(region=r['id'], detail_sha256=summary['detail_sha256'],
-                             maps_sha256=r.get('maps', {}).get('sha256'), decision=target['action'], applied=current['enabled']))
-        if current['enabled']:
-            for gap in target.get('reference_spans', []):
-                ga, gb = max(a, gap['start_seconds']), min(b, gap['end_seconds'])
-                if ga < gb and gap['action'] != 'use_reference':
-                    markers.append(dict(start_seconds=ga-start, end_seconds=gb-start, kind='support_gap',
-                                        region=r['id'], reason=gap['action']))
-        if previous is not None:
-            left = previous['region']
-            boundary = r['start_seconds']
-            # Never allow neighboring transition windows to overlap.
-            width = min(1., (left['end_seconds']-left['start_seconds'])/2,
-                        (r['end_seconds']-r['start_seconds'])/2)
-            # A tiny bypass tail need not shorten the outgoing fade.
-            left_width = min(1., (left['end_seconds']-left['start_seconds'])/2)
-            right_width = min(1., (r['end_seconds']-r['start_seconds'])/2)
-            oa = max(left['analysis_start']+2, r['analysis_start']+2)
-            ob = min(left['analysis_end']-2, r['analysis_end']-2)
-            support_fraction, disagreement, blend = 0., None, False
-            if previous['enabled'] and current['enabled'] and ob > oa:
-                overlap = np.arange(oa, ob, 1/RATE)
-                le, lg = sample_curve(previous, overlap)
-                re, rg = sample_curve(current, overlap)
-                supported = (lg >= .95) & (rg >= .95)
-                support_fraction = float(np.mean(supported))
-                if supported.any():
-                    disagreement = float(np.sqrt(np.mean((le[supported]-re[supported])**2)))
-                    blend = support_fraction >= .9 and disagreement <= .005
-            if blend:
-                lo, hi = np.searchsorted(tt, [boundary-width-start, boundary+width-start])
-                times = start+tt[lo:hi]
-                weight = rising((times-boundary+width)/(2*width))
-                le, lg = sample_curve(previous, times)
-                re, rg = sample_curve(current, times)
-                speed[lo:hi] = le*(1-weight)+re*weight
-                envelope[lo:hi] = lg*(1-weight)+rg*weight
-                join_action = 'blend'
-            else:
-                for curve, low, high, incoming in ((previous, boundary-left_width, boundary, False),
-                                                   (current, boundary, boundary+right_width, True)):
-                    lo, hi = np.searchsorted(tt, [low-start, high-start])
-                    times = start+tt[lo:hi]
-                    e, g = sample_curve(curve, times)
-                    weight = rising((times-low)/(high-low))
-                    if not incoming:
-                        weight = 1-weight
-                    speed[lo:hi], envelope[lo:hi] = e*weight, g*weight
-                join_action = 'fade'
-            if previous['enabled'] or current['enabled']:
-                markers.append(dict(start_seconds=max(0., boundary-left_width-start),
-                                    end_seconds=min(last, boundary+right_width-start), kind=join_action,
-                                    region=left['id']+' / '+r['id'], reason='Adjacent saved speed curves',
-                                    overlap_supported_fraction=support_fraction, speed_rms_difference=disagreement))
-        previous = current
-        if (index+1) % 100 == 0 or index+1 == len(regions):
-            progress(f'Maps: {index+1}/{len(regions)} regions')
-    fade = rising(np.minimum(tt, last-tt)/2.)
-    speed *= fade
-    envelope *= fade
-    # Remove only the integrated DC drift, weighted to enabled/supported spans.
-    # Bypassed spans keep zero local speed correction, not a reset of displacement.
-    area = float(np.trapezoid(envelope, tt))
-    dc = float(np.trapezoid(speed, tt)/area) if area else 0.
-    speed -= dc*envelope
-    if np.max(abs(speed)) > .05:
-        raise ValueError('Duration anchoring exceeds the 5% speed bound')
-    delay = cumulative_trapezoid(speed, tt, initial=0)
-    delay[-1] = 0.
-    nominal = tt+delay
-    if not np.isfinite(nominal).all() or np.any(np.diff(nominal) <= 0):
-        raise ValueError('Continuous timing map must be finite and strictly monotonic')
-    stats = dict(rate=RATE, frames=frames, sample_rate=sr, last_sample_seconds=last,
-                 dc_speed_removed=dc, maximum_displacement_seconds=float(np.max(abs(delay))),
-                 maximum_speed_correction=float(np.max(abs(speed))),
-                 speed_limit_saturation_fraction=float(np.mean(abs(speed) >= .049)),
-                 reference_switches=sum(a.get('selected') != b.get('selected') for a, b in zip(
-                     [m for m in markers if m['kind'] in {'numeric_pass','group_numeric_pass','experimental','bypassed'}],
-                     [m for m in markers if m['kind'] in {'numeric_pass','group_numeric_pass','experimental','bypassed'}][1:])),
-                 fade_count=sum(m['kind'] == 'fade' for m in markers),
-                 blend_count=sum(m['kind'] == 'blend' for m in markers),
-                 nonzero_speed_fraction=float(np.mean(abs(speed)>1e-12)),
-                 integration='Single trapezoidal integration after speed blending/fading; support-weighted DC anchoring',
-                 bypass='Zero local speed correction; a constant timing offset can remain for continuity')
-    return tt, nominal, speed, stats, sorted(markers, key=lambda m:m['start_seconds']), evidence
-
-
-def joined_map_checks(folder, regions, row, channel, start, tt, nominal, speed):
-    """Measure original check tones through the exact final inverse map.
-
-Boundary/dropout events were excluded from calibration and regional holdouts.
-No alternative is fitted after these results; failure stays a failure.
-"""
-    if regions and regions[0].get('kind') == 'continuous_reference':
-        from continuous_maps import continuous_holdout_checks
-        return continuous_holdout_checks(folder, regions[0], row, channel, start, tt, nominal, speed)
-    from flutter_tracking import evaluate_events
-    from flutter_policy import LIMITS
-    observations, seen = [], set()
-    sr = row['sample_rate']
-    displacement = float(np.max(abs(nominal-tt)))
-    for summary in regions:
-        _, raw = checked_artifact(folder, summary['detail_file'], summary['detail_sha256'])
-        r = json.loads(raw)
-        target = next(t for t in r['targets'] if t['channel'] == channel)
-        if target['action'] not in {'render_and_review', 'group_render_and_review'}:
-            continue
-        for event in target.get('reserved_events', []):
-            a = r['analysis_start']+event['start']
-            b = r['analysis_start']+event['end']
-            key = round(a*sr)
-            if key in seen or a < start+.5 or b > start+tt[-1]-.5:
-                continue
-            seen.add(key)
-            low = max(start, a-.5-displacement)
-            high = min(start+tt[-1], b+.5+displacement)
-            offset = round((low-row['start_seconds'])*sr)
-            count = round((high-low)*sr)
-            low = row['start_seconds']+offset/sr
-            with sf.SoundFile(row['path']) as stream:
-                stream.seek(offset)
-                x = stream.read(count, dtype='float64')
-            output_times = low-start+np.arange(len(x))/sr
-            input_times = np.interp(output_times, nominal, tt)
-            pos = (input_times-(low-start))*sr
-            if np.any(np.diff(pos) <= 0):
-                continue
-            metrics = evaluate_events(x, sr, None, [dict(event, start=a-low, end=b-low)], sample_positions=pos)
-            margins = metrics[0]['margins'] if metrics else []
-            passed = len(margins) == 3 and all(m['after_rms_hz'] <= LIMITS['max_residual_hz']
-                and m['after_rms_cents'] <= LIMITS['max_residual_cents']
-                and m['after_rms_hz'] <= max(m['before_rms_hz']*1.05, m['before_rms_hz']+.1) for m in margins)
-            observations.append(dict(region=r['id'], original_start_seconds=a,
-                                     status='passed' if passed else 'failed', metrics=metrics))
-    status = ('passed' if len(observations) >= 2 else 'insufficient_reserved_events')
-    if any(o['status'] == 'failed' for o in observations):
-        status = 'failed'
-    if not np.any(abs(speed) > 1e-12):
-        status = 'passed'
-    return dict(status=status, reserved_events=observations, no_motion=not bool(np.any(abs(speed) > 1e-12)),
-                map='Exact final continuous joined, faded and duration-anchored inverse map',
-                failed_choice_refitted=False, listening_approved=False)
 
 
 def wav_format(frames):
@@ -413,51 +168,6 @@ def cleanup_channel(row, start_frame, frames, output, log_path, block_seconds=60
     return dict(method=TONAL_CLEANUP_METHOD, broadband_cap_db=DEFAULT_BROADBAND_CAP_DB,
                 block_seconds=block_seconds, overlap_fraction=.5, context_seconds=4,
                 input_excerpt_float64_sha256=digest.hexdigest(), peak=peak)
-
-
-def render_warp(cleaned, output, tt, nominal, block_seconds=5., progress=print):
-    """Inverse-map a single cleaned stream; source halos hide resampler edges."""
-    if not np.isfinite(block_seconds) or not .1 <= block_seconds <= 30:
-        raise ValueError('Render block must be 0.1-30 seconds')
-    peak, maximum_step, minimum_step = 0., 0., float('inf')
-    previous_pos = None
-    with sf.SoundFile(cleaned) as source:
-        sr, frames = source.samplerate, source.frames
-        if abs(tt[-1]-(frames-1)/sr)>1e-9:
-            raise ValueError('Timing map does not match cleaned audio')
-        block = round(block_seconds*sr)
-        with sf.SoundFile(output, 'w', samplerate=sr, channels=1, subtype='FLOAT', format=wav_format(frames)) as dest:
-            for begin in range(0, frames, block):
-                end = min(frames,begin+block)
-                times = np.arange(begin,end)/sr
-                lo = max(0,int(np.searchsorted(nominal,times[0]))-1)
-                hi = min(len(tt),int(np.searchsorted(nominal,times[-1]))+2)
-                pos = np.interp(times,nominal[lo:hi],tt[lo:hi])*sr
-                steps = np.diff(pos if previous_pos is None else np.r_[previous_pos,pos])
-                if len(steps):
-                    minimum_step = min(minimum_step,float(np.min(steps)))
-                    maximum_step = max(maximum_step,float(np.max(steps)))
-                    if np.min(steps)<=0:
-                        raise ValueError('Nonmonotonic inverse audio map')
-                previous_pos = pos[-1]
-                left = max(0,int(np.floor(pos[0]))-256)
-                right = min(frames,int(np.ceil(pos[-1]))+257)
-                source.seek(left)
-                x = source.read(right-left,dtype='float64')
-                if len(x)!=right-left or not np.isfinite(x).all():
-                    raise ValueError('Invalid cleaned audio')
-                if np.max(abs(pos-np.arange(begin,end)))<1e-7:
-                    y = x[begin-left:end-left]  # Exact identity when the map is identity.
-                else:
-                    y = resample_at(x,pos-left)
-                if len(y)!=end-begin or not np.isfinite(y).all():
-                    raise ValueError('Invalid corrected audio')
-                dest.write(y)
-                peak = max(peak,float(np.max(abs(y))))
-                if begin//block % 12 == 0 or end==frames:
-                    progress(f'Deflutter: {end/frames:.1%} ({end/sr/60:.1f} min)')
-    return dict(peak=peak,minimum_input_sample_step=minimum_step,maximum_input_sample_step=maximum_step,
-                block_seconds=block_seconds,resampler='8x Kaiser FIR and cubic interpolation; 256-sample source halo')
 
 
 def verify_audio(path, frames, sr):

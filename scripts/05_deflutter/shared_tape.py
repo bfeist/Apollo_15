@@ -1,7 +1,8 @@
 """One immutable tape-motion map, compiled from saved evidence on all tracks.
 
 Historical plans are evidence import formats only. Output channels never take
-part in selection, joining, integration, or endpoint anchoring.
+part in selection, joining, integration, or endpoint anchoring. Completed
+check-tone-free detection census streams are a third, lower-priority source.
 """
 from collections import defaultdict
 import json
@@ -14,6 +15,7 @@ from scipy.ndimage import distance_transform_edt
 
 from denoise_archive import atomic_json, sha256, bound_path, cleanup_version, denoised_audio_path
 from flutter_plan_store import checked_artifact, checked_stream, load_saved_plan
+from flutter_detection import load_census
 
 METHODOLOGY = 'shared-tape-motion-v1'
 RATE = 200
@@ -24,6 +26,9 @@ ALLOWED_OUTCOMES = {'insufficient_evidence', 'partial_improvement_at_measured_ev
                     'full_restoration_at_measured_events', 'restoration_at_measured_events',
                     'supported_improvement'}
 REGIONAL_ACTIONS = {'render_and_review', 'group_render_and_review'}
+# Saved regional (0) and listening-approved v5 continuous (1) spans win where
+# they exist; the blind census stream fills the remaining tape time.
+CENSUS_PRIORITY = 2
 
 
 def identity(inventory):
@@ -138,6 +143,34 @@ def regional_candidates(path):
                     frames=round((detail['analysis_end']-detail['analysis_start'])*RATE),
                     start_seconds=detail['analysis_start'])))
     return plan, candidates, bound(path)
+
+
+def census_candidates(run_dir, inv):
+    """Import one completed census stream; a missing or stale bundle is an error."""
+    bundle = load_census(run_dir, inv['tape'])
+    evidence = bundle['evidence']
+    if identity(evidence['inventory']) != identity(inv):
+        raise ValueError('Detection census disagrees on original identity or canonical offsets')
+    stream = evidence['stream']
+    end = inv['duration_seconds']  # Past the last saved sample, read_curve gives zero support.
+    candidate = dict(id='census_'+bundle['evidence_sha256'][:16]+'__blind_consensus',
+        start_seconds=stream['start_seconds'], end_seconds=end, priority=CENSUS_PRIORITY, rank=0.,
+        reference_support=0., reference_channel=None, carrier_hz=None, method=evidence['methodology'],
+        witnesses=[], windows=dict(total=evidence['coverage']['windows'],
+                                   eligible=evidence['coverage']['eligible_windows']),
+        source_kind='blind_consensus', source_key='blind_consensus',
+        source_plan=str(bundle['evidence_path']), source_plan_sha256=bundle['evidence_sha256'],
+        census_run_id=evidence['run_id'],
+        curve=dict(format='stream', path=str(bundle['stream_path']), sha256=stream['sha256'],
+                   frames=stream['frames'], rate=stream['rate'], start_seconds=stream['start_seconds'],
+                   dtype=stream['dtype']))
+    provenance = dict(run_id=evidence['run_id'], run_dir=str(bundle['run_dir']),
+        config_sha256=evidence['config_sha256'], evidence_sha256=bundle['evidence_sha256'],
+        stream_sha256=stream['sha256'], settings_sha256=evidence['settings_sha256'],
+        implementation=evidence['implementation'], coverage=evidence['coverage'],
+        beep_audit=evidence['beep_audit'], duplicate_audit=evidence['duplicate_audit'])
+    bindings = [bound(bundle['run_dir']/'config.json'), bound(bundle['evidence_path']), bound(bundle['stream_path'])]
+    return candidate, bindings, provenance
 
 
 def select_intervals(candidates, start, end):
@@ -266,15 +299,39 @@ def compile_map(path, candidates, selections, start, end):
         bypass='Zero local speed correction; constant displacement preserves continuity')
 
 
-def build_tape_plan(continuous_path, assessment_path, output, *, regional_paths=(), start=None, end=None):
-    """Reuse completed evidence; no carrier discovery, fitting, or audio rendering."""
+def build_tape_plan(continuous_path, assessment_path, output, *, regional_paths=(), detection_root=None,
+                    inventory=None, start=None, end=None):
+    """Reuse completed evidence; no carrier discovery, fitting, or audio rendering.
+
+    ``continuous_path``/``assessment_path`` may be None when a completed
+    detection census is supplied; ``inventory`` then names the canonical tape.
+    """
     output = Path(output).resolve()
-    protected = [index_path(continuous_path).parent,
+    if continuous_path is None and detection_root is None:
+        raise ValueError('Shared planning needs saved v5 evidence or a completed detection census')
+    protected = [*([index_path(continuous_path).parent] if continuous_path is not None else []),
+        *([Path(detection_root).resolve()] if detection_root is not None else []),
         *[index_path(path).parent for path in regional_paths]]
     if any(output == p or output in p.parents or p in output.parents for p in protected):
         raise ValueError('Shared tape output must not overlap saved evidence')
-    source, candidates, rejected, bindings = continuous_candidates(continuous_path, assessment_path)
-    inv = source['inventory']
+    coverage, source, candidates, rejected, bindings = [], {}, [], [], []
+    if continuous_path is not None:
+        source, candidates, rejected, bindings = continuous_candidates(continuous_path, assessment_path)
+        inv = source['inventory']
+        coverage.append((source.get('parameters', {}).get('start', source['regions'][0]['start_seconds']),
+                         max(r['end_seconds'] for r in source['regions'])))
+    elif inventory is None:
+        raise ValueError('Census-only planning needs the canonical source inventory')
+    else:
+        inv = inventory
+    if inventory is not None and (inventory['tape'] != inv['tape'] or identity(inventory) != identity(inv)):
+        raise ValueError('Saved tone evidence does not match the canonical originals')
+    census = None
+    if detection_root is not None:
+        candidate, extra, census = census_candidates(detection_root, inv)
+        candidates.append(candidate)
+        bindings.extend(extra)
+        coverage.append((candidate['start_seconds'], candidate['end_seconds']))
     if any(output == Path(r['path']).parent or Path(r['path']).parent in output.parents
            or output in Path(r['path']).parent.parents for r in inv['channels']):
         raise ValueError('Shared tape output must not overlap originals')
@@ -284,8 +341,8 @@ def build_tape_plan(continuous_path, assessment_path, output, *, regional_paths=
             raise ValueError('Saved evidence disagrees on original identity or canonical offsets')
         candidates.extend(extra)
         bindings.append(binding)
-    source_start = source.get('parameters', {}).get('start', source['regions'][0]['start_seconds'])
-    source_end = max(r['end_seconds'] for r in source['regions'])
+    source_start = min(a for a, _ in coverage)
+    source_end = max(b for _, b in coverage)
     start = source_start if start is None else start
     end = source_end if end is None else end
     if not np.isfinite([start, end]).all() or not source_start <= start < end <= source_end:
@@ -305,21 +362,29 @@ def build_tape_plan(continuous_path, assessment_path, output, *, regional_paths=
     selections = select_intervals(candidates, start, end)
     output.mkdir(parents=True)
     statistics = compile_map(output/'tape_map.npy', candidates, selections, start, end)
+    if census is not None:
+        chosen = {s['selected'] for s in selections}
+        statistics['census_selected_seconds'] = sum(s['end_seconds']-s['start_seconds'] for s in selections
+            if s['selected'] is not None and s['selected'].startswith('census_'))
+        census['selected'] = any(k is not None and k.startswith('census_') for k in chosen)
     atomic_json(output/'selection.json', selections)
     atomic_json(output/'evidence.json', dict(candidates=candidates, rejected=rejected,
-        interpretation='Saved channel decisions supply witnesses, never destination eligibility'))
+        interpretation='Saved channel decisions and census windows supply witnesses, never destination eligibility'))
+    limitations = ['Saved numerical tone evidence does not independently authenticate tape motion.',
+                   'Missing reserved events remain visible; no new discovery or fitting was run.']
+    if census is not None:
+        limitations.append('The detection census is blind cross-channel evidence; check beeps were only an audit.')
     plan = dict(schema=3, kind='shared_tape_map', methodology=METHODOLOGY,
         complete=True, source_validation='verified', tape_level=True,
         selection_depends_on_output_channel=False, inventory=inv,
-        full_tape=bool(source.get('full_tape') and start == 0 and end == inv['duration_seconds']),
+        full_tape=bool((source.get('full_tape') or census is not None)
+                       and start == 0 and end == inv['duration_seconds']),
         start_seconds=start, end_seconds=end, cleanup_version='v2',
         map=dict(file='tape_map.npy', sha256=sha256(output/'tape_map.npy'), **statistics),
         selection=dict(file='selection.json', sha256=sha256(output/'selection.json')),
         evidence=dict(file='evidence.json', sha256=sha256(output/'evidence.json')),
-        sources=bindings, implementation_sha256=sha256(__file__),
-        listening_approved=False, production_accepted=False,
-        limitations=['Saved numerical tone evidence does not independently authenticate tape motion.',
-                    'Missing reserved events remain visible; no new discovery or fitting was run.'])
+        sources=bindings, census=census, implementation_sha256=sha256(__file__),
+        listening_approved=False, production_accepted=False, limitations=limitations)
     atomic_json(output/'plan.json', plan)
     return plan
 

@@ -5,7 +5,7 @@ Processing tools for the Apollo 15 30-track recordings. Current work includes th
 **Flutter correction is tape-level:** use evidence from all simultaneous tracks
 to select one shared timing map, applied across channels at the same tape time.
 Missing check tones on an output channel do not independently disable correction.
-See [the governing rule and saved-data workflow](docs/tape_level_deflutter.md).
+See [the governing rule and shared-map workflow](docs/shared_deflutter.md).
 Stage 04 adds [evidence-bounded crosstalk removal](docs/crosstalk_stage.md) after v2
 denoising. Stage 05 compiles one shared tape map and applies it to stage-04 audio.
 Stage 07 adds [speech-level normalization](docs/speech_normalization.md) after
@@ -21,19 +21,16 @@ For the current denoise rollout, use the [Windows/Genus production console guide
 The [v2.16 rollout history](docs/denoise_v2_all_tapes_runbook.md) and
 [findings and local evidence index](docs/denoise_v2_plan.md) retain review and migration context.
 
-The active [shared tape workflow](docs/shared_deflutter.md) reuses completed
-all-channel surveys, tracking curves, and assessments. Stage 05a selects one
-curve per tape-time interval and saves one integrated map. Stage 05b applies
-that artifact to completed stage-04 channels derived from v2 denoising. Historical evidence stays
-immutable; per-target planners are no longer active processing entry points.
-
-The [October 30 research findings](docs/deflutter_research_findings.md) qualify
-these numerical results: no experimental correction is approved for production.
-Stationary electrical interference can pass the response-based checks. The
-research code and regression tests are retained under `research/` and `tests/`;
-generated reports and listening-site exports remain local.
-The November 15 [detection guide](docs/deflutter_detection_guide.md) shows how
-beep-free, on-tape hum evidence can extend shared-map coverage. It is not yet implemented.
+Stage 05 now starts with a [check-tone-free detection census](docs/deflutter_detection.md):
+blind cross-channel agreement of on-tape carriers, chiefly the 1971 mains hum
+after the exact digitization lines are subtracted, joined into one stream per
+tape on Proprius and Genus. The [shared tape workflow](docs/shared_deflutter.md)
+merges that stream with saved regional and v5 evidence, selects one curve per
+tape-time interval and saves one integrated map. Stage 05b applies that
+artifact to completed stage-04 channels derived from v2 denoising. Historical
+evidence stays immutable. [Next steps](docs/deflutter_next_steps.md) lists the
+worker benchmark, archive run and listening trials that remain; the
+[design guide](docs/deflutter_detection_guide.md) keeps the research rationale.
 
 | Stage | Entry point in `scripts/` | Purpose | Status |
 | --- | --- | --- | --- |
@@ -42,7 +39,8 @@ beep-free, on-tape hum evidence can extend shared-map coverage. It is not yet im
 | 03 v1 | `03_denoise/03_denoise.py` | Remove tones/hum and reduce broadband noise by at most 3 dB | Existing archive |
 | 03 v2 | `03_denoise/denoise_v2_console.py` | Qualified accelerated denoising on Windows and Genus | Active rollout; automatic Windows day/night limits |
 | 04 | `04_crosstalk/04_crosstalk.py` | Remove evidenced weaker repeats; preserve timing and gain | Available; bounded evidence, bypass elsewhere |
-| 05a | `05_deflutter/05a_plan_deflutter.py` | Compile one map from saved tone evidence across all channels | Shared tape maps |
+| 05 | `05_deflutter/05_detect_flutter.py` | Blind cross-channel tape-motion census on originals (Proprius + Genus) | New; benchmark and archive run pending |
+| 05a | `05_deflutter/05a_plan_deflutter.py` | Compile one map from census and saved evidence across all channels | Shared tape maps |
 | 05b | `05_deflutter/05b_deflutter.py` | Apply the tape map to stage-04 channels at their existing gain | Shared tape maps |
 | 06 | `06_retime/06_retime.py` | Apply one shared Quindar speed curve per completed tape | Active |
 | 07 | `07_normalize/07_normalize.py` | Constant gain to a speech target, noise-only bypass and transient peak limiting | New; listening calibration pending |
@@ -53,7 +51,8 @@ flowchart TD
     A[01 · Concatenate] --> B[Canonical originals]
     B --> C[01a · ZIP originals]
     B --> D[03 · Denoise]
-    B --> E[05a · Compile shared tape map from saved evidence]
+    B --> K[05 · Detection census on originals]
+    K --> E[05a · Compile shared tape map from census and saved evidence]
     D --> X[04 · Crosstalk removal]
     X --> F[05b · Apply shared tape map]
     E --> F
@@ -63,10 +62,9 @@ flowchart TD
     B --> I[IRIG search · future clock anchoring]
 ```
 
-V5 discovers reference candidates in originals and denoised audio, then tracks
-and validates their motion in originals because cleanup can remove useful tones.
-The 60 Hz harmonic comb is digitization contamination, according to the source
-provenance supplied by the project owner; it is excluded as timing evidence.
+The census measures motion on originals because cleanup can remove useful
+tones. The exact 60 Hz harmonic comb is digitization contamination and is
+subtracted; the 1971 hum recorded on the tape at 60·ρ·n Hz is the main witness.
 Flutter maps apply after stage-04 crosstalk removal. Quindars measure slow
 tape-speed drift. IRIG clock discovery remains independent, preserving original
 sample coordinates for future anchoring.
@@ -82,7 +80,8 @@ uv run python scripts/05_deflutter/05a_plan_deflutter.py --help
 uv run python scripts/05_deflutter/inspect_tone.py --help
 ```
 
-Stage 05a compiles existing evidence without running new discovery or fitting.
+Stage 05 is the only stage that analyses audio for flutter; stage 05a compiles
+completed evidence without running new discovery or fitting.
 Use `--flutter-plan-workers 1` to limit simultaneous map builds while denoising
 continues. `plan` previews commands without writes. Stage 05b requires a completed
 shared map and completed stage-04 input derived from v2. A single tape/channel defaults to stage 05b.
@@ -113,6 +112,7 @@ Defaults are beneath `D:/Apollo_15_30-Track`; overrides are available in `--help
 | `orig_concatenated/` | Canonical originals | `--concatenated` |
 | `denoised/` | Completed stage-03 channels | `--denoised-root` |
 | `crosstalk_removed/` | Stage-04 audio, interval decisions and evidence bindings | `--crosstalk-root` |
+| `deflutter_detection_census/<run-id>/` | Stage-05 census blocks, streams and cluster state | `--flutter-detection-root` |
 | `deflutter_planning_v5_allchannel/` | Preserved all-channel tone evidence | `--flutter-evidence-root` |
 | `deflutter_planning_shared/` | One map and selection provenance per tape | `--flutter-planning-root` |
 | `defluttered_shared/` | Stage-05b audio after stage-04 crosstalk | `--defluttered-root` |
@@ -126,7 +126,7 @@ Defaults are beneath `D:/Apollo_15_30-Track`; overrides are available in `--help
 - `docs/`: the current operating guide and explanatory measurement images.
 - Local `reports/`, `runs/`, and `archive/` are ignored artifacts. Recordings and processing outputs are not distributed with the source.
 
-One-off experiments, old cleanup previews, the regional planner, and excerpt-manifest rendering have been retired. Historical saved-map reading remains for evidence compatibility. Source changes invalidate implementation-bound flutter plans and acceptance; use fresh destinations rather than changing old records. Completed stage-03 intermediates retain their existing cleanup fingerprint.
+One-off experiments, old cleanup previews, the regional and v5 planners, the October 30 research campaign code, and excerpt-manifest rendering have been retired (recoverable from Git). Historical saved-map reading remains for evidence compatibility. Source changes invalidate implementation-bound flutter plans and acceptance; use fresh destinations rather than changing old records. Completed stage-03 intermediates retain their existing cleanup fingerprint.
 
 ## Measurement examples
 

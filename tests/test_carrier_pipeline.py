@@ -1,4 +1,4 @@
-"""Carrier/clock separation, cache integrity, transfer controls and rollout gates."""
+"""Carrier survey cache integrity, tracking support masks and clock separation."""
 import contextlib
 import hashlib
 import io
@@ -16,12 +16,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
 from _bootstrap import install as _install
 _install()
 from carrier_survey import scan_file, survey_tape, load_survey, screen
-from flutter_planning import inventory, fair_shortlist
-from continuous_planning import plan_tape
-from flutter_policy import shifted_curve, numeric_pass, evidence_strength
+from flutter_planning import inventory
 from flutter_tracking import trajectory
 from irig_clock import sequential_runs, promote_run, carry_anchors, clock_constraints
-from channel_review import continuous_map, joined_map_checks
 
 
 class CarrierPipelineTests(unittest.TestCase):
@@ -68,9 +65,6 @@ class CarrierPipelineTests(unittest.TestCase):
             with self.assertWarns(UserWarning):
                 inv = inventory(source)
             self.assertEqual(len(inv['excluded_files']), 1)
-            with self.assertWarns(UserWarning):
-                plan = plan_tape(source, root/'plan')
-            self.assertEqual([t['channel'] for t in plan['regions'][0]['targets']], [2])
             cache = json.loads((output/index['files'][0]['cache']).read_text())
             feature = output/cache['feature_blocks'][0]['file']
             feature.write_bytes(feature.read_bytes()+b' ')
@@ -78,26 +72,6 @@ class CarrierPipelineTests(unittest.TestCase):
                 load_survey(output)
             with self.assertRaisesRegex(ValueError, 'feature cache changed'):
                 survey_tape(source, output)
-
-    def test_controls_are_nonwrapping_and_absolute_gate_rejects(self):
-        e = np.arange(100, dtype=float)
-        self.assertTrue(np.all(shifted_curve(e, .1)[:20] == 0))
-        self.assertTrue(np.all(shifted_curve(e, -.1)[-20:] == 0))
-        def events(after):
-            return [dict(margins=[dict(before_rms_hz=20., after_rms_hz=after, after_rms_cents=after*.7,
-                                       residual_ratio=after/20.) for _ in range(3)])]
-        self.assertTrue(numeric_pass(events(2), [events(20)]*3, [events(20), events(20), events(2)]))
-        self.assertFalse(numeric_pass(events(7), [events(20)]*3, [events(20)]*3))
-        self.assertEqual(evidence_strength([dict(start=1)], [dict(start=9)])['level'], 'sparse')
-
-    def test_shortlist_covers_winners_without_channel_order(self):
-        candidates = [dict(key=k, eligible=True, rank=r) for k, r in [('a', 1.), ('b', .9), ('c', .8)]]
-        scores = [dict(key=k, target_channel=ch, proxy_loss=loss) for ch, k, loss in [(1, 'a', .1), (20, 'b', .1), (21, 'b', .1), (22, 'c', .2)]]
-        chosen, budget = fair_shortlist(candidates, scores, 1)
-        self.assertEqual(chosen[0]['key'], 'b')
-        self.assertEqual(budget['targets_without_winner'], [1, 22])
-        self.assertTrue(budget['exhausted'])
-
 
     def test_local_carrier_mask_never_bridges_gap_or_rejects_am_bits(self):
         sr = 8000
@@ -134,32 +108,6 @@ class CarrierPipelineTests(unittest.TestCase):
         self.assertEqual(clock_constraints(mapped, model)['status'], 'consistent')
         mapped[2]['get_seconds'] += .5
         self.assertEqual(clock_constraints(mapped, model)['status'], 'conflict')
-
-
-    def test_reserved_events_check_actual_joined_map_and_keep_failure(self):
-        from test_channel_review import fixture
-        from scipy.integrate import cumulative_trapezoid
-        with tempfile.TemporaryDirectory() as folder:
-            root = Path(folder)
-            path, plan, row = fixture(root)
-            sr = row['sample_rate']
-            t = np.arange(row['frames'])/sr
-            delay = cumulative_trapezoid(.015*np.sin(2*np.pi*6.5*t), t, initial=0)
-            x = .3*np.sin(2*np.pi*2500*(t+delay))
-            sf.write(row['path'], x, sr, subtype='FLOAT')
-            for r in plan['regions']:
-                detail_path = path.parent/r['detail_file']
-                detail = json.loads(detail_path.read_text())
-                event_start = min(r['start_seconds']+18.5, 55.)-r['analysis_start']
-                detail['targets'][0]['reserved_events'] = [dict(start=event_start, end=event_start+.25)]
-                detail_path.write_text(json.dumps(detail))
-                r['detail_sha256'] = hashlib.sha256(detail_path.read_bytes()).hexdigest()
-            tt, nominal, speed, *_ = continuous_map(path.parent, plan['regions'], 2, 0, row['frames'], sr, progress=lambda _:None)
-            good = joined_map_checks(path.parent, plan['regions'], row, 2, 0, tt, nominal, speed)
-            self.assertEqual(good['status'], 'passed', good)
-            wrong = joined_map_checks(path.parent, plan['regions'], row, 2, 0, tt, 2*tt-nominal, -speed)
-            self.assertEqual(wrong['status'], 'failed')
-            self.assertFalse(wrong['failed_choice_refitted'])
 
 
 if __name__ == '__main__':

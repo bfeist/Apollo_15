@@ -1,4 +1,4 @@
-"""Continuous correction, bounded cleanup, and review artifact integration."""
+"""Bounded stage-03 v1 cleanup cache integration."""
 import hashlib
 import json
 from pathlib import Path
@@ -10,14 +10,12 @@ from unittest.mock import patch
 import numpy as np
 import soundfile as sf
 from scipy.integrate import cumulative_trapezoid
-from scipy.signal import hilbert
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'scripts'))
 from _bootstrap import install as _install
 _install()
-from channel_review import continuous_map, cleanup_channel, cleanup_block, cleanup_results, prepare, render_warp, ensure_denoised
-from flutter import resample_at
+from channel_review import cleanup_channel, cleanup_block, cleanup_results, ensure_denoised
 
 
 def fixture(root, actions=None, phases=None, gap=False):
@@ -62,52 +60,6 @@ class ChannelReviewTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory(); self.addCleanup(self.temp.cleanup)
         self.root=Path(self.temp.name)
-
-    def test_continuous_correction_reduces_known_flutter_and_matches_monolithic_render(self):
-        path,plan,row=fixture(self.root)
-        tt,nominal,speed,stats,markers,_=continuous_map(path.parent,plan['regions'],2,0,row['frames'],8000,progress=lambda _:None)
-        self.assertEqual(sum(m['kind']=='blend' for m in markers),2)
-        self.assertEqual(nominal[0],0); self.assertEqual(nominal[-1],tt[-1])
-        self.assertTrue(np.all(np.diff(nominal)>0))
-        output=self.root/'corrected.wav'
-        render_warp(row['path'],output,tt,nominal,block_seconds=.71,progress=lambda _:None)
-        x,sr=sf.read(row['path']); y,_=sf.read(output)
-        fx=np.diff(np.unwrap(np.angle(hilbert(x))))*sr/(2*np.pi)
-        fy=np.diff(np.unwrap(np.angle(hilbert(y))))*sr/(2*np.pi)
-        core=slice(4*sr,56*sr)
-        # Raw instantaneous frequency also sees the 200 Hz piecewise-linear map.
-        # Require >90% reduction without smoothing that interpolation error away.
-        self.assertLess(np.std(fy[core])/np.std(fx[core]),.1)
-        pos=np.interp(np.arange(len(x))/sr,nominal,tt)*sr
-        expected=resample_at(x,pos)
-        np.testing.assert_allclose(y,expected,atol=3e-8,rtol=0)
-        # A different audio chunk grid cannot create timing resets or seams.
-        output2=self.root/'other_chunks.wav'
-        render_warp(row['path'],output2,tt,nominal,block_seconds=2.31,progress=lambda _:None)
-        y2,_=sf.read(output2)
-        np.testing.assert_allclose(y,y2,atol=3e-8,rtol=0)
-
-    def test_transfer_opt_in_failed_bypass_support_and_disagreeing_joins(self):
-        path,plan,row=fixture(self.root,actions=['render_and_review','validate_transfer','leave_uncorrected'],gap=True)
-        tt,_,strict,_,markers,_=continuous_map(path.parent,plan['regions'],2,0,row['frames'],8000,progress=lambda _:None)
-        self.assertTrue(np.all(strict[tt>=20]==0))
-        tt,nominal,experimental,_,markers,_=continuous_map(path.parent,plan['regions'],2,0,row['frames'],8000,True,lambda _:None)
-        self.assertGreater(np.std(experimental[(tt>24)&(tt<27)]),.005)
-        np.testing.assert_allclose(experimental[(tt>=28)&(tt<32)],0,atol=1e-12)
-        self.assertTrue(np.all(experimental[tt>=40]==0))
-        self.assertEqual(sum(m['kind']=='experimental' for m in markers),1)
-        self.assertTrue(np.all(np.diff(nominal)>0))
-
-    def test_opposite_curves_fade_at_boundary(self):
-        path,plan,row=fixture(self.root,phases=[0,np.pi,0])
-        tt,nominal,speed,_,markers,_=continuous_map(path.parent,plan['regions'],2,0,row['frames'],8000,progress=lambda _:None)
-        self.assertEqual(sum(m['kind']=='fade' for m in markers),2)
-        self.assertEqual(sum(m['kind']=='blend' for m in markers),0)
-        for boundary in (20,40):
-            at=round(boundary*200)
-            self.assertAlmostEqual(speed[at],0,places=12)
-            self.assertLess(abs(speed[at-1]),1e-5)
-            self.assertLess(abs(speed[at+1]),1e-5)
 
     def test_overlap_cleanup_preserves_identity_and_handles_offset_short_tail(self):
         _,_,row=fixture(self.root)

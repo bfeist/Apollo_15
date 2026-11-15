@@ -11,9 +11,11 @@ from denoise_archive import CANONICAL
 from flutter_planning import inventory
 from shared_render import prepared_source
 from shared_tape import DEFAULT_PLANNING_ROOT, DEFAULT_EVIDENCE_ROOT, load_tape_plan, identity
+from flutter_detection import load_census
 
 
-def readiness(originals, plans=DEFAULT_PLANNING_ROOT, denoised=CANONICAL, evidence=DEFAULT_EVIDENCE_ROOT):
+def readiness(originals, plans=DEFAULT_PLANNING_ROOT, denoised=CANONICAL, evidence=DEFAULT_EVIDENCE_ROOT,
+              detection=None):
     rows = []
     for folder in sorted(Path(originals).glob('A15_T*')):
         row = dict(tape=folder.name, cleanup_version='v2', shared_map_ready=False,
@@ -23,6 +25,15 @@ def readiness(originals, plans=DEFAULT_PLANNING_ROOT, denoised=CANONICAL, eviden
             row['expected_channels'] = len(inv['channels'])
             row['completed_tone_evidence'] = all((Path(evidence)/folder.name/name).is_file()
                 for name in ('plan/plan.json', 'joined_assessment.json', 'survey_manifest.json'))
+            if detection is not None:
+                try:
+                    census = load_census(detection, folder.name)['evidence']
+                    if identity(census['inventory']) != identity(inv):
+                        raise ValueError('Detection census belongs to a different source inventory')
+                    row.update(census_complete=True, census_coverage=census['coverage']['tape_time_fraction'])
+                except (ValueError, OSError, KeyError) as error:
+                    row.update(census_complete=False)
+                    row['errors'].append(f'census: {error}')
             for target in inv['channels']:
                 try:
                     prepared_source(target, Path(denoised)/folder.name/f'CH{target["channel"]:02d}')
@@ -56,9 +67,11 @@ def main(argv=None):
     p.add_argument('--planning-root', type=Path, default=DEFAULT_PLANNING_ROOT)
     p.add_argument('--denoised-root', type=Path, default=CANONICAL)
     p.add_argument('--evidence-root', type=Path, default=DEFAULT_EVIDENCE_ROOT)
+    p.add_argument('--detection-root', type=Path, help='Detection census run folder to report')
     args = p.parse_args(argv)
     try:
-        result = readiness(args.originals, args.planning_root, args.denoised_root, args.evidence_root)
+        result = readiness(args.originals, args.planning_root, args.denoised_root, args.evidence_root,
+                           args.detection_root)
         print(json.dumps(result, indent=2))
         return 0 if result['ready_for_render'] else 2
     except (OSError, ValueError, RuntimeError, KeyError, TypeError) as error:

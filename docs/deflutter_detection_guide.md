@@ -1,13 +1,15 @@
 # Implementation guide: check-tone-free tape-motion detection
 
-Status: research-qualified design (2026-11-15), **not yet implemented in
-stage 05**. This document tells an implementing model what to build, why, how to
-verify it, and what not to repeat. The evidence is in
+Status: research-qualified design (2026-11-15), **implemented in stage 05 on
+2026-11-15** — see the operating guide [deflutter_detection.md](deflutter_detection.md)
+(including where the implementation deliberately differs) and
+[deflutter_next_steps.md](deflutter_next_steps.md). This document keeps the
+design rationale, how to verify it, and what not to repeat. The evidence is in
 `reports/flutter_census_20261115/REPORT.md` (local, Git-ignored), which
 links three worker reports. The research code is in `research/flutter_census/`.
 
-Read first: `AGENTS.md` (one shared tape-level correction per canonical time),
-[shared_deflutter.md](shared_deflutter.md), [tape_level_deflutter.md](tape_level_deflutter.md).
+Read first: `AGENTS.md` (one shared tape-level correction per canonical time) and
+[shared_deflutter.md](shared_deflutter.md), which now holds the governing rule.
 Everything below follows those rules.
 
 ## 1. The problem in one paragraph
@@ -39,8 +41,8 @@ T510083 13920–14100.
 2. **On-tape vs post-tape.** Every tone recorded *on the tape* is FM-smeared by
    ±3 % of its frequency (±30 Hz at 1 kHz). A narrow, sharp line is post-tape
    (digitization chain) and carries **no** flutter. Do not rank carriers by
-   spectral sharpness; that is the main bias of the current
-   `flutter_tracking.discover`.
+   spectral sharpness; that was the main bias of the former
+   `flutter_tracking.discover` (removed on 2026-11-15).
 3. **Speed ratio ρ.** On-tape content is shifted by ρ = playback/record speed,
    about 0.983–0.995 and slowly varying (T510077 Quindar at 2442/2487 Hz,
    ρ ≈ 0.986). Historical mains hum appears at 60·ρ·n:
@@ -412,6 +414,9 @@ Implementation rules:
 | `research/flutter_census/w1_fast.py` | block-based fast prototype (reference for production speed) |
 | `research/flutter_census/e3_consensus.py`, `e11_refine.py` | concentration witness, autofocus refinement |
 | `research/flutter_census/e8_beep_check.py`, `e9_beep_windows.py`, `e13_find_beep_windows.py` | beep audit with controls; fresh beep-window selection |
-| `research/flutter_census/e0_duplicate_audit.py` | duplicate-channel guard |
+| `research/flutter_census/e0_duplicate_audit.py` | duplicate-channel guard (production: `flutter_detection.duplicate_audit`) |
+| `scripts/05_deflutter/flutter_census.py` | production stages A–D numerical core |
+| `scripts/05_deflutter/flutter_detection.py`, `05_detect_flutter.py` | production run identity, Proprius/Genus pool, publication, joined streams |
+| `research/flutter_census/p1_production_regression.py`, `p2_v5_consistency.py` | production regression on saved windows; v5 consistency |
 | `research/flutter_census/w2_*.py`, `w3_*.py` | lag study; check-tone validation and amplitude calibration |
 | `reports/flutter_census_20261115/` | all outputs, `REPORT.md`, worker reports |

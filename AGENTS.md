@@ -23,7 +23,8 @@ model is one shared tape-motion correction at each canonical tape time.
   shared tape map for new reviews. Active stage-05 commands require v2 denoised
   inputs; historical scientific modules are evidence readers only.
 
-See `docs/tape_level_deflutter.md` for selection and provenance details.
+See `docs/shared_deflutter.md` for selection and provenance details and
+`docs/deflutter_detection.md` for the check-tone-free detection census.
 
 ## Delivery and commands
 
