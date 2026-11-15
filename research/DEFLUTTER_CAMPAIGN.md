@@ -1,5 +1,10 @@
 # Iterative deflutter research
 
+The November 15 flutter census is in `research/flutter_census/` (see its
+`BRIEFING.md`). [`docs/deflutter_detection_guide.md`](../docs/deflutter_detection_guide.md)
+is the implementation guide. Those scripts are independent of the October 30
+campaign below.
+
 The authority and evaluation protocol are in
 [`docs/deflutter_iterative_research_runbook.md`](../docs/deflutter_iterative_research_runbook.md).
 This research does not modify the production planner or audio archive.

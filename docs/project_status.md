@@ -1,5 +1,23 @@
 # Project status and local artifacts
 
+## November 15 detection census
+
+Saved shared-map coverage is low because v5 validates only against
+target-channel check beeps. It is not low for lack of flutter evidence.
+After exact digitization lines are subtracted, the 1971 mains hum recorded on
+the tape (60·ρ·n Hz, ρ ≈ 0.985) carries the ~2 % flutter on 10–20 channels.
+
+A beep-free blind detector found agreeing carriers in 88 % of 228 sampled
+windows on 38 tapes; the saved v5 union median is 9.7 %. On 658 held-out beeps
+in fresh low-coverage windows it reduced measured FM from 50.9 to 12.8 Hz;
+the wrong-sign control gave 94.6 Hz. The flutter is common to all channels
+at zero lag (±0.7 ms). A15_T510096's 30 channel files are byte-identical.
+
+The [implementation guide](deflutter_detection_guide.md) specifies the method,
+gates, integration, speed and verification. This is research evidence: stage 05
+is unchanged, and no listening render was made. Local evidence:
+`reports/flutter_census_20261115/REPORT.md`.
+
 ## November 13 shared-map refactor
 
 Stage 05a now imports saved all-channel tone evidence and compiles one native

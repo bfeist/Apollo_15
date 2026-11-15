@@ -32,6 +32,8 @@ these numerical results: no experimental correction is approved for production.
 Stationary electrical interference can pass the response-based checks. The
 research code and regression tests are retained under `research/` and `tests/`;
 generated reports and listening-site exports remain local.
+The November 15 [detection guide](docs/deflutter_detection_guide.md) shows how
+beep-free, on-tape hum evidence can extend shared-map coverage. It is not yet implemented.
 
 | Stage | Entry point in `scripts/` | Purpose | Status |
 | --- | --- | --- | --- |
