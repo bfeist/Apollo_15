@@ -140,12 +140,15 @@ class ConsoleTests(unittest.TestCase):
         self.assertEqual([p['ProcessId'] for p in worker_ssh_descendants(rows, 10)], [12, 15])
 
     def test_shutdown_leaves_connections_alone_when_remote_active_or_unreachable(self):
-        for code, stdout, stderr in ((0, '123 python worker', ''), (255, '', 'SSH failed'),
-                                     (1, '', 'Unexpected error')):
+        for target, expected, code, stdout, stderr in (
+                ('genus', 'genus', 0, '123 python worker', ''),
+                ('bfeist@192.168.0.240', 'bfeist@192.168.0.3', 255, '', 'SSH failed'),
+                ('bfeist@192.168.0.3', 'bfeist@192.168.0.3', 1, '', 'Unexpected error')):
             with patch('denoise_v2_console.subprocess.run', return_value=SimpleNamespace(
                     returncode=code, stdout=stdout, stderr=stderr)) as run:
-                self.assertEqual(release_stopped_connections(dict(ssh='genus'), 10), 0)
+                self.assertEqual(release_stopped_connections(dict(ssh=target), 10), 0)
                 self.assertEqual(run.call_count, 1)
+                self.assertEqual(run.call_args.args[0][-2], expected)
 
     def test_resumed_hours_are_not_counted_as_new_work(self):
         rates = Rates(warmup=30)

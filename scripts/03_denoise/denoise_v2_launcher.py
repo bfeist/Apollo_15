@@ -29,6 +29,13 @@ GENUS_WORKERS = 6
 WINDOWS_MAX_WORKERS = 6
 
 
+def connection_config(config):
+    """Route Genus SSH to its current IP while retaining the saved run identity."""
+    if config.get('ssh') == 'bfeist@192.168.0.240':
+        return dict(config, ssh='bfeist@192.168.0.3')
+    return config
+
+
 def cpu_list(value):
     if value == 'none':
         return value
@@ -57,7 +64,7 @@ def check_affinity(config, cpus):
     probe = ('import os; actual=sorted(os.sched_getaffinity(0)); '
              f'assert actual == {sorted(expected)!r}, actual; '
              'print("Genus worker CPUs: " + ",".join(map(str, actual)))')
-    command = cluster.remote_command(config, 'worker')
+    command = cluster.remote_command(connection_config(config), 'worker')
     command[-1] = 'exec '+shlex.join([config['remote_python'], '-c', probe])
     result = subprocess.run(with_affinity(command, cpus), check=True,
                             capture_output=True, text=True, timeout=20)
@@ -86,7 +93,7 @@ def coordinate(args):
     original_processes = cluster.subprocess
 
     def remote_command(config, *arguments):
-        command = original(config, *arguments)
+        command = original(connection_config(config), *arguments)
         if accelerated and arguments and arguments[0] == 'worker':
             command = accelerated.remote_worker_command(command, config, execution_id, execution, requested_backend)
         if arguments and arguments[0] == 'worker':

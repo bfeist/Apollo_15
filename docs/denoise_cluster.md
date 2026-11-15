@@ -98,7 +98,10 @@ two coordinators from owning production.
 
 ## Storage and remote environment
 
-Genus is `bfeist@192.168.0.240`, with D: at `/mnt/d` and F: at `/mnt/f`.
+Genus is `bfeist@192.168.0.3`, with D: at `/mnt/d` and F: at `/mnt/f`.
+The console and launcher route the saved `bfeist@192.168.0.240` connection to
+this address for CPU checks, workers and shutdown checks. The original cluster
+configuration remains unchanged to preserve checkpoint and qualification hashes.
 It uses the same repository at `/mnt/f/_repos/Apollo_15`. Its Python environment
 for reference qualification is `/home/bfeist/.local/share/apollo15-venv`.
 Accelerated workers use `/home/bfeist/.local/share/apollo15-numba-venv`, with
@@ -218,7 +221,7 @@ rewrite completed outputs or existing audio prefixes.
 One-time preparation (with the old batch stopped):
 
 ```powershell
-uv run python -u scripts/run.py denoise_v2_cluster.py prepare
+uv run python -u scripts/run.py denoise_v2_cluster.py prepare --ssh bfeist@192.168.0.3
 ```
 
 Preparation verifies frozen code/library identities and compares four source-grid

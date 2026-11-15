@@ -29,7 +29,7 @@ from rich.table import Table
 from rich.text import Text
 
 import denoise_v2_cluster as cluster
-from denoise_v2_launcher import GENUS_CPUS, GENUS_WORKERS, WINDOWS_MAX_WORKERS, cpu_list
+from denoise_v2_launcher import GENUS_CPUS, GENUS_WORKERS, WINDOWS_MAX_WORKERS, connection_config, cpu_list
 from denoise_v2_accelerated import CHECKPOINT_EXIT
 from denoise_v2_worker_runtime import resilient_json_writes
 
@@ -170,7 +170,7 @@ def release_stopped_connections(config, coordinator_pid):
     """Never infer remote exit from silence or an SSH error; ask Genus first."""
     try:
         remote = subprocess.run(['ssh', '-n', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5',
-            config['ssh'], "pgrep -af '[d]enoise_v2_(cluster|accelerated).py worker'"],
+            connection_config(config)['ssh'], "pgrep -af '[d]enoise_v2_(cluster|accelerated).py worker'"],
             capture_output=True, text=True, timeout=10)
         if remote.returncode != 1 or remote.stdout.strip() or remote.stderr.strip():
             return 0

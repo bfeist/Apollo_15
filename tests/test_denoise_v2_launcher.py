@@ -114,16 +114,20 @@ class LauncherTests(unittest.TestCase):
 
     def test_every_replacement_worker_gets_affinity_and_dispatch_is_restored(self):
         args = SimpleNamespace(genus_workers=6, genus_cpus=launcher.GENUS_CPUS, config='config')
-        config = dict(remote_repo='/repo with spaces')
+        config = dict(remote_repo='/repo with spaces', ssh='bfeist@192.168.0.240')
+        config_digest = launcher.cluster.digest_json(config)
         def original(config, *arguments):
-            return ['ssh', 'host', 'exec '+shlex.join(['uv',
+            return ['ssh', config['ssh'], 'exec '+shlex.join(['uv',
                 config['remote_repo']+'/scripts/denoise_v2_cluster.py', *arguments])]
         def run(_):
             for key in ('first', 'replacement'):
                 command = launcher.cluster.remote_command(config, 'worker', '--key', key)
+                self.assertEqual(command[1], 'bfeist@192.168.0.3')
                 self.assertEqual(shlex.split(command[-1])[:4], ['exec', 'taskset', '-c', launcher.GENUS_CPUS])
                 self.assertIn('/repo with spaces/scripts/03_denoise/denoise_v2_worker_runtime.py', shlex.split(command[-1]))
-            self.assertEqual(launcher.cluster.remote_command(config, 'qualify'), original(config, 'qualify'))
+            self.assertEqual(launcher.cluster.remote_command(config, 'qualify'),
+                             original(dict(config, ssh='bfeist@192.168.0.3'), 'qualify'))
+            self.assertEqual(launcher.cluster.digest_json(config), config_digest)
             raise RuntimeError('coordinator stopped')
         with patch.object(launcher.cluster, 'remote_command', original), \
              patch.object(launcher.cluster, 'read_json', return_value=config), \
@@ -134,6 +138,15 @@ class LauncherTests(unittest.TestCase):
                 launcher.coordinate(args)
             self.assertIs(launcher.cluster.remote_command, original)
             cache.assert_called_once_with(config)
+
+    def test_affinity_preflight_routes_ssh_without_changing_config_identity(self):
+        config = dict(ssh='bfeist@192.168.0.240', remote_uv='/uv', remote_python='/python',
+                      remote_repo='/repo')
+        config_digest = launcher.cluster.digest_json(config)
+        with patch.object(launcher.subprocess, 'run', return_value=SimpleNamespace(stdout='CPUs OK')) as run:
+            launcher.check_affinity(config, launcher.GENUS_CPUS)
+        self.assertEqual(run.call_args.args[0][-2], 'bfeist@192.168.0.3')
+        self.assertEqual(launcher.cluster.digest_json(config), config_digest)
 
     def test_invalid_capacity_or_failed_preflight_never_starts_coordinator(self):
         with patch.object(launcher.cluster, 'coordinate') as run:
