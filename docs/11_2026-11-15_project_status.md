@@ -13,19 +13,19 @@ in fresh low-coverage windows it reduced measured FM from 50.9 to 12.8 Hz;
 the wrong-sign control gave 94.6 Hz. The flutter is common to all channels
 at zero lag (±0.7 ms). A15_T510096's 30 channel files are byte-identical.
 
-The [implementation guide](deflutter_detection_guide.md) specifies the method,
+The [implementation guide](09_2026-11-15_deflutter_detection_guide.md) specifies the method,
 gates, integration, speed and verification. Local evidence:
 `reports/flutter_census_20261115/REPORT.md`.
 
 **Implemented the same day** as stage 05 detection
-([operating guide](deflutter_detection.md)): a Proprius/Genus block pool writes
+([operating guide](10_2026-11-15_deflutter_detection.md)): a Proprius/Genus block pool writes
 `deflutter_detection_census/<run-id>/`, stage 05a imports the joined stream
 below saved regional and v5 evidence, and stage 05b applies the one shared map.
 On the fixed confirmation windows the production code reduced held-out beep FM
 from 50.9 to 9.8 Hz (median ratio 0.181, 0.3 % worse; wrong sign 100.4 Hz).
 The v5 survey/planning engine, the October 30 campaign code and their
 documents were removed. No archive run, worker benchmark or listening render
-has been made; see [next steps](deflutter_next_steps.md).
+has been made; see [next steps](12_2026-11-15_deflutter_next_steps.md).
 
 ## November 13 shared-map refactor
 
@@ -37,7 +37,7 @@ Legacy planner/transfer/v1 rendering options, the old command alias, review
 desk, sampling/approval machinery, and bounded shared-map adapter are removed.
 The numerical readers needed for saved evidence remain. Removed source is
 recoverable from Git and research snapshots; approval-bound artifacts are unchanged.
-See [the operating guide](shared_deflutter.md), including the read-only tone
+See [the operating guide](08_2026-11-15_shared_deflutter.md), including the read-only tone
 sighting lookup. The refactor ran synthetic regression checks only; no new
 archive survey, map compilation, or listening render was performed.
 
@@ -54,11 +54,11 @@ record subsequent work and user feedback.
 
 V2.16 is the current denoise candidate. It addresses low-hum recurrence at
 25:30–26:20 in the T510083 CH20 comparison. The current matched review and
-its measurements are indexed in the [denoise findings](denoise_v2_plan.md).
+its measurements are indexed in the [denoise findings](01_2026-11-11_denoise_v2_plan.md).
 The preferred 05 and earlier feedback-bound comparisons remain at their
 original paths. Superseded experiment reports are in the local archive.
 
-The [all-tapes rollout runbook](denoise_v2_all_tapes_runbook.md) covers 1,130
+The [all-tapes rollout runbook](02_2026-11-13_denoise_v2_all_tapes_runbook.md) covers 1,130
 denoise jobs and 39 timing copies. The full-channel canary is the remaining
 listening gate before moving the current output to `denoised_v1`. New
 production output will use `denoised`.
@@ -82,7 +82,7 @@ CH17 listening and whole-tape production acceptance are pending.
 share tape motion. The reviews below mistakenly gated application on CH20 alone.
 Their listening approvals remain intact, but that selection rule is superseded
 by one shared tape map drawn from all channels. See
-[the tape-level rule](shared_deflutter.md#governing-rule) and repository `AGENTS.md`.
+[the tape-level rule](08_2026-11-15_shared_deflutter.md#governing-rule) and repository `AGENTS.md`.
 
 The corrected 30-minute comparison is now `reports/listening_long_20261103/C.wav`.
 It reuses existing regional maps from all channels and completed v5 all-channel

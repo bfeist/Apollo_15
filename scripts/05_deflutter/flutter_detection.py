@@ -40,7 +40,7 @@ GENUS = dict(ssh='bfeist@192.168.0.3', data='/mnt/d/Apollo_15_30-Track', repo='/
              uv='/home/bfeist/.local/bin/uv', python='/home/bfeist/.local/share/apollo15-venv/bin/python',
              scratch='/home/bfeist/.local/share/apollo15-census')
 WINDOWS_MAX_WORKERS = 6
-# Benchmark starting points only (docs/deflutter_detection_guide.md section 5);
+# Benchmark starting points only (docs/09_2026-11-15_deflutter_detection_guide.md section 5);
 # replace them with a measured selection under the run's benchmarks/ folder.
 PROVISIONAL_POOL = dict(windows=6, genus=6, genus_cpus='0,2,4,8,10,12', tapes=3, benchmarked=False)
 STORAGE_DELAYS = (2, 5, 10, 20, 30, *([60]*14))

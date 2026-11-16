@@ -1,6 +1,6 @@
 # Denoise v2 findings and rollout
 
-V2.16 is the current candidate. The [all-tapes runbook](denoise_v2_all_tapes_runbook.md)
+V2.16 is the current candidate. The [all-tapes runbook](02_2026-11-13_denoise_v2_all_tapes_runbook.md)
 covers the 39-tape inventory, full-channel canary, listening gate, and guarded
 move of the existing output to `denoised_v1`. New production output uses
 `denoised`.

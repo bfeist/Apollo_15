@@ -2,8 +2,8 @@
 
 Written November 15, 2026, right after the stage-05 detection census was built.
 How the system works and its commands are in
-[deflutter_detection.md](deflutter_detection.md); the design and research
-evidence are in [deflutter_detection_guide.md](deflutter_detection_guide.md).
+[10_2026-11-15_deflutter_detection.md](10_2026-11-15_deflutter_detection.md); the design and research
+evidence are in [09_2026-11-15_deflutter_detection_guide.md](09_2026-11-15_deflutter_detection_guide.md).
 
 ## Where things stand
 

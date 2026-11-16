@@ -1,8 +1,8 @@
 # Task: promote the fast denoise prototype to the production accelerated backend
 
 Repository: `F:\_repos\Apollo_15` (Windows coordinator). Use `uv run python ...` for
-every command. Read `AGENTS.md`, `docs/denoise_cluster.md`, and
-`docs/script_layout.md` first. Production is currently **stopped** by the owner;
+every command. Read `AGENTS.md`, `docs/07_2026-11-15_denoise_cluster.md`, and
+`docs/04_2026-11-15_script_layout.md` first. Production is currently **stopped** by the owner;
 do not start it. Do not modify any completed audio, checkpoints, manifests, or
 anything under `D:/Apollo_15_30-Track/denoised`.
 
@@ -109,7 +109,7 @@ completed channels and the 12 checkpoints remain valid:
    confirm both resume their actual checkpoints, commit accelerated audio with
    the new executor recorded in `acceleration.segments`, and stop cleanly with
    exit 75. Verify the completed-channel count is unchanged.
-9. Update `docs/denoise_cluster.md` ("Qualified accelerated execution"
+9. Update `docs/07_2026-11-15_denoise_cluster.md` ("Qualified accelerated execution"
    section) and `research/benchmarks/denoise_numba_20261110/README.md` (or a
    new dated folder) with the backend description, tolerance policy, measured
    throughput on both hosts, and the new execution ID. Commit with

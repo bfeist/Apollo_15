@@ -1,7 +1,7 @@
 # All-tapes denoise v2 rollout
 
 Historical rollout plan prepared November 8, 2026. For current operation, use
-the [Windows/Genus production console guide](denoise_cluster.md), including the
+the [Windows/Genus production console guide](07_2026-11-15_denoise_cluster.md), including the
 qualified accelerated backend and checkpoint provenance. At the time this plan
 was prepared, the full-channel listening decision gated cutover and the
 production tree was still v1.
@@ -273,7 +273,7 @@ uv run python -u scripts/03_denoise/denoise_v2_console.py
 ```
 
 Press Ctrl+C to checkpoint and stop; repeat the same command to continue.
-See the [current guide](denoise_cluster.md) for worker limits and backend
+See the [current guide](07_2026-11-15_denoise_cluster.md) for worker limits and backend
 selection. The older batch/background modules remain compatibility dependencies;
 do not use their direct entry points to resume accelerated checkpoints.
 
@@ -290,7 +290,7 @@ the canary command resumes its checkpoints.
 The inventory JSON and the `CH20_30min` review manifest and reference WAV
 are local inputs under `reports/`. Restore the exact saved files before
 running from a new checkout. Their hashes identify the run and its checkpoints.
-See the [local evidence index](denoise_v2_plan.md#local-evidence) for retained
+See the [local evidence index](01_2026-11-11_denoise_v2_plan.md#local-evidence) for retained
 inputs and archived findings.
 
 ```powershell
@@ -325,7 +325,7 @@ Windows priority. Six workers across three tapes leave headroom for software
 development. Both launchers use the same normalized run identity and checkpoints.
 The frozen benchmark here still measures both the hum model and the gain write.
 Current console/launcher workers use the separate unity-gain output policy
-described in [the production guide](denoise_cluster.md): they retain the frozen
+described in [the production guide](07_2026-11-15_denoise_cluster.md): they retain the frozen
 DSP and checkpoints, bypass the gain scan and WAV rewrite, and defer final gain
 to stage 07. The benchmark and normalized outputs above retain their original
 settings and evidence.

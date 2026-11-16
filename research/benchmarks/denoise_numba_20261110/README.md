@@ -14,7 +14,7 @@ The retained current evidence is:
 
 The qualification command is `uv run python scripts/run.py qualify_denoise_numba.py`;
 the production console and numbered source folders are described in
-[the script layout guide](../../../docs/script_layout.md). The supported tools include
+[the script layout guide](../../../docs/04_2026-11-15_script_layout.md). The supported tools include
 `research/profile_genus_workers.py`. The latter now benchmarks either machine;
 use `--backend numba`, with `--balanced-affinity` only on Genus. Run benchmarks
 while production is stopped and use a new output path for each run.

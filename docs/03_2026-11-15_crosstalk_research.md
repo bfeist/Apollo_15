@@ -1,6 +1,6 @@
 # Apollo 15 crosstalk research
 
-The bounded two-path method is now available as [official stage 04](crosstalk_stage.md),
+The bounded two-path method is now available as [official stage 04](06_2026-11-13_crosstalk_stage.md),
 after completed v2 denoising and before the shared de-flutter map. The numerical
 model is shared with this research exporter. The original listening files remain
 immutable; promoting the stage does not extend the demonstrated coverage below.

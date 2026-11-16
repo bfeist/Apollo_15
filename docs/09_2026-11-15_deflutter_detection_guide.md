@@ -1,15 +1,15 @@
 # Implementation guide: check-tone-free tape-motion detection
 
 Status: research-qualified design (2026-11-15), **implemented in stage 05 on
-2026-11-15** — see the operating guide [deflutter_detection.md](deflutter_detection.md)
+2026-11-15** — see the operating guide [10_2026-11-15_deflutter_detection.md](10_2026-11-15_deflutter_detection.md)
 (including where the implementation deliberately differs) and
-[deflutter_next_steps.md](deflutter_next_steps.md). This document keeps the
+[12_2026-11-15_deflutter_next_steps.md](12_2026-11-15_deflutter_next_steps.md). This document keeps the
 design rationale, how to verify it, and what not to repeat. The evidence is in
 `reports/flutter_census_20261115/REPORT.md` (local, Git-ignored), which
 links three worker reports. The research code is in `research/flutter_census/`.
 
 Read first: `AGENTS.md` (one shared tape-level correction per canonical time) and
-[shared_deflutter.md](shared_deflutter.md), which now holds the governing rule.
+[08_2026-11-15_shared_deflutter.md](08_2026-11-15_shared_deflutter.md), which now holds the governing rule.
 Everything below follows those rules.
 
 ## 1. The problem in one paragraph
@@ -298,7 +298,7 @@ Implementation rules:
   random audit.
 - **Cluster (required).** Use **Genus as a worker-pool source alongside this
   computer, Proprius**, following the coordinator/SSH-worker pattern in
-  [denoise_cluster.md](denoise_cluster.md). One Proprius coordinator owns the
+  [07_2026-11-15_denoise_cluster.md](07_2026-11-15_denoise_cluster.md). One Proprius coordinator owns the
   queue and assigns each tape/block once across both machines; do not start an
   independent Genus batch. Reuse the denoise transport and operational patterns
   without changing its frozen algorithms, production queue or checkpoints.

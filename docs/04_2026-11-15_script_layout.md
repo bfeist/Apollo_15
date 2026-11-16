@@ -71,5 +71,5 @@ initialize `scripts/_bootstrap.py` before importing shared processing modules.
 
 Stage 06 was formerly 05c. `pipeline.py --stages 05c` and
 `scripts/run.py 05c_retime.py` remain command aliases. Saved audio, plans and
-historical report paths are not renamed. See [speech normalization](speech_normalization.md)
+historical report paths are not renamed. See [speech normalization](05_2026-11-13_speech_normalization.md)
 for stage 07 commands and its measurement limitations.

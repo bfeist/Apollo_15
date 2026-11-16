@@ -18,7 +18,7 @@ The current saved catalog establishes earlier-copy removal for T510083 CH17
 and CH20, using CH19, only at canonical **13569.10–13570.48 seconds**. Other
 intervals and channels pass through unchanged. Wider coverage requires additional
 within-target repeat evidence. An interchannel match alone never authorizes removal.
-See [the research record](crosstalk_research.md) for scope and listening limitations.
+See [the research record](03_2026-11-15_crosstalk_research.md) for scope and listening limitations.
 
 ## Commands
 

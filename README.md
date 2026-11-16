@@ -5,32 +5,34 @@ Processing tools for the Apollo 15 30-track recordings. Current work includes th
 **Flutter correction is tape-level:** use evidence from all simultaneous tracks
 to select one shared timing map, applied across channels at the same tape time.
 Missing check tones on an output channel do not independently disable correction.
-See [the governing rule and shared-map workflow](docs/shared_deflutter.md).
-Stage 04 adds [evidence-bounded crosstalk removal](docs/crosstalk_stage.md) after v2
+See [the governing rule and shared-map workflow](docs/08_2026-11-15_shared_deflutter.md).
+Stage 04 adds [evidence-bounded crosstalk removal](docs/06_2026-11-13_crosstalk_stage.md) after v2
 denoising. Stage 05 compiles one shared tape map and applies it to stage-04 audio.
-Stage 07 adds [speech-level normalization](docs/speech_normalization.md) after
+Stage 07 adds [speech-level normalization](docs/05_2026-11-13_speech_normalization.md) after
 deflutter or retiming, with constant gain to a speech target and a bypass for uncertain channels.
 New denoise runs write unity-gain float WAVs; stage 07 sets the final speech level.
 Completed denoise outputs retain their existing gain.
 
-Start with the [project status and local artifact guide](docs/project_status.md)
-for the November 3 repository audit, research outcome, retained listening
-examples, and cleanup/restore locations.
+Start with [deflutter next steps](docs/12_2026-11-15_deflutter_next_steps.md),
+the latest action plan for reviewing the implementation, resolving the
+adverse window, benchmarking workers, and running the detection census.
+Then read the [project status and local artifact guide](docs/11_2026-11-15_project_status.md)
+for current context, earlier findings, and retained artifacts.
 
-For the current denoise rollout, use the [Windows/Genus production console guide](docs/denoise_cluster.md).
-The [v2.16 rollout history](docs/denoise_v2_all_tapes_runbook.md) and
-[findings and local evidence index](docs/denoise_v2_plan.md) retain review and migration context.
+For the current denoise rollout, use the [Windows/Genus production console guide](docs/07_2026-11-15_denoise_cluster.md).
+The [v2.16 rollout history](docs/02_2026-11-13_denoise_v2_all_tapes_runbook.md) and
+[findings and local evidence index](docs/01_2026-11-11_denoise_v2_plan.md) retain review and migration context.
 
-Stage 05 now starts with a [check-tone-free detection census](docs/deflutter_detection.md):
+Stage 05 now starts with a [check-tone-free detection census](docs/10_2026-11-15_deflutter_detection.md):
 blind cross-channel agreement of on-tape carriers, chiefly the 1971 mains hum
 after the exact digitization lines are subtracted, joined into one stream per
-tape on Proprius and Genus. The [shared tape workflow](docs/shared_deflutter.md)
+tape on Proprius and Genus. The [shared tape workflow](docs/08_2026-11-15_shared_deflutter.md)
 merges that stream with saved regional and v5 evidence, selects one curve per
 tape-time interval and saves one integrated map. Stage 05b applies that
 artifact to completed stage-04 channels derived from v2 denoising. Historical
-evidence stays immutable. [Next steps](docs/deflutter_next_steps.md) lists the
+evidence stays immutable. [Next steps](docs/12_2026-11-15_deflutter_next_steps.md) lists the
 worker benchmark, archive run and listening trials that remain; the
-[design guide](docs/deflutter_detection_guide.md) keeps the research rationale.
+[design guide](docs/09_2026-11-15_deflutter_detection_guide.md) keeps the research rationale.
 
 | Stage | Entry point in `scripts/` | Purpose | Status |
 | --- | --- | --- | --- |
@@ -87,7 +89,7 @@ continues. `plan` previews commands without writes. Stage 05b requires a complet
 shared map and completed stage-04 input derived from v2. A single tape/channel defaults to stage 05b.
 Readiness to render does not imply listening acceptance.
 
-See [the shared-map guide](docs/shared_deflutter.md) for commands to compile,
+See [the shared-map guide](docs/08_2026-11-15_shared_deflutter.md) for commands to compile,
 render, export matched Audition WAVs, and trace visual tone sightings. Stage 05b
 supports every numbered channel, including CH01; downstream Quindar analysis
 retains its existing audio-channel scope. All outputs preserve source offsets.
@@ -121,9 +123,9 @@ Defaults are beneath `D:/Apollo_15_30-Track`; overrides are available in `--help
 | `speech_normalized/` | Stage-07 listening WAVs and measurement reports | `--normalized-root` |
 | `irig_search/` | Independent IRIG screening and clock evidence | Standalone search `--output` |
 
-- `scripts/`: the top-level `pipeline.py`, the `run.py` dispatcher, and numbered stage folders described in [the script layout guide](docs/script_layout.md).
+- `scripts/`: the top-level `pipeline.py`, the `run.py` dispatcher, and numbered stage folders described in [the script layout guide](docs/04_2026-11-15_script_layout.md).
 - `tests/`: processing, checkpoint integrity, acceptance, and pipeline integration checks. Synthetic demo generation lives here.
-- `docs/`: the current operating guide and explanatory measurement images.
+- `docs/`: documents use `NN_YYYY-MM-DD_` prefixes and sort from historical research through current guides and status to the latest deflutter action plan (`12`). Start with the highest number for current work. Dates record the latest Git revision at this reorganization. Keep the order and referring links current as work progresses. Images live in `docs/images/`.
 - Local `reports/`, `runs/`, and `archive/` are ignored artifacts. Recordings and processing outputs are not distributed with the source.
 
 One-off experiments, old cleanup previews, the regional and v5 planners, the October 30 research campaign code, and excerpt-manifest rendering have been retired (recoverable from Git). Historical saved-map reading remains for evidence compatibility. Source changes invalidate implementation-bound flutter plans and acceptance; use fresh destinations rather than changing old records. Completed stage-03 intermediates retain their existing cleanup fingerprint.

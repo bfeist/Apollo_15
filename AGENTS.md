@@ -23,8 +23,8 @@ model is one shared tape-motion correction at each canonical tape time.
   shared tape map for new reviews. Active stage-05 commands require v2 denoised
   inputs; historical scientific modules are evidence readers only.
 
-See `docs/shared_deflutter.md` for selection and provenance details and
-`docs/deflutter_detection.md` for the check-tone-free detection census.
+See `docs/08_2026-11-15_shared_deflutter.md` for selection and provenance details and
+`docs/10_2026-11-15_deflutter_detection.md` for the check-tone-free detection census.
 
 ## Delivery and commands
 
@@ -35,7 +35,7 @@ The approximately 1.3-second offset is a search lead, not a fixed delay to assum
 Crosstalk subtraction precedes application of the shared de-flutter map.
 Official stage 04 writes separate, provenance-bound crosstalk outputs from v2
 denoised targets and donors. Stage 05b consumes these by default; denoised-only
-comparisons require an explicit bypass. See `docs/crosstalk_stage.md`.
+comparisons require an explicit bypass. See `docs/06_2026-11-13_crosstalk_stage.md`.
 Adjacent channels may intentionally record the same monitored source. Such a
 channel remains a valid reference. Establish the extra delayed copy within the
 target, preserve its main utterance, and subtract only the unwanted repeat.

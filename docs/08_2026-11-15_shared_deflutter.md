@@ -26,7 +26,7 @@ It also searches completed regional stores and their `audits/*/plan.json`
 bundles alongside that root; additional
 regional plans can be supplied with repeated `--regional-plan` arguments.
 With `--detection-root deflutter_detection_census/<run-id>/` it also imports
-the completed [detection census](deflutter_detection.md) stream for the tape;
+the completed [detection census](10_2026-11-15_deflutter_detection.md) stream for the tape;
 a census-only tape is accepted when no v5 bundle exists.
 The importer validates originals, offsets, saved details, and map hashes.
 Unfinished plans and `validate_transfer` proposals are not promoted.
@@ -52,7 +52,7 @@ effective duration after support fades reported. Bypasses retain zero local
 speed correction and may retain a constant displacement for continuity.
 
 Stage 05b requires this native shared plan and completed [stage-04 crosstalk
-output](crosstalk_stage.md), derived from **v2** denoised audio. It verifies
+output](06_2026-11-13_crosstalk_stage.md), derived from **v2** denoised audio. It verifies
 `crosstalk.json`, source/evidence bindings and audio hashes, then streams inverse
 resampling. An intentional denoised-only comparison requires an explicit bypass. It retains the v2
 gain, frame count, and sample rate. It does not denoise again or independently
@@ -70,7 +70,7 @@ uv run python scripts/pipeline.py run --stages 04,05b --tape A15_T510076 --chann
 Map output defaults to `deflutter_planning_shared`; audio output defaults to
 `defluttered_shared`. For census-based maps use the run-scoped
 `deflutter_planning_census/<run-id>/` and `defluttered_census/<run-id>/` roots
-(commands in [the detection guide](deflutter_detection.md#commands)). Repeating a compatible completed map build reuses it.
+(commands in [the detection guide](10_2026-11-15_deflutter_detection.md#commands)). Repeating a compatible completed map build reuses it.
 Changed evidence, implementation, or scope requires a new destination.
 Interrupted compilation is not resumable: keep its partial directory and choose
 a fresh output. Saved evidence is never rewritten. Use `pipeline.py plan` to

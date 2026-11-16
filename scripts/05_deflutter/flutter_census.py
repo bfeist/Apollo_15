@@ -1,6 +1,6 @@
 """Check-tone-free blind tape-motion detection: the numerical census core.
 
-Implements stages A-D of docs/deflutter_detection_guide.md. This module reads
+Implements stages A-D of docs/09_2026-11-15_deflutter_detection_guide.md. This module reads
 and writes nothing; callers supply canonical-original audio for one block of
 all channels. Check beeps (2150-2850 Hz) never enter the estimate and are used
 only as an audit. The output speed error uses the pipeline convention

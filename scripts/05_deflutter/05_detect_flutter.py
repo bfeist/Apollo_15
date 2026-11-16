@@ -3,7 +3,7 @@
 An explicit preparation step before stage 05a. One Proprius coordinator owns
 the block queue and assigns each tape/10-minute block once to persistent
 workers on Proprius and Genus. Completed, verified blocks are reused; changed
-settings, code or inputs need a new run ID. See docs/deflutter_detection.md.
+settings, code or inputs need a new run ID. See docs/10_2026-11-15_deflutter_detection.md.
 """
 import os
 import sys
