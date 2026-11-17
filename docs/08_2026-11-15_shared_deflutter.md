@@ -25,15 +25,18 @@ hash-bound assessments from `deflutter_planning_v5_allchannel/<tape>/`.
 It also searches completed regional stores and their `audits/*/plan.json`
 bundles alongside that root; additional
 regional plans can be supplied with repeated `--regional-plan` arguments.
-With `--detection-root deflutter_detection_census/<run-id>/` it also imports
-the completed [detection census](10_2026-11-15_deflutter_detection.md) stream for the tape;
-a census-only tape is accepted when no v5 bundle exists.
+With `--qualification-root deflutter_analysis/<run-id>/<analysis-id>/` it also
+imports the tape's [qualified census decisions](13_2026-11-17_deflutter_qualification.md)
+from the [detection census](10_2026-11-15_deflutter_detection.md); unresolved-contradiction
+intervals then bypass every source. `--raw-census-root` imports unqualified
+detector candidates for research only. A census-only tape is accepted when no
+v5 bundle exists.
 The importer validates originals, offsets, saved details, and map hashes.
 Unfinished plans and `validate_transfer` proposals are not promoted.
 
 Selection prefers eligible regional evidence, ranked by support then reference
 quality and key; otherwise it uses eligible continuous evidence ranked by
-reference quality and key; the blind census stream (priority 2) fills the
+reference quality and key; the qualified census stream (priority 2) fills the
 remaining supported tape time. Selection uses each curve's saved support on the
 common 200 Hz grid: a dropout exposes the next eligible reference, and bypass
 is retained where none has usable support. Copied feeds do not cast independent

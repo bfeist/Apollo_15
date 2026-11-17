@@ -95,8 +95,10 @@ def parse_args(argv=None):
     parser.add_argument('--flutter-evidence-root', type=Path, default=DEFAULT_EVIDENCE_ROOT,
                         help='Completed all-channel tone survey/planning bundles to reuse')
     parser.add_argument('--flutter-detection-root', type=Path,
-                        help='Detection census run folder, deflutter_detection_census/<run-id>/: stage 05 '
-                             'writes it and stage 05a consumes it as --detection-root')
+                        help='Stage 05 detection census run folder, deflutter_detection_census/<run-id>/')
+    parser.add_argument('--flutter-qualification-root', type=Path,
+                        help='Stage 05a qualified analysis bundle, deflutter_analysis/<run-id>/<analysis-id>/, '
+                             'forwarded as --qualification-root')
     parser.add_argument('--flutter-detect-local-workers', type=int,
                         help='Stage 05 Proprius workers (0-6; default: benchmark selection or 6)')
     parser.add_argument('--flutter-detect-genus-workers', type=int,
@@ -141,6 +143,9 @@ def parse_args(argv=None):
     if args.batch and selected not in ({'03'}, {'04'}, {'05'}, {'05a'}, {'05b'}, {'06'}, {'07'}):
         parser.error('Batch mode supports one stage at a time; use --stages 03, 04, 05, 05a, 05b, 06, or 07')
     args.batch_detect = args.batch and selected == {'05'}
+    if '05a' in selected and '05' not in selected and args.flutter_detection_root and not args.flutter_qualification_root:
+        parser.error('Stage 05a needs --flutter-qualification-root to import census evidence. '
+                     '--flutter-detection-root selects the stage 05 detector output.')
     if '05' in selected and (args.channel is not None or args.all_channels or args.input):
         parser.error('Stage 05 detects once per tape from originals; omit channel and excerpt selections')
     if (args.flutter_detect_local_workers is not None
@@ -378,8 +383,8 @@ def make_tape_jobs(args, selected, run_dir):
             command += ['--input', str(args.concatenated / args.tape), '--output', str(output),
                         '--start', str(args.flutter_plan_start),
                         '--evidence-root', str(args.flutter_evidence_root)]
-            if args.flutter_detection_root is not None:
-                command += ['--detection-root', str(args.flutter_detection_root)]
+            if args.flutter_qualification_root is not None:
+                command += ['--qualification-root', str(args.flutter_qualification_root)]
             if args.flutter_plan_duration is not None:
                 command += ['--duration', str(args.flutter_plan_duration)]
         elif number == '03' and args.channel is not None:

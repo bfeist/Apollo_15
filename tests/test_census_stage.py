@@ -116,12 +116,14 @@ class CensusStageTests(unittest.TestCase):
         plans = self.root/'deflutter_planning_census'/self.config['run_id']/TAPE
         with redirect_stdout(io.StringIO()) as text:
             self.assertEqual(cli.main(['--input', str(self.folder), '--evidence-root', str(self.root/'none'),
-                                       '--detection-root', str(self.run_dir), '--output', str(plans)]), 0)
+                                       '--raw-census-root', str(self.run_dir), '--output', str(plans)]), 0)
         self.assertEqual(json.loads(text.getvalue())['census_run_id'], self.config['run_id'])
         _, plan, data = load_tape_plan(plans)
         self.assertTrue(plan['full_tape'])
         self.assertEqual(plan['census']['run_id'], self.config['run_id'])
         self.assertEqual(plan['census']['evidence_sha256'], bundle['evidence_sha256'])
+        self.assertEqual(plan['census']['kind'], 'raw_candidates')
+        self.assertFalse(plan['qualified'])
         self.assertGreater(plan['map']['census_selected_seconds'], 130)
         # Coverage is the union of supported tape time, never channel-seconds.
         self.assertAlmostEqual(plan['map']['coverage'], plan['map']['supported_seconds']/inventory(self.folder)['duration_seconds'])
@@ -204,7 +206,7 @@ class CensusStageTests(unittest.TestCase):
         spec.loader.exec_module(cli)
         with redirect_stdout(io.StringIO()), patch('sys.stderr', io.StringIO()), self.assertRaises(SystemExit):
             cli.main(['--input', str(self.folder), '--evidence-root', str(self.root/'none'),
-                      '--detection-root', str(self.run_dir), '--output', str(self.root/'plans'/TAPE)])
+                      '--raw-census-root', str(self.run_dir), '--output', str(self.root/'plans'/TAPE)])
         with redirect_stdout(io.StringIO()), patch('sys.stderr', io.StringIO()), self.assertRaises(SystemExit):
             cli.main(['--input', str(self.folder), '--evidence-root', str(self.root/'none'),
                       '--output', str(self.root/'plans'/TAPE)])
@@ -327,8 +329,9 @@ class CensusPipelineTests(unittest.TestCase):
         for tape in ('A15_T001', 'A15_T002'):
             write_tape(self.root/'originals'/tape, tape, {1: np.zeros(20*SR, np.float32), 2: np.zeros(20*SR, np.float32)})
         self.census = self.root/'deflutter_detection_census/census-0123456789abcdef'
+        self.analysis = self.root/'deflutter_analysis/census-0123456789abcdef/analysis-0123456789abcdef'
         self.options = ['--concatenated', str(self.root/'originals'), '--output', str(self.root/'runs'), '--plain',
-                        '--flutter-detection-root', str(self.census)]
+                        '--flutter-detection-root', str(self.census), '--flutter-qualification-root', str(self.analysis)]
 
     def jobs(self, *selection):
         args, selected = pipeline.parse_args(['plan', *self.options, *selection])
@@ -345,10 +348,12 @@ class CensusPipelineTests(unittest.TestCase):
         self.assertEqual(detect[detect.index('--tape')+1], 'A15_T001')
         self.assertEqual(detect[detect.index('--genus-workers')+1], '4')
         self.assertEqual(detect[detect.index('--local-workers')+1], '2')
-        self.assertEqual(plan[plan.index('--detection-root')+1], str(self.census))
+        self.assertEqual(plan[plan.index('--qualification-root')+1], str(self.analysis))
+        self.assertNotIn('--detection-root', plan)
         batch = self.jobs('--all-tapes', '--stages', '05a')
         self.assertEqual(len(batch), 2)
-        self.assertTrue(all(j['command'][j['command'].index('--detection-root')+1] == str(self.census) for j in batch))
+        self.assertTrue(all(j['command'][j['command'].index('--qualification-root')+1] == str(self.analysis)
+                            for j in batch))
         once = self.jobs('--all-tapes', '--stages', '05', '--exclude-tape', 'A15_T002')
         self.assertEqual(len(once), 1)
         self.assertIn('--all-tapes', once[0]['command'])

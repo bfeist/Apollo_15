@@ -15,7 +15,7 @@ from flutter_detection import load_census
 
 
 def readiness(originals, plans=DEFAULT_PLANNING_ROOT, denoised=CANONICAL, evidence=DEFAULT_EVIDENCE_ROOT,
-              detection=None):
+              detection=None, qualification=None):
     rows = []
     for folder in sorted(Path(originals).glob('A15_T*')):
         row = dict(tape=folder.name, cleanup_version='v2', shared_map_ready=False,
@@ -34,6 +34,18 @@ def readiness(originals, plans=DEFAULT_PLANNING_ROOT, denoised=CANONICAL, eviden
                 except (ValueError, OSError, KeyError) as error:
                     row.update(census_complete=False)
                     row['errors'].append(f'census: {error}')
+            if qualification is not None:
+                try:
+                    from flutter_qualification import load_qualified
+                    qualified = load_qualified(qualification, folder.name)
+                    decisions = qualified['decisions']
+                    if identity(decisions['inventory']) != identity(inv):
+                        raise ValueError('Qualification belongs to a different source inventory')
+                    row.update(qualification_complete=True, qualified_fraction=decisions['qualified_fraction'],
+                               qualification_seconds=decisions['seconds'])
+                except (ValueError, OSError, KeyError) as error:
+                    row.update(qualification_complete=False)
+                    row['errors'].append(f'qualification: {error}')
             for target in inv['channels']:
                 try:
                     prepared_source(target, Path(denoised)/folder.name/f'CH{target["channel"]:02d}')
@@ -46,8 +58,15 @@ def readiness(originals, plans=DEFAULT_PLANNING_ROOT, denoised=CANONICAL, eviden
                 if plan['inventory']['tape'] != inv['tape'] or identity(plan['inventory']) != identity(inv):
                     raise ValueError('Shared plan belongs to a different source inventory')
                 row.update(shared_map_ready=plan['full_tape'], tape_time_coverage=plan['map']['coverage'],
-                    map_sha256=plan['map']['sha256'])
+                    map_sha256=plan['map']['sha256'], qualified_plan=plan.get('qualified', False))
                 del data
+                if qualification is not None:
+                    provenance = plan.get('census') or {}
+                    if not (row['qualification_complete'] and row['qualified_plan']
+                            and provenance.get('analysis_id') == decisions['analysis_id']
+                            and provenance.get('decisions_sha256') == qualified['decisions_sha256']):
+                        row['shared_map_ready'] = False
+                        row['errors'].append('Shared plan does not match the requested qualification')
             row['ready_for_render'] = (row['shared_map_ready'] and row['expected_channels'] > 0
                 and row['denoised_channels'] == row['expected_channels'])
         except (ValueError, OSError, KeyError, TypeError, RuntimeError) as error:
@@ -68,10 +87,11 @@ def main(argv=None):
     p.add_argument('--denoised-root', type=Path, default=CANONICAL)
     p.add_argument('--evidence-root', type=Path, default=DEFAULT_EVIDENCE_ROOT)
     p.add_argument('--detection-root', type=Path, help='Detection census run folder to report')
+    p.add_argument('--qualification-root', type=Path, help='Qualified analysis bundle to report')
     args = p.parse_args(argv)
     try:
         result = readiness(args.originals, args.planning_root, args.denoised_root, args.evidence_root,
-                           args.detection_root)
+                           args.detection_root, args.qualification_root)
         print(json.dumps(result, indent=2))
         return 0 if result['ready_for_render'] else 2
     except (OSError, ValueError, RuntimeError, KeyError, TypeError) as error:

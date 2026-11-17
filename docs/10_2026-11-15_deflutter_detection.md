@@ -43,9 +43,13 @@ looks for **one tape motion that independent channels agree on**:
    `consensus.f64` (`<f8`, speed/support at 200 Hz from tape second 0). Gaps
    are never extrapolated; coverage is the union of supported tape time.
 
-Stage 05a then imports this stream as `source_kind = blind_consensus` at
-priority 2, below saved regional (0) and listening-approved v5 continuous (1)
-evidence, and compiles the single shared inverse map as before. Stage 05b
+The census is evidence, not authorization. The archive analysis and
+qualification in [13_2026-11-17_deflutter_qualification.md](13_2026-11-17_deflutter_qualification.md)
+decide which windows apply; stage 05a imports those decisions with
+`--qualification-root` at priority 2, below saved regional (0) and
+listening-approved v5 continuous (1) evidence, and compiles the single shared
+inverse map as before. `--raw-census-root` imports this raw stream for
+research only. Stage 05b
 applies it unchanged to stage-04 audio of every channel, preserving offsets.
 
 Code: `scripts/05_deflutter/flutter_census.py` (numerical core),
@@ -63,8 +67,9 @@ Code: `scripts/05_deflutter/flutter_census.py` (numerical core),
 | `.../<run-id>/<tape>/consensus.f64`, `evidence.json` | Joined stream and the hash-bound record of every window, block and audit |
 | `.../<run-id>/cluster/` | `status.json`, `logs/`, `inbox/`, `acks/`, `stop_requested`, lock |
 | `.../<run-id>/benchmarks/` | Isolated worker-count trials, comparisons, `selection.json` |
-| `deflutter_planning_census/<run-id>/<tape>/` | Stage-05a shared `plan.json` and map using the census |
-| `defluttered_census/<run-id>/<tape>/CHnn/` | Stage-05b audio from that plan |
+| `deflutter_analysis/<run-id>/<analysis-id>/` | Archive analysis and qualification decisions ([guide](13_2026-11-17_deflutter_qualification.md)) |
+| `deflutter_planning_qualified/<run-id>/<analysis-id>/<tape>/` | Stage-05a shared `plan.json` and map from qualified decisions |
+| `defluttered_qualified/<run-id>/<analysis-id>/<tape>/CHnn/` | Stage-05b audio from that plan |
 
 A run ID (`census-<16 hex>`) is the hash of the detector settings, the four
 implementation files' bytes, the canonical-originals root and an optional
@@ -104,34 +109,33 @@ uv run python scripts/run.py 05_detect_flutter.py stop
 ```
 
 Through the pipeline (one job per tape selection; the detection root is the
-run folder and is forwarded to 05a as `--detection-root`):
+run folder for stage 05; stage 05a takes `--flutter-qualification-root`, see
+[13_2026-11-17_deflutter_qualification.md](13_2026-11-17_deflutter_qualification.md)):
 
 ```powershell
 $run = 'D:/Apollo_15_30-Track/deflutter_detection_census/<run-id>'
-uv run python scripts/pipeline.py run --stages 05,05a --tape A15_T510106 --flutter-detection-root $run --flutter-planning-root D:/Apollo_15_30-Track/deflutter_planning_census/<run-id> --plain
+uv run python scripts/pipeline.py run --stages 05 --tape A15_T510106 --flutter-detection-root $run --plain
 uv run python scripts/pipeline.py run --stages 05 --all-tapes --flutter-detection-root $run --flutter-detect-genus-workers 6 --plain
-uv run python scripts/pipeline.py run --stages 05a --all-tapes --flutter-detection-root $run --flutter-planning-root D:/Apollo_15_30-Track/deflutter_planning_census/<run-id> --plain
-uv run python scripts/pipeline.py run --stages 04,05b --tape A15_T510106 --channel 20 --flutter-planning-root D:/Apollo_15_30-Track/deflutter_planning_census/<run-id> --defluttered-root D:/Apollo_15_30-Track/defluttered_census/<run-id> --plain
 ```
 
 `--flutter-detect-local-workers` (0–6), `--flutter-detect-genus-workers`,
 `--flutter-detect-genus-cpus` and `--flutter-detect-tapes` set the detection
 pool; `--flutter-plan-workers` still sets concurrent tape-plan compilations.
 Pipeline Ctrl+C stops the stage process tree immediately; use the direct
-command or `stop` for a graceful drain. Stage 05a accepts a census-only tape
-when no v5 bundle exists; a requested but missing, incomplete or stale census
-bundle is an error. Planning and rendering never start detection.
+command or `stop` for a graceful drain. Planning and rendering never start
+detection or analysis.
 
-Direct planning with both sources:
+Research-only planning from the raw census candidates (never labelled
+qualified; production plans use `--qualification-root`):
 
 ```powershell
-uv run python scripts/05_deflutter/05a_plan_deflutter.py --input D:/Apollo_15_30-Track/orig_concatenated/A15_T510083 --detection-root $run --output D:/Apollo_15_30-Track/deflutter_planning_census/<run-id>/A15_T510083
+uv run python scripts/05_deflutter/05a_plan_deflutter.py --input D:/Apollo_15_30-Track/orig_concatenated/A15_T510083 --raw-census-root $run --output D:/Apollo_15_30-Track/deflutter_planning_census_raw/<run-id>/A15_T510083
 ```
 
-The plan's `census` block records the run ID, config/evidence/stream hashes,
-coverage, beep-audit summary and duplicate audit; `sources` binds the same
-files; `map.census_selected_seconds` reports how much tape time the census
-supplied. Rendered outputs keep their existing plan and map hashes.
+The plan's `census` block records `kind = raw_candidates`, the run ID,
+config/evidence/stream hashes, coverage, beep-audit summary and duplicate
+audit; `map.census_selected_seconds` reports how much tape time the census
+supplied.
 `deflutter_readiness.py --detection-root $run` reports census completion.
 
 ## Proprius and Genus

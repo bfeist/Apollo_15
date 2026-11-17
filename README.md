@@ -115,6 +115,7 @@ Defaults are beneath `D:/Apollo_15_30-Track`; overrides are available in `--help
 | `denoised/` | Completed stage-03 channels | `--denoised-root` |
 | `crosstalk_removed/` | Stage-04 audio, interval decisions and evidence bindings | `--crosstalk-root` |
 | `deflutter_detection_census/<run-id>/` | Stage-05 census blocks, streams and cluster state | `--flutter-detection-root` |
+| `deflutter_analysis/<run-id>/<analysis-id>/` | Qualified tape intervals, held-out validation and listening selections | `--flutter-qualification-root` (05a) |
 | `deflutter_planning_v5_allchannel/` | Preserved all-channel tone evidence | `--flutter-evidence-root` |
 | `deflutter_planning_shared/` | One map and selection provenance per tape | `--flutter-planning-root` |
 | `defluttered_shared/` | Stage-05b audio after stage-04 crosstalk | `--defluttered-root` |
@@ -125,7 +126,7 @@ Defaults are beneath `D:/Apollo_15_30-Track`; overrides are available in `--help
 
 - `scripts/`: the top-level `pipeline.py`, the `run.py` dispatcher, and numbered stage folders described in [the script layout guide](docs/04_2026-11-15_script_layout.md).
 - `tests/`: processing, checkpoint integrity, acceptance, and pipeline integration checks. Synthetic demo generation lives here.
-- `docs/`: documents use `NN_YYYY-MM-DD_` prefixes and sort from historical research through current guides and status to the latest deflutter action plan (`12`). Start with the highest number for current work. Dates record the latest Git revision at this reorganization. Keep the order and referring links current as work progresses. Images live in `docs/images/`.
+- `docs/`: documents use `NN_YYYY-MM-DD_` prefixes and sort from historical research through current guides and status to the deflutter action plan (`12`) and [qualification and listening guide](docs/13_2026-11-17_deflutter_qualification.md). After completing the census, `05_analyze_flutter.py run` handles assessment through validation. Dates record the latest Git revision at this reorganization. Keep the order and referring links current as work progresses. Images live in `docs/images/`.
 - Local `reports/`, `runs/`, and `archive/` are ignored artifacts. Recordings and processing outputs are not distributed with the source.
 
 One-off experiments, old cleanup previews, the regional and v5 planners, the October 30 research campaign code, and excerpt-manifest rendering have been retired (recoverable from Git). Historical saved-map reading remains for evidence compatibility. Source changes invalidate implementation-bound flutter plans and acceptance; use fresh destinations rather than changing old records. Completed stage-03 intermediates retain their existing cleanup fingerprint.

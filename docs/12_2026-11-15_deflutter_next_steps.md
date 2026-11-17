@@ -5,6 +5,47 @@ How the system works and its commands are in
 [10_2026-11-15_deflutter_detection.md](10_2026-11-15_deflutter_detection.md); the design and research
 evidence are in [09_2026-11-15_deflutter_detection_guide.md](09_2026-11-15_deflutter_detection_guide.md).
 
+## November 17 direction: archive-scale qualification
+
+The owner rejected continued hand-picked listening trials as an approach to
+an archive this large. The six November 17 excerpts remain diagnostic evidence;
+they are not a representative quality estimate or a checklist to extend across
+channels. Do not require individual-channel or individual-window listening
+approval before making progress.
+
+The workflow is:
+
+1. While denoising runs, prepare automated audit aggregation and a fixed QA
+   sampling protocol. Do not benchmark against a busy denoise workload.
+2. After denoising, benchmark the worker pool and run the census over every
+   available channel of every eligible tape. Reuse verified results on resume.
+3. Aggregate coverage, bypasses, cross-channel agreement, sign conflicts and
+   held-out audit outcomes over the entire archive. Report tape-time unions,
+   distributions and outlier counts, including unmeasured intervals. Repeated
+   copies of a beep are not independent evidence.
+4. Validate a general rule for handling contradictory evidence against the
+   saved regression corpus before changing application gates. Do not hard-code
+   a T510073 exception, flip signs per channel, or treat missing check beeps as
+   rejection. The existing detector already gates consensus eligibility;
+   adverse beep audits currently flag problems but do not veto application.
+   Automated handling of those contradictions remains development work.
+5. Apply one accepted shared map per tape to all its output channels. Unsupported
+   intervals bypass with smooth transitions. Do not force coverage to 100%.
+6. Use one bounded listening batch to check the resulting method. Freeze its
+   selection before listening: stratified random intervals across tapes,
+   coverage/quality bands, and speech-bearing channels, with a separately
+   identified diagnostic stratum for flagged cases. Preserve the seed and
+   selection manifest, count speech-free selections separately, and report
+   failures as well as improvements. Do not select only promising examples.
+
+The owner explicitly supports detecting the entire archive first, then
+performing further analysis. Detection is evidence collection, not authorization
+to apply every eligible curve. An unresolved scientific outlier must not block
+that collection pass. The next engineering task is automated archive reporting
+and follow-up analysis, not more manually selected clips. The concrete design
+is in section 4 below. It does not itself change detector code or establish
+that the current detector is sufficiently reliable.
+
 ## Where things stand
 
 Done:
@@ -47,10 +88,12 @@ On sweep3, 1,322 beeps in eligible or audited windows gave 50.6 → 10.2 Hz
 (median ratio 0.201) but 2.0 % were made worse. Most of those are one window,
 **A15_T510073 36002**: a single 98-member hum cluster that matches the research
 curve (r 0.98) while the beeps on CH21/CH22 got worse (ratio 1.86, wrong sign
-better). Inspect that window before the archive run: either those beeps do not
-follow this tape's motion, or the hum there carries inverted motion. Decide
-whether adverse beep audits should ever veto a window (today they never gate;
-`evidence.json` lists them as `adverse_windows`).
+better). Carry that unresolved window into the archive-wide follow-up analysis;
+it does not block detection. Possible explanations include the beeps not
+following the inferred tape motion or inverted motion in the hum estimate;
+neither is established. Decide how contradictory audits affect application
+after the census (today they never gate; `evidence.json` lists them as
+`adverse_windows`).
 
 Outputs are in the local `reports/flutter_census_20261115/p1_confirm_v2/`,
 `p1_sweep3/` with `p1_sweep3_rerun/` (the 42 windows affected by the
@@ -58,6 +101,45 @@ sign-conflict rule, merged in `p1_sweep3_merged_summary.json`) and `p2_v5/`. The
 listening approval, and no method yet meets the 6 Hz / 5 cent goal.
 
 ## 1. Review and commit
+
+### November 17 preparation and listening update
+
+The detector implementation is committed (`3518338`). The owner moved the old
+deflutter planning/output directories into `D:/Apollo_15_30-Track/_to_delete`;
+the active output roots are a clean slate. Do not assume the historical v5
+root in the commands below is still available. Retain moved evidence and
+previous reviews unchanged. Benchmarks remain deferred until denoising ends.
+
+Six 64-second spot checks were rendered from completed v2 denoised channels
+and saved production-regression curves, without new detection or benchmarking:
+`reports/deflutter_spotchecks_20261117/`. Each hypothesis uses a native map
+compiled once over the full tape scope, with support only in the selected
+saved windows. Crosstalk was explicitly bypassed. A is the denoised source,
+B adds the normal correction, and C (samples 01–03) reverses its sign for
+diagnosis. These are sparse research maps, not completed archive censuses.
+
+Owner feedback, bound to delivered audio/map hashes in that folder's
+`listening_feedback.json`:
+
+| Sample | Tape / channel / canonical start | Listening result |
+| --- | --- | --- |
+| 01 | T510073 / CH21 / 36002 | No clear improvement; tentative preference for C |
+| 02 | T510073 / CH22 / 36002 | C best |
+| 03 | T510073 / CH19 / 36002 | B best |
+| 04 | T510106 / CH20 / 6102 | B better |
+| 05 | T510083 / CH20 / 15385 | B better |
+| 06 | T510106 / CH20 / 25683 | No speech, only line noise; B seems to have less flutter |
+
+Samples 04 and 05 support audible improvement in those excerpts. Sample 06
+does not establish speech improvement. T510073 remains unresolved: the
+normal/reversed preference differs across channels at the same tape time.
+The saved beep audit also favored the reversed sign on CH21/CH22, although
+its median improvement over identity was small (52.3 to 47.5 Hz, versus
+96.2 Hz for the normal curve). Neither channel is listed as an agreeing
+hum witness in this saved window. This does not prove the hum is inverted
+or justify channel-specific corrections. Keep this interval out of production
+acceptance pending checks of independent witnesses and their timing.
+No detector gate, shared-map policy, or archive approval changed.
 
 Review the diff, run the tests, and commit before any production run: the run
 ID hashes the bytes of `flutter_census.py`, `flutter_detection.py`,
@@ -138,6 +220,13 @@ short block of one tape if you want the tail case.
 
 ## 4. Archive run
 
+### Pass 1: collect evidence over the whole archive
+
+After the worker benchmark, run the existing detector over all canonical
+originals and all their available channels. Denoised audio is for downstream
+rendering, not tone discovery. Preserve the census settings and code for the
+duration of this pass. Do not wait for a solution to each flagged window.
+
 ```powershell
 uv run python scripts/run.py 05_detect_flutter.py run --all-tapes --exclude-tape A15_T510096
 uv run python scripts/run.py 05_detect_flutter.py status
@@ -147,15 +236,146 @@ A15_T510096 has 30 byte-identical channel files and is skipped automatically
 anyway; ask for its re-delivery. Rerun the same command after any stop or
 failure; it resumes from verified blocks. Failures stop scheduling and are
 listed with their worker log under `cluster/logs/`. Afterwards check each
-tape's `evidence.json` `coverage` and `beep_audit`, and look at tapes with low
-coverage (expected: late parts of T510084, T510087, T510097 where the hum is
-absent and only the post-tape comb remains).
+tape's saved results through the automated aggregation described below.
+Low coverage is expected in late parts of T510084, T510087 and T510097 where
+the hum is absent and only the post-tape comb remains; it must still be
+measured rather than assumed.
+
+### Pass 2: inventory and assess all saved results
+
+Build a separate, versioned analysis bundle from the immutable census. Every
+scheduled tape/block must be accounted for. Missing, stale, failed or excluded
+inputs are distinct from analyzed intervals with no usable correction.
+
+Produce one archive summary, one row per tape, a window index, and a queue of
+follow-up intervals. Include:
+
+- analyzed, candidate-supported, qualified and bypassed tape-time unions;
+  qualified coverage is unknown until qualification has run;
+- channel-group and frequency-family support, gate failures, clipping,
+  sign-conflict flags, and agreement between overlapping window curves;
+- distributions of held-out beep and concentration audits, their measured
+  coverage, and identity/normal/reversed/time-shift control comparisons;
+- uncertainty and audit availability, separately from measured failures.
+
+Use the raw event records, not just the current aggregate beep counts. Collapse
+the same physical event measured in overlapping windows and duplicate feeds
+where correspondence is established; retain uncertain associations explicitly.
+Report robustness by tape and interval rather than treating repeated beep
+measurements as independent samples. Clip interval unions to the actual tape
+duration and never add overlapping windows or channel-seconds as coverage.
+
+Classify each interval as a candidate for qualification, needing further
+analysis, or unsupported. These are analysis states, not render permissions.
+Queue contradictions, near-threshold evidence, inconsistent overlap curves,
+and supported/unsupported boundaries automatically. Add a reproducible random
+sample of apparently good and unsupported intervals so systematic failures and
+missed opportunities can be detected outside the flagged set.
+
+### Pass 3: bounded follow-up analysis
+
+Merge nearby queued intervals and process them with surrounding context, using
+the existing original inventory and canonical offsets. Schedule each tape-time
+region once for all channels. Save resumable jobs and results, with reasons and
+hashes; do not repeatedly reread an entire tape for each output channel.
+
+First reuse the saved per-window consensus curves, gates, leave-one-group-out
+metrics and audit events. The current census does **not** retain every carrier
+track or every competing cluster's curve. Where these are needed, reread only
+the queued original regions and save the additional tracks and hypotheses in
+the follow-up bundle. Never overwrite the initial census.
+
+The follow-up worker should test:
+
+- whether the selected motion is stable across overlapping estimates and
+  independent groups/families, rather than supported mainly by one shared feed;
+- whether competing signs or amplitudes are explained by carrier/mirror
+  contamination, weak tracking, or an unreliable audit witness;
+- whether usable independent tones above 200 Hz become more concentrated under
+  correction than under identity and the controls; low-frequency hum
+  concentration is not an independent validation method;
+- whether audit-event timing and identity are sound. A time-shift or reversed
+  control performing well is a diagnostic result, not permission to introduce
+  a per-channel lag or sign;
+- whether an apparently unsupported region contains additional usable
+  evidence. Adjacent successful regions do not authorize filling a gap.
+
+Prefer additional independent evidence over fitting a correction to whichever
+beeps happen to be available. Any measurements used to select a new hypothesis
+become development evidence and cannot also serve as its held-out validation.
+Speech-free/noise-only excerpts are useful carrier diagnostics but do not
+establish speech improvement.
+
+Run one defined follow-up pass and summarize its yield and remaining uncertainty.
+If a failure mode is widespread, investigate it as a class before rendering;
+do not create a manual listening queue proportional to the archive. Local cases
+still unresolved after that pass remain bypassed under the qualification policy.
+Another analysis pass requires an explicit, testable hypothesis, not repeated
+parameter searches until a favorable result appears.
+
+### Qualification: decide what may be applied
+
+Keep the decision policy separate from detection. Freeze thresholds, control
+requirements and a deterministic development/validation split before evaluating
+new policy variants. Split by tape where practical; keep neighboring windows
+and copies of the same event in the same partition. The already inspected
+November 15/17 examples are development/regression evidence, not a fresh
+confirmation set. Report held-out degradation as well as median improvement
+and coverage. Validate cross-channel transfer, gaps and join behavior.
+
+Final decisions are **apply**, **bypass: unsupported**, or **bypass: unresolved
+contradiction**, each with its evidence and policy version. A technical failure
+or unfinished analysis remains incomplete, not silently converted to bypass.
+Missing beeps alone do not prevent application of a qualified tape-level curve.
+There is no per-output-channel eligibility gate and no global sign flip chosen
+from a few listening preferences.
+
+Resolve overlapping decisions on the canonical tape-time grid. If an unresolved
+contradiction covers an interval, an overlapping passing window must not leak
+correction back into it without an explicit qualified resolution. Select at most
+one accepted hypothesis at each time, join once with smooth support fades, and
+integrate/anchor once for the full tape. Apply that same inverse map to every
+output channel while preserving offsets. Partial improvement is acceptable;
+no requirement to achieve complete coverage or the unmet 6 Hz / 5 cent goal.
+
+### Artifacts and implementation boundary
+
+Proposed analysis location:
+`deflutter_analysis/<census-run-id>/<analysis-id>/`. The analysis ID binds the
+analysis code/settings, policy, sample seed and input manifest. Each artifact
+binds its contributing census records, extra analysis, source inventory and
+curve hashes. Store archive/tape summaries, the follow-up job list and results,
+validation results, and tape-level qualification decisions separately.
+
+Changing only the analysis or qualification policy creates a new analysis ID
+and reuses the unchanged census. Changing one of the four hashed detector files
+still creates a new census run ID under the current implementation. Preserve
+all old evidence and approval-bound deliveries in either case.
+
+**Implemented November 17** (operating guide:
+[13_2026-11-17_deflutter_qualification.md](13_2026-11-17_deflutter_qualification.md)):
+the archive aggregator (`05_analyze_flutter.py assess`), the follow-up
+scheduler/worker (`followup`), the frozen qualification policy and held-out
+validation (`qualify`, `validate`, `regression`), the frozen QA selection
+(`qa-batch`, `qa-render`) and the stage-05a import of qualification decisions
+(`--qualification-root`, pipeline `--flutter-qualification-root`). The former
+05a `--detection-root` is now `--raw-census-root`; it compiles raw detector
+candidates for research and labels them `qualified = false`. Populate the
+analysis from the whole census when denoising and the detection run finish.
+On the saved regression corpus the contradiction rule flags only
+A15_T510073 36002, without tape-specific code.
 
 ## 5. Compile census maps
 
+Compile qualified maps into fresh destinations bound to both IDs.
+Unresolved-contradiction intervals bypass every source, including saved
+regional/v5 evidence. Historical evidence, if reused, must be located and
+validated explicitly after the owner's directory move.
+
 ```powershell
 $id = '<run-id>'
-uv run python scripts/pipeline.py run --stages 05a --all-tapes --exclude-tape A15_T510096 --flutter-detection-root D:/Apollo_15_30-Track/deflutter_detection_census/$id --flutter-planning-root D:/Apollo_15_30-Track/deflutter_planning_census/$id --plain
+$a = "D:/Apollo_15_30-Track/deflutter_analysis/$id/<analysis-id>"
+uv run python scripts/pipeline.py run --stages 05a --all-tapes --exclude-tape A15_T510096 --flutter-qualification-root $a --flutter-planning-root D:/Apollo_15_30-Track/deflutter_planning_qualified/$id/<analysis-id> --plain
 ```
 
 Each plan reports `tape_time_coverage` and `census_selected_seconds`; compare
@@ -163,14 +383,18 @@ with the saved v5 union (median 9.7 %).
 
 ## 6. Listening comparisons (Audition WAVs, no pages or servers)
 
+Use the fixed representative QA batch described above for method qualification.
+The two commands below are diagnostic examples only; neither they nor the six
+November 17 excerpts should become the archive acceptance set.
+
 Render matched A/B WAVs through the shared map only, into new folders so the
 existing A/B/C files and approvals stay untouched. Stage-04 output for the
 channel must exist (or add `--skip-crosstalk` for an explicit denoised-only
 comparison):
 
 ```powershell
-uv run python scripts/05_deflutter/render_channel_review.py --tape A15_T510106 --channel 20 --start 20000 --duration 1800 --flutter-plan D:/Apollo_15_30-Track/deflutter_planning_census/$id/A15_T510106/plan.json --output reports/listening_census_<date>/T510106_CH20
-uv run python scripts/05_deflutter/render_channel_review.py --tape A15_T510083 --channel 20 --start 13200 --duration 1800 --flutter-plan D:/Apollo_15_30-Track/deflutter_planning_census/$id/A15_T510083/plan.json --output reports/listening_census_<date>/T510083_CH20
+uv run python scripts/05_deflutter/render_channel_review.py --tape A15_T510106 --channel 20 --start 20000 --duration 1800 --flutter-plan D:/Apollo_15_30-Track/deflutter_planning_qualified/$id/<analysis-id>/A15_T510106/plan.json --output reports/listening_census_<date>/T510106_CH20
+uv run python scripts/05_deflutter/render_channel_review.py --tape A15_T510083 --channel 20 --start 13200 --duration 1800 --flutter-plan D:/Apollo_15_30-Track/deflutter_planning_qualified/$id/<analysis-id>/A15_T510083/plan.json --output reports/listening_census_<date>/T510083_CH20
 ```
 
 T510106 (0.6 % saved v5 coverage) tests new coverage; the T510083 passage
@@ -178,17 +402,17 @@ overlaps the approved `reports/listening_long_20261103/C.wav` and shows
 whether the census changes approved spans (v5 keeps priority there) and how
 it fills the gaps. Record the owner's decision with the WAV and map hashes.
 
-## 7. After listening approval
+## 7. After method qualification and the representative listening check
 
 Run stage 04, then 05b into the census roots (batch mode takes one stage at a
 time; a single `--channel` can run `04,05b` together):
 
 ```powershell
 uv run python scripts/pipeline.py run --stages 04 --tape A15_T510106 --all-channels --plain
-uv run python scripts/pipeline.py run --stages 05b --tape A15_T510106 --all-channels --flutter-planning-root D:/Apollo_15_30-Track/deflutter_planning_census/$id --defluttered-root D:/Apollo_15_30-Track/defluttered_census/$id --plain
+uv run python scripts/pipeline.py run --stages 05b --tape A15_T510106 --all-channels --flutter-planning-root D:/Apollo_15_30-Track/deflutter_planning_qualified/$id/<analysis-id> --defluttered-root D:/Apollo_15_30-Track/defluttered_qualified/$id/<analysis-id> --plain
 ```
 
-Stage 06 retiming and stage 07 normalization then read `defluttered_census/$id`
+Stage 06 retiming and stage 07 normalization then read `defluttered_qualified/$id/<analysis-id>`
 through `--defluttered-root`.
 
 ## 8. Accuracy work still open

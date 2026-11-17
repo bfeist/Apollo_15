@@ -2,7 +2,10 @@
 
 Historical plans are evidence import formats only. Output channels never take
 part in selection, joining, integration, or endpoint anchoring. Completed
-check-tone-free detection census streams are a third, lower-priority source.
+check-tone-free detection census evidence is a third, lower-priority source:
+either a qualified stream from ``flutter_qualification`` (production) whose
+unresolved-contradiction intervals exclude every source, or the raw census
+candidate stream (research only, never labelled qualified).
 """
 from collections import defaultdict
 import json
@@ -146,7 +149,7 @@ def regional_candidates(path):
 
 
 def census_candidates(run_dir, inv):
-    """Import one completed census stream; a missing or stale bundle is an error."""
+    """Research import of a raw census candidate stream; never a qualified map."""
     bundle = load_census(run_dir, inv['tape'])
     evidence = bundle['evidence']
     if identity(evidence['inventory']) != identity(inv):
@@ -164,7 +167,7 @@ def census_candidates(run_dir, inv):
         curve=dict(format='stream', path=str(bundle['stream_path']), sha256=stream['sha256'],
                    frames=stream['frames'], rate=stream['rate'], start_seconds=stream['start_seconds'],
                    dtype=stream['dtype']))
-    provenance = dict(run_id=evidence['run_id'], run_dir=str(bundle['run_dir']),
+    provenance = dict(kind='raw_candidates', qualified=False, run_id=evidence['run_id'], run_dir=str(bundle['run_dir']),
         config_sha256=evidence['config_sha256'], evidence_sha256=bundle['evidence_sha256'],
         stream_sha256=stream['sha256'], settings_sha256=evidence['settings_sha256'],
         implementation=evidence['implementation'], coverage=evidence['coverage'],
@@ -173,9 +176,47 @@ def census_candidates(run_dir, inv):
     return candidate, bindings, provenance
 
 
-def select_intervals(candidates, start, end):
-    """Rank only supported intervals. Copied channels do not cast votes."""
+def qualified_candidates(analysis_dir, inv):
+    """Import one tape's qualified census stream and its contradiction exclusions."""
+    from flutter_qualification import load_qualified
+    q = load_qualified(analysis_dir, inv['tape'])
+    decisions, stream = q['decisions'], q['decisions']['stream']
+    if identity(decisions['inventory']) != identity(inv):
+        raise ValueError('Qualified census disagrees on original identity or canonical offsets')
+    candidate = dict(id='qualified_'+q['decisions_sha256'][:16]+'__census', start_seconds=stream['start_seconds'],
+        end_seconds=inv['duration_seconds'], priority=CENSUS_PRIORITY, rank=0., reference_support=0.,
+        reference_channel=None, carrier_hz=None, method=decisions['policy_version'], witnesses=[],
+        source_kind='qualified_census', source_key='qualified_census', source_plan=str(q['decisions_path']),
+        source_plan_sha256=q['decisions_sha256'], census_run_id=decisions['census_run_id'],
+        analysis_id=decisions['analysis_id'],
+        curve=dict(format='stream', path=str(q['stream_path']), sha256=stream['sha256'], frames=stream['frames'],
+                   rate=stream['rate'], start_seconds=stream['start_seconds'], dtype=stream['dtype']))
+    exclusions = [[s['start_seconds'], s['end_seconds']] for s in decisions['segments']
+                  if s['decision'] == 'bypass_unresolved_contradiction']
+    analysis_dir = q['analysis']['dir']
+    census = q['census']
+    provenance = dict(kind='qualified', qualified=True, run_id=decisions['census_run_id'],
+        analysis_id=decisions['analysis_id'], analysis_dir=str(analysis_dir),
+        policy_version=decisions['policy_version'], policy_sha256=decisions['policy_sha256'],
+        partition=decisions['partition'], decisions_sha256=q['decisions_sha256'], stream_sha256=stream['sha256'],
+        evidence_sha256=census['evidence_sha256'], config_sha256=census['evidence']['config_sha256'],
+        analysis_config_sha256=sha256(analysis_dir/'config.json'), seconds=decisions['seconds'],
+        qualified_seconds=decisions['qualified_seconds'], excluded_intervals=exclusions)
+    bindings = [bound(analysis_dir/'config.json'), bound(q['decisions_path']), bound(q['stream_path']),
+                bound(census['run_dir']/'config.json'), bound(census['evidence_path'])]
+    return candidate, exclusions, bindings, provenance
+
+
+def select_intervals(candidates, start, end, exclusions=()):
+    """Rank only supported intervals. Copied channels do not cast votes.
+
+    ``exclusions`` are tape intervals no source may correct, e.g. unresolved
+    contradictions from qualification; they bypass whatever overlaps them.
+    """
     points = {start, end}
+    exclusions = [(max(start, a), min(end, b)) for a, b in exclusions if min(end, b) > max(start, a)]
+    for a, b in exclusions:
+        points.update((a, b))
     clipped = []
     # Use the compiler's canonical grid so support gaps and selection boundaries
     # refer to the same samples. A dropout may expose another saved reference.
@@ -195,14 +236,15 @@ def select_intervals(candidates, start, end):
     chosen = []
     points = sorted(points)
     for a, b in zip(points, points[1:]):
-        eligible = [c for c in clipped if c['start_seconds'] <= a and c['end_seconds'] >= b]
+        excluded = any(x <= a and b <= y for x, y in exclusions)
+        eligible = [] if excluded else [c for c in clipped if c['start_seconds'] <= a and c['end_seconds'] >= b]
         winner = min(eligible, key=lambda c: (c['priority'], -c.get('reference_support', 0),
             -c['rank'], c['source_key'], c['id'])) if eligible else None
         key = winner['id'] if winner else None
-        if chosen and chosen[-1]['selected'] == key:
+        if chosen and chosen[-1]['selected'] == key and chosen[-1].get('excluded', False) == excluded:
             chosen[-1]['end_seconds'] = b
         else:
-            chosen.append(dict(start_seconds=a, end_seconds=b, selected=key))
+            chosen.append(dict(start_seconds=a, end_seconds=b, selected=key, **({'excluded': True} if excluded else {})))
     return chosen
 
 
@@ -299,18 +341,23 @@ def compile_map(path, candidates, selections, start, end):
         bypass='Zero local speed correction; constant displacement preserves continuity')
 
 
-def build_tape_plan(continuous_path, assessment_path, output, *, regional_paths=(), detection_root=None,
-                    inventory=None, start=None, end=None):
+def build_tape_plan(continuous_path, assessment_path, output, *, regional_paths=(), qualification_root=None,
+                    raw_census_root=None, inventory=None, start=None, end=None):
     """Reuse completed evidence; no carrier discovery, fitting, or audio rendering.
 
-    ``continuous_path``/``assessment_path`` may be None when a completed
-    detection census is supplied; ``inventory`` then names the canonical tape.
+    ``continuous_path``/``assessment_path`` may be None when census evidence
+    is supplied; ``inventory`` then names the canonical tape. Production uses
+    ``qualification_root`` (an analysis bundle); ``raw_census_root`` imports
+    unqualified detector candidates for research only.
     """
     output = Path(output).resolve()
-    if continuous_path is None and detection_root is None:
-        raise ValueError('Shared planning needs saved v5 evidence or a completed detection census')
+    if qualification_root is not None and raw_census_root is not None:
+        raise ValueError('Use either a qualification analysis or a raw census root, not both')
+    census_root = qualification_root if qualification_root is not None else raw_census_root
+    if continuous_path is None and census_root is None:
+        raise ValueError('Shared planning needs saved v5 evidence or completed census evidence')
     protected = [*([index_path(continuous_path).parent] if continuous_path is not None else []),
-        *([Path(detection_root).resolve()] if detection_root is not None else []),
+        *([Path(census_root).resolve()] if census_root is not None else []),
         *[index_path(path).parent for path in regional_paths]]
     if any(output == p or output in p.parents or p in output.parents for p in protected):
         raise ValueError('Shared tape output must not overlap saved evidence')
@@ -326,9 +373,14 @@ def build_tape_plan(continuous_path, assessment_path, output, *, regional_paths=
         inv = inventory
     if inventory is not None and (inventory['tape'] != inv['tape'] or identity(inventory) != identity(inv)):
         raise ValueError('Saved tone evidence does not match the canonical originals')
-    census = None
-    if detection_root is not None:
-        candidate, extra, census = census_candidates(detection_root, inv)
+    census, exclusions = None, []
+    if qualification_root is not None:
+        candidate, exclusions, extra, census = qualified_candidates(qualification_root, inv)
+        candidates.append(candidate)
+        bindings.extend(extra)
+        coverage.append((candidate['start_seconds'], candidate['end_seconds']))
+    elif raw_census_root is not None:
+        candidate, extra, census = census_candidates(raw_census_root, inv)
         candidates.append(candidate)
         bindings.extend(extra)
         coverage.append((candidate['start_seconds'], candidate['end_seconds']))
@@ -359,21 +411,26 @@ def build_tape_plan(continuous_path, assessment_path, output, *, regional_paths=
     # Verify every imported curve once before compiling. Save original provenance.
     for spec in {c['curve']['path']: c['curve'] for c in candidates}.values():
         checked_stream(Path(spec['path']).parent, Path(spec['path']).name, spec['sha256'])
-    selections = select_intervals(candidates, start, end)
+    selections = select_intervals(candidates, start, end, exclusions)
     output.mkdir(parents=True)
     statistics = compile_map(output/'tape_map.npy', candidates, selections, start, end)
     if census is not None:
+        prefixes = ('census_', 'qualified_')
         chosen = {s['selected'] for s in selections}
         statistics['census_selected_seconds'] = sum(s['end_seconds']-s['start_seconds'] for s in selections
-            if s['selected'] is not None and s['selected'].startswith('census_'))
-        census['selected'] = any(k is not None and k.startswith('census_') for k in chosen)
+            if s['selected'] is not None and s['selected'].startswith(prefixes))
+        statistics['excluded_seconds'] = sum(s['end_seconds']-s['start_seconds'] for s in selections if s.get('excluded'))
+        census['selected'] = any(k is not None and k.startswith(prefixes) for k in chosen)
     atomic_json(output/'selection.json', selections)
     atomic_json(output/'evidence.json', dict(candidates=candidates, rejected=rejected,
         interpretation='Saved channel decisions and census windows supply witnesses, never destination eligibility'))
     limitations = ['Saved numerical tone evidence does not independently authenticate tape motion.',
                    'Missing reserved events remain visible; no new discovery or fitting was run.']
-    if census is not None:
-        limitations.append('The detection census is blind cross-channel evidence; check beeps were only an audit.')
+    if census is not None and census['qualified']:
+        limitations.append('Census intervals were applied only where the frozen qualification policy decided apply; '
+                           'unresolved contradictions bypass every source.')
+    elif census is not None:
+        limitations.append('Raw detector candidates for research: not qualified, contradictions are not excluded.')
     plan = dict(schema=3, kind='shared_tape_map', methodology=METHODOLOGY,
         complete=True, source_validation='verified', tape_level=True,
         selection_depends_on_output_channel=False, inventory=inv,
@@ -383,7 +440,8 @@ def build_tape_plan(continuous_path, assessment_path, output, *, regional_paths=
         map=dict(file='tape_map.npy', sha256=sha256(output/'tape_map.npy'), **statistics),
         selection=dict(file='selection.json', sha256=sha256(output/'selection.json')),
         evidence=dict(file='evidence.json', sha256=sha256(output/'evidence.json')),
-        sources=bindings, census=census, implementation_sha256=sha256(__file__),
+        sources=bindings, census=census, qualified=bool(census and census['qualified']),
+        implementation_sha256=sha256(__file__),
         listening_approved=False, production_accepted=False, limitations=limitations)
     atomic_json(output/'plan.json', plan)
     return plan

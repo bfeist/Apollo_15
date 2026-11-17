@@ -59,5 +59,10 @@
   "denoise_v2_refinement_fast.py": "03_denoise/runtime/scripts/denoise_v2_refinement_fast.py",
   "05_detect_flutter.py": "05_deflutter/05_detect_flutter.py",
   "flutter_census.py": "05_deflutter/flutter_census.py",
-  "flutter_detection.py": "05_deflutter/flutter_detection.py"
+  "flutter_detection.py": "05_deflutter/flutter_detection.py",
+  "05_analyze_flutter.py": "05_deflutter/05_analyze_flutter.py",
+  "flutter_analysis.py": "05_deflutter/flutter_analysis.py",
+  "flutter_followup.py": "05_deflutter/flutter_followup.py",
+  "flutter_qualification.py": "05_deflutter/flutter_qualification.py",
+  "qualification_policy.py": "05_deflutter/qualification_policy.py"
 }
