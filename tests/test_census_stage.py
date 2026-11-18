@@ -69,6 +69,8 @@ def genus_factory(scratch, root):
         argv = detection.local_command(session)
         if host == 'genus':
             argv = argv[:-1]+['genus', '--path-map', f'{root.as_posix()}={root.as_posix()}', '--scratch', str(scratch)]
+        else:
+            argv += ['--scratch', str(scratch)]
         return argv
     return command
 
@@ -93,6 +95,22 @@ class CensusStageTests(unittest.TestCase):
         options.update(pool)
         return detection.coordinate(self.session, [self.folder], **options)
 
+    def test_block_reader_zero_fills_both_offset_edges_and_absent_channel_time(self):
+        row = next(r for r in inventory(self.folder)['channels'] if r['channel'] == 5)
+        audio, _ = sf.read(row['path'], dtype='float32')
+        for start, end in [(0, 1), (0, 4), (148, 152), (151, 152)]:
+            with self.subTest(start=start, end=end):
+                read, stats = detection.read_block([row], start, end, SR)
+                samples, coverage = read(5)
+                expected = np.zeros((end-start)*SR, np.float32)
+                lo, hi = max(start, OFFSETS[5]), min(end, 150)
+                count = max(0, hi-lo)*SR
+                if count:
+                    expected[(lo-start)*SR:(hi-start)*SR] = audio[(lo-OFFSETS[5])*SR:(hi-OFFSETS[5])*SR]
+                np.testing.assert_array_equal(samples, expected)
+                self.assertEqual(coverage, count/len(expected))
+                self.assertEqual(stats['bytes'], count*2)
+
     def test_genus_staging_publishes_once_and_census_only_plan_reaches_offset_channels(self):
         self.assertEqual(self.detect(local_workers=0, genus_workers=1), 0)
         status = detection.read_json(self.session.cluster/'status.json')
@@ -101,9 +119,7 @@ class CensusStageTests(unittest.TestCase):
         self.assertEqual(sorted(p.name for p in (self.session.cluster/'acks'/TAPE).iterdir()),
                          ['0000.json', '0001.json', '0002.json'])
         self.assertEqual(list((self.session.cluster/'inbox'/TAPE).iterdir()), [])
-        # Local results are reclaimed only after acknowledgement, at the next job.
-        local = list((self.root/'scratch').glob('*/*/*/*'))
-        self.assertEqual([p.name for p in local], ['0002'])
+        self.assertEqual(list((self.root/'scratch').glob('*/*/*/*')), [])
         bundle = detection.load_census(self.run_dir, TAPE)
         coverage = bundle['evidence']['coverage']
         self.assertEqual(coverage['eligible_windows'], coverage['windows'])
@@ -255,8 +271,10 @@ class CensusStageTests(unittest.TestCase):
         self.assertEqual(remote[remote.index('--python')+1], detection.GENUS['python'])
         self.assertIn('--no-project', remote)
         self.assertEqual(remote[remote.index('--run-dir')+1],
-                         '/mnt/d/Apollo_15_30-Track/deflutter_detection_census/census-0123456789abcdef')
+                         '/mnt/f/Apollo_15_30-Track/deflutter_detection_census/census-0123456789abcdef')
         self.assertEqual(remote[remote.index('--path-map')+1], 'D:/Apollo_15_30-Track=/mnt/d/Apollo_15_30-Track')
+        self.assertIn('F:/tempF=/mnt/f/tempF', remote)
+        self.assertEqual(remote[remote.index('--scratch')+1], '/home/bfeist/.local/share/apollo15-census')
         uv = remote.index(detection.GENUS['uv'])
         self.assertEqual(remote[uv+1:uv+3], ['run', '--no-project'])
         self.assertLess(remote.index('taskset'), uv)
@@ -269,7 +287,7 @@ class CensusStageTests(unittest.TestCase):
                                 (dict(environment=dict(hello['environment'], numpy='0.0')), 'numpy')]:
             with self.subTest(change=change), self.assertRaisesRegex(detection.IdentityError, message):
                 detection.check_hello(worker, dict(hello, **change), self.config, '0,2,4')
-        for pool, message in [(dict(local_workers=7), 'developer headroom'),
+        for pool, message in [(dict(local_workers=17), 'developer headroom'),
                               (dict(local_workers=0, genus_workers=4, genus_cpus='0,2'), 'CPU mask'),
                               (dict(local_workers=0, genus_workers=0), 'at least one')]:
             with self.subTest(pool=pool), self.assertRaisesRegex(ValueError, message):
@@ -283,7 +301,13 @@ class CensusStageTests(unittest.TestCase):
         first = detection.benchmark(self.run_dir, self.config, [self.folder], 'windows-1', keys,
                                     local_workers=1, genus_workers=0, worker_factory=factory, output=quiet)
         second = detection.benchmark(self.run_dir, self.config, [self.folder], 'genus-1', keys,
-                                     local_workers=0, genus_workers=1, worker_factory=factory, output=quiet)
+                                     local_workers=0, genus_workers=2, worker_factory=factory, stage_inputs=True,
+                                     stage_root=self.root/'ssd', output=quiet)
+        self.assertEqual(len(second['source_staging']), 1)
+        self.assertEqual(second['source_staging'][0]['bytes'], sum(p.stat().st_size for p in self.folder.glob('*.wav')))
+        self.assertTrue(all(b['execution']['input_mode'] == 'ssd' for b in second['per_block']))
+        self.assertFalse(list((self.root/'ssd').rglob('*.wav')))
+        self.assertEqual(list((self.root/'scratch').glob('*/*/*/*')), [])
         self.assertEqual((first['completed'], second['completed']), (2, 2))
         self.assertGreater(first['unique_tape_hours_per_wall_hour'], 0)
         self.assertFalse((self.run_dir/TAPE/'blocks').exists())
@@ -295,6 +319,43 @@ class CensusStageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'already exists'):
             detection.benchmark(self.run_dir, self.config, [self.folder], 'genus-1', keys,
                                 local_workers=1, genus_workers=0, output=quiet)
+
+    def test_staging_rotates_tapes_and_reuses_completed_blocks_on_resume(self):
+        from census_monitor import CensusMonitor
+        from rich.console import Console
+        audio, _ = channels(70, count=2)
+        other = self.root/'originals'/'A15_T901'
+        write_tape(other, other.name, audio)
+        folders = [self.folder, other]
+        stage_root = self.root/'ssd'
+        monitor = CensusMonitor(self.run_dir)
+        options = dict(local_workers=2, genus_workers=1, stage_inputs=True, stage_root=stage_root,
+                       worker_factory=genus_factory(self.root/'scratch', self.root),
+                       output=monitor.message, on_status=monitor.update)
+        self.assertEqual(detection.coordinate(self.session, folders, **options), 0)
+        state = detection.read_json(self.session.cluster/'status.json')
+        self.assertEqual([s['tape'] for s in state['source_staging']], [f.name for f in folders])
+        self.assertTrue(all(j['execution']['input_mode'] == 'ssd' for j in state['jobs'].values()))
+        self.assertFalse(list(stage_root.rglob('*.wav')))
+        display = io.StringIO()
+        Console(file=display, width=110).print(monitor)
+        self.assertIn('2/2 tapes', display.getvalue())
+        self.assertIn('Failures 0', display.getvalue())
+        self.assertIn('Proprius', display.getvalue())
+        self.assertIn('Genus', display.getvalue())
+        with patch.object(detection.SourceStage, 'load', side_effect=AssertionError('unnecessary copy')):
+            self.assertEqual(detection.coordinate(self.session, folders, **options), 0)
+
+    def test_staging_refuses_changed_source_and_releases_partial_tape(self):
+        record = detection.prepare_tape(self.run_dir, self.config, self.folder)
+        row = record['inventory']['channels'][1]
+        row['mtime_ns'] -= 1
+        with patch.object(detection, 'prepare_tape', return_value=record):
+            self.assertEqual(self.detect(stage_inputs=True, stage_root=self.root/'ssd'), 2)
+        state = detection.read_json(self.session.cluster/'status.json')
+        self.assertIn('Original changed since inventory', state['failures'][0]['message'])
+        self.assertFalse(list((self.root/'ssd').rglob('*.wav')))
+        self.assertFalse((self.run_dir/TAPE/'blocks').exists())
 
     def test_tape_of_identical_channel_files_is_flagged_and_skipped(self):
         audio, _ = channels(70, count=1)
@@ -339,7 +400,7 @@ class CensusPipelineTests(unittest.TestCase):
 
     def test_detection_and_planning_forwarding_single_tape_and_batch(self):
         single = self.jobs('--tape', 'A15_T001', '--stages', '05,05a', '--flutter-detect-genus-workers', '4',
-                           '--flutter-detect-local-workers', '2')
+                           '--flutter-detect-local-workers', '8', '--flutter-detect-input-mode', 'ssd')
         self.assertEqual([j['number'] for j in single], ['05', '05a'])
         detect, plan = single[0]['command'], single[1]['command']
         self.assertEqual(Path(detect[2]).name, '05_detect_flutter.py')
@@ -347,7 +408,8 @@ class CensusPipelineTests(unittest.TestCase):
         self.assertEqual(detect[detect.index('--run-dir')+1], str(self.census))
         self.assertEqual(detect[detect.index('--tape')+1], 'A15_T001')
         self.assertEqual(detect[detect.index('--genus-workers')+1], '4')
-        self.assertEqual(detect[detect.index('--local-workers')+1], '2')
+        self.assertEqual(detect[detect.index('--local-workers')+1], '8')
+        self.assertEqual(detect[detect.index('--input-mode')+1], 'ssd')
         self.assertEqual(plan[plan.index('--qualification-root')+1], str(self.analysis))
         self.assertNotIn('--detection-root', plan)
         batch = self.jobs('--all-tapes', '--stages', '05a')
@@ -366,7 +428,7 @@ class CensusPipelineTests(unittest.TestCase):
         self.assertEqual(render[render.index('--flutter-plan')+1], str(census_plans/'A15_T001/plan.json'))
         self.assertIn('--crosstalk-input', render)
         for extra in (('--tape', 'A15_T001', '--stages', '05', '--channel', '2'),
-                      ('--tape', 'A15_T001', '--stages', '05', '--flutter-detect-local-workers', '7'),
+                      ('--tape', 'A15_T001', '--stages', '05', '--flutter-detect-local-workers', '17'),
                       ('--all-tapes', '--stages', '05,05a')):
             with self.subTest(extra=extra), redirect_stdout(io.StringIO()), \
                     patch('sys.stderr', io.StringIO()), self.assertRaises(SystemExit):

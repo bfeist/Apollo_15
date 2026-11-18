@@ -20,6 +20,7 @@ import shutil
 import signal as signals
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import traceback
@@ -27,19 +28,21 @@ import traceback
 import numpy as np
 
 import flutter_census as census
+from census_source_stage import SourceStage
 
 HERE = Path(__file__).resolve().parent
 DATA = Path('D:/Apollo_15_30-Track')
-DEFAULT_DETECTION_ROOT = DATA/'deflutter_detection_census'
+DEFAULT_DETECTION_ROOT = Path('F:/Apollo_15_30-Track/deflutter_detection_census')
 DEFAULT_ORIGINALS = DATA/'orig_concatenated'
 SCHEMA = 1
-IMPLEMENTATION = ('flutter_census.py', 'flutter_detection.py', 'flutter_tracking.py', 'flutter.py')
+IMPLEMENTATION = ('flutter_census.py', 'flutter_detection.py', 'flutter_tracking.py', 'flutter.py', 'census_source_stage.py')
 THREAD_VARIABLES = ('OPENBLAS_NUM_THREADS', 'MKL_NUM_THREADS', 'OMP_NUM_THREADS',
                     'BLIS_NUM_THREADS', 'NUMEXPR_NUM_THREADS', 'VECLIB_MAXIMUM_THREADS')
 GENUS = dict(ssh='bfeist@192.168.0.3', data='/mnt/d/Apollo_15_30-Track', repo='/mnt/f/_repos/Apollo_15',
              uv='/home/bfeist/.local/bin/uv', python='/home/bfeist/.local/share/apollo15-venv/bin/python',
-             scratch='/home/bfeist/.local/share/apollo15-census')
-WINDOWS_MAX_WORKERS = 6
+             scratch='/home/bfeist/.local/share/apollo15-census', tempf='/mnt/f/tempF')
+LOCAL_SCRATCH = (Path('F:/tempF') if os.name == 'nt' else Path(tempfile.gettempdir()))/'apollo15-census'
+WINDOWS_MAX_WORKERS = 16  # Proprius physical cores; the provisional pool still starts at six.
 # Benchmark starting points only (docs/09_2026-11-15_deflutter_detection_guide.md section 5);
 # replace them with a measured selection under the run's benchmarks/ folder.
 PROVISIONAL_POOL = dict(windows=6, genus=6, genus_cpus='0,2,4,8,10,12', tapes=3, benchmarked=False)
@@ -252,7 +255,7 @@ def prepare_tape(run_dir, config, folder):
 
 # ---------------------------------------------------------------- block work
 
-def read_block(rows, read_start, read_end, sample_rate, mapping=(), check_mtime=True):
+def read_block(rows, read_start, read_end, sample_rate, mapping=(), check_mtime=True, staged=None):
     """Canonical reader: canonical time = WAV time + start_seconds."""
     import soundfile as sf
     by_channel = {r['channel']: r for r in rows}
@@ -262,22 +265,27 @@ def read_block(rows, read_start, read_end, sample_rate, mapping=(), check_mtime=
         row = by_channel[channel]
         path = map_path(row['path'], mapping)
         started = time.perf_counter()
+        if staged is not None:
+            path = map_path(staged, mapping)/f'CH{channel:02d}.wav'
         info = path.stat()
         if info.st_size != row['bytes'] or (check_mtime and info.st_mtime_ns != row['mtime_ns']):
-            raise IdentityError(f'Original changed since inventory: {path}')
+            raise IdentityError(f'Input changed since inventory: {path}')
         first = int(round((read_start-row['start_seconds'])*sample_rate))
         count = int(round((read_end-read_start)*sample_rate))
-        out = np.zeros(count, np.float32)
+        out = np.empty(count, np.float32)
         lo, hi = max(first, 0), min(first+count, row['frames'])
         if hi > lo:
+            out[:lo-first] = 0
+            out[hi-first:] = 0
             with sf.SoundFile(path) as stream:
                 if stream.frames != row['frames'] or stream.samplerate != sample_rate or stream.channels != 1:
                     raise IdentityError(f'Original format changed: {path}')
                 stream.seek(lo)
-                data = stream.read(hi-lo, dtype='float32')
+                data = stream.read(hi-lo, out=out[lo-first:hi-first])
             if len(data) != hi-lo or not np.isfinite(data).all():
                 raise IdentityError(f'Short or non-finite original read: {path}')
-            out[lo-first:hi-first] = data
+        else:
+            out.fill(0)
         stats['read_seconds'] += time.perf_counter()-started
         stats['bytes'] += max(0, hi-lo)*2
         return out, max(0, hi-lo)/max(count, 1)
@@ -288,7 +296,7 @@ def block_job(tape_record, block):
     return dict(tape=tape_record['tape'], **block, inventory_sha256=tape_record['inventory_sha256'])
 
 
-def compute_block(run_dir, config, job, destination, *, host, mapping=(), progress=None):
+def compute_block(run_dir, config, job, destination, *, host, mapping=(), progress=None, staged=None):
     """Analyse one tape x block x all-channels job into ``destination``."""
     tape = read_json(Path(run_dir)/job['tape']/'inventory.json')
     if tape['inventory_sha256'] != job['inventory_sha256']:
@@ -296,7 +304,7 @@ def compute_block(run_dir, config, job, destination, *, host, mapping=(), progre
     settings = settings_of(config)
     rows = tape['inventory']['channels']
     read, stats = read_block(rows, job['read_start'], job['read_end'], settings['sample_rate'],
-                             mapping, check_mtime=not mapping)
+                             mapping, check_mtime=not mapping, staged=staged)
     known = tape['duplicate_audit']['duplicate_groups']
     started, cpu = time.perf_counter(), time.process_time()
     analysis, curves = census.analyse_block(read, [r['channel'] for r in rows], job['tape'],
@@ -312,6 +320,7 @@ def compute_block(run_dir, config, job, destination, *, host, mapping=(), progre
                                          'read_end', 'inventory_sha256')},
                   settings_sha256=config['settings_sha256'], implementation=implementation(),
                   execution=dict(host=host, hostname=platform.node(), environment=versions(),
+                                 input_mode='ssd' if staged is not None else 'direct',
                                  wall_seconds=round(seconds, 3), read_seconds=round(stats['read_seconds'], 3),
                                  compute_seconds=round(seconds-stats['read_seconds'], 3),
                                  cpu_seconds=round(time.process_time()-cpu, 3), bytes_read=stats['bytes']),
@@ -406,19 +415,16 @@ def publish(session, job):
         if existing != digest_value:
             raise IdentityError(f'Published block {job["tape"]}/{job["block"]} differs from a new result')
     else:
-        pending = final.with_name(final.name+'.partial')
-        if pending.exists():
-            shutil.rmtree(pending)
-        copy_verified(inbox, pending)
-        verify_block(pending, job, session.config)
-        pending.rename(final)
-        verify_block(final, job, session.config)
+        # The verified inbox and final are on the same archive volume.
+        final.parent.mkdir(parents=True, exist_ok=True)
+        inbox.rename(final)
     ack = session.ack(job)
     ack.parent.mkdir(parents=True, exist_ok=True)
     atomic_json(ack, dict(result_sha256=digest_value, published=str(final)))
-    for name in BLOCK_FILES:
-        (inbox/name).unlink()
-    inbox.rmdir()
+    if inbox.exists():
+        for name in BLOCK_FILES:
+            (inbox/name).unlink()
+        inbox.rmdir()
     return record
 
 
@@ -536,24 +542,23 @@ def lower_priority():
             raise ctypes.WinError(ctypes.get_last_error())
 
 
-def release_acknowledged(scratch, cluster):
-    """Remove local Genus results only after Proprius acknowledged publication."""
-    if not scratch.is_dir():
+def release_acknowledged(folder, cluster):
+    """Reclaim only a block whose published result matches this local copy."""
+    ack = cluster/'acks'/folder.parent.name/(folder.name+'.json')
+    if not ack.is_file():
         return
-    for folder in scratch.glob('*/*'):
-        if not folder.is_dir() or folder.name.endswith('.partial'):
-            continue
-        ack = cluster/'acks'/folder.parent.name/(folder.name+'.json')
-        if not ack.is_file():
-            continue
+    try:
         if read_json(ack)['result_sha256'] != sha256(folder/'result.json'):
             raise IdentityError(f'Acknowledgement differs from local result: {folder}')
         if {p.name for p in folder.iterdir()} != set(BLOCK_FILES):
             emit(event='message', message=f'Local cleanup deferred, unexpected files: {folder}')
-            continue
+            return
         for name in BLOCK_FILES:
             (folder/name).unlink()
         folder.rmdir()
+    except FileNotFoundError:
+        # Workers starting together can reclaim the same previously acknowledged block.
+        pass
 
 
 def upload(local, inbox, stop):
@@ -594,10 +599,18 @@ def worker(run_dir, cluster, host, mapping=(), scratch=None, stream=None):
     check_code(config)
     if host == 'windows':
         lower_priority()
+    if scratch is None:
+        scratch = LOCAL_SCRATCH if host == 'windows' else GENUS['scratch']
+    local_root = Path(scratch)/config['run_id']/hashlib.sha256(
+        cluster.as_posix().encode()).hexdigest()[:12]
+    local_root.mkdir(parents=True, exist_ok=True)
+    for folder in local_root.glob('*/*'):
+        if folder.is_dir() and not folder.name.endswith('.partial'):
+            release_acknowledged(folder, cluster)
     affinity = sorted(os.sched_getaffinity(0)) if hasattr(os, 'sched_getaffinity') else None
     emit(event='hello', host=host, hostname=platform.node(), pid=os.getpid(), environment=versions(),
          implementation=implementation(), threads={v: os.environ.get(v) for v in THREAD_VARIABLES},
-         affinity=affinity)
+         affinity=affinity, scratch=str(local_root))
     state = dict(key=None, phase='idle', channel=0, channels=0)
     done = threading.Event()
 
@@ -606,9 +619,14 @@ def worker(run_dir, cluster, host, mapping=(), scratch=None, stream=None):
             emit(event='progress', host=host, **state)
     threading.Thread(target=heartbeat, daemon=True).start()
     stop = cluster/'stop_requested'
+    last_local = None
     try:
         for line in (stream or sys.stdin):
             message = json.loads(line)
+            if last_local is not None:
+                # The coordinator publishes before assigning another job or sending stop.
+                release_acknowledged(last_local, cluster)
+                last_local = None
             if message.get('op') == 'stop':
                 break
             job = message['job']
@@ -618,10 +636,10 @@ def worker(run_dir, cluster, host, mapping=(), scratch=None, stream=None):
             try:
                 inbox = cluster/'inbox'/job['tape']/job['block']
                 timings = {}
-                if host == 'genus':
-                    local_root = Path(scratch)/config['run_id']/hashlib.sha256(
-                        cluster.as_posix().encode()).hexdigest()[:12]
-                    release_acknowledged(local_root, cluster)
+                if inbox.exists():
+                    verify_block(inbox, job, config)
+                    timings['reused_inbox'] = True
+                else:
                     local = local_root/job['tape']/job['block']
                     try:
                         verify_block(local, job, config)
@@ -630,21 +648,14 @@ def worker(run_dir, cluster, host, mapping=(), scratch=None, stream=None):
                         reused = False
                     if not reused:
                         state['phase'] = 'computing'
-                        compute_block(run_dir, config, job, local, host=host, mapping=mapping,
+                        compute_block(run_dir, config, job, local, host=host, mapping=mapping, staged=message.get('staged'),
                                       progress=lambda i, n: state.update(channel=i, channels=n))
                     state['phase'] = 'uploading'
                     upload_started = time.perf_counter()
                     result = upload(local, inbox, stop)
+                    last_local = local
                     timings.update(upload_seconds=round(time.perf_counter()-upload_started, 3),
                                    reused_local=reused, upload=result)
-                else:
-                    if inbox.exists():
-                        verify_block(inbox, job, config)
-                        timings['reused_inbox'] = True
-                    else:
-                        state['phase'] = 'computing'
-                        compute_block(run_dir, config, job, inbox, host=host, mapping=mapping,
-                                      progress=lambda i, n: state.update(channel=i, channels=n))
                 record = read_json(inbox/'result.json')
                 emit(event='complete', host=host, key=key, seconds=round(time.perf_counter()-started, 3),
                      execution=record['execution'], **timings)
@@ -670,7 +681,8 @@ def cpu_list(value):
 
 def windows_to_posix(path, connection):
     mapped = map_path(path, [(DATA.as_posix(), connection['data']),
-                             (Path(__file__).resolve().parents[2].as_posix(), connection['repo'])])
+                             (Path(__file__).resolve().parents[2].as_posix(), connection['repo']),
+                             ('F:/', '/mnt/f')])
     return PurePosixPath(str(mapped).replace('\\', '/'))
 
 
@@ -685,7 +697,8 @@ def remote_command(session, connection, cpus):
             str(PurePosixPath(connection['repo'])/'scripts/run.py'), '05_detect_flutter.py', 'worker',
             '--run-dir', str(windows_to_posix(session.run_dir, connection)),
             '--cluster-dir', str(windows_to_posix(session.cluster, connection)), '--host', 'genus',
-            '--path-map', f'{DATA.as_posix()}={connection["data"]}', '--scratch', connection['scratch']]
+            '--path-map', f'{DATA.as_posix()}={connection["data"]}',
+            '--path-map', f'F:/tempF={connection["tempf"]}', '--scratch', connection['scratch']]
     prefix = ['env', *[f'{v}=1' for v in THREAD_VARIABLES]]
     if cpus != 'none':
         prefix += ['taskset', '-c', cpus]
@@ -760,8 +773,9 @@ def check_hello(worker, hello, config, expected_cpus):
 
 
 def coordinate(session, folders, *, local_workers, genus_workers, genus_cpus='none', tape_limit=3,
+               stage_inputs=False, stage_root=None,
                connection=None, plain=True, run_seconds=None, worker_factory=None, job_filter=None,
-               output=print):
+               output=print, on_status=None):
     """Own the queue for both hosts; drain to committed blocks on stop."""
     from flutter_plan_store import planning_lock
     config = session.config
@@ -774,10 +788,15 @@ def coordinate(session, folders, *, local_workers, genus_workers, genus_cpus='no
     if genus_cpus != 'none' and genus_workers > len(genus_cpus.split(',')):
         raise ValueError('Genus workers exceed the CPU mask; expand --genus-cpus or use none')
     connection = dict(GENUS, **(connection or {}))
+    stage = SourceStage(stage_root or LOCAL_SCRATCH.parent/'apollo15-census-inputs', session.cluster) if stage_inputs else None
+    if stage:
+        tape_limit = 1
     session.cluster.mkdir(parents=True, exist_ok=True)
     with planning_lock(session.cluster):
         statuses, pending, tapes, totals = {}, [], {}, {}
-        for folder in folders:
+        for index, folder in enumerate(folders, 1):
+            if on_status:
+                output(f'Checking tape {index}/{len(folders)}  {folder.name}')
             record = prepare_tape(session.run_dir, config, folder)
             audit = record['duplicate_audit']
             if audit['distinct'] == 1 and audit['channels'] > 1:
@@ -797,7 +816,11 @@ def coordinate(session, folders, *, local_workers, genus_workers, genus_cpus='no
                     continue
                 totals[key] = job['core_end']-job['core_start']
                 if session.published(job).exists():
-                    verify_block(session.published(job), job, config)
+                    _, result_hash = verify_block(session.published(job), job, config)
+                    ack = session.ack(job)
+                    if not ack.exists():  # Recover a crash between the archive rename and the acknowledgement.
+                        ack.parent.mkdir(parents=True, exist_ok=True)
+                        atomic_json(ack, dict(result_sha256=result_hash, published=str(session.published(job))))
                     statuses[key] = dict(status='complete', reused=True)
                 elif session.inbox(job).exists():
                     publish(session, job)  # A finished upload is never recomputed.
@@ -814,6 +837,8 @@ def coordinate(session, folders, *, local_workers, genus_workers, genus_cpus='no
                        for b in record['blocks']):
                     finalize_tape(session.run_dir, config, record)
         events, workers, failures = queue.Queue(), [], []
+        copies = []
+        resident = None
         stopping, forced, started = False, False, time.time()
         completed = {'windows': 0., 'genus': 0.}
 
@@ -866,20 +891,28 @@ def coordinate(session, folders, *, local_workers, genus_workers, genus_cpus='no
                           tape_limit=tape_limit, counts={s: sum(v['status'] == s for v in statuses.values())
                                                          for s in ('complete', 'pending', 'running', 'failed')},
                           tape_hours_per_wall_hour=round(sum(completed.values())/elapsed, 3),
+                          remaining_tape_seconds=sum(totals[k] for k in totals if statuses[k]['status'] != 'complete'),
                           workers=[dict(name=w.name, host=w.host, job=w.job and f'{w.job["tape"]}/{w.job["block"]}',
                                         phase=w.state.get('phase'), channel=w.state.get('channel'),
                                         heartbeat_age=round(now-w.updated, 1), alive=w.process.poll() is None)
                                    for w in workers],
-                          failures=failures, jobs=statuses)
+                          failures=failures, source_staging=copies, jobs=statuses)
             atomic_json(session.cluster/'status.json', record)
+            if on_status:
+                on_status(record)
             return record
 
+        # Limit simultaneous SSH handshakes; authenticated workers run together.
+        remote_queue = iter(range(genus_workers))
+        expected_workers = local_workers + genus_workers
+        starting = bool(pending)
         try:
             if pending:
+                output(f'Starting {local_workers} Proprius and {genus_workers} Genus workers')
                 for i in range(local_workers):
                     spawn('windows', i)
-                for i in range(genus_workers):
-                    spawn('genus', i)
+                for _ in range(min(4, genus_workers)):
+                    spawn('genus', next(remote_queue))
             last = printed = 0.
             while any(w.process.poll() is None for w in workers) or not events.empty():
                 if stop.exists() or (run_seconds and time.time()-started > run_seconds):
@@ -898,12 +931,18 @@ def coordinate(session, folders, *, local_workers, genus_workers, genus_cpus='no
                         try:
                             check_hello(item, event, config, genus_cpus)
                             item.hello, item.ready = event, True
+                            if item.host == 'genus' and not stopping:
+                                index = next(remote_queue, None)
+                                if index is not None:
+                                    spawn('genus', index)
+                            starting = len(workers) < expected_workers or any(w.hello is None for w in workers)
                         except IdentityError as exc:
                             failures.append(dict(worker=item.name, message=str(exc)))
                             stopping = True
                             send(item, dict(op='stop'))
                     elif kind == 'progress':
-                        item.state = {k: event.get(k) for k in ('phase', 'channel', 'channels', 'key')}
+                        if item.job and event.get('key') == f'{item.job["tape"]}/{item.job["block"]}':
+                            item.state = {k: event.get(k) for k in ('phase', 'channel', 'channels', 'key')}
                     elif kind == 'complete' and item.job is not None:
                         job, key = item.job, f'{item.job["tape"]}/{item.job["block"]}'
                         try:
@@ -939,16 +978,37 @@ def coordinate(session, folders, *, local_workers, genus_workers, genus_cpus='no
                             failures.append(dict(key=key, worker=item.name, message='worker exited during a job'))
                             stopping = True
                             item.job = None
-                        elif item.hello is None and not stopping:
+                        elif (item.hello is None or starting) and not stopping:
                             failures.append(dict(worker=item.name, message='worker exited before start; see its log'))
                             stopping = True
                     elif kind == 'message' and event.get('message'):
                         item.state['message'] = event['message']
+                if (stage and pending and not starting and not stopping and not any(w.job for w in workers)
+                        and not any(j['tape'] == resident for j in pending)):
+                    resident = pending[0]['tape']
+                    began = time.perf_counter()
+                    output(f'{resident}: staging source WAVs sequentially on SSD')
+                    try:
+                        size = stage.load(tapes[resident]['inventory'], lambda: stopping or stop.exists()
+                                          or (run_seconds and time.time()-started > run_seconds),
+                                          progress=output if on_status else None)
+                        copies.append(dict(tape=resident, bytes=size, seconds=round(time.perf_counter()-began, 3)))
+                        output(f'{resident} staged and verified. Detecting flutter.')
+                    except InterruptedError:
+                        stopping = True
+                    except (OSError, ValueError) as exc:
+                        failures.append(dict(tape=resident, message=f'Source staging: {exc}'))
+                        stopping = True
                 for item in workers:
                     if not item.ready or item.job is not None or item.process.poll() is not None:
                         continue
-                    job = None if stopping else select_job(
-                        pending, [w.job['tape'] for w in workers if w.job], tape_limit)
+                    if starting and not stopping:
+                        continue
+                    if stage and not stopping:
+                        job = next((j for j in pending if j['tape'] == resident), None)
+                    else:
+                        job = None if stopping else select_job(
+                            pending, [w.job['tape'] for w in workers if w.job], tape_limit)
                     if job is None:
                         if stopping or not pending:
                             send(item, dict(op='stop'))
@@ -956,12 +1016,13 @@ def coordinate(session, folders, *, local_workers, genus_workers, genus_cpus='no
                         continue
                     pending.remove(job)
                     item.job = job
+                    item.state = dict(phase='starting')
                     statuses[f'{job["tape"]}/{job["block"]}'] = dict(status='running', host=item.host,
                                                                       worker=item.name, started=time.time())
-                    send(item, dict(op='job', job=job))
+                    send(item, dict(op='job', job=job, staged=stage.folder.as_posix() if stage else None))
                 if time.time()-last > 5:
                     state = save()
-                    if time.time()-printed > (30 if plain else 10):
+                    if not on_status and time.time()-printed > (30 if plain else 10):
                         printed = time.time()
                         output(f'{time.strftime("%H:%M:%S")} complete {state["counts"]["complete"]}/{len(statuses)} '
                                + ' '.join(f'{h}={v["active"]}/{v["workers"]} {v["tape_hours_per_wall_hour"]} h/h'
@@ -981,6 +1042,8 @@ def coordinate(session, folders, *, local_workers, genus_workers, genus_cpus='no
                 if value['status'] == 'running':
                     value.update(status='interrupted')
             state = save()
+            if stage:
+                stage.clear()
             if previous is not None:
                 signals.signal(signals.SIGINT, previous)
         output(f'Detection session finished: {state["counts"]["complete"]}/{len(statuses)} blocks complete; '
@@ -1014,7 +1077,8 @@ def benchmark(run_dir, config, folders, trial, keys, **pool):
     report = dict(trial=trial, run_id=config['run_id'], returncode=code, wall_seconds=round(wall, 2),
                   blocks=len(keys), completed=len(done), tapes=sorted(tapes),
                   unique_tape_hours_per_wall_hour=round(core/max(wall, 1e-9), 3),
-                  pool={k: v for k, v in pool.items() if k in ('local_workers', 'genus_workers', 'genus_cpus', 'tape_limit')},
+                  pool={k: v for k, v in pool.items() if k in ('local_workers', 'genus_workers', 'genus_cpus', 'tape_limit', 'stage_inputs')},
+                  source_staging=status.get('source_staging', []),
                   per_block=[dict(key=k, **{f: v.get(f) for f in ('host', 'seconds', 'upload_seconds', 'execution')})
                              for k, v in status['jobs'].items() if k in keys],
                   failures=status['failures'],

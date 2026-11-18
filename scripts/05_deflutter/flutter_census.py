@@ -13,8 +13,9 @@ import json
 import math
 
 import numpy as np
-from scipy import ndimage, signal
+from scipy import fft, ndimage, signal
 
+from flutter import positions
 from flutter_tracking import bound, evaluate_events, spans
 
 RATE = 200
@@ -70,13 +71,35 @@ def settings_digest(settings):
 
 # ---------------------------------------------------------------- stage A
 
+def _welch(x, sr, nper):
+    """Mean one-sided Welch density with bounded batches of Hann-windowed frames."""
+    x = np.asarray(x)
+    if not x.size:
+        return signal.welch(x, sr, nperseg=nper)
+    hop = nper-nper//2
+    frames = np.lib.stride_tricks.sliding_window_view(x, nper)[::hop]
+    window = signal.get_window('hann', nper)
+    window /= np.sqrt(np.sum(window**2)*sr)
+    power = np.zeros(nper//2+1)
+    # Fit roughly 2 MiB of real samples per batch, even on the 16 s mains FFT.
+    batch = max(1, (1 << 18)//nper)
+    for start in range(0, len(frames), batch):
+        part = frames[start:start+batch]
+        centered = part-part.mean(axis=1, keepdims=True)
+        spectrum = fft.rfft(centered*window, workers=1)
+        power += np.sum(spectrum.real**2+spectrum.imag**2, axis=0)
+    power[1:-1 if nper % 2 == 0 else None] *= 2
+    power /= len(frames)
+    return fft.rfftfreq(nper, 1/sr), power.astype(np.result_type(x.dtype, np.float32), copy=False)
+
+
 def exact_mains(x, sr, settings, fmin=0., fmax=None):
     """Strong narrow lines at exact 60 Hz multiples: post-tape digitization hum."""
     m = settings['mains']
     nper = min(len(x), int(m['welch_seconds']*sr))
     if nper < sr:
         return []
-    f, p = signal.welch(x, sr, nperseg=nper)
+    f, p = _welch(x, sr, nper)
     lp = 10*np.log10(p+1e-30)
     top = sr/2-m['side_hz'][1]-1 if fmax is None else min(fmax, sr/2-m['side_hz'][1]-1)
     out = []
@@ -108,24 +131,37 @@ def remove_stationary(x, hz_list, sr, block_seconds=16.):
         return y
     hz = np.asarray(hz_list, float)
     n = int(block_seconds*sr)
-    per = max(1, (1 << 21)//max(n, 1))  # bound the complex basis to ~32 MB
+    # Retain the original grouping: later harmonic fits see earlier residuals.
+    per = max(1, (1 << 21)//max(n, 1))
     for first in range(0, len(hz), per):
         group, cache = hz[first:first+per], {}
+        tile = min(256, n)
+        # exp(i*w*(k*tile+j)) factors into one phase per tile and this
+        # cache-sized cos/sin matrix. Both real BLAS products reuse it.
+        basis = np.exp(2j*np.pi*np.outer(np.arange(tile)/sr, group))
+        cos_sin = basis.view(np.float64)
+        square = basis**2
         for a in range(0, len(y), n):
             m = min(n, len(y)-a)
             if m < sr:
                 continue
             if m not in cache:
-                basis = np.exp(2j*np.pi*np.outer(np.arange(m)/sr, group))
-                square = (basis*basis).sum(0)
-                cc, ss, cs = (m+square.real)/2, (m-square.real)/2, square.imag/2
-                cache[m] = (basis, cc, ss, cs, cc*ss-cs*cs)
-            basis, cc, ss, cs, det = cache[m]
+                phase = np.exp(2j*np.pi*np.outer(np.arange(0, m, tile)/sr, group))
+                whole, tail = divmod(m, tile)
+                twice = (phase[:whole]**2).sum(0)*square.sum(0)
+                if tail:
+                    twice += phase[-1]**2*square[:tail].sum(0)
+                cc, ss, cs = (m+twice.real)/2, (m-twice.real)/2, twice.imag/2
+                cache[m] = phase, cc, ss, cs, cc*ss-cs*cs
+            phase, cc, ss, cs, det = cache[m]
             part = y[a:a+m]
-            projection = part @ basis
+            padding = (-m) % tile
+            tiles = (np.pad(part, (0, padding)) if padding else part).reshape(-1, tile)
+            projection = ((tiles @ cos_sin).view(np.complex128)*phase).sum(0)
             u = (ss*projection.real-cs*projection.imag)/det
             v = (cc*projection.imag-cs*projection.real)/det
-            y[a:a+m] = part-(basis @ (u-1j*v)).real
+            weights = phase.conj()*(u+1j*v)
+            part -= (weights.view(np.float64) @ cos_sin.T).ravel()[:m]
     return y
 
 
@@ -133,7 +169,7 @@ def remove_stationary(x, hz_list, sr, block_seconds=16.):
 
 def welch_db(x, sr, seconds):
     nper = min(len(x), int(seconds*sr))
-    f, p = signal.welch(x, sr, nperseg=nper, noverlap=nper//2)
+    f, p = _welch(x, sr, nper)
     return f, 10*np.log10(p+1e-30)
 
 
@@ -176,7 +212,7 @@ class BlockSpectrum:
     def __init__(self, x, sr):
         self.sr, self.n = float(sr), len(x)
         self.df = self.sr/self.n
-        self.X = np.fft.rfft(np.asarray(x, np.float64))
+        self.X = fft.rfft(np.asarray(x, np.float64), workers=1)
 
 
 def baseband(spec, hz, capture, rate, order=6, taper=None):
@@ -197,11 +233,25 @@ def baseband(spec, hz, capture, rate, order=6, taper=None):
         offset = abs(np.arange(i0, i1+1)*spec.df-hz)
         band = band*(.5+.5*np.cos(np.pi*np.clip((offset-capture)/(half-capture), 0, 1)))
     folded = np.zeros(length, complex)
-    np.add.at(folded, np.arange(i0, i1+1) % length, band)
-    z = np.fft.ifft(folded)*d
+    # The crop is shorter than one alias period, so each bin is written once.
+    first = i0 % length
+    count = min(len(band), length-first)
+    folded[first:first+count] = band[:count]
+    folded[:len(band)-count] = band[count:]
+    z = fft.ifft(folded, overwrite_x=True, workers=1)
     centre = (hz/r) % 1.
     centre = (centre-1. if centre > .5 else centre)*r
-    z = z*np.exp(-2j*np.pi*centre*np.arange(length)/r)
+    # Factor the oscillator into short tiles and one phase per tile.
+    tile = 256
+    step = -2j*np.pi*centre/r
+    phase = d*np.exp(step*np.arange(tile))
+    whole = length//tile*tile
+    offsets = np.exp(step*np.arange(0, length, tile))
+    tiles = z[:whole].reshape(-1, tile)
+    tiles *= phase
+    tiles *= offsets[:len(tiles), None]
+    if whole < length:
+        z[whole:] *= offsets[-1]*phase[:length-whole]
     return signal.sosfiltfilt(signal.butter(order, capture, fs=r, output='sos'), z), r
 
 
@@ -385,14 +435,16 @@ def screen_window(members, groups, settings):
     """
     w, g = settings['window'], settings['gates']
     edge = int(w['edge_seconds']*RATE)
-    pool = [(m, e[edge:len(e)-edge].astype(np.float64)) for m, e, ok in members
+    pool = [(m, e[edge:len(e)-edge]) for m, e, ok in members
             if ok.mean() >= w['min_window_support']]
     record = dict(candidates=len(pool), eligible=False)
     if len(pool) < 2:
         return dict(record, reasons=['fewer than two supported candidates']), None
-    M = np.array([e for _, e in pool])
-    rms = 100*M.std(1)
-    Mn = (M-M.mean(1, keepdims=True))/(M.std(1, keepdims=True)+1e-12)
+    M = np.array([e for _, e in pool], dtype=np.float64)
+    std = M.std(1)
+    rms = 100*std
+    Mn = M-M.mean(1, keepdims=True)
+    Mn /= std[:, None]+1e-12
     R = Mn @ Mn.T/M.shape[1]
     np.fill_diagonal(R, 0)
     group = np.array([groups[m['channel']] for m, _ in pool])
@@ -536,8 +588,9 @@ def beep_audit(snippets, window_start, curve_full, gate, sr, settings):
                     wrong_sign=bound(-curve_full, gate),
                     shift=bound(shifted(curve_full, a['shift_seconds']), gate))
     rows = []
+    maps = {}
     for channel, items in sorted(snippets.items()):
-        events, x = [], np.zeros(n)
+        events = []
         for event, first, audio in items:
             start = event['start']-(window_start-first['block_start'])
             end = event['end']-(window_start-first['block_start'])
@@ -545,11 +598,16 @@ def beep_audit(snippets, window_start, curve_full, gate, sr, settings):
                 continue
             lo = int(round((first['snippet_start']-window_start)*sr))
             hi = lo+len(audio)
+            if not events:
+                x = np.zeros(n)
             x[max(0, lo):min(n, hi)] = audio[max(0, -lo):len(audio)-max(0, hi-n)]
             events.append(dict(start=start, end=end))
         if not events:
             continue
-        results = {k: evaluate_events(x, sr, v, events) for k, v in variants.items()}
+        if not maps:
+            maps = {k: positions(v, sr, n) for k, v in variants.items()}
+        results = {k: evaluate_events(x, sr, v, events, sample_positions=maps[k])
+                   for k, v in variants.items()}
         for i, event in enumerate(events):
             margins = {k: results[k][i]['margins'] for k in results}
             if not all(margins.values()):

@@ -100,7 +100,9 @@ def parse_args(argv=None):
                         help='Stage 05a qualified analysis bundle, deflutter_analysis/<run-id>/<analysis-id>/, '
                              'forwarded as --qualification-root')
     parser.add_argument('--flutter-detect-local-workers', type=int,
-                        help='Stage 05 Proprius workers (0-6; default: benchmark selection or 6)')
+                        help=f'Stage 05 Proprius workers (0-{DETECT_MAX_LOCAL}; default: benchmark selection or 6)')
+    parser.add_argument('--flutter-detect-input-mode', choices=('ssd', 'direct'),
+                        help='Stage 05 shared SSD-staged WAVs or direct reads from the originals')
     parser.add_argument('--flutter-detect-genus-workers', type=int,
                         help='Stage 05 Genus SSH workers (default: benchmark selection or 6)')
     parser.add_argument('--flutter-detect-genus-cpus', help='Stage 05 Genus CPU mask, or none')
@@ -371,7 +373,8 @@ def make_tape_jobs(args, selected, run_dir):
             command += ['run', '--originals', str(args.concatenated), '--tape', args.tape]
             command += (['--run-dir', str(args.flutter_detection_root)] if args.flutter_detection_root
                         else ['--root', str(DEFAULT_DETECTION_ROOT)])
-            for option, value in (('--local-workers', args.flutter_detect_local_workers),
+            for option, value in (('--input-mode', args.flutter_detect_input_mode),
+                                  ('--local-workers', args.flutter_detect_local_workers),
                                   ('--genus-workers', args.flutter_detect_genus_workers),
                                   ('--genus-cpus', args.flutter_detect_genus_cpus),
                                   ('--tapes', args.flutter_detect_tapes)):

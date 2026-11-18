@@ -35,7 +35,57 @@ def analyse(audio, seconds, tape='A15_T900', **overrides):
     return census.analyse_block(lambda ch: (audio[ch], 1.), sorted(audio), tape, 0., seconds, settings)
 
 
+class SpectrumTests(unittest.TestCase):
+    def test_baseband_wrapped_crop_and_partial_oscillator_tile(self):
+        x = np.random.default_rng(7).normal(size=8051)
+        spec = census.BlockSpectrum(x, SR)
+        cap, rate = 100., 1000.
+        length = len(x)//8
+        for hz in (996.3, 1517.2):
+            with self.subTest(hz=hz):
+                z, r = census.baseband(spec, hz, cap, rate)
+                bins = np.arange(round((hz-cap)/spec.df), round((hz+cap)/spec.df)+1)
+                folded = np.zeros(length, complex)
+                folded[bins % length] = np.fft.rfft(x)[bins]
+                centre = hz-round(hz/r)*r
+                mixed = 8*np.fft.ifft(folded)*np.exp(-2j*np.pi*centre*np.arange(length)/r)
+                expected = signal.sosfiltfilt(signal.butter(6, cap, fs=r, output='sos'), mixed)
+                np.testing.assert_allclose(z, expected, rtol=1e-12, atol=1e-12)
+
+    def test_batched_welch_matches_scipy_across_batches_and_unpaired_bins(self):
+        rng = np.random.default_rng(72)
+        for nper, dtype in [(5333, np.float64), (16000, np.float32)]:
+            x = rng.normal(size=350123).astype(dtype)
+            x += 4  # Each frame has its own mean removed before windowing.
+            for data in (x, x[:nper]):
+                with self.subTest(nper=nper, length=len(data)):
+                    f, p = census._welch(data, SR, nper)
+                    expected_f, expected_p = signal.welch(data, SR, nperseg=nper)
+                    np.testing.assert_array_equal(f, expected_f)
+                    self.assertEqual(p.dtype, expected_p.dtype)
+                    np.testing.assert_allclose(p, expected_p,
+                                               rtol=1e-6 if dtype == np.float32 else 1e-11)
+
+
 class StationaryRemovalTests(unittest.TestCase):
+    def test_refined_harmonics_and_partial_subblocks_match_dense_fit(self):
+        rng = np.random.default_rng(32)
+        hz = np.array([59.981, 120.016, 299.973])
+        n = int(1.3*LOW)
+        for tail in (int(LOW)-1, int(LOW)+9):
+            x = rng.normal(size=2*n+tail)
+            expected = x.copy()
+            for first in range(0, len(x), n):
+                part = x[first:first+n]
+                if len(part) < LOW:
+                    continue
+                phase = 2*np.pi*np.outer(np.arange(len(part))/LOW, hz)
+                for wave in phase.T:
+                    basis = np.column_stack((np.cos(wave), np.sin(wave)))
+                    expected[first:first+n] -= basis @ np.linalg.lstsq(basis, part, rcond=None)[0]
+            np.testing.assert_allclose(census.remove_stationary(x, hz, LOW, 1.3),
+                                       expected, rtol=0, atol=1e-12)
+
     def test_hum_beside_40_db_stronger_digitization_line_needs_removal(self):
         t = np.arange(64*SR)/SR
         e = flutter(t)

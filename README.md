@@ -31,7 +31,7 @@ merges that stream with saved regional and v5 evidence, selects one curve per
 tape-time interval and saves one integrated map. Stage 05b applies that
 artifact to completed stage-04 channels derived from v2 denoising. Historical
 evidence stays immutable. [Next steps](docs/12_2026-11-15_deflutter_next_steps.md) lists the
-worker benchmark, archive run and listening trials that remain; the
+combined-host benchmark, archive run and listening trials that remain; the
 [design guide](docs/09_2026-11-15_deflutter_detection_guide.md) keeps the research rationale.
 
 | Stage | Entry point in `scripts/` | Purpose | Status |
@@ -41,7 +41,7 @@ worker benchmark, archive run and listening trials that remain; the
 | 03 v1 | `03_denoise/03_denoise.py` | Remove tones/hum and reduce broadband noise by at most 3 dB | Existing archive |
 | 03 v2 | `03_denoise/denoise_v2_console.py` | Qualified accelerated denoising on Windows and Genus | Active rollout; automatic Windows day/night limits |
 | 04 | `04_crosstalk/04_crosstalk.py` | Remove evidenced weaker repeats; preserve timing and gain | Available; bounded evidence, bypass elsewhere |
-| 05 | `05_deflutter/05_detect_flutter.py` | Blind cross-channel tape-motion census on originals (Proprius + Genus) | New; benchmark and archive run pending |
+| 05 | `05_deflutter/05_detect_flutter.py` | Blind cross-channel tape-motion census on originals (Proprius + Genus) | Resumable census on F with live worker monitoring |
 | 05a | `05_deflutter/05a_plan_deflutter.py` | Compile one map from census and saved evidence across all channels | Shared tape maps |
 | 05b | `05_deflutter/05b_deflutter.py` | Apply the tape map to stage-04 channels at their existing gain | Shared tape maps |
 | 06 | `06_retime/06_retime.py` | Apply one shared Quindar speed curve per completed tape | Active |
@@ -106,7 +106,8 @@ The external checkout supplies the decoder. Use `--screen-only` without it for c
 
 ## Data and source layout
 
-Defaults are beneath `D:/Apollo_15_30-Track`; overrides are available in `--help`.
+Stage 05 flutter detection writes to `F:/Apollo_15_30-Track/deflutter_detection_census`.
+The other stage defaults are beneath `D:/Apollo_15_30-Track`. See `--help` for overrides.
 
 | Folder | Contents | Pipeline override |
 | --- | --- | --- |

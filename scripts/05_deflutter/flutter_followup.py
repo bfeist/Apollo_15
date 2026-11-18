@@ -36,7 +36,7 @@ SETTINGS = dict(merge_gap_seconds=30., context_seconds=12., max_region_seconds=4
                 beep_core_margin_seconds=.03, beep_pad_seconds=.15, beep_lag_samples=60,
                 mirror_tolerance_hz=.6, mains_adjacent_hz=1.5)
 LAGS = list(range(-SETTINGS['beep_lag_samples'], SETTINGS['beep_lag_samples']+1))
-MAX_WORKERS = detection.WINDOWS_MAX_WORKERS
+MAX_WORKERS = 6
 FILES = ('result.json', 'curves.npy')
 
 sha256, digest, read_json, atomic_json = detection.sha256, detection.digest, detection.read_json, detection.atomic_json

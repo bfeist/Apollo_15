@@ -4,6 +4,8 @@ No filesystem side effects. The former narrow-peak ``discover`` was biased
 toward unfluttered post-tape lines and has been removed; carrier discovery is
 the blind census in ``flutter_census``. Check beeps here are audits only.
 """
+from functools import lru_cache
+
 import numpy as np
 from scipy import ndimage, signal
 from flutter import positions, resample_at
@@ -87,10 +89,15 @@ def signed_map(trace, band=(2, 30)):
                  btype='bandpass', output='sos'), trace[1]), trace[5])
 
 
+@lru_cache(maxsize=16)
+def _burst_filter(capture_hz):
+    return signal.butter(5, capture_hz, fs=1000, output='sos')
+
+
 def burst_track(x, sr, carrier_hz=2500., capture_hz=280.):
     t = np.arange(len(x))/sr
     z = signal.resample_poly(x*np.exp(-2j*np.pi*carrier_hz*t), 1, sr//1000)
-    z = signal.sosfiltfilt(signal.butter(5, capture_hz, fs=1000, output='sos'), z)
+    z = signal.sosfiltfilt(_burst_filter(capture_hz), z)
     amp = ndimage.gaussian_filter1d(abs(z), 2)
     freq = ndimage.gaussian_filter1d(carrier_hz+np.gradient(np.unwrap(np.angle(z)))*1000/(2*np.pi), 3)
     return amp, freq
@@ -136,7 +143,12 @@ def evaluate_events(x, sr, e, events, sample_positions=None):
         _, fb = burst_track(x[lo:hi], sr, carrier, capture)
         _, fa = burst_track(y, sr, carrier, capture)
         t = lo/sr+np.arange(len(fb))/1000
-        mt = np.interp(t*sr, np.arange(len(pos)), pos)/sr
+        # Interpolate only the bracket around this event, including roundoff
+        # at its ends. The inverse map still spans the entire window.
+        query = t*sr
+        first = max(0, int(np.floor(query[0])))
+        stop = min(len(pos), int(np.ceil(query[-1]))+1)
+        mt = np.interp(query, np.arange(first, stop), pos[first:stop])/sr
         margins = []
         for margin in (.025, .04, .055):
             kb = (t > b['start']+margin) & (t < b['end']-margin)

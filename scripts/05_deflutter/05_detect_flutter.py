@@ -43,13 +43,23 @@ def open_selected(args, create=True):
 
 def pool(args, run_dir):
     chosen = detection.pool_settings(run_dir)
+    tapes = chosen['tapes'] if args.tapes is None else args.tapes
+    mode = chosen.get('input_mode', 'ssd')
+    if args.command == 'benchmark' or (args.tapes is not None and tapes > 1):
+        mode = 'direct'
+    elif chosen.get('benchmarked') and 'input_mode' not in chosen and tapes > 1:
+        mode = 'direct'  # Older multi-tape pool selections read from the archive.
+    mode = args.input_mode or mode
+    if mode == 'ssd' and args.tapes not in (None, 1):
+        raise ValueError('SSD staging processes one tape at a time; use --tapes 1 or --input-mode direct')
     if not chosen.get('benchmarked'):
         print('Worker counts are unbenchmarked starting points (6 Proprius + 6 Genus); '
               'run the benchmark before the archive run.', flush=True)
     return dict(local_workers=chosen['windows'] if args.local_workers is None else args.local_workers,
                 genus_workers=chosen['genus'] if args.genus_workers is None else args.genus_workers,
                 genus_cpus=chosen['genus_cpus'] if args.genus_cpus is None else args.genus_cpus,
-                tape_limit=chosen['tapes'] if args.tapes is None else args.tapes,
+                stage_inputs=mode == 'ssd',
+                tape_limit=1 if mode == 'ssd' else tapes,
                 connection=dict(ssh=args.genus_ssh) if args.genus_ssh else None)
 
 
@@ -65,7 +75,8 @@ def add_pool(p):
     p.add_argument('--tape', action='append', help='Canonical tape folder name; may be repeated')
     p.add_argument('--all-tapes', action='store_true')
     p.add_argument('--exclude-tape', action='append', default=[])
-    p.add_argument('--local-workers', type=int, help='Proprius workers (0-6)')
+    p.add_argument('--local-workers', type=int, help=f'Proprius workers (0-{detection.WINDOWS_MAX_WORKERS})')
+    p.add_argument('--input-mode', choices=('ssd', 'direct'), help='Stage active-tape WAVs sequentially on F or read originals directly')
     p.add_argument('--genus-workers', type=int, help='Genus SSH workers')
     p.add_argument('--genus-cpus', help='Genus CPU mask, or none')
     p.add_argument('--tapes', type=int, help='Simultaneously active tapes across both hosts')
@@ -79,6 +90,7 @@ def main(argv=None):
     run = sub.add_parser('run', help='Coordinate detection on Proprius and Genus')
     add_selection(run)
     add_pool(run)
+    run.add_argument('--plain', action='store_true', help='Print periodic status lines instead of the live dashboard')
     ident = sub.add_parser('run-id', help='Print the run ID for the current settings and code')
     add_selection(ident)
     status = sub.add_parser('status', help='Summarise the saved coordinator status')
@@ -100,6 +112,7 @@ def main(argv=None):
     for name in ('--local-workers', '--genus-workers', '--tapes'):
         select.add_argument(name, type=int, required=True)
     select.add_argument('--genus-cpus', required=True)
+    select.add_argument('--input-mode', choices=('ssd', 'direct'))
     select.add_argument('--trial', action='append', required=True, help='Supporting benchmark trial; repeat')
     worker = sub.add_parser('worker', help=argparse.SUPPRESS)
     worker.add_argument('--run-dir', type=Path, required=True)
@@ -143,10 +156,13 @@ def main(argv=None):
                 if not (run_dir/'benchmarks'/trial/'report.json').is_file():
                     raise ValueError(f'Benchmark trial report is missing: {trial}')
             if not 0 <= args.local_workers <= detection.WINDOWS_MAX_WORKERS:
-                raise ValueError('Proprius workers must be between 0 and 6')
+                raise ValueError(f'Proprius workers must be between 0 and {detection.WINDOWS_MAX_WORKERS}')
+            if args.input_mode == 'ssd' and args.tapes != 1:
+                raise ValueError('Select one active tape for SSD inputs')
             selection = dict(run_id=config['run_id'], pool=dict(
                 windows=args.local_workers, genus=args.genus_workers,
-                genus_cpus=detection.cpu_list(args.genus_cpus), tapes=args.tapes),
+                genus_cpus=detection.cpu_list(args.genus_cpus), tapes=args.tapes,
+                input_mode=args.input_mode or ('ssd' if args.tapes == 1 else 'direct')),
                 trials={t: detection.sha256(run_dir/'benchmarks'/t/'report.json') for t in args.trial})
             detection.atomic_json(run_dir/'benchmarks'/'selection.json', selection)
             print(json.dumps(selection, indent=2))
@@ -164,6 +180,13 @@ def main(argv=None):
             print(json.dumps({k: v for k, v in report.items() if k != 'per_block'}, indent=2))
             return report['returncode']
         session = detection.Session(run_dir, config)
+        if not args.plain and sys.stdout.isatty():
+            from rich.live import Live
+            from census_monitor import CensusMonitor
+            monitor = CensusMonitor(run_dir)
+            with Live(monitor, refresh_per_second=1, vertical_overflow='crop'):
+                return detection.coordinate(session, folders, run_seconds=args.run_seconds,
+                                            output=monitor.message, on_status=monitor.update, **options)
         return detection.coordinate(session, folders, run_seconds=args.run_seconds, **options)
     except (OSError, ValueError, KeyError, RuntimeError) as error:
         print(f'Detection stopped: {error}', file=sys.stderr, flush=True)
