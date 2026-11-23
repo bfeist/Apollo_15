@@ -51,7 +51,8 @@ combined-host benchmark, archive run and listening trials that remain; the
 | 05 | `05_deflutter/05_detect_flutter.py` | Blind cross-channel tape-motion census on originals (Proprius + Genus) | Resumable census on F with live worker monitoring |
 | 05a | `05_deflutter/05a_plan_deflutter.py` | Compile one map from census and saved evidence across all channels | Shared tape maps |
 | 05b | `05_deflutter/05b_deflutter.py` | Apply the tape map to stage-04 channels at their existing gain | Shared tape maps |
-| 06 | `06_retime/06_retime.py` | Apply one shared Quindar speed curve per completed tape | Active |
+| 06a | `06_retime/06a_transcribe.py` | Interim timing transcript of 05b channels, used to place tapes on mission time. SG reels and DVD streams: `sg-audio/sg_transcribe.py`, `video/dvds/dvd_transcribe.py` ([runbook](docs/15_2026-11-22_transcription_runbook.md)) | New; final archive transcript follows retiming |
+| 06b | `06_retime/06b_retime.py` | Apply one shared Quindar speed curve per completed tape (formerly stage 06) | Active |
 | 07 | `07_normalize/07_normalize.py` | Constant gain to a speech target, noise-only bypass and transient peak limiting | New; listening calibration pending |
 | 08 utility | `run.py irig_search.py` | Find provisional IRIG clock snapshots on original CH01-CH04 | Standalone utility in `08_irig/`; integration undecided |
 
@@ -68,7 +69,8 @@ flowchart TD
     X --> F[05b · Apply shared tape map]
     E --> F
     F --> G[Survey Quindars and freeze shared tape curve]
-    G --> H[06 · Retime]
+    F --> T[06a · Interim timing transcript]
+    G --> H[06b · Retime]
     H --> I[07 · Speech normalization]
     B --> I[IRIG search · future clock anchoring]
 ```
@@ -130,13 +132,13 @@ The other stage defaults are beneath `D:/Apollo_15_30-Track`. See `--help` for o
 | `deflutter_planning_shared/` | One map and selection provenance per tape | `--flutter-planning-root` |
 | `defluttered_shared/` | Stage-05b audio after stage-04 crosstalk | `--defluttered-root` |
 | `stage_evidence/retiming/` | Surveys and frozen tape curves | `--quindar-analysis-root` |
-| `retimed/` | Stage-06 audio | `--retimed-root` |
+| `retimed/` | Stage-06b audio | `--retimed-root` |
 | `speech_normalized/` | Stage-07 listening WAVs and measurement reports | `--normalized-root` |
 | `irig_search/` | Independent IRIG screening and clock evidence | Standalone search `--output` |
 
 - `scripts/`: the top-level `pipeline.py`, the `run.py` dispatcher, and numbered stage folders described in [the script layout guide](docs/04_2026-11-15_script_layout.md).
 - `tests/`: processing, checkpoint integrity, acceptance, and pipeline integration checks. Synthetic demo generation lives here.
-- `docs/`: documents use `NN_YYYY-MM-DD_` prefixes and sort from historical research through current guides and status to the deflutter action plan (`12`) and [qualification and listening guide](docs/13_2026-11-17_deflutter_qualification.md). After completing the census, `05_analyze_flutter.py run` handles assessment through validation. Dates record the latest Git revision at this reorganization. Keep the order and referring links current as work progresses. Images live in `docs/images/`.
+- `docs/`: Documents use `NN_YYYY-MM-DD_` prefixes and sort from historical research through current guides and status to the deflutter action plan (`12`) and [qualification and listening guide](docs/13_2026-11-17_deflutter_qualification.md). After completing the census, `05_analyze_flutter.py run` handles assessment through validation. Dates record the latest Git revision at this reorganization. Keep the order and referring links current as work progresses. Images live in `docs/images/`.
 - Local `reports/`, `runs/`, and `archive/` are ignored artifacts. Recordings and processing outputs are not distributed with the source.
 
 One-off experiments, old cleanup previews, the regional and v5 planners, the October 30 research campaign code, and excerpt-manifest rendering have been retired (recoverable from Git). Historical saved-map reading remains for evidence compatibility. Source changes invalidate implementation-bound flutter plans and acceptance; use fresh destinations rather than changing old records. Completed stage-03 intermediates retain their existing cleanup fingerprint.

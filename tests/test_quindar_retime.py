@@ -93,12 +93,12 @@ class QuindarRetimeTests(unittest.TestCase):
                              frames=len(x), sample_rate=sr, scan_start=0., scan_end=duration, events=events)
             cache = p/'candidates.json'
             cache.write_text(json.dumps(inventory))
-            command = [sys.executable, str(ROOT/'scripts/pipeline.py'), 'run', '--plain', '--stages', '06',
+            command = [sys.executable, str(ROOT/'scripts/pipeline.py'), 'run', '--plain', '--stages', '06b',
                        '--experimental-single-channel',
                        '--input', str(path), '--output', str(p/'runs'), '--retime-candidates', str(cache)]
             result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
             self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-            manifest_path = next((p/'runs').glob('*/06_retime/retime.json'))
+            manifest_path = next((p/'runs').glob('*/06b_retime/retime.json'))
             output = manifest_path.parent
             record = json.loads(manifest_path.read_text())
             self.assertEqual(record['status'], 'complete')
@@ -125,13 +125,13 @@ class QuindarRetimeTests(unittest.TestCase):
 
     def test_numbering_paths_and_skip_guard(self):
         args, selected = pipeline.parse_args(['plan', '--tape', 'A15_T510083', '--channel', '20', '--stages', '05a,05b,06'])
-        self.assertEqual(selected, {'05a', '05b', '06'})
+        self.assertEqual(selected, {'05a', '05b', '06b'}, 'former stage 06 is an alias of 06b')
         jobs = pipeline.make_jobs(args, selected, Path('fake_run'))
-        job = next(j for j in jobs if j['number'] == '06')
-        self.assertIn('06_retime.py', job['script'])
+        job = next(j for j in jobs if j['number'] == '06b')
+        self.assertIn('06b_retime.py', job['script'])
         self.assertIn(str(Path('D:/Apollo_15_30-Track/retimed')), ' '.join(job['command']))
         with self.assertRaises(SystemExit):
-            pipeline.parse_args(['plan', '--stages', '05b,06', '--skip-deflutter'])
+            pipeline.parse_args(['plan', '--stages', '05b,06b', '--skip-deflutter'])
 
 
 if __name__ == '__main__':

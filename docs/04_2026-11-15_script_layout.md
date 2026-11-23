@@ -6,14 +6,16 @@ grouped by step:
 
 | Folder | Contents |
 | --- | --- |
-| `scripts/00_common/` | Shared process I/O utilities |
+| `scripts/00_common/` | Shared process I/O utilities, and the shared transcription engine (`audio_sources`, `mission_asr`, `mission_store`, `transcribe_run`, `transcribe_watch`, `transcribe_cli`) |
 | `scripts/01_ingest/` | Concatenation and original-tape archiving |
 | `scripts/03_denoise/` | Denoise commands, Windows/Genus coordination and housekeeping |
 | `scripts/04_crosstalk/` | Evidence-bounded two-path repeat subtraction before shared de-flutter |
 | `scripts/05_deflutter/` | Stage 05 detection census, 05a planning, 05b application, shared audio processing and review evidence |
-| `scripts/06_retime/` | Quindar surveys and shared tape-speed retiming |
+| `scripts/06_retime/` | 30-track only: 06a timing transcript of 05b channels, Quindar surveys and shared tape-speed retiming |
 | `scripts/07_normalize/` | Conservative speech-level measurement, constant gain to target and separate listening WAVs |
 | `scripts/08_irig/` | Standalone IRIG search; its pipeline integration remains undecided |
+| `scripts/sg-audio/` | Space-to-ground reels: timing transcript (`sg_transcribe.py`) and, next, the reel drift fit |
+| `scripts/video/dvds/` | DVD audio streams: timing transcript (`dvd_transcribe.py`) |
 
 Run the current denoise console from the repository root:
 

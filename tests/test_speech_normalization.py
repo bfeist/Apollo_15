@@ -223,9 +223,9 @@ class SpeechNormalizationTests(unittest.TestCase):
         self.assertEqual(saved['analysis']['reason'], 'timing_only')
 
     def test_pipeline_order_alias_and_batch_source(self):
-        args, selected = pipeline.parse_args(['plan', '--stages', '07,05b,06', '--tape', 'A15_T001', '--channel', '7'])
+        args, selected = pipeline.parse_args(['plan', '--stages', '07,05b,06b', '--tape', 'A15_T001', '--channel', '7'])
         jobs = [j for j in pipeline.make_jobs(args, selected, self.root) if j['status'] == 'pending']
-        self.assertEqual([j['number'] for j in jobs], ['05b', '06', '07'])
+        self.assertEqual([j['number'] for j in jobs], ['05b', '06b', '07'])
         self.assertIn(str(args.retimed_root), jobs[-1]['command'])
         self.assertNotIn('--max-boost-db', jobs[-1]['command'])
         self.assertNotIn('--max-noise-dbfs', jobs[-1]['command'])
@@ -235,7 +235,7 @@ class SpeechNormalizationTests(unittest.TestCase):
         self.assertIn('--max-boost-db', capped_job['command'])
         self.assertIn('--max-noise-dbfs', capped_job['command'])
         _, selected = pipeline.parse_args(['plan', '--stages', '05c', '--channel', '7'])
-        self.assertEqual(selected, {'06'})
+        self.assertEqual(selected, {'06b'})
         source = self.root/'defluttered'/'A15_T001'/'CH07'
         source.mkdir(parents=True)
         args, selected = pipeline.parse_args(['plan', '--stages', '07', '--all-tapes',
