@@ -16,6 +16,7 @@ grouped by step:
 | `scripts/08_irig/` | Standalone IRIG search; its pipeline integration remains undecided |
 | `scripts/sg-audio/` | Space-to-ground reels: timing transcript (`sg_transcribe.py`) and, next, the reel drift fit |
 | `scripts/video/dvds/` | DVD audio streams: timing transcript (`dvd_transcribe.py`) |
+| `scripts/mission_data/` | Mission transcripts, commentary, photos and AiRT2 indexes ([guide](16_2026-11-23_mission_data_ingestion.md)) |
 
 Run the current denoise console from the repository root:
 

@@ -37,3 +37,6 @@ Thumbs.db
 
 # Retain compact, checksummed denoising development evidence.
 !research/benchmarks/denoise_numba_20261110/history.zip
+
+# Local working assets: regenerable extractions, caches, queues and diagnostics
+/.local/

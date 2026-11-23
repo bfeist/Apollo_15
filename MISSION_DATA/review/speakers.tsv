@@ -1,0 +1,111 @@
+label	who	name	kind	status	note
+Allen	CC	Joseph P. Allen	capcom	mapped	
+ARIA	ARIA	Apollo Range Instrumentation Aircraft	recovery	mapped	
+BOTH	SC	Spacecraft (two crew members)	crew	mapped	
+Brand	CC	Vance D. Brand	capcom	mapped	
+CACPOM	CC	Capsule Communicator	capcom	mapped	OCR variant of CAPCOM
+CAFCOM	CC	Capsule Communicator	capcom	mapped	OCR variant of CAPCOM
+CAPCM	CC	Capsule Communicator	capcom	mapped	OCR variant of CAPCOM
+CAPCOM	CC	Capsule Communicator	capcom	mapped	
+CAPOCM	CC	Capsule Communicator	capcom	mapped	OCR variant of CAPCOM
+CAPOOM	CC	Capsule Communicator	capcom	mapped	OCR variant of CAPCOM
+Captain Huff	Recovery	Captain Huff, USS Okinawa	recovery	mapped	
+CC	CC	Capsule Communicator	capcom	mapped	
+CCPAQM	CC	Capsule Communicator	capcom	mapped	OCR variant of CAPCOM
+CDR	CDR	David R. Scott	crew	mapped	
+CDR-EVA	CDR	David R. Scott	crew	mapped	
+CDR-LM	CDR	David R. Scott	crew	mapped	
+CDR-SEVA	CDR	David R. Scott	crew	mapped	
+CDR/CMP	CDR/CMP	David R. Scott / Alfred M. Worden	crew	mapped	shared transmission
+CDR/LMP	CDR/LMP	David R. Scott / James B. Irwin	crew	mapped	shared transmission
+Chaplain	Recovery	USS Okinawa chaplain	recovery	mapped	
+CJPCOM	CC	Capsule Communicator	capcom	mapped	OCR variant of CAPCOM
+Clay	Recovery	Clay (recovery forces)	recovery	mapped	
+CLAY	Recovery	Clay (recovery forces)	recovery	mapped	
+CMP	CMP	Alfred M. Worden	crew	mapped	
+CMP-EVA	CMP	Alfred M. Worden	crew	mapped	
+CMP-LM	CMP	Alfred M. Worden	crew	mapped	
+CMP/CDR	CMP/CDR	Alfred M. Worden / David R. Scott	crew	mapped	shared transmission
+Comm tech	Comm Tech	Communications technician	ground	mapped	
+Crew Member	SC	Spacecraft (unidentified crew member)	crew	mapped	
+Crewmember	SC	Spacecraft (unidentified crew member)	crew	mapped	
+CT	Comm Tech	Communications technician	ground	mapped	
+DAVE	CDR	David R. Scott	crew	mapped	OCR variant of SCOTT
+Endeavour	CMP	Alfred M. Worden	crew	mapped	
+ENDEAVOUR	CMP	Alfred M. Worden	crew	mapped	
+ENDEAVOUY	CMP	Alfred M. Worden	crew	mapped	OCR variant of ENDEAVOUR
+Falcon	SC	Falcon (LM crew)	crew	mapped	
+FALCON	SC	Falcon (LM crew)	crew	mapped	
+FAO	PAO	Public Affairs Officer	pao	mapped	OCR variant of PAO
+FLACON	SC	Falcon (LM crew)	crew	mapped	OCR variant of FALCON
+Fullerton	CC	C. Gordon Fullerton	capcom	mapped	
+Goddard	Goddard	Goddard Space Flight Center	ground	mapped	
+Gordon	CC	Richard F. Gordon	capcom	mapped	
+Griffin	Griffin	Gerald D. Griffin	ground	mapped	
+GRIFFIN	Griffin	Gerald D. Griffin	ground	mapped	
+Hayward	Recovery	Hayward (recovery forces)	recovery	mapped	
+Henize	CC	Karl G. Henize	capcom	mapped	
+HONEYSUCKLE	Honeysuckle	Honeysuckle Creek tracking station	ground	mapped	
+Honeysuckle Comm Tech	Comm Tech	Honeysuckle Creek communications technician	ground	mapped	
+HOUSTON	CC	Capsule Communicator	capcom	mapped	
+Houston Comm Tech	Comm Tech	Houston communications technician	ground	mapped	
+IRIWN	LMP	James B. Irwin	crew	mapped	OCR variant of IRWIN
+Irwin	LMP	James B. Irwin	crew	mapped	
+IRWIN	LMP	James B. Irwin	crew	mapped	
+Irwin/Scott	LMP/CDR	James B. Irwin / David R. Scott	crew	mapped	shared transmission
+Irwin/Worden	LMP/CMP	James B. Irwin / Alfred M. Worden	crew	mapped	shared transmission
+IRWING	LMP	James B. Irwin	crew	mapped	OCR variant of IRWIN
+IRWN	LMP	James B. Irwin	crew	mapped	OCR variant of IRWIN
+JAPCOM	CC	Capsule Communicator	capcom	mapped	OCR variant of CAPCOM
+LCC	LCC	Launch Control Center	ground	mapped	
+LM Crew	SC	Lunar Module crew	crew	mapped	
+LMP	LMP	James B. Irwin	crew	mapped	
+LMP-EVA	LMP	James B. Irwin	crew	mapped	
+LMP-LM	LMP	James B. Irwin	crew	mapped	
+LMP/CDR	LMP/CDR	James B. Irwin / David R. Scott	crew	mapped	shared transmission
+MADRID	Madrid	Madrid tracking station	ground	mapped	
+MCC	MCC	Mission Control	ground	mapped	
+Mitchell	CC	Edgar D. Mitchell	capcom	mapped	
+MOCR	MCC	Mission Control	ground	mapped	
+MS	MS	Mission Specialist	ground	mapped	
+Music		Music (non-speech)	event	mapped	
+MUSIC		Music (non-speech)	event	mapped	
+Okinawa	Recovery	USS Okinawa	recovery	mapped	
+OKINAWA	Recovery	USS Okinawa	recovery	mapped	
+PAO	PAO	Public Affairs Officer	pao	mapped	
+Parker	CC	Robert A. Parker	capcom	mapped	
+PAS	PAO	Public Affairs Officer	pao	mapped	OCR variant of PAO
+Photo	Photo	Recovery photo helicopter	recovery	mapped	
+PHOTO	Photo	Recovery photo helicopter	recovery	mapped	
+Photo 1	Photo	Recovery photo helicopter	recovery	mapped	
+Recovery	Recovery	Recovery forces	recovery	mapped	
+RECOVERY	Recovery	Recovery forces	recovery	mapped	
+S/C	SC	Spacecraft (unidentified crew member)	crew	mapped	
+SC	SC	Spacecraft (unidentified crew member)	crew	mapped	
+SCCTT	CDR	David R. Scott	crew	mapped	OCR variant of SCOTT
+SCGTT	CDR	David R. Scott	crew	mapped	OCR variant of SCOTT
+SCott	CDR	David R. Scott	crew	mapped	
+Scott	CDR	David R. Scott	crew	mapped	
+SCOTT	CDR	David R. Scott	crew	mapped	
+Scott/Irwin	CDR/LMP	David R. Scott / James B. Irwin	crew	mapped	shared transmission
+Scott/Worden	CDR/CMP	David R. Scott / Alfred M. Worden	crew	mapped	shared transmission
+Silver	Silver	Leon T. Silver	ground	mapped	
+Slayton	CC	Donald K. Slayton	capcom	mapped	
+SLAYTON	CC	Donald K. Slayton	capcom	mapped	
+Spacecraft	SC	Spacecraft (unidentified crew member)	crew	mapped	
+Speaker	Unknown	Unidentified speaker	unknown	mapped	
+SPEAKER	Unknown	Unidentified speaker	unknown	mapped	
+SPEAKR	Unknown	Unidentified speaker	unknown	mapped	OCR variant of Speaker
+Surgeon	Surgeon	Flight Surgeon	ground	mapped	
+Swim 1	Swim 1	Recovery swimmer	recovery	mapped	
+Swim 2	Swim 2	Recovery swimmer	recovery	mapped	
+TEXAS	Texas	Corpus Christi tracking station	ground	mapped	
+Unidentified speaker in Houston	Unknown	Unidentified speaker in Houston	unknown	mapped	
+Unidentified voice	Unknown	Unidentified speaker	unknown	mapped	
+Unknown speaker	Unknown	Unidentified speaker	unknown	mapped	
+Unknown Speaker	Unknown	Unidentified speaker	unknown	mapped	
+Voice in Mission Control	Unknown	Voice in Mission Control	unknown	mapped	
+Worden	CMP	Alfred M. Worden	crew	mapped	
+WORDEN	CMP	Alfred M. Worden	crew	mapped	
+Worden/Irwin	CMP/LMP	Alfred M. Worden / James B. Irwin	crew	mapped	shared transmission
+Worden/Scott	CMP/CDR	Alfred M. Worden / David R. Scott	crew	mapped	shared transmission
