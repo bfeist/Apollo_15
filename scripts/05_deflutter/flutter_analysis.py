@@ -157,7 +157,14 @@ def scheduled_tape(census_dir, tape, originals, check_sources, failed):
             from flutter_planning import inventory
             if not (originals/tape).is_dir():
                 raise detection.IdentityError(f'Missing originals: {originals/tape}')
-            if detection.source_identity(inventory(originals/tape)) != bundle['evidence']['source_identity']:
+            current = inventory(originals/tape)
+            alignment = record['inventory'].get('alignment')
+            if alignment:
+                from tape_coordinates import aligned_inventory
+                current = aligned_inventory(current, Path(alignment['path']).parents[2])
+                if current['alignment'] != alignment:
+                    raise detection.IdentityError('alignment evidence changed since detection')
+            if detection.source_identity(current) != bundle['evidence']['source_identity']:
                 raise detection.IdentityError('originals or offsets changed since detection')
         row.update(status='complete', evidence_sha256=bundle['evidence_sha256'],
                    stream_sha256=bundle['evidence']['stream']['sha256'])

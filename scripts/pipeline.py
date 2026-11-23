@@ -40,6 +40,7 @@ from flutter_detection import DEFAULT_DETECTION_ROOT, WINDOWS_MAX_WORKERS as DET
 
 STAGES = [
     ('01', 'Concatenate', '01_concatenate.py', 'Verify fragment order and join channels'),
+    ('02', 'Align capture clocks', '02_align_capture.py', 'Measure WAV start offsets from original tracks'),
     ('03', 'Denoise', '03_denoise.py',
      f'Remove tones and residual hum, then reduce broadband noise by up to {DEFAULT_BROADBAND_CAP_DB} dB'),
     ('04', 'Crosstalk', '04_crosstalk.py', 'Subtract evidenced weaker repeats; preserve gain and source timing'),
@@ -58,6 +59,7 @@ def parse_args(argv=None):
     parser.add_argument('--stages', default=None, help='Comma-separated stage numbers; always run in pipeline order')
     parser.add_argument('--input', type=Path, help='Speech excerpt folder; or previous stage output when starting midway')
     parser.add_argument('--output', type=Path, default=Path('runs'), help='Parent for unique run folders')
+    parser.add_argument('--alignment-root', type=Path, help='Stage 02 capture reports for stages 04 and 05')
     parser.add_argument('--delivery', type=Path, default=Path('D:/Apollo_15_30-Track/orig_delivery'))
     parser.add_argument('--concatenated', type=Path, default=Path('D:/Apollo_15_30-Track/orig_concatenated'))
     tapes = parser.add_mutually_exclusive_group()
@@ -139,11 +141,11 @@ def parse_args(argv=None):
         requested = requested.lower().replace('05c', '06')  # old retime command alias
         selected = {value.strip() if value.strip() in {'05a','05b'} else f'{int(value):02d}' for value in requested.split(',')}
     except ValueError:
-        parser.error('--stages must contain 01,03,04,05,05a,05b,06,07')
+        parser.error('--stages must contain 01,02,03,04,05,05a,05b,06,07')
     if not selected or not selected <= {s[0] for s in STAGES}:
-        parser.error('--stages must contain 01,03,04,05,05a,05b,06,07')
-    if args.batch and selected not in ({'03'}, {'04'}, {'05'}, {'05a'}, {'05b'}, {'06'}, {'07'}):
-        parser.error('Batch mode supports one stage at a time; use --stages 03, 04, 05, 05a, 05b, 06, or 07')
+        parser.error('--stages must contain 01,02,03,04,05,05a,05b,06,07')
+    if args.batch and selected not in ({'02'}, {'03'}, {'04'}, {'05'}, {'05a'}, {'05b'}, {'06'}, {'07'}):
+        parser.error('Batch mode supports one stage at a time; use --stages 02, 03, 04, 05, 05a, 05b, 06, or 07')
     args.batch_detect = args.batch and selected == {'05'}
     if '05a' in selected and '05' not in selected and args.flutter_detection_root and not args.flutter_qualification_root:
         parser.error('Stage 05a needs --flutter-qualification-root to import census evidence. '
@@ -345,6 +347,11 @@ def make_jobs(args, selected, run_dir):
         return jobs
     if args.batch_denoise:
         return make_denoise_batch(args)
+    if selected == {'02'} and args.all_tapes:
+        job = next(j for j in make_tape_jobs(args, selected, run_dir) if j['number']=='02')
+        index = job['command'].index('--tape')
+        job['command'][index:index+2] = ['--all-tapes', *[f'--exclude-tape={t}' for t in args.exclude_tape]]
+        return [job]
     if args.batch_detect:
         job = next(j for j in make_tape_jobs(args, selected, run_dir) if j['number'] == '05')
         job['command'] = [c for c in job['command'] if c != args.tape]
@@ -368,6 +375,8 @@ def make_tape_jobs(args, selected, run_dir):
         output = run_dir / f'{number}_{name.lower().replace(" ", "_").replace("/", "_")}'
         if number == '01':
             command += ['--input', str(args.delivery), '--output', str(args.concatenated), '--min-age', str(args.min_age), '--strict']
+        elif number == '02':
+            command += ['--originals', str(args.concatenated), '--tape', args.tape]
         elif number == '05':
             output = args.flutter_detection_root or DEFAULT_DETECTION_ROOT
             command += ['run', '--originals', str(args.concatenated), '--tape', args.tape]
@@ -451,6 +460,8 @@ def make_tape_jobs(args, selected, run_dir):
             command += ['--input', str(current or '<speech-excerpt-folder>'), '--output', str(output)]
             if number in selected and status != 'skipped explicitly':
                 current = output
+        if number in {'02','04','05','05a','05b'} and args.alignment_root:
+            command += ['--alignment-root', str(args.alignment_root)]
         if number == '06':
             command += ['--target-dbfs',str(args.target_dbfs),'--max-boost-db',str(args.max_boost_db)]
         if number in selected and number in {'05b', '06', '07'} and status != 'skipped explicitly':

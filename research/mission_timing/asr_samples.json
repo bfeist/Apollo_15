@@ -1,0 +1,66 @@
+{
+  "tapes": {
+    "A15_T510092": {
+      "channels": [16, 23, 28],
+      "reviewed_audio_set_sha256": "d34854ba7aa9a73546ddb16ff3f207b9ed80f8e5a186dfa2daab3e142d41a623"
+    },
+    "A15_T510093": {
+      "reviewed_audio_set_sha256": "cd266b5eff95b9e7af720370bd3846f8147d3e673006db1152442474883afbf3",
+      "census_starts": [6150, 30990, 55830]
+    },
+    "A15_T510077": {
+      "reviewed_audio_set_sha256": "8692952c76562e793090483a7e59c4ad9e9a27f39182bb355c5b842183be6c15",
+      "census_starts": [9112, 27457, 51306]
+    },
+    "A15_T510100": {
+      "reviewed_audio_set_sha256": "0a6f8df9d21f238d02c08488e63b99371f6d3d20b2c3c968cdef732b3456f1f0",
+      "census_starts": [4805, 33998, 56501],
+      "census_starts_by_channel_group": [
+        {"channels": [25, 26, 27, 28, 29, 30], "starts": [4805, 33994, 56494]}
+      ]
+    }
+  },
+  "census": {
+    "duration": 120,
+    "audit_ids": ["CH01_early", "CH03_middle", "CH05_late", "CH14_middle", "CH15_middle", "CH24_middle", "CH26_late", "CH30_early"]
+  },
+  "sustained": {"tape": "A15_T510093", "start": 37600, "end": 38500},
+  "matched": [
+    {"id": "t510092_ch23", "tape": "A15_T510092", "track": 23, "start": 60225, "end": 60475},
+    {"id": "t510092_ch28", "tape": "A15_T510092", "track": 28, "start": 60225, "end": 60475},
+    {"id": "t510092_ch16", "tape": "A15_T510092", "track": 16, "start": 60225, "end": 60475},
+    {"id": "pao_572aaa", "volume": "pao", "start": 0, "end": 300},
+    {"id": "dvd_disc04_title02_part01", "volume": "dvd", "start": 1500, "end": 1750},
+    {"id": "journal_spur", "volume": "spur", "start": 40, "end": 340},
+    {"id": "t510093_vad_empty", "tape": "A15_T510093", "track": 30, "start": 6150, "end": 6270}
+  ],
+  "media": {
+    "pao": {
+      "volume": "Apollo 15 PAO reel 572-AAA",
+      "filename": "572-AAA.wav",
+      "stream": 0,
+      "size": 3369406384,
+      "sha256": "b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95"
+    },
+    "dvd": {
+      "volume": "Spacecraft Films Apollo 15 Disc 04 Title 02 Part 01",
+      "filename": "Apollo 15 - Disc 04 - Title 02 - Part 01.mp4",
+      "stream": 0,
+      "size": 1013889748,
+      "sha256": "2540b625f77fbf798bc4c991f9c231c5ce6912a2e240bd636917d398265b5c85"
+    },
+    "spur": {
+      "volume": "Apollo Lunar Surface Journal Spur Crater a15a1452401",
+      "filename": "a15a1452401.mp3",
+      "stream": 0,
+      "size": 1408627,
+      "sha256": "2040cf6981824bedb34fbc3fbaeeefd7502cbfcae02dadb31e53aac470498bee"
+    }
+  },
+  "silence": {
+    "filename": "digital_silence_60s.wav",
+    "sample_rate": 8000,
+    "frames": 480000,
+    "sha256": "3f257e52584f47ddc010e44d9602511a4900e970d4046cd92f171f03f597cf1b"
+  }
+}

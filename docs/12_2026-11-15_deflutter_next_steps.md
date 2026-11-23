@@ -168,7 +168,7 @@ confirmation tapes, comb-dominated late T510084/T510087/T510112 blocks and
 low-coverage T510106/T510081. Keep it unchanged across trials; add the final
 short block of one tape if you want the tail case.
 
-1. Check Genus topology first (`ssh bfeist@192.168.0.3 lscpu -e`). It is a
+1. Check Genus topology first (`ssh bfeist@192.168.0.4 lscpu -e`). It is a
    16-core/32-thread Ryzen 9 5900XT with two L3 groups; logical CPUs 0–15 are
    normally one thread per physical core, with cores 0–7 and 8–15 on separate
    L3 caches. Record the masks you use, for example 1: `0`; 2: `0,8`;

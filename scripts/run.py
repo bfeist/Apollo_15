@@ -21,6 +21,8 @@ def main():
     name, arguments = sys.argv[1], sys.argv[2:]
     path = source_path(name)
     sys.argv = [str(path), *arguments]
+    if path.name in ('recover_capture_alignment.py', '05b_render_archive.py', 'repeat_archive.py'):
+        return importlib.import_module(path.stem).main()
     if path.name == 'denoise_v2_rollout.py':
         # Import through the relocation loader so saved external review paths
         # resolve to the real checkout. The frozen source stays byte-identical.

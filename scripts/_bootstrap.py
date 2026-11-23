@@ -14,6 +14,20 @@ SCRIPTS = Path(__file__).resolve().parent
 REPO = SCRIPTS.parent
 LAYOUT = json.loads((SCRIPTS/'layout.json').read_text(encoding='utf-8'))
 RUNTIME = SCRIPTS/'03_denoise/runtime'
+GENUS_SSH = 'bfeist@192.168.0.4'
+LEGACY_GENUS_SSH = {'bfeist@192.168.0.3', 'bfeist@192.168.0.240'}
+
+
+def genus_ssh(destination):
+    return GENUS_SSH if destination in LEGACY_GENUS_SSH else destination
+
+
+def route_ssh(argv):
+    if isinstance(argv, (list, tuple)) and len(argv) >= 3 and argv[0] == 'ssh':
+        destination = genus_ssh(argv[-2])
+        if destination != argv[-2]:
+            return [*argv[:-2], destination, argv[-1]]
+    return argv
 
 
 def source_path(name):
@@ -38,15 +52,24 @@ def command(name, *arguments):
 class _ArtifactLoader(importlib.machinery.SourceFileLoader):
     def exec_module(self, module):
         super().exec_module(module)
-        module.REPO = REPO
-        module.INVENTORY = REPO/'reports/denoise_v2_rollout_20261108/inventory.json'
-        module.REVIEW = REPO/'reports/denoise_v2_late_hum_20261108'
+        if module.__name__ == 'denoise_v2_rollout':
+            module.REPO = REPO
+            module.INVENTORY = REPO/'reports/denoise_v2_rollout_20261108/inventory.json'
+            module.REVIEW = REPO/'reports/denoise_v2_late_hum_20261108'
+        else:
+            from stage_storage import configure
+            configure(module)
+            from archive_storage import configure as configure_archive
+            configure_archive(module)
 
 
 class _ArtifactFinder:
     """Preserve frozen code and hashes; resolve the same external artifacts."""
     def find_spec(self, fullname, path=None, target=None):
-        if fullname != 'denoise_v2_rollout':
+        if fullname not in {'denoise_v2_rollout', 'denoise_archive', 'denoise_v2_production',
+                            'denoise_v2_cluster', 'shared_tape', 'flutter_analysis', 'flutter_plan_store',
+                            'repeat_archive', 'repeat_render', 'repeat_retain',
+                            'recover_capture_alignment', '05b_render_archive'}:
             return None
         filename = source_path(fullname+'.py')
         loader = _ArtifactLoader(fullname, str(filename))
@@ -80,7 +103,7 @@ class ScriptProcesses:
             name = script.name
             if name in LAYOUT and script.absolute() == source_path(name):
                 argv = command(name, *argv[3:])
-        return self.original.Popen(argv, *args, **kwargs)
+        return self.original.Popen(route_ssh(argv), *args, **kwargs)
 
     def run(self, argv, *args, **kwargs):
         if isinstance(argv, (list, tuple)) and argv and argv[0] == 'ssh':
@@ -91,7 +114,7 @@ class ScriptProcesses:
                     words[index:index+1] = [prefix+'/scripts/run.py', name]
                     argv = [*argv[:-1], shlex.join(words)]
                     break
-        return self.original.run(argv, *args, **kwargs)
+        return self.original.run(route_ssh(argv), *args, **kwargs)
 
 
 install()

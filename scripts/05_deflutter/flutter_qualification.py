@@ -302,12 +302,29 @@ def validate(analysis_dir):
             raise analysis.AnalysisError('Validation belongs to different qualification decisions')
         return report
     analysis.check_code(bundle['config'])
+    partitions = {}
+    collect_validation(bundle, summary, partitions)
     policy = bundle['config']['identity']['policy']
+    criteria = policy['validation']
+    report = dict(schema=SCHEMA, kind='qualification_validation', analysis_id=bundle['config']['analysis_id'],
+                  qualification_sha256=summary['record_sha256'],
+                  policy_version=policy['version'], policy_sha256=bundle['config']['identity']['policy_sha256'],
+                  seed=bundle['config']['identity']['seed'], criteria=criteria, partitions={},
+                  interpretation=('Held-out half of physical check-beep events only; decision-half events '
+                                  'selected decisions and are development evidence. Ratios use the census '
+                                  'window curve that measured each event. Development tapes include the '
+                                  'November 15/17 inspected examples. Not listening approval.'))
+    report['qualification_complete'] = summary['complete']
+    score_validation(report, partitions)
+    return save_frozen(path, report)
+
+
+def collect_validation(bundle, summary, partitions, selected=None):
+    """Pool held-out outcomes once per tape, including selections spanning immutable census runs."""
     rows = {(r['tape'], r['id']): r for r in analysis.window_rows(bundle)}
     events = [e for e in analysis.event_rows(bundle) if e['partition'] == 'held_out']
-    partitions = {}
     for tape in summary['tapes']:
-        if 'seconds' not in tape:
+        if 'seconds' not in tape or selected is not None and tape['tape'] not in selected:
             continue
         decisions = read_json(bundle['dir']/'qualification'/tape['tape']/'decisions.json')
         part = partitions.setdefault(decisions['partition'], dict(tapes=[], duration=0., seconds=Counter(),
@@ -331,19 +348,14 @@ def validate(analysis_dir):
         part['contradicted'] += inside(tape_events, intervals['bypass_unresolved_contradiction'])
         part['unsupported'] += inside(tape_events, intervals['bypass_unsupported'])
         part['applied_segments'] += len(intervals['apply'])
-        part['applied_windows'].extend((tape['tape'], wid) for wid in accepted)
+        part['applied_windows'].extend(rows[(tape['tape'],wid)]['overlap_min_r'] for wid in accepted)
         stream = np.fromfile(bundle['dir']/'qualification'/tape['tape']/'qualified.f64', '<f8').reshape(-1, 2)
         outside = ~mask_on_grid(intervals['apply'], len(stream))
         part['leaks'] += int(np.count_nonzero(stream[outside, 1]))
-    criteria = policy['validation']
-    report = dict(schema=SCHEMA, kind='qualification_validation', analysis_id=bundle['config']['analysis_id'],
-                  qualification_sha256=summary['record_sha256'],
-                  policy_version=policy['version'], policy_sha256=bundle['config']['identity']['policy_sha256'],
-                  seed=bundle['config']['identity']['seed'], criteria=criteria, partitions={},
-                  interpretation=('Held-out half of physical check-beep events only; decision-half events '
-                                  'selected decisions and are development evidence. Ratios use the census '
-                                  'window curve that measured each event. Development tapes include the '
-                                  'November 15/17 inspected examples. Not listening approval.'))
+
+
+def score_validation(report, partitions):
+    criteria = report['criteria']
     for name, part in sorted(partitions.items()):
         applied = event_table(part['applied'])
         result = dict(tapes=sorted(part['tapes']), tape_seconds=part['duration'], seconds=dict(part['seconds']),
@@ -353,7 +365,7 @@ def validate(analysis_dir):
                       held_out_unsupported=event_table(part['unsupported']),
                       cross_channel_transfer=event_table(part['transfer']),
                       join=dict(applied_segments=part['applied_segments'],
-                                overlap_min_r=analysis.percentiles([rows[w]['overlap_min_r'] for w in part['applied_windows']]),
+                                overlap_min_r=analysis.percentiles(part['applied_windows']),
                                 support_outside_applied_samples=part['leaks']))
         checks = dict(enough_events=applied['events'] >= criteria['min_held_out_events'],
                       degradation=applied.get('worse_fraction', 1.) <= criteria['max_worse_fraction'],
@@ -363,9 +375,8 @@ def validate(analysis_dir):
                       no_leaks=part['leaks'] == 0)
         result.update(checks=checks, passed=all(checks.values()))
         report['partitions'][name] = result
-    report['qualification_complete'] = summary['complete']
-    report['passed'] = summary['complete'] and report['partitions'].get('validation', {}).get('passed', False)
-    return save_frozen(path, report)
+    report['passed'] = report['qualification_complete'] and report['partitions'].get('validation', {}).get('passed', False)
+
 
 
 # ---------------------------------------------------------------- regression corpus

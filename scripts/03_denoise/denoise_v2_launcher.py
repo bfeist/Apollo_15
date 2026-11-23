@@ -19,7 +19,7 @@ import sys
 
 import denoise_v2_cluster as cluster
 import denoise_v2_worker_runtime as worker_runtime
-from _bootstrap import ScriptProcesses
+from _bootstrap import ScriptProcesses, genus_ssh
 from denoise_v2_verification import cached_verification
 from denoise_v2_output_policy import unity_outputs
 
@@ -31,9 +31,8 @@ WINDOWS_MAX_WORKERS = 6
 
 def connection_config(config):
     """Route Genus SSH to its current IP while retaining the saved run identity."""
-    if config.get('ssh') == 'bfeist@192.168.0.240':
-        return dict(config, ssh='bfeist@192.168.0.3')
-    return config
+    destination = genus_ssh(config.get('ssh'))
+    return config if destination == config.get('ssh') else dict(config, ssh=destination)
 
 
 def cpu_list(value):

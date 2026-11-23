@@ -260,10 +260,18 @@ class CensusStageTests(unittest.TestCase):
         self.assertTrue(any(s['selected'] == candidate['id'] for s in chosen if s['end_seconds'] <= 20))
 
     def test_remote_worker_command_and_startup_identity_checks(self):
+        spec = importlib.util.spec_from_file_location(
+            'detect_cli', ROOT/'scripts/05_deflutter/05_detect_flutter.py')
+        cli = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cli)
+        with patch.object(cli, 'open_selected', return_value=(self.run_dir, self.config)), \
+             patch.object(detection, 'coordinate', return_value=0) as coordinate, redirect_stdout(io.StringIO()):
+            self.assertEqual(cli.main(['run', '--originals', str(self.folder.parent), '--tape', TAPE, '--plain']), 0)
         session = detection.Session(detection.DEFAULT_DETECTION_ROOT/'census-0123456789abcdef', self.config)
-        command = detection.remote_command(session, detection.GENUS, '0,2,4,8,10,12')
+        connection = dict(detection.GENUS, **coordinate.call_args.kwargs['connection'])
+        command = detection.remote_command(session, connection, '0,2,4,8,10,12')
         self.assertEqual(command[:2], ['ssh', '-o'])
-        self.assertIn('bfeist@192.168.0.3', command)
+        self.assertIn('bfeist@192.168.0.4', command)
         remote = shlex.split(command[-1])
         self.assertEqual(remote[0], 'exec')
         self.assertIn('OMP_NUM_THREADS=1', remote)

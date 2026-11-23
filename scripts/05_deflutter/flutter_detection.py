@@ -134,17 +134,20 @@ def map_path(path, mapping):
 
 # ---------------------------------------------------------------- run identity
 
-def run_identity(settings, originals, tag=None):
+def run_identity(settings, originals, tag=None, alignment_root=None):
     value = dict(schema=SCHEMA, methodology=census.METHODOLOGY,
                  settings=census.normalized(settings), implementation=implementation(),
                  originals=Path(originals).resolve().as_posix(), tag=tag)
+    if alignment_root is not None:
+        value['alignment_root'] = str(Path(alignment_root).resolve())
+        value['alignment_implementation'] = {n: sha256(HERE/n) for n in ('flutter_alignment.py', 'tape_coordinates.py')}
     return 'census-'+digest(value)[:16], value
 
 
 def open_run(run_dir=None, *, root=DEFAULT_DETECTION_ROOT, settings=None, originals=DEFAULT_ORIGINALS,
-             tag=None, create=True):
+             tag=None, create=True, alignment_root=None):
     """Create or reopen a run; a changed setting, code or input root needs a new ID."""
-    run_id, identity = run_identity(settings or census.SETTINGS, originals, tag)
+    run_id, identity = run_identity(settings or census.SETTINGS, originals, tag, alignment_root)
     run_dir = Path(root)/run_id if run_dir is None else Path(run_dir)
     run_dir = run_dir.resolve()
     path = run_dir/'config.json'
@@ -233,11 +236,14 @@ def prepare_tape(run_dir, config, folder):
     inventory = read_inventory(folder)
     if inventory['tape'] != folder.name:
         raise IdentityError('Tape folder and inventory disagree')
+    if config['identity'].get('alignment_root'):
+        from tape_coordinates import aligned_inventory
+        inventory = aligned_inventory(inventory, config['identity']['alignment_root'])
     identity = source_identity(inventory)
     path = run_dir/inventory['tape']/'inventory.json'
     if path.exists():
         saved = read_json(path)
-        if saved['source_identity'] != identity:
+        if saved['source_identity'] != identity or saved['inventory'].get('alignment') != inventory.get('alignment'):
             raise IdentityError(f'{inventory["tape"]} originals or offsets changed since detection began; '
                                 'use a new run ID')
         return saved

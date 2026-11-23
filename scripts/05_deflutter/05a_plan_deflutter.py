@@ -37,6 +37,7 @@ def main(argv=None):
     p.add_argument('--input', type=Path, required=True, help='Canonical original tape folder')
     p.add_argument('--output', type=Path)
     p.add_argument('--planning-root', type=Path, default=DEFAULT_PLANNING_ROOT)
+    p.add_argument('--alignment-root', type=Path, help='Measured capture alignment reports')
     p.add_argument('--evidence-root', type=Path, default=DEFAULT_EVIDENCE_ROOT,
                    help='Completed all-channel survey bundles; reused without new analysis')
     census = p.add_mutually_exclusive_group()
@@ -64,6 +65,12 @@ def main(argv=None):
             saved = json.loads(evidence.read_text(encoding='utf-8'))
             if source['tape'] != saved['inventory']['tape'] or identity(source) != identity(saved['inventory']):
                 raise ValueError('Saved tone evidence does not match the canonical originals')
+        from flutter_alignment import ORIGINALS, ROOT
+        if args.alignment_root or args.input.resolve().parent == ORIGINALS.resolve():
+            from tape_coordinates import aligned_inventory
+            source = aligned_inventory(source, args.alignment_root or ROOT)
+            if source['alignment']['action'] == 'retrace' and not census_root:
+                raise ValueError('This tape needs a new aligned census before planning')
         regional = list(args.regional_plan)
         regional.extend(discover_regional_plans(args.input.resolve().parent.parent, source['tape']))
         regional = sorted({(path/'plan.json' if path.is_dir() else path).resolve() for path in regional})

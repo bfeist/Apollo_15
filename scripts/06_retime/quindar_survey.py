@@ -20,9 +20,10 @@ import soundfile as sf
 
 import quindar_speed
 from quindar_retime import write_json
-from flutter_plan_store import planning_lock, DEFAULT_DEFLUTTERED_ROOT
+from flutter_plan_store import planning_lock
+from shared_tape import DEFAULT_DEFLUTTERED_ROOT
 
-DEFAULT_ANALYSIS_ROOT = Path('D:/Apollo_15_30-Track/quindar_post_deflutter_analysis_v5')
+DEFAULT_ANALYSIS_ROOT = Path('D:/Apollo_15_30-Track/stage_evidence/retiming')
 SETTINGS = dict(block_seconds=60, context_seconds=1, frequency_band_hz=[2250,2750],
                 post_max_fm_sd_hz=35., post_max_amplitude_ratio=3.)
 
@@ -95,9 +96,13 @@ def inventory_all(original_root, defluttered_root, tapes=None):
                 if (Path(declared['path']).resolve()!=Path(original['path']).resolve()
                         or (declared['bytes'],declared['mtime_ns'])!=(original['bytes'],original['mtime_ns'])):
                     raise ValueError('Defluttered file uses a different original source version')
-                if (review['start_seconds']!=original['start_seconds'] or review['frames']!=original['frames']
-                        or declared['absolute_start']-declared['start_seconds']!=origin):
-                    raise ValueError('Full-channel stage 05b completion on the common acquisition clock is required')
+                acquisition_start = declared.get('acquisition_start_seconds', declared['start_seconds'])
+                if (review['start_seconds'] != declared['start_seconds'] or review['frames'] != original['frames']
+                        or acquisition_start != original['start_seconds'] or declared['absolute_start']-acquisition_start != origin):
+                    raise ValueError('Stage 06 needs a full-channel render registered to the original acquisition')
+                if 'acquisition_start_seconds' in declared:
+                    original = dict(original, acquisition_start_seconds=acquisition_start,
+                                    start_seconds=declared['start_seconds'], flutter_map_sha256=review['map_sha256'])
                 row = file_row(path, folder.name, 'defluttered', review['channel'])
                 if row['frames'] != review['frames'] or row['sample_rate'] != review['sample_rate']:
                     raise ValueError('Deflutter manifest and audio header disagree')

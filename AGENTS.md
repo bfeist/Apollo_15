@@ -5,6 +5,12 @@
 These recordings are simultaneous 30-track tapes. The project owner's required
 model is one shared tape-motion correction at each canonical tape time.
 
+Stage 02 establishes where each original WAV starts on the shared tape clock.
+Use its measured offsets for stage-04 donor matching and for stage-05 tracing,
+planning, and application. Preserve the acquisition times in the source records.
+For an existing archive, use the selective recovery command in the shared-map
+guide to reuse completed work on tapes whose clocks still agree.
+
 - Search and reuse saved evidence from every available channel on the tape.
 - A usable correction established on one channel is available to every channel
   on that tape at the same canonical time. Missing tones or check events on a

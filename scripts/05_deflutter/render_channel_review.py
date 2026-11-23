@@ -19,6 +19,7 @@ def main(argv=None):
     p.add_argument('--channel', type=int, required=True)
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--flutter-plan', type=Path)
+    p.add_argument('--alignment-root', type=Path)
     p.add_argument('--planning-root', type=Path, default=DEFAULT_PLANNING_ROOT)
     p.add_argument('--denoised-root', type=Path, default=CANONICAL)
     p.add_argument('--crosstalk-root', type=Path, default=DEFAULT_CROSSTALK_ROOT)
@@ -32,7 +33,12 @@ def main(argv=None):
         if Path(args.tape).name != args.tape or args.tape in {'.', '..'}:
             raise ValueError('Tape must be a simple folder name')
         path = args.flutter_plan or args.planning_root/args.tape/'plan.json'
-        if json.loads(index_path(path).read_text(encoding='utf-8'))['inventory']['tape'] != args.tape:
+        inv = json.loads(index_path(path).read_bytes())['inventory']
+        from flutter_alignment import ORIGINALS, ROOT
+        if args.alignment_root or Path(inv.get('input','')).resolve().parent == ORIGINALS.resolve():
+            from tape_coordinates import verify_coordinates
+            verify_coordinates(inv, args.alignment_root or ROOT)
+        if inv['tape'] != args.tape:
             raise ValueError('Requested tape and shared plan disagree')
         source = (args.denoised_root if args.skip_crosstalk else args.crosstalk_root)/args.tape/f'CH{args.channel:02d}'
         if not args.skip_crosstalk and not (source/'crosstalk.json').is_file():

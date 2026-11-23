@@ -1,0 +1,32 @@
+anchor_id,crop_origin_s,crop_start_bound_s,crop_end_bound_s,landmark_note,source_sha256
+AS15_TEC-p0788-r09,201.58,1.96,2.04,First speech after preceding exchange and gap,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0788-r13,230.46,1.65,1.72,Opening syllable after gate opens,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0788-r15,274.99,0.62,0.67,Onset of first voiced syllable after gate,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0789-r13,398.87,1.44,1.50,First syllable of okay after gate,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0794-r13,946.92,1.29,1.55,Call starts around keying tone with background voice,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0795-r05,1001.24,0.80,0.83,Opening syllable under keying tone,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0796-r08,1085.45,1.16,1.22,Voiced downlink after preceding call and pause,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0799-r15,1438.12,2.05,2.10,Roger enters beneath keying tone,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0802-r09,1745.18,1.71,1.75,Speech begins under end of keying tone,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0820-r14,3024.27,0.92,0.97,First voiced syllable after gate,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0820-r19,3056.76,1.02,1.07,First syllable after gate,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0821-r17,3183.5,1.57,1.62,Onset of no,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0824-r01,3420.26,1.51,1.56,First syllable of Roger,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0825-r18,3630.41,1.75,1.80,First syllable of Roger,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0827-r02,3737.59,1.39,1.44,First syllable of Roger,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0830-r19,4335.51,1.47,1.52,First syllable of okay,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0833-r17,4682.23,1.39,1.44,First consonant of Jim,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0835-r09,4878.9,1.38,1.42,First syllable at gate,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0837-r03,5138.57,1.15,1.21,First syllable of Roger,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0840-r14,5534.56,1.57,1.62,First syllable of Roger,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0848-r18,6419.95,0.80,0.85,And after gate,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0853-r16,6847.16,1.12,1.17,First syllable after earlier transmission,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0858-r14,7535.22,1.93,1.98,First syllable following radio noise,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0874-r18,9372.61,0.77,0.81,First syllable after preceding transmission,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0877-r17,9844.11,1.13,1.18,Voice starts after radio noise,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0878-r10,9910.77,0.81,0.85,First syllable under keying tone,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0882-r01,10340.16,1.93,1.98,First voiced syllable under keying tone,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0885-r07,10805.1,1.41,1.45,Voice onset after radio noise,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0886-r10,10978.85,1.14,1.18,Voice enters under keying tone,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0889-r09,11403.9,0.97,1.02,And at gate,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95
+AS15_TEC-p0889-r11,11410.77,1.79,1.84,Roger after preceding reply,b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95

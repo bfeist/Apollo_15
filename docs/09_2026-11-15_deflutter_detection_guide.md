@@ -304,7 +304,7 @@ Implementation rules:
   without changing its frozen algorithms, production queue or checkpoints.
   - Proprius: at most 6 Windows workers, below-normal priority, preserving
     developer headroom.
-  - Genus: SSH `bfeist@192.168.0.3`, repository `/mnt/f/_repos/Apollo_15`,
+  - Genus: SSH `bfeist@192.168.0.4`, repository `/mnt/f/_repos/Apollo_15`,
     originals on `/mnt/d`. Invoke `uv run --no-project --python ...` with the
     host-local pinned numerical environment described in the denoise guide;
     never mutate the shared Windows `.venv`.

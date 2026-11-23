@@ -10,7 +10,8 @@ _install()
 import argparse
 from pathlib import Path
 
-from flutter_plan_store import DEFAULT_DEFLUTTERED_ROOT, tape_directory
+from flutter_plan_store import tape_directory
+from shared_tape import DEFAULT_DEFLUTTERED_ROOT
 from quindar_retime import DEFAULT_RETIMED_ROOT, retime
 from quindar_survey import DEFAULT_ANALYSIS_ROOT
 from quindar_tape import build_shared_plan, load_shared_plan

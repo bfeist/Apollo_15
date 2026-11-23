@@ -10,7 +10,7 @@ import numpy as np
 import soundfile as sf
 
 from audio_processing import clean_tones, denoise, DEFAULT_BROADBAND_CAP_DB
-from denoise_archive import CANONICAL, ORIGINALS, legacy_write
+from denoise_archive import CANONICAL, CONTROL, MARKER, ORIGINALS, legacy_write, read_json
 from flutter_plan_store import DEFAULT_DENOISED_ROOT
 
 
@@ -40,6 +40,12 @@ def main(stage):
                 or args.denoised_root.absolute() != CANONICAL
                 or (args.output is not None and args.output.absolute() != expected)):
             parser.error('V2 stage 03 requires a frozen canonical tape, channel, and output path')
+        if CONTROL == CANONICAL.parent/'stage_evidence/denoise/production':
+            run_id = read_json(CANONICAL/MARKER)['run_id']
+            config = CONTROL/run_id/'cluster/config.json'
+            raise SystemExit(subprocess.call(command(
+                'denoise_v2_worker_runtime.py', 'denoise_v2_cluster.py', 'worker',
+                '--config', config, '--key', f'{args.input.name}/CH{args.channel:02d}', '--host', 'windows')))
         raise SystemExit(subprocess.call(command('denoise_v2_rollout.py',
             '--version', 'v2', '--mode', 'resume', '--tape', args.input.name, '--channel', str(args.channel),
             '--workers', '1', '--tapes', '1')))

@@ -14,6 +14,8 @@ from shared_tape import bound, load_tape_plan, verify_bindings, METHODOLOGY
 
 
 def prepared_source(row, folder):
+    from tape_coordinates import acquisition_row
+    row = acquisition_row(row)
     folder = Path(folder).resolve()
     if (folder/'crosstalk.json').is_file():
         from crosstalk_stage import prepared_crosstalk
@@ -28,9 +30,9 @@ def prepared_source(row, folder):
 
 
 def render_shared_channel(plan_path, channel, denoised, output, *, start=None, duration=None,
-                          comparison=False, dry_run=False, block_seconds=5., progress=print):
-    started = time.monotonic()
-    plan_path, plan, data = load_tape_plan(plan_path)
+                          comparison=False, dry_run=False, block_seconds=5., progress=print,
+                          loaded_plan=None):
+    plan_path, plan, data = loaded_plan or load_tape_plan(plan_path)
     row = next((r for r in plan['inventory']['channels'] if r['channel'] == channel), None)
     if row is None:
         raise ValueError('Requested channel is absent from the tape')
@@ -38,6 +40,12 @@ def render_shared_channel(plan_path, channel, denoised, output, *, start=None, d
     crosstalk = saved.get('stage') == '04'
     source_bindings = ([bound(Path(denoised)/'crosstalk.json'), *saved['input_bindings']]
                        if crosstalk else [bound(Path(denoised)/'denoised.json'), bound(Path(denoised)/'cleanup.jsonl')])
+    if plan['inventory'].get('alignment'):
+        alignment = plan['inventory']['alignment']
+        if (crosstalk and alignment['action'] == 'retrace' and
+                not any(b['sha256'] == alignment['sha256'] for b in saved['input_bindings'])):
+            raise ValueError('Stage 04 donor qualification must use the measured alignment for this tape')
+        source_bindings.append(dict(path=alignment['path'], sha256=alignment['sha256']))
     start = row['start_seconds'] if start is None else start
     if not math.isfinite(start) or duration is not None and not math.isfinite(duration):
         raise ValueError('Review interval must be finite')
@@ -81,9 +89,18 @@ def render_shared_channel(plan_path, channel, denoised, output, *, start=None, d
         production_accepted=False, implementation_sha256=sha256(__file__))
     if dry_run:
         return summary
-    progress('Verifying completed input audio hash; no denoising or tone fitting')
-    if sha256(source) != saved['audio']['sha256']:
-        raise ValueError('Completed denoised audio hash changed')
+    return render_audio(summary, source, plan_path.parent/plan['map']['file'], data, output,
+                        block_seconds, progress, lambda: verify_bindings(source_bindings))
+
+
+def render_audio(summary, source, map_path, data, output, block_seconds, progress, verify_evidence):
+    """Render a preflighted channel. A cluster coordinator verifies the D: evidence at publication."""
+    started = time.monotonic()
+    row, frames, sr = summary['source'], summary['frames'], summary['sample_rate']
+    offset, channel, comparison = summary['source_offset_frames'], summary['channel'], summary['comparison']
+    progress('Verifying input')
+    if sha256(source) != summary['source_audio_sha256']:
+        raise ValueError('Completed input audio hash changed')
     output.mkdir(parents=True)
     summary['status'] = 'running'
     atomic_json(output/'review.json', summary)
@@ -141,8 +158,9 @@ def render_shared_channel(plan_path, channel, denoised, output, *, start=None, d
         after = source.stat()
         if (before.st_size, before.st_mtime_ns) != (after.st_size, after.st_mtime_ns):
             raise ValueError('Completed denoised audio changed during rendering')
-        verify_bindings(summary['input_bindings'])
-        if sha256(plan_path.parent/plan['map']['file']) != plan['map']['sha256']:
+        progress('Verifying output')
+        verify_evidence()
+        if sha256(map_path) != summary['map_sha256']:
             raise ValueError('Shared tape map changed during rendering')
         for file, temporary in [(name, pending), *([('A.wav', baseline)] if comparison else [])]:
             info = sf.info(temporary)

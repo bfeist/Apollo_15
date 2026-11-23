@@ -160,6 +160,14 @@ class TapeQuindarTests(unittest.TestCase):
             rows,issues=inventory_all(folder.parent,root/'defluttered')
             self.assertEqual(len(rows),1);self.assertFalse(issues)
             self.assertTrue(all(r['stage']=='defluttered' for r in rows))
+            registered = dict(review, start_seconds=.9785, map_sha256='aligned-fixture',
+                              source=dict(review['source'], acquisition_start_seconds=0., start_seconds=.9785))
+            write_json(source.parent/'review.json', registered)
+            shifted, issues = inventory_all(folder.parent,root/'defluttered')
+            self.assertFalse(issues)
+            self.assertEqual(shifted[0]['start_seconds'], .9785)
+            self.assertEqual(shifted[0]['original_source']['acquisition_start_seconds'], 0.)
+            write_json(source.parent/'review.json', review)
             result=survey(folder.parent,root/'defluttered',root/'analysis',workers=1)
             self.assertEqual(result['status'],'complete')
             with patch('quindar_survey.ProcessPoolExecutor') as pool:

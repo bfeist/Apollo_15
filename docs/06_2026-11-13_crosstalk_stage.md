@@ -6,6 +6,14 @@ shared map independently from saved original-tone evidence. Crosstalk is removed
 before retiming so measured donor/main/echo delays retain their source coordinates.
 Normalization follows subtraction because removing a repeat changes the level.
 
+Stage 02 measures each original WAV's start on the tape clock. Stage 04 uses
+the signed difference between target and donor starts to locate the donor,
+including adjacent channels. It then measures the local fractional delay and
+validates the weaker repeat within the target. The target-only repeat scan,
+the tape's established removal direction, and the v2 denoised WAVs can be
+reused. The [selective recovery command](08_2026-11-15_shared_deflutter.md#capture-alignment-and-selective-recovery)
+rechecks saved donor candidates and publishes a separately bound release.
+
 Stage 04 promotes the two-path method used in the November 8 Audition comparison.
 The owner reported substantial improvement, with residual crosstalk audible.
 Feedback did not distinguish B from C. The official default uses **B's frozen
@@ -13,12 +21,104 @@ transfer coefficients**, refitted on the current denoised calibration interval;
 it retains fractional local delay tracking and the withheld-block main-only versus
 main-plus-echo check. The numerical model is shared with the research exporter.
 
-This is an evidence-bounded stage, not an automatic full-tape echo detector.
-The current saved catalog establishes earlier-copy removal for T510083 CH17
+The renderer works from a bounded evidence catalog. The original listening
+catalog establishes earlier-copy removal for T510083 CH17
 and CH20, using CH19, only at canonical **13569.10–13570.48 seconds**. Other
 intervals and channels pass through unchanged. Wider coverage requires additional
 within-target repeat evidence. An interchannel match alone never authorizes removal.
 See [the research record](03_2026-11-15_crosstalk_research.md) for scope and listening limitations.
+
+## Archive discovery and processing
+
+From the Windows checkout, run the archive coordinator with a named evidence
+directory. Repeating the command resumes from verified worker receipts and
+completed tape catalogs.
+
+```powershell
+uv run python -u scripts/04_crosstalk/repeat_release.py --run repeat-capture-aligned
+```
+
+This full discovery command is for a fresh release. To repair the November
+archive, use the selective recovery command above. A pipeline render accepts
+the new qualification directory via `--crosstalk-evidence-root` and resolves
+the catalog for each tape and channel.
+
+The coordinator inventories numbered channels with completed stage-03 manifests.
+It copies one tape at a time from D to `F:/Apollo_15_30-Track/work/crosstalk`, verifies
+the source and copy against the stage-03 WAV hash, and keeps up to three tapes
+available on the SSD. The default six Windows slots include one for periodicity
+qualification. Six Genus workers launched over SSH at `bfeist@192.168.0.4`
+share the discovery queue with Windows. Workers take channels from any
+available tape. Each channel can enter donor validation as
+soon as its scan finishes. Larger candidate lists enter the validation queue
+first. `--local`, `--genus` and `--tapes` select the host and tape limits.
+Worker receipts include input and implementation hashes and the executing host.
+
+During the November 18 `repeat-v2` run, remote reads of WAVs staged on F
+became a bottleneck. The remaining discovery work uses
+`cluster/native_cluster.py` to assign whole tapes to each host. Windows runs
+two discovery workers on F. Genus copies its assigned tapes sequentially from
+D to its own SSD and verifies each WAV against the stage-03 hash. Six Genus
+workers read those local WAVs and return their scan arrays, validation results
+and receipts. Windows verifies the results and seals the tape before Genus
+reclaims its copy. This handoff resumes from the existing receipts and feeds
+the same qualification and rendering process.
+
+Discovery searches successive quarter-second windows of the target for another
+occurrence 0.8–1.9 seconds later. The coarse speech-band search is followed by
+native 8 kHz fractional lag measurement. Validation requires another nearby
+window at a consistent delay, matching energy across multiple speech bands,
+and a distinct completed donor. Both target occurrences are searched
+independently over signed donor offsets. The paths must point to the same
+donor occurrence and agree across multiple bands. Workers consider donors in
+order of channel distance and retain the first qualifying reference. Channel
+start offsets are included throughout.
+
+Before publication, the qualification pass rejects measured paths outside the
+renderer domain. It removes stationary 60 Hz harmonics from the analysis
+excerpts, requires the target and donor matches to survive across speech bands,
+and compares the paired occurrence with nearby shifted controls for periodic
+signals. Each new interval needs two independently observed speech minutes on
+the same tape within 30 minutes and 15 ms of the measured separation. The
+minutes must be separate from the proposed event and from one another. A
+timing-only target needs witnesses from two distinct ordinary target channels.
+The renderer still uses the fractional path measured for the individual
+target and donor. The qualification filter is used only for measurement.
+
+Established tape/channel directions take precedence. For new directions,
+the level of the donor-matched waveform in each target occurrence contributes
+one median vote per minute. Each window also records the total level ratio
+so the influence of overlapping speech can be inspected.
+A vote requires 5 dB of separation. At least three voting minutes and 85%
+agreement establish a direction. Ambiguous channels bypass. The catalog protects
+the identified main occurrences and the original reviewed phrase. It can join
+touching, consistent windows for the same donor into at most 0.75 seconds of
+support. The renderer tracks fractional delays again and fits on the current
+denoised audio. New events must also reduce the projection onto the paired
+target occurrence on phrase samples held out of coefficient calibration.
+These checks measure waveform agreement. They can miss faint repeats and
+cannot establish perceptual preservation of all overlapping speech.
+
+All selected tapes finish discovery and qualification before audio publication
+begins. Each final channel catalog passes the official renderer's evidence
+reader. Qualification keeps temporary hard links to verified SSD inputs where
+available and releases them after each tape. During
+rendering, Windows holds the source and verified staged WAVs read-only and
+publishes each channel from a private attempt directory. The output retains
+the original frame count, offset and gain. A fully bypassed channel must
+match the stage-03 decoded-sample hash. When stage 03 supplies its verified
+sample hash and peak, stage 04 can publish an independent byte-identical copy
+after reading back and checking its full file hash.
+
+- Detection, preliminary catalogs, worker receipts, and the final `complete.json`
+  live under `D:/Apollo_15_30-Track/stage_evidence/archive/crosstalk_detection/<run>`.
+- Final channel catalogs and the per-tape `qualified.json` decisions live under
+  `D:/Apollo_15_30-Track/stage_evidence/archive/crosstalk_qualification/<run>`.
+- Archive WAVs and stage-04 manifests live under
+  `D:/Apollo_15_30-Track/crosstalk_removed/<tape>/CHnn`.
+  Stage 05b uses this root by default for individual channels.
+- The original standalone and pipeline stage-04 defaults continue to use the
+  listening catalog described below.
 
 ## Commands
 

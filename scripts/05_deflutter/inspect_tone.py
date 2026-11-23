@@ -21,11 +21,16 @@ def inspect_tone(bundle, channel, seconds, hz, *, tolerance_hz=5., plan_path=Non
     row = next((r for r in manifest['inventory']['channels'] if r['channel'] == channel), None)
     if row is None:
         raise ValueError('Sighting channel is absent from the saved inventory')
-    canonical = seconds+row['start_seconds'] if local_time else seconds
+    loaded = None if plan_path is None else load_tape_plan(plan_path)
+    start = row['start_seconds'] if loaded is None else next(
+        r['start_seconds'] for r in loaded[1]['inventory']['channels'] if r['channel'] == channel)
+    local = seconds if local_time else seconds-start
+    survey_time = local+row['start_seconds']
+    canonical = local+start
     matches = []
     windows = []
     for window in manifest['windows']:
-        if not window['start_seconds'] <= canonical < window['end_seconds']:
+        if not window['start_seconds'] <= survey_time < window['end_seconds']:
             continue
         result = window['channels'].get(str(channel), {})
         windows.append(dict(start_seconds=window['start_seconds'], end_seconds=window['end_seconds'],
@@ -34,11 +39,11 @@ def inspect_tone(bundle, channel, seconds, hz, *, tolerance_hz=5., plan_path=Non
             if abs(candidate['carrier_hz']-hz) <= tolerance_hz:
                 matches.append(candidate)
     report = dict(tape=manifest['inventory']['tape'], channel=channel, tape_seconds=canonical,
-        local_seconds=canonical-row['start_seconds'], frequency_hz=hz, survey_windows=windows,
+        local_seconds=local, frequency_hz=hz, survey_windows=windows,
         discovery_matches=matches, new_audio_analysis=False,
         discovery_status='found' if matches else 'not_found' if windows else 'outside_saved_survey')
     if plan_path is not None:
-        path, plan, data = load_tape_plan(plan_path)
+        path, plan, data = loaded
         if plan['inventory']['tape'] != manifest['inventory']['tape']:
             raise ValueError('Sighting survey and tape map belong to different tapes')
         decisions = json.loads((path.parent/plan['selection']['file']).read_text(encoding='utf-8'))

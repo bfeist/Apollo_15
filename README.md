@@ -13,6 +13,12 @@ deflutter or retiming, with constant gain to a speech target and a bypass for un
 New denoise runs write unity-gain float WAVs; stage 07 sets the final speech level.
 Completed denoise outputs retain their existing gain.
 
+On D:, open `Apollo_15_30-Track/crosstalk_removed/<tape>` for the latest
+completed stage 04 channels, `deflutter_maps/<tape>` for the qualified
+stage 05a map, and `defluttered_shared/<tape>` for published stage 05b audio.
+Each tape folder exposes one edition. The project root's `STAGE_RESULTS.txt`
+lists the other outputs, the measurements on F:, and the supporting evidence.
+
 Start with [deflutter next steps](docs/12_2026-11-15_deflutter_next_steps.md),
 the latest action plan for reviewing the implementation, resolving the
 adverse window, benchmarking workers, and running the detection census.
@@ -38,6 +44,7 @@ combined-host benchmark, archive run and listening trials that remain; the
 | --- | --- | --- | --- |
 | 01 | `01_ingest/01_concatenate.py` | Verify fragment order and assemble canonical channels | Done |
 | 01a | `01_ingest/01a_zip_originals.py` | ZIP each canonical tape folder, skipping existing ZIPs | Done |
+| 02 | `02_alignment/02_align_capture.py` | Measure channel start offsets on the originals for donor matching and flutter tracing | Source-bound alignment reports |
 | 03 v1 | `03_denoise/03_denoise.py` | Remove tones/hum and reduce broadband noise by at most 3 dB | Existing archive |
 | 03 v2 | `03_denoise/denoise_v2_console.py` | Qualified accelerated denoising on Windows and Genus | Active rollout; automatic Windows day/night limits |
 | 04 | `04_crosstalk/04_crosstalk.py` | Remove evidenced weaker repeats; preserve timing and gain | Available; bounded evidence, bypass elsewhere |
@@ -53,7 +60,9 @@ flowchart TD
     A[01 · Concatenate] --> B[Canonical originals]
     B --> C[01a · ZIP originals]
     B --> D[03 · Denoise]
-    B --> K[05 · Detection census on originals]
+    B --> R[02 · Measure capture offsets]
+    R --> K[05 · Detection census on originals]
+    R --> X[04 · Crosstalk removal]
     K --> E[05a · Compile shared tape map from census and saved evidence]
     D --> X[04 · Crosstalk removal]
     X --> F[05b · Apply shared tape map]
@@ -117,11 +126,11 @@ The other stage defaults are beneath `D:/Apollo_15_30-Track`. See `--help` for o
 | `crosstalk_removed/` | Stage-04 audio, interval decisions and evidence bindings | `--crosstalk-root` |
 | `deflutter_detection_census/<run-id>/` | Stage-05 census blocks, streams and cluster state | `--flutter-detection-root` |
 | `deflutter_analysis/<run-id>/<analysis-id>/` | Qualified tape intervals, held-out validation and listening selections | `--flutter-qualification-root` (05a) |
-| `deflutter_planning_v5_allchannel/` | Preserved all-channel tone evidence | `--flutter-evidence-root` |
+| `stage_evidence/flutter/carrier_tones/` | Committed all-channel tone measurements used by the shared maps | `--flutter-evidence-root` |
 | `deflutter_planning_shared/` | One map and selection provenance per tape | `--flutter-planning-root` |
 | `defluttered_shared/` | Stage-05b audio after stage-04 crosstalk | `--defluttered-root` |
-| `quindar_post_deflutter_analysis_v5/` | Surveys and frozen tape curves | `--quindar-analysis-root` |
-| `defluttered_retimed_v5/` | Stage-06 audio | `--retimed-root` |
+| `stage_evidence/retiming/` | Surveys and frozen tape curves | `--quindar-analysis-root` |
+| `retimed/` | Stage-06 audio | `--retimed-root` |
 | `speech_normalized/` | Stage-07 listening WAVs and measurement reports | `--normalized-root` |
 | `irig_search/` | Independent IRIG screening and clock evidence | Standalone search `--output` |
 

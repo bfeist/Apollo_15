@@ -4,6 +4,7 @@ import hashlib
 import json
 import math
 from pathlib import Path
+import shutil
 
 import numpy as np
 import soundfile as sf
@@ -53,8 +54,26 @@ def evidence_for(root, tape, channel):
     feedback = root/'listening_feedback.json'
     if feedback.exists():
         bindings.append(bound(feedback))
-    for path in sorted(root.rglob('review.json')):
-        review = json.loads(path.read_text(encoding='utf-8'))
+    records = [(path, json.loads(path.read_text(encoding='utf-8'))) for path in sorted(root.rglob('review.json'))]
+    packed = root/'reviews.json'
+    if packed.exists():
+        catalog = json.loads(packed.read_bytes())
+        if (catalog['tape'], catalog['channel']) != (tape, channel):
+            raise ValueError('Archive evidence catalog belongs to another target')
+        archive_bindings = []
+        for item in catalog['bindings']:
+            # Retain the exact compiler used for this run across checkout updates.
+            if (Path(item['path']) == Path(__file__).with_name('repeat_catalog.py')
+                    and root.parent.name == 'catalog'):
+                frozen = root.parent.parent.parent/'implementation'/'repeat_catalog.py'
+                if frozen.is_file():
+                    item = dict(item, path=str(frozen))
+            archive_bindings.append(item)
+        verify_bindings(archive_bindings)
+        bindings.extend([bound(packed), *archive_bindings])
+        records.extend((packed, review) for review in catalog['reviews'])
+    file_bindings = {}
+    for path, review in records:
         if tape_key(review.get('tape', '')) != tape_key(tape) or review.get('target') != channel:
             continue
         if direction is None or review['direction'] != direction:
@@ -103,10 +122,21 @@ def evidence_for(root, tape, channel):
         donor = review['donor']
         if not isinstance(donor, int) or not 1 <= donor <= 30 or donor == channel:
             raise ValueError('Invalid denoised donor channel')
-        events.append(dict(start=start, duration=duration, application=[a, b], calibration=[ca, cb],
+        if path not in file_bindings:
+            file_bindings[path] = bound(path)
+            if path != packed:
+                bindings.append(file_bindings[path])
+        event = dict(start=start, duration=duration, application=[a, b], calibration=[ca, cb],
                            donor=donor, direction=direction, separation=separation,
-                           paths=paths, evidence=bound(path), historical_sources=review['sources']))
-        bindings.append(bound(path))
+                           paths=paths, evidence=file_bindings[path], historical_sources=review['sources'])
+        if path == packed:
+            event['denoised_hashes'] = review['denoised_hashes']
+            if 'donor_center_shift_frames' in review:
+                shift = review['donor_center_shift_frames']
+                if type(shift) is not int:
+                    raise ValueError('Invalid measured donor clock offset')
+                event['donor_center_shift_frames'] = shift
+        events.append(event)
     events.sort(key=lambda e: e['application'][0])
     if any(a['application'][1] > b['application'][0] for a, b in zip(events, events[1:])):
         raise ValueError('Overlapping repeat intervals must be resolved before subtraction')
@@ -167,6 +197,23 @@ def process_event(raw, donor, event):
     fixed, _, fits = subtract(target, main, echo, calibration, support)
     if not np.isfinite(fixed).all():
         raise ValueError('Nonfinite crosstalk prediction')
+    if 'denoised_hashes' in event and fits['fixed_accepted']:
+        # Check the predicted removal against the other occurrence in the
+        # target on phrase samples outside the coefficient calibration.
+        a, b = event['application']
+        held = (times >= a+.025) & (times < b-.025) & ((times < ca-.005) | (times >= cb+.005))
+        at = np.flatnonzero(held)
+        other = at + center-radius+peak
+        if len(at) < 160 or np.min(other) < 0 or np.max(other) >= len(raw):
+            return np.zeros(len(raw)), dict(detail, status='bypassed', reason='insufficient held-out repeat support')
+        wanted, removed, observed = target[other], fixed[at], target[at]
+        norm = np.linalg.norm(wanted)*np.linalg.norm(removed)
+        alignment = float(np.sign(match)*np.dot(wanted, removed)/max(norm, 1e-30))
+        before = np.dot(wanted, observed)
+        ratio = float(abs(np.dot(wanted, observed-removed))/max(abs(before), 1e-30))
+        detail.update(held_out_prediction_alignment=alignment, held_out_repeat_projection_ratio=ratio)
+        if alignment < .35 or ratio > .90 or np.linalg.norm(removed) > np.linalg.norm(observed):
+            return np.zeros(len(raw)), dict(detail, status='bypassed', reason='held-out repeat subtraction not supported')
     return fixed, dict(detail, status='applied' if fits['fixed_accepted'] else 'bypassed',
         reason='withheld-block two-path check', main_tracking=main_track, echo_tracking=echo_track,
         fixed_coefficients=fits['fixed_coefficients'], fixed_accepted=fits['fixed_accepted'])
@@ -191,7 +238,7 @@ def prepared_crosstalk(row, folder):
 
 
 def render_channel(inventory, channel, denoised_root, output, evidence_root=DEFAULT_EVIDENCE_ROOT,
-                   *, dry_run=False, progress=print):
+                   *, dry_run=False, progress=print, verified_audio=None):
     tape = inventory['tape']
     rows = {r['channel']: r for r in inventory['channels']}
     if channel not in rows:
@@ -232,6 +279,9 @@ def render_channel(inventory, channel, denoised_root, output, evidence_root=DEFA
             if ch not in rows:
                 continue
             old = event['historical_sources'][str(ch)]['signature']
+            if ('denoised_hashes' in event and ch in sources and
+                    event['denoised_hashes'][str(ch)] != sources[ch]['saved']['audio']['sha256']):
+                raise ValueError('Discovered repeat belongs to different denoised audio')
             if (old['offset_frames'] != 0 or old['frames'] != rows[ch]['frames']
                     or any(old['source'][k] != rows[ch][k]
                            for k in ('path', 'bytes', 'mtime_ns', 'channel', 'frames', 'sample_rate'))):
@@ -252,9 +302,15 @@ def render_channel(inventory, channel, denoised_root, output, evidence_root=DEFA
     if dry_run:
         summary['planned_events'] = events
         return summary
-    for source in sources.values():
-        if sha256(source['path']) != source['saved']['audio']['sha256']:
+    def check_audio(source):
+        path, expected = source['path'], source['saved']['audio']['sha256']
+        if verified_audio is not None:
+            return verified_audio(path, expected)
+        if sha256(path) != expected:
             raise ValueError('Completed v2 audio hash changed')
+        return path
+    for source in sources.values():
+        source['read_path'] = check_audio(source)
     verify_bindings(bindings)
     output.mkdir(parents=True)
     atomic_json(output/'evidence.json', dict(direction=direction, events=events, stagger_assignments=staggers))
@@ -269,8 +325,9 @@ def render_channel(inventory, channel, denoised_root, output, evidence_root=DEFA
             result = dict(application_interval=event['application'], donor=event['donor'],
                           status='bypassed', reason='missing completed denoised donor')
             if event['donor'] not in missing:
-                raw = read_context(sources[channel]['path'], row, event['start'], event['duration'])
-                donor = read_context(sources[event['donor']]['path'], rows[event['donor']], event['start'], event['duration'])
+                raw = read_context(sources[channel]['read_path'], row, event['start'], event['duration'])
+                donor_start = event['start'] + event.get('donor_center_shift_frames',0)/RATE
+                donor = read_context(sources[event['donor']]['read_path'], rows[event['donor']], donor_start, event['duration'])
                 if raw is None or donor is None:
                     result['reason'] = 'insufficient source context'
                 else:
@@ -285,9 +342,31 @@ def render_channel(inventory, channel, denoised_root, output, evidence_root=DEFA
                         summary['applied_seconds'] += (b-a)/RATE
             summary['events'].append(result)
         temporary = output/'crosstalk.wav.partial'
+        certified = sources[channel]['saved']['audio']
+        if (verified_audio is not None and not patches and certified.get('decoded_float32_sha256')
+                and math.isfinite(certified.get('peak', float('nan')))):
+            # The archive coordinator holds both source and staged WAV under
+            # read leases. Equal container hashes also establish equal decoded
+            # samples and peak for this independent copy of the verified WAV.
+            shutil.copyfile(sources[channel]['read_path'], temporary)
+            if sha256(temporary) != certified['sha256']:
+                raise ValueError('Stage-04 bypass copy verification failed')
+            info = sf.info(temporary)
+            if (info.frames, info.samplerate, info.channels, info.subtype) != (row['frames'], RATE, 1, 'FLOAT'):
+                raise ValueError('Stage-04 bypass header mismatch')
+            verify_bindings(bindings)
+            for source in sources.values():
+                check_audio(source)
+            temporary.replace(output/'crosstalk.wav')
+            summary.update(status='complete', audio=dict(filename='crosstalk.wav', sha256=certified['sha256'],
+                decoded_float32_sha256=certified['decoded_float32_sha256'], peak=certified['peak'],
+                verification='independent file copy, full SHA-256 equal to verified stage-03 WAV'),
+                bypass_reason='no usable evidenced repeat on current v2 audio')
+            atomic_json(output/'crosstalk.json', summary)
+            return summary
         digest, peak = hashlib.sha256(), 0.
         with ExitStack() as stack:
-            src = stack.enter_context(sf.SoundFile(sources[channel]['path']))
+            src = stack.enter_context(sf.SoundFile(sources[channel]['read_path']))
             dest = stack.enter_context(sf.SoundFile(temporary, 'w', samplerate=RATE, channels=1,
                 subtype='FLOAT', format='RF64' if row['frames']*4+4096 >= 2**32 else 'WAV'))
             for begin in range(0, row['frames'], 30*RATE):
@@ -309,8 +388,7 @@ def render_channel(inventory, channel, denoised_root, output, evidence_root=DEFA
                     progress(f'04 {tape} CH{channel:02d}: {(begin+len(audio))/row["frames"]:.1%}')
         verify_bindings(bindings)
         for source in sources.values():
-            if sha256(source['path']) != source['saved']['audio']['sha256']:
-                raise ValueError('Denoised source changed during stage 04')
+            check_audio(source)
         verified = hashlib.sha256()
         with sf.SoundFile(temporary) as stream:
             if (len(stream), stream.samplerate, stream.channels, stream.subtype) != (row['frames'], RATE, 1, 'FLOAT'):

@@ -1,0 +1,145 @@
+{
+  "source_sha256": {
+    "Apollo 15 - Disc 04 - Title 02 - Part 01.mp4": "2540b625f77fbf798bc4c991f9c231c5ce6912a2e240bd636917d398265b5c85",
+    "Apollo 15 - Disc 04 - Title 02 - Part 02.mp4": "a948db472673faf6be23c793a2cb171f5ddfbe172a814c6492cfef100dbe7ff5",
+    "572-AAA.wav": "b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95",
+    "T510093/CH18/deflutter.wav": "752fec249b2f8c6dd0e5d7e98bf9bda937f109e0cf8c1b48236844eb36935000"
+  },
+  "query_duration_s": 3,
+  "query_separation_s": 3.2,
+  "step_s": 4,
+  "source_rates": {
+    "dvd": 1.004,
+    "tape": 1.03
+  },
+  "examined": 437,
+  "both_matched": 288,
+  "candidate_intervals": [
+    {
+      "part": 1,
+      "pao_bracket": [
+        8,
+        20
+      ],
+      "dvd_bracket": [
+        1527.8436,
+        1538.4035999999999
+      ],
+      "dvd_departure_s": -1.4880000000000546,
+      "tape_departure_s": 5.826450433232822e-13,
+      "unmatched_span_s": 5.8
+    },
+    {
+      "part": 1,
+      "pao_bracket": [
+        68,
+        76
+      ],
+      "dvd_bracket": [
+        1586.5736,
+        1593.4736
+      ],
+      "dvd_departure_s": -1.131999999999909,
+      "tape_departure_s": -0.009999999996798792,
+      "unmatched_span_s": 1.7999999999999998
+    },
+    {
+      "part": 1,
+      "pao_bracket": [
+        76,
+        84
+      ],
+      "dvd_bracket": [
+        1593.4736,
+        1600.4436
+      ],
+      "dvd_departure_s": -1.0619999999999727,
+      "tape_departure_s": -2.0374812947920873e-12,
+      "unmatched_span_s": 1.7999999999999998
+    },
+    {
+      "part": 1,
+      "pao_bracket": [
+        204,
+        216
+      ],
+      "dvd_bracket": [
+        1721.2136,
+        1731.4036
+      ],
+      "dvd_departure_s": -1.8579999999999455,
+      "tape_departure_s": 5.826450433232822e-13,
+      "unmatched_span_s": 5.8
+    },
+    {
+      "part": 1,
+      "pao_bracket": [
+        216,
+        224
+      ],
+      "dvd_bracket": [
+        1731.4036,
+        1736.8536000000001
+      ],
+      "dvd_departure_s": -2.5819999999999546,
+      "tape_departure_s": -2.0374812947920873e-12,
+      "unmatched_span_s": 1.7999999999999998
+    },
+    {
+      "part": 1,
+      "pao_bracket": [
+        240,
+        276
+      ],
+      "dvd_bracket": [
+        1753.0236,
+        1764.9536
+      ],
+      "dvd_departure_s": -24.213999999999935,
+      "tape_departure_s": 0.009999999996509246,
+      "unmatched_span_s": 29.8
+    },
+    {
+      "part": 1,
+      "pao_bracket": [
+        288,
+        316
+      ],
+      "dvd_bracket": [
+        1777.0736000000002,
+        1784.5136
+      ],
+      "dvd_departure_s": -20.672000000000175,
+      "tape_departure_s": 0.02000000000058222,
+      "unmatched_span_s": 21.8
+    },
+    {
+      "part": 2,
+      "pao_bracket": [
+        724,
+        732
+      ],
+      "dvd_bracket": [
+        330.09360000000004,
+        333.8336
+      ],
+      "dvd_departure_s": -4.292000000000048,
+      "tape_departure_s": -4.409999999990978,
+      "unmatched_span_s": 1.7999999999999998
+    },
+    {
+      "part": 2,
+      "pao_bracket": [
+        1356,
+        1384
+      ],
+      "dvd_bracket": [
+        960.5036,
+        983.4836
+      ],
+      "dvd_departure_s": -5.131999999999984,
+      "tape_departure_s": 0.02999999999534353,
+      "unmatched_span_s": 21.8
+    }
+  ]
+}

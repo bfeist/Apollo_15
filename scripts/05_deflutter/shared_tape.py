@@ -152,7 +152,8 @@ def census_candidates(run_dir, inv):
     """Research import of a raw census candidate stream; never a qualified map."""
     bundle = load_census(run_dir, inv['tape'])
     evidence = bundle['evidence']
-    if identity(evidence['inventory']) != identity(inv):
+    if (identity(evidence['inventory']) != identity(inv) or (inv.get('alignment', {}).get('action') == 'retrace'
+            and evidence['inventory'].get('alignment') != inv.get('alignment'))):
         raise ValueError('Detection census disagrees on original identity or canonical offsets')
     stream = evidence['stream']
     end = inv['duration_seconds']  # Past the last saved sample, read_curve gives zero support.
@@ -181,7 +182,8 @@ def qualified_candidates(analysis_dir, inv):
     from flutter_qualification import load_qualified
     q = load_qualified(analysis_dir, inv['tape'])
     decisions, stream = q['decisions'], q['decisions']['stream']
-    if identity(decisions['inventory']) != identity(inv):
+    if (identity(decisions['inventory']) != identity(inv) or (inv.get('alignment', {}).get('action') == 'retrace'
+            and decisions['inventory'].get('alignment') != inv.get('alignment'))):
         raise ValueError('Qualified census disagrees on original identity or canonical offsets')
     candidate = dict(id='qualified_'+q['decisions_sha256'][:16]+'__census', start_seconds=stream['start_seconds'],
         end_seconds=inv['duration_seconds'], priority=CENSUS_PRIORITY, rank=0., reference_support=0.,
@@ -341,6 +343,41 @@ def compile_map(path, candidates, selections, start, end):
         bypass='Zero local speed correction; constant displacement preserves continuity')
 
 
+def register_saved_candidates(candidates, rejected, inv):
+    """Translate each original carrier and keep witnesses measured at the same physical instant."""
+    shifts = {r['channel']: r['start_seconds']-r['acquisition_start_seconds'] for r in inv['channels']}
+    registered = []
+    for row in rejected:
+        shift = shifts[row['channel']]
+        row['start_seconds'] += shift
+        row['end_seconds'] += shift
+    for c in candidates:
+        shift = shifts.get(c['reference_channel'])
+        kept = []
+        for w in c['witnesses']:
+            witness_shift = shifts[w['channel']]
+            if shift == witness_shift:
+                kept.append(w)
+            else:
+                rejected.append(dict(channel=w['channel'], selected=c['id'],
+                    start_seconds=c['start_seconds']+witness_shift, end_seconds=c['end_seconds']+witness_shift,
+                    reason='Saved reference and witness used different physical tape instants'))
+        if kept:
+            registered.append(dict(c, witnesses=kept, start_seconds=c['start_seconds']+shift,
+                end_seconds=c['end_seconds']+shift, curve=dict(c['curve'], start_seconds=c['curve']['start_seconds']+shift)))
+    return registered
+
+
+def unavailable_endpoints(path, channels):
+    """Find file boundaries where the shared inverse requests a missing sample."""
+    data = np.load(path, mmap_mode='r', allow_pickle=False)
+    first = np.array([r['start_seconds'] for r in channels])
+    last = np.array([r['end_seconds']-1/r['sample_rate'] for r in channels])
+    early = np.interp(first, data[:, 1], data[:, 0]) < first-1e-9
+    late = np.interp(last, data[:, 1], data[:, 0]) > last+1e-9
+    return bool(early.any() or late.any())
+
+
 def build_tape_plan(continuous_path, assessment_path, output, *, regional_paths=(), qualification_root=None,
                     raw_census_root=None, inventory=None, start=None, end=None):
     """Reuse completed evidence; no carrier discovery, fitting, or audio rendering.
@@ -371,6 +408,18 @@ def build_tape_plan(continuous_path, assessment_path, output, *, regional_paths=
         raise ValueError('Census-only planning needs the canonical source inventory')
     else:
         inv = inventory
+    original = inventory
+    if inventory is not None and inventory.get('alignment'):
+        from tape_coordinates import acquisition_row
+        original = dict(inventory, channels=[acquisition_row(r) for r in inventory['channels']])
+        if continuous_path is not None and identity(original) != identity(inv):
+            raise ValueError('Saved tone evidence does not match the acquisition files')
+        inv = inventory
+        bindings.append(dict(path=inv['alignment']['path'], sha256=inv['alignment']['sha256']))
+        candidates = register_saved_candidates(candidates, rejected, inv)
+        if continuous_path is not None:
+            coverage = [(0,inv['duration_seconds'])] if source.get('full_tape') else [
+                (c['start_seconds'],c['end_seconds']) for c in candidates]
     if inventory is not None and (inventory['tape'] != inv['tape'] or identity(inventory) != identity(inv)):
         raise ValueError('Saved tone evidence does not match the canonical originals')
     census, exclusions = None, []
@@ -389,8 +438,10 @@ def build_tape_plan(continuous_path, assessment_path, output, *, regional_paths=
         raise ValueError('Shared tape output must not overlap originals')
     for path in regional_paths:
         regional, extra, binding = regional_candidates(path)
-        if regional['inventory']['tape'] != inv['tape'] or identity(regional['inventory']) != identity(inv):
+        if regional['inventory']['tape'] != inv['tape'] or identity(regional['inventory']) != identity(original or inv):
             raise ValueError('Saved evidence disagrees on original identity or canonical offsets')
+        if inv.get('alignment'):
+            extra = register_saved_candidates(extra, [], inv)
         candidates.extend(extra)
         bindings.append(binding)
     source_start = min(a for a, _ in coverage)
@@ -413,7 +464,23 @@ def build_tape_plan(continuous_path, assessment_path, output, *, regional_paths=
         checked_stream(Path(spec['path']).parent, Path(spec['path']).name, spec['sha256'])
     selections = select_intervals(candidates, start, end, exclusions)
     output.mkdir(parents=True)
-    statistics = compile_map(output/'tape_map.npy', candidates, selections, start, end)
+    map_path = output/'tape_map.npy'
+    statistics = compile_map(map_path, candidates, selections, start, end)
+    if (inv.get('alignment', {}).get('action') == 'retrace' and start == 0
+            and end == inv['duration_seconds'] and unavailable_endpoints(map_path, inv['channels'])):
+        # If a delayed start or early end would require an unavailable sample,
+        # fade the shared correction inside the common recording interval. The
+        # extra grid cell keeps linear interpolation at each WAV boundary safe.
+        first = max(r['start_seconds'] for r in inv['channels'])
+        last = min(r['end_seconds']-1/r['sample_rate'] for r in inv['channels'])
+        common_start = min(end, (math.ceil(first*RATE)+1)/RATE)
+        common_end = max(start, (math.floor(last*RATE)-1)/RATE)
+        tails = [(start, common_start), (common_end, end)]
+        selections = select_intervals(candidates, start, end, [*exclusions, *tails])
+        statistics = compile_map(map_path, candidates, selections, start, end)
+        statistics['capture_edge_bypass'] = tails
+        if unavailable_endpoints(map_path, inv['channels']):
+            raise ValueError('Shared inverse reaches outside registered WAV endpoints')
     if census is not None:
         prefixes = ('census_', 'qualified_')
         chosen = {s['selected'] for s in selections}

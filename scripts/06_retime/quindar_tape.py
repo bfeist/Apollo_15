@@ -380,8 +380,13 @@ def target_map(plan_path,source):
     row=candidates[0]; original=review['source']
     if (original['bytes'],original['mtime_ns'])!=(row['bytes'],row['mtime_ns']):
         raise ValueError('Target and shared survey original-source versions disagree')
-    if original['absolute_start']-original['start_seconds']!=plan['origin_filename_seconds']:
+    acquisition_start = original.get('acquisition_start_seconds', original['start_seconds'])
+    if original['absolute_start']-acquisition_start != plan['origin_filename_seconds']:
         raise ValueError('Target uses a different tape-clock origin')
+    if 'acquisition_start_seconds' in row or 'acquisition_start_seconds' in original:
+        if (row.get('acquisition_start_seconds') != original.get('acquisition_start_seconds')
+                or row['start_seconds'] != original['start_seconds'] or row.get('flutter_map_sha256') != review.get('map_sha256')):
+            raise ValueError('Target and Quindar survey use different capture registration or flutter maps')
     info=audio_signature(source)
     if info['frames']!=review['frames'] or info['sample_rate']!=review['sample_rate']:
         raise ValueError('Defluttered target header differs from its manifest')

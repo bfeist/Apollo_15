@@ -14,13 +14,15 @@ for _name in ('OPENBLAS_NUM_THREADS', 'MKL_NUM_THREADS', 'OMP_NUM_THREADS',
     os.environ[_name] = '1'  # One thread per worker; set before numpy loads.
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from _bootstrap import install
+from _bootstrap import GENUS_SSH, genus_ssh, install
 install()
 
 import argparse
 import json
 
 import flutter_detection as detection
+from flutter_alignment import ROOT as ALIGNMENT_ROOT
+from capture_highband import check as audit
 
 
 def tape_folders(args):
@@ -38,7 +40,7 @@ def tape_folders(args):
 
 
 def open_selected(args, create=True):
-    return detection.open_run(args.run_dir, root=args.root, originals=args.originals, tag=args.tag, create=create)
+    return detection.open_run(args.run_dir, root=args.root, originals=args.originals, tag=args.tag, create=create, alignment_root=args.alignment_root)
 
 
 def pool(args, run_dir):
@@ -60,10 +62,11 @@ def pool(args, run_dir):
                 genus_cpus=chosen['genus_cpus'] if args.genus_cpus is None else args.genus_cpus,
                 stage_inputs=mode == 'ssd',
                 tape_limit=1 if mode == 'ssd' else tapes,
-                connection=dict(ssh=args.genus_ssh) if args.genus_ssh else None)
+                connection=dict(ssh=genus_ssh(args.genus_ssh or GENUS_SSH)))
 
 
 def add_selection(p):
+    p.add_argument('--alignment-root', type=Path, default=ALIGNMENT_ROOT)
     p.add_argument('--originals', type=Path, default=detection.DEFAULT_ORIGINALS)
     p.add_argument('--root', type=Path, default=detection.DEFAULT_DETECTION_ROOT,
                    help='Parent of run folders, deflutter_detection_census/<run-id>/')
@@ -80,7 +83,7 @@ def add_pool(p):
     p.add_argument('--genus-workers', type=int, help='Genus SSH workers')
     p.add_argument('--genus-cpus', help='Genus CPU mask, or none')
     p.add_argument('--tapes', type=int, help='Simultaneously active tapes across both hosts')
-    p.add_argument('--genus-ssh', help='Override bfeist@192.168.0.3')
+    p.add_argument('--genus-ssh', help=f'Override {GENUS_SSH}')
     p.add_argument('--run-seconds', type=float, help='Bounded trial: stop scheduling after this many seconds')
 
 
@@ -90,6 +93,7 @@ def main(argv=None):
     run = sub.add_parser('run', help='Coordinate detection on Proprius and Genus')
     add_selection(run)
     add_pool(run)
+    run.add_argument('--rerun-offsets', action='store_true', help='Retrace only tapes with measured nonzero delivery offsets')
     run.add_argument('--plain', action='store_true', help='Print periodic status lines instead of the live dashboard')
     ident = sub.add_parser('run-id', help='Print the run ID for the current settings and code')
     add_selection(ident)
@@ -128,7 +132,7 @@ def main(argv=None):
                 raise ValueError('Genus workers need --scratch for local staging')
             return detection.worker(args.run_dir, args.cluster_dir, args.host, mapping, args.scratch)
         if args.command == 'run-id':
-            run_id, _ = detection.run_identity(detection.census.SETTINGS, args.originals, args.tag)
+            run_id, _ = detection.run_identity(detection.census.SETTINGS, args.originals, args.tag, args.alignment_root)
             run_dir = (args.run_dir or args.root/run_id).resolve()
             print(json.dumps(dict(run_id=run_id, run_dir=str(run_dir), exists=(run_dir/'config.json').is_file()),
                              indent=2))
@@ -168,6 +172,22 @@ def main(argv=None):
             print(json.dumps(selection, indent=2))
             return 0
         folders = tape_folders(args)
+        held = []
+        if config['identity'].get('alignment_root'):
+            ready = []
+            for folder in folders:
+                _, report = audit(folder, args.alignment_root)
+                action = report['action']
+                if action == 'review':
+                    held.append(folder.name)
+                    print(f"{folder.name}: timing unresolved for {report['unresolved']}", flush=True)
+                elif action != 'duplicate_feed' and (not getattr(args, 'rerun_offsets', False) or action == 'retrace'):
+                    ready.append(folder)
+                else:
+                    print(f'{folder.name}: {action}; skipping retrace', flush=True)
+            folders = ready
+            if not folders:
+                return 2 if held else 0
         options = pool(args, run_dir)
         print(f'Detection run {config["run_id"]}: {run_dir}', flush=True)
         if args.command == 'benchmark':
@@ -186,8 +206,8 @@ def main(argv=None):
             monitor = CensusMonitor(run_dir)
             with Live(monitor, refresh_per_second=1, vertical_overflow='crop'):
                 return detection.coordinate(session, folders, run_seconds=args.run_seconds,
-                                            output=monitor.message, on_status=monitor.update, **options)
-        return detection.coordinate(session, folders, run_seconds=args.run_seconds, **options)
+                                            output=monitor.message, on_status=monitor.update, **options) or (2 if held else 0)
+        return detection.coordinate(session, folders, run_seconds=args.run_seconds, **options) or (2 if held else 0)
     except (OSError, ValueError, KeyError, RuntimeError) as error:
         print(f'Detection stopped: {error}', file=sys.stderr, flush=True)
         return 2

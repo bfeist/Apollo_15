@@ -116,6 +116,28 @@ class CrosstalkStageTests(unittest.TestCase):
         np.testing.assert_array_equal(after, before)
         self.assertEqual(summary['applied_seconds'], 0)
 
+    def test_discovered_evidence_checks_held_out_copy_and_denoised_identity(self):
+        before, _, interval = self.echo('earlier', polarity=-1)
+        old = self.evidence/'review.json'
+        review = json.loads(old.read_bytes())
+        review['denoised_hashes'] = {str(ch): sha256(self.root/f'denoised/A15_T001/CH{ch:02d}/CH{ch:02d}.wav')
+                                     for ch in (2, 20)}
+        packed = self.evidence/'reviews.json'
+        write(packed, dict(tape=self.inv['tape'], channel=20, bindings=[], reviews=[review]))
+        old.unlink()
+        summary = self.render()
+        self.assertEqual(summary['events'][0]['status'], 'applied')
+        self.assertLess(summary['events'][0]['held_out_repeat_projection_ratio'], .90)
+        after = sf.read(self.output/'crosstalk.wav', dtype='float32')[0]
+        clock = self.row['start_seconds'] + np.arange(len(after))/8000
+        outside = (clock < interval[0]) | (clock >= interval[1])
+        np.testing.assert_array_equal(before[outside], after[outside])
+        self.output = self.root/'changed'
+        review['denoised_hashes']['20'] = '0'*64
+        write(packed, dict(tape=self.inv['tape'], channel=20, bindings=[], reviews=[review]))
+        with self.assertRaisesRegex(ValueError, 'different denoised'):
+            self.render()
+
     def test_inverted_echo_uses_supported_measurements_for_search_and_polarity(self):
         before, truth, interval = self.echo(polarity=-1)
         report = json.loads((self.evidence/'review.json').read_text())

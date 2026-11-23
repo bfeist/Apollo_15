@@ -98,10 +98,10 @@ two coordinators from owning production.
 
 ## Storage and remote environment
 
-Genus is `bfeist@192.168.0.3`, with D: at `/mnt/d` and F: at `/mnt/f`.
-The console and launcher route the saved `bfeist@192.168.0.240` connection to
-this address for CPU checks, workers and shutdown checks. The original cluster
-configuration remains unchanged to preserve checkpoint and qualification hashes.
+Genus is `bfeist@192.168.0.4`, with D: at `/mnt/d` and F: at `/mnt/f`.
+The launchers route older saved Genus addresses here for CPU checks, workers,
+qualification and shutdown checks. Saved addresses stay part of the checkpoint
+and qualification identities.
 It uses the same repository at `/mnt/f/_repos/Apollo_15`. Its Python environment
 for reference qualification is `/home/bfeist/.local/share/apollo15-venv`.
 Accelerated workers use `/home/bfeist/.local/share/apollo15-numba-venv`, with
@@ -221,7 +221,7 @@ rewrite completed outputs or existing audio prefixes.
 One-time preparation (with the old batch stopped):
 
 ```powershell
-uv run python -u scripts/run.py denoise_v2_cluster.py prepare --ssh bfeist@192.168.0.3
+uv run python -u scripts/run.py denoise_v2_cluster.py prepare
 ```
 
 Preparation verifies frozen code/library identities and compares four source-grid
@@ -231,7 +231,9 @@ Float32 output must differ by at most `2^-22` peak and `2^-25` RMS. This is a
 platform regression check, not a new whole-archive listening approval.
 
 Control artifacts are in
-`D:/Apollo_15_30-Track/.denoise_v2_rollout/<production-run-id>/cluster/`:
+`D:/Apollo_15_30-Track/stage_evidence/denoise/production/<production-run-id>/cluster/`.
+The workers read the retained frequency hints from
+`stage_evidence/denoise/frequency_hints/<tape>/CHnn/cleanup.jsonl`.
 
 - `config.json`, `jobs.json`: immutable session and source-bound assignments.
 - `probe.json`, `windows-*.npy`, `genus-*.npy`, `qualification.json`: compatibility evidence.

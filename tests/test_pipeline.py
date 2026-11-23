@@ -47,6 +47,16 @@ class CanonicalTapeTests(unittest.TestCase):
 
 
 class BatchDenoiseTests(CanonicalTapeTests):
+    def test_alignment_precedes_crosstalk_and_flutter_and_accepts_archive_selection(self):
+        numbers = [stage[0] for stage in pipeline.STAGES]
+        self.assertLess(numbers.index('01'), numbers.index('02'))
+        self.assertLess(numbers.index('02'), numbers.index('04'))
+        self.assertLess(numbers.index('02'), numbers.index('05'))
+        job, = self.jobs('--all-tapes', '--stages', '02', '--exclude-tape', 'A15_T002')
+        self.assertEqual(job['script'], '02_align_capture.py')
+        self.assertIn('--all-tapes', job['command'])
+        self.assertIn('--exclude-tape=A15_T002', job['command'])
+
     def test_scopes_and_read_only_plan(self):
         jobs = self.jobs('--all-tapes')
         self.assertEqual([(j['tape'], j['channel']) for j in jobs if j['status'] == 'pending'],
@@ -511,7 +521,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(json.loads((self.output/'speech.json').read_text())['stage'], 'denoise')
 
     def test_retired_stages_are_rejected(self):
-        for stage in ('02', '02b', '04', '08'):
+        for stage in ('02b', '04', '08'):
             with self.subTest(stage=stage):
                 result = self.run_pipeline('--stages', stage)
                 self.assertEqual(result.returncode, 2)
