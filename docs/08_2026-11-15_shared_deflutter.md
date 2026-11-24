@@ -176,9 +176,9 @@ Open **original channels** for the tone search: denoising can remove useful
 reference tones. The new denoised files are the source for correction/listening.
 Keep the Audition display in local WAV time and report:
 
-| Tape | Channel | Start–end in WAV | Approximate frequency | Observation |
-| --- | --- | --- | --- | --- |
-| T510076 | CHxx | hh:mm:ss–hh:mm:ss | Hz | Wavy line, short burst, dropout, etc. |
+| Tape    | Channel | Start–end in WAV  | Approximate frequency | Observation                           |
+| ------- | ------- | ----------------- | --------------------- | ------------------------------------- |
+| T510076 | CHxx    | hh:mm:ss–hh:mm:ss | Hz                    | Wavy line, short burst, dropout, etc. |
 
 A waterfall screenshot can clarify a faint or complicated line. A visibly
 wavy tone is a discovery lead; its origin, trackability, and saved validation

@@ -65,14 +65,14 @@ timing map.
 
 ## Local evidence
 
-| Location | Contents |
-| --- | --- |
-| `reports/denoise_v2_late_hum_20261108/` | Current v2.16 review WAVs, decisions, regression excerpts and provenance |
-| `reports/denoise_v2_low_hum_audit_20261108/` | Current residual measurements and verification tools |
-| `reports/denoise_v2_rollout_20261108/` | Frozen inventory and inventory generator |
-| `reports/denoise_diagnostic_20261108/` and `reports/denoise_v2_reference_05_20261108/` | Original preferred 05 and its frozen reproduction package |
+| Location                                                                                                                                      | Contents                                                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `reports/denoise_v2_late_hum_20261108/`                                                                                                       | Current v2.16 review WAVs, decisions, regression excerpts and provenance                     |
+| `reports/denoise_v2_low_hum_audit_20261108/`                                                                                                  | Current residual measurements and verification tools                                         |
+| `reports/denoise_v2_rollout_20261108/`                                                                                                        | Frozen inventory and inventory generator                                                     |
+| `reports/denoise_diagnostic_20261108/` and `reports/denoise_v2_reference_05_20261108/`                                                        | Original preferred 05 and its frozen reproduction package                                    |
 | `reports/denoise_v2_original_review_20261108/`, `reports/denoise_v2_continuous_bank_20261108/` and `reports/denoise_v213_preflight_20261108/` | Earlier bound listening records and exact comparison inputs retained at their original paths |
-| `archive/denoise_v2_superseded_20261108/` | Superseded local reports, the prior plan, and the verified move manifest |
+| `archive/denoise_v2_superseded_20261108/`                                                                                                     | Superseded local reports, the prior plan, and the verified move manifest                     |
 
 For historical replay, restore any needed archived directory to its original
 `reports/` path using the archive manifest. Some historical scripts and

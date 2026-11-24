@@ -112,11 +112,11 @@ conversions. They mark unintelligible speech as `(garble)` and include some stag
 
 ### Photography
 
-| Collection                                       |             Frames | Raw source                                                                                                                                               | GET source                                                                                                                                                               |
-| ------------------------------------------------ | -----------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Hasselblad 70 mm, handheld (orbital and surface) | 2,395 JPGs, 9.6 GB, plus 263 records for magazines 83, 94 and 98 | `N:\…\Apollo Images from flickr\AS15`: full-resolution 4175² scans of magazines 81, 82, 84–93, 95–97 and 99. Magazines 83, 94 and 98 come from ALSJ high-resolution JPGs where they exist, otherwise from cropped [IM-LDI](https://tothemoon.im-ldi.com/gallery/Apollo/15/6) scans | Journal citations, AFJ `a15images.html`, NASA `a15.photidx.pdf`, interpolation within a magazine |
-| SIM bay metric (mapping) camera, `AS15-M-nnnn`   |              3,376 | [ASU/IM-LDI Apollo scans](https://data.lroc.im-ldi.com/apollo/browse?camera=M&mission=15) (formerly `apollo.sese.asu.edu`, used by the Apollo 16 script) | Per-frame **UTC start time** on the view page, plus revolution, centre and corner coordinates, altitude and sun elevation                                                |
-| SIM bay panoramic camera, `AS15-P-nnnn`          |              1,529 | [ASU/IM-LDI pan scans](https://data.lroc.im-ldi.com/apollo/browse?camera=P&mission=15)                                                                   | Revolution, forward/aft tilt and features on the view page. Times come from the [SIM photo index](https://apollo.sese.asu.edu/SUPPORT_DATA/ap15_sim_index.pdf) (19.9 MB) |
+| Collection                                       |                                                           Frames | Raw source                                                                                                                                                                                                                                                                         | GET source                                                                                                                                                               |
+| ------------------------------------------------ | ---------------------------------------------------------------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Hasselblad 70 mm, handheld (orbital and surface) | 2,395 JPGs, 9.6 GB, plus 263 records for magazines 83, 94 and 98 | `N:\…\Apollo Images from flickr\AS15`: full-resolution 4175² scans of magazines 81, 82, 84–93, 95–97 and 99. Magazines 83, 94 and 98 come from ALSJ high-resolution JPGs where they exist, otherwise from cropped [IM-LDI](https://tothemoon.im-ldi.com/gallery/Apollo/15/6) scans | Journal citations, AFJ `a15images.html`, NASA `a15.photidx.pdf`, interpolation within a magazine                                                                         |
+| SIM bay metric (mapping) camera, `AS15-M-nnnn`   |                                                            3,376 | [ASU/IM-LDI Apollo scans](https://data.lroc.im-ldi.com/apollo/browse?camera=M&mission=15) (formerly `apollo.sese.asu.edu`, used by the Apollo 16 script)                                                                                                                           | Per-frame **UTC start time** on the view page, plus revolution, centre and corner coordinates, altitude and sun elevation                                                |
+| SIM bay panoramic camera, `AS15-P-nnnn`          |                                                            1,529 | [ASU/IM-LDI pan scans](https://data.lroc.im-ldi.com/apollo/browse?camera=P&mission=15)                                                                                                                                                                                             | Revolution, forward/aft tilt and features on the view page. Times come from the [SIM photo index](https://apollo.sese.asu.edu/SUPPORT_DATA/ap15_sim_index.pdf) (19.9 MB) |
 
 - **Fill magazines 83, 94 and 98.** The Flickr folder lacks them. The IM-LDI Apollo 15 gallery
   (pages `/gallery/Apollo/15/6` and `/7`) has every frame: 26, 133 and 104 records, including
@@ -186,15 +186,16 @@ conversions. They mark unintelligible speech as `(garble)` and include some stag
 - **SIM-bay downloads.** The full metric and pan scans are very large (0.5–1.2 GB raw, and
   6.5 GB JPEG 2000 per pan frame). Download only the published PNGs into the raw folder:
 
-  | Camera    | PNG         | Size           |
-  | --------- | ----------- | -------------- |
-  | Metric    | `_MED`      | 4048² px       |
-  | Metric    | `_SML`      | 1012² px       |
-  | Panoramic | `_FULL_MED` | 14963×1616 px  |
-  | Panoramic | `_FULL_SML` | 3741×404 px    |
+  | Camera    | PNG         | Size          |
+  | --------- | ----------- | ------------- |
+  | Metric    | `_MED`      | 4048² px      |
+  | Metric    | `_SML`      | 1012² px      |
+  | Panoramic | `_FULL_MED` | 14963×1616 px |
+  | Panoramic | `_FULL_SML` | 3741×404 px   |
 
   Each PNG is about 14 MB, roughly 70 GB for both cameras. Keep the source URL and checksum in
   the manifest.
+
 - **Film is out of scope.** 16 mm DAC and other motion-picture film are handled separately.
 
 ## 2. What the earlier missions did
@@ -258,16 +259,16 @@ there under `mission-data/` and `pipeline/`.
 Mission text follows the earlier repos' `MISSION_DATA/` convention. The existing timing catalog
 stays in `catalog/`.
 
-| Location                                                                                 | Contents                                                                                                                                                     |
-| ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `MISSION_DATA/journals/ap15fj/`                                                          | AFJ chapter and index HTML as fetched. `manifest.tsv` holds the URL, final URL, fetch date and SHA-256                                                       |
-| `MISSION_DATA/journals/alsj15/`                                                          | ALSJ chapter and index HTML, with the same manifest                                                                                                          |
+| Location                                                                                 | Contents                                                                                                                                                                              |
+| ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MISSION_DATA/journals/ap15fj/`                                                          | AFJ chapter and index HTML as fetched. `manifest.tsv` holds the URL, final URL, fetch date and SHA-256                                                                                |
+| `MISSION_DATA/journals/alsj15/`                                                          | ALSJ chapter and index HTML, with the same manifest                                                                                                                                   |
 | `MISSION_DATA/raw_manifest.tsv`                                                          | One row per file in the raw folder (PDFs, IM-LDI scans, SIM-bay PNGs): relative path, source URL, fetch date, size, SHA-256, page or pixel count. The files themselves are not in Git |
-| `MISSION_DATA/scraped_data/`                                                             | Machine extractions, one row per source block: `transcript_{tec,pao,cm,lm}.tsv`, `journal_{afj,alsj}.tsv`, `photos_{hasselblad,metric,panoramic}_source.tsv` |
-| `MISSION_DATA/review/`                                                                   | Recorded decisions: `editorial_spans.tsv`, `wording.tsv`, `speakers.tsv` and `photo_times.tsv` (§4, §5)                                                      |
-| `MISSION_DATA/A15_utterances.csv`, `A15_commentary.csv`, `A15_photos.csv`, `A15_TOC.csv` | Generated master files in the legacy pipe format                                                                                                             |
-| `MISSION_DATA/indexes/`                                                                  | Generated AiRT2 index files (`utteranceData.csv`, `commentaryData.csv`, `photoData.csv`, `TOCData.csv` and others), ready to copy into `../AiRT2/public/15/indexes/` |
-| `MISSION_DATA/A15_*.tsv` beside each master                                              | The same rows with provenance columns: event ID, GET basis and contributing source rows                                                                      |
+| `MISSION_DATA/scraped_data/`                                                             | Machine extractions, one row per source block: `transcript_{tec,pao,cm,lm}.tsv`, `journal_{afj,alsj}.tsv`, `photos_{hasselblad,metric,panoramic}_source.tsv`                          |
+| `MISSION_DATA/review/`                                                                   | Recorded decisions: `editorial_spans.tsv`, `wording.tsv`, `speakers.tsv` and `photo_times.tsv` (§4, §5)                                                                               |
+| `MISSION_DATA/A15_utterances.csv`, `A15_commentary.csv`, `A15_photos.csv`, `A15_TOC.csv` | Generated master files in the legacy pipe format                                                                                                                                      |
+| `MISSION_DATA/indexes/`                                                                  | Generated AiRT2 index files (`utteranceData.csv`, `commentaryData.csv`, `photoData.csv`, `TOCData.csv` and others), ready to copy into `../AiRT2/public/15/indexes/`                  |
+| `MISSION_DATA/A15_*.tsv` beside each master                                              | The same rows with provenance columns: event ID, GET basis and contributing source rows                                                                                               |
 
 `.gitignore` already excludes WAV, MP3 and ZIP files. Add no image or PDF files to the
 repository.
@@ -308,17 +309,17 @@ path or URL, and the checksum.
 A quick regex census of six AFJ chapters and five ALSJ chapters found about 1,317 bracketed or
 parenthesized spans within utterances, with 633 distinct texts. The classes, with examples, are:
 
-| Class                              | AFJ `[...]`                                                                    | ALSJ `(...)`                                                                         | Treatment in the published text                                                                                     |
-| ---------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| Pause or no reply                  | `[Pause.]` ×152, `[Long pause.]` ×71, `[No answer.]`                           | `(Pause)` ×212, `(Long Pause)` ×56, `(Static; Long Pause)`                           | Remove. Keep as an annotation, which also hints at audio gaps                                                       |
-| Unintelligible speech              | `[garble]` ×40                                                                 | `(Garbled)` ×25, `(Garbled under Joe)`                                               | Replace with `...`, as on the earlier missions. If audio review recovers the words, use them                        |
-| Audible non-speech                 | `[Laughter]`                                                                   | `(Laughing)` ×7, `(Laughs)`, `(Chuckling)`, `(Jim laughs)`                           | Keep in place as an inline marker from the approved list below                                                      |
-| Unit conversion                    | `[58,282 km]`, `[1,113 m/s]`, `[35.9 kPa]`, `[…Fahrenheit, 18 to 21° Celsius]` | `(feet per second)`                                                                  | Remove                                                                                                              |
-| Expansion or gloss                 | `[Antenna]`, `[FIDO]`, `[circuit breakers]`, `[nautical]`                      | `(Valve)`, `(LM)`, `(PLSS)`, `(Electro-Luminescent)`                                 | Remove                                                                                                              |
-| Inserted word or grammar           | `[is]`, `[the]`, `[are]`, `[you should do it]`, `occasional[ly]`               | `(to)`, `(It will)`                                                                  | Remove. Fragments attached to a word revert to the spoken form (`occasional[ly]` → `occasional`)                    |
-| Stage direction or addressee       | `[correcting himself]`                                                         | `(To Jim)`, `(Responding to Joe)`, `(Reading)`, `(Before hearing Joe)`               | Remove. Keep as an annotation                                                                                       |
-| Editorial note inside an utterance | rare                                                                           | long `( … )` notes, sometimes containing links                                       | Move to commentary at the same GET                                                                                  |
-| Literal notation that is spoken    | —                                                                              | `CB(16)`, `CB(11)` with no space before `(`                                          | Keep                                                                                                                |
+| Class                              | AFJ `[...]`                                                                    | ALSJ `(...)`                                                           | Treatment in the published text                                                                  |
+| ---------------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Pause or no reply                  | `[Pause.]` ×152, `[Long pause.]` ×71, `[No answer.]`                           | `(Pause)` ×212, `(Long Pause)` ×56, `(Static; Long Pause)`             | Remove. Keep as an annotation, which also hints at audio gaps                                    |
+| Unintelligible speech              | `[garble]` ×40                                                                 | `(Garbled)` ×25, `(Garbled under Joe)`                                 | Replace with `...`, as on the earlier missions. If audio review recovers the words, use them     |
+| Audible non-speech                 | `[Laughter]`                                                                   | `(Laughing)` ×7, `(Laughs)`, `(Chuckling)`, `(Jim laughs)`             | Keep in place as an inline marker from the approved list below                                   |
+| Unit conversion                    | `[58,282 km]`, `[1,113 m/s]`, `[35.9 kPa]`, `[…Fahrenheit, 18 to 21° Celsius]` | `(feet per second)`                                                    | Remove                                                                                           |
+| Expansion or gloss                 | `[Antenna]`, `[FIDO]`, `[circuit breakers]`, `[nautical]`                      | `(Valve)`, `(LM)`, `(PLSS)`, `(Electro-Luminescent)`                   | Remove                                                                                           |
+| Inserted word or grammar           | `[is]`, `[the]`, `[are]`, `[you should do it]`, `occasional[ly]`               | `(to)`, `(It will)`                                                    | Remove. Fragments attached to a word revert to the spoken form (`occasional[ly]` → `occasional`) |
+| Stage direction or addressee       | `[correcting himself]`                                                         | `(To Jim)`, `(Responding to Joe)`, `(Reading)`, `(Before hearing Joe)` | Remove. Keep as an annotation                                                                    |
+| Editorial note inside an utterance | rare                                                                           | long `( … )` notes, sometimes containing links                         | Move to commentary at the same GET                                                               |
+| Literal notation that is spoken    | —                                                                              | `CB(16)`, `CB(11)` with no space before `(`                            | Keep                                                                                             |
 
 Square brackets in the AFJ and parentheses in the ALSJ are editorial by default. The literal
 notation is the exception and must be matched before the removal rules run.
@@ -328,16 +329,16 @@ non-speech stays inline, in parentheses and capitalized, at the point where it o
 `That's okay (Laughter).` or `(Laughter) I know it.` The published Apollo 17 master shows the
 vocabulary in use:
 
-| Marker         | Count |
-| -------------- | ----: |
-| `(Laughter)`   | 593   |
-| `(Humming)`    | 45    |
-| `(Chuckle)`    | 37    |
-| `(Singing)`    | 31    |
-| `(Cough)`      | 18    |
-| `(Music)`      | 12    |
-| `(Applause)`   | 6     |
-| `(Whistling)`  | 3     |
+| Marker        | Count |
+| ------------- | ----: |
+| `(Laughter)`  |   593 |
+| `(Humming)`   |    45 |
+| `(Chuckle)`   |    37 |
+| `(Singing)`   |    31 |
+| `(Cough)`     |    18 |
+| `(Music)`     |    12 |
+| `(Applause)`  |     6 |
+| `(Whistling)` |     3 |
 
 Apollo 11 and Apollo 13 use `(Laughter)` almost exclusively. Rules for
 Apollo 15:
@@ -456,7 +457,7 @@ introduce words that are not in a source.
    - a parenthesis other than an approved non-speech marker or recorded literal notation such as
      `CB(16)`
    - a unit pattern such as `\d[\d,.]* ?(km|m/s|kg|kPa|°C|°F)`
-   Commentary keeps its editorial text and links.
+     Commentary keeps its editorial text and links.
 
 ### Calibrating against the earlier missions
 
@@ -667,6 +668,7 @@ the 30-track.
 **The reels.** `N:\Projects\Apollo\Mission Data\Apollo 15\Audio\Internet Archive` holds 45 WAVs
 (128 GB). Forty-four are Apollo 15: `540-AAA` through `583-AAA`. `550-AAG` is the Apollo 11 landing
 and is excluded.
+
 - **Contents.** Each reel is a continuous space-to-ground recording. Its air-to-ground speech
   corresponds to the TEC, and its PAO announcements are in the PAO edition.
 - **Index.** `N:\Projects\Apollo\Mission Data\NASA-Audio-Archive_Digital-Audio-File_Metadata.pdf`
@@ -691,6 +693,7 @@ minute-resolution PAO header times are never fitted.
    - the expected GET span, bounded by the PAO segment headers
 
    Add the index PDF to `raw_manifest.tsv` by its external path.
+
 2. **Transcribe** with a dedicated SG script in `scripts/sg-audio/`. Stage 06 is reserved for the
    30-track, so the SG work does not extend it.
    - `scripts/sg-audio/sg_transcribe.py` uses the shared recognizer in `scripts/00_common/`.
@@ -716,6 +719,7 @@ minute-resolution PAO header times are never fitted.
    - Check for repeats and edits, like the 4.279 s repeat on 572-AAA.
 
    Ingestion consumes only the accepted map revisions.
+
 6. **Use the words as a witness.** Through an accepted map, each ASR word gets a GET, and the ASR
    becomes the audio witness in §4 step 5 and §5 step 5.
    - **The typed transcripts win on wording.** Whisper output is never published. An ASR token

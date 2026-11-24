@@ -27,7 +27,7 @@ looks for **one tape motion that independent channels agree on**:
    ~1020/1140/1260 Hz carries only ~0.15 %), form the weighted consensus and
    validate it leave-one-channel-out. Among clusters within 25 % of that FM,
    the one on the most independent channel groups wins: an equal-FM cluster
-   can carry the *inverted* motion (mirror products), and the window records
+   can carry the _inverted_ motion (mirror products), and the window records
    `sign_conflict`.
 5. Gate each window: ≥3 agreeing channel groups; ≥2 frequency families or a
    hum cluster with ≥5; cluster FM ≥ 0.8 % and consensus 0.5–4 %; channels whose
@@ -62,17 +62,17 @@ Code: `scripts/05_deflutter/flutter_census.py` (numerical core),
 The census lives under `F:/Apollo_15_30-Track/`. Analysis, planning and rendered
 audio use their existing roots under `D:/Apollo_15_30-Track/`.
 
-| Folder | Contents |
-| --- | --- |
-| `deflutter_detection_census/<run-id>/config.json` | Immutable settings, implementation hashes, input root, environment |
-| `.../<run-id>/<tape>/inventory.json` | Source identity/offsets, duplicate-file audit, block plan |
-| `.../<run-id>/<tape>/blocks/<block>/` | Verified `result.json` + float32 `curves.npy` (core/read bounds, hashes, timings) |
-| `.../<run-id>/<tape>/consensus.f64`, `evidence.json` | Joined stream and the hash-bound record of every window, block and audit |
-| `.../<run-id>/cluster/` | `status.json`, `logs/`, `inbox/`, `acks/`, `stop_requested`, lock |
-| `.../<run-id>/benchmarks/` | Isolated worker-count trials, comparisons, `selection.json` |
-| `deflutter_analysis/<run-id>/<analysis-id>/` | Archive analysis and qualification decisions ([guide](13_2026-11-17_deflutter_qualification.md)) |
-| `deflutter_planning_qualified/<run-id>/<analysis-id>/<tape>/` | Stage-05a shared `plan.json` and map from qualified decisions |
-| `defluttered_qualified/<run-id>/<analysis-id>/<tape>/CHnn/` | Stage-05b audio from that plan |
+| Folder                                                        | Contents                                                                                         |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `deflutter_detection_census/<run-id>/config.json`             | Immutable settings, implementation hashes, input root, environment                               |
+| `.../<run-id>/<tape>/inventory.json`                          | Source identity/offsets, duplicate-file audit, block plan                                        |
+| `.../<run-id>/<tape>/blocks/<block>/`                         | Verified `result.json` + float32 `curves.npy` (core/read bounds, hashes, timings)                |
+| `.../<run-id>/<tape>/consensus.f64`, `evidence.json`          | Joined stream and the hash-bound record of every window, block and audit                         |
+| `.../<run-id>/cluster/`                                       | `status.json`, `logs/`, `inbox/`, `acks/`, `stop_requested`, lock                                |
+| `.../<run-id>/benchmarks/`                                    | Isolated worker-count trials, comparisons, `selection.json`                                      |
+| `deflutter_analysis/<run-id>/<analysis-id>/`                  | Archive analysis and qualification decisions ([guide](13_2026-11-17_deflutter_qualification.md)) |
+| `deflutter_planning_qualified/<run-id>/<analysis-id>/<tape>/` | Stage-05a shared `plan.json` and map from qualified decisions                                    |
+| `defluttered_qualified/<run-id>/<analysis-id>/<tape>/CHnn/`   | Stage-05b audio from that plan                                                                   |
 
 A run ID (`census-<16 hex>`) is the hash of the detector settings, the
 implementation files' bytes, the canonical-originals root and an optional
@@ -157,9 +157,9 @@ across channels. Several workers can read different intervals of the same WAV.
 
 - Proprius workers run below normal priority with one numerical thread each.
 - Genus: `ssh bfeist@192.168.0.4`, `exec env OMP_NUM_THREADS=1 … taskset -c
-  <mask> /home/bfeist/.local/bin/uv run --no-project --python
-  /home/bfeist/.local/share/apollo15-venv/bin/python
-  /mnt/f/_repos/Apollo_15/scripts/run.py 05_detect_flutter.py worker …`.
+<mask> /home/bfeist/.local/bin/uv run --no-project --python
+/home/bfeist/.local/share/apollo15-venv/bin/python
+/mnt/f/_repos/Apollo_15/scripts/run.py 05_detect_flutter.py worker …`.
   Genus reads staged WAVs through `/mnt/f/tempF` and accesses the archive through `/mnt/d`.
 - Every worker reports its code hashes, numpy/scipy/soundfile/libsndfile
   versions, thread limits and (Genus) CPU affinity at startup, including
@@ -213,10 +213,10 @@ eight hours. Each trial used the same already-staged WAVs on F, with its
 coordinator logs and benchmark output on F. The host file caches stayed enabled.
 
 | Workers on each host | Wall seconds after staging | Tape-hours per wall-hour |
-| ---: | ---: | ---: |
-| 6 | 212.44 | 135.57 |
-| 8 | 188.12 | 153.09 |
-| 12 | 194.01 | 148.45 |
+| -------------------: | -------------------------: | -----------------------: |
+|                    6 |                     212.44 |                   135.57 |
+|                    8 |                     188.12 |                   153.09 |
+|                   12 |                     194.01 |                   148.45 |
 
 Eight workers per host increased throughput by 12.9% over six. At eight, F's
 sampled average disk queue length had a 95th percentile of 0.054. Across all
@@ -242,10 +242,10 @@ On November 18, six workers on each host separately processed the same
 `census-409e426ba812e587`. Compute time excludes input reads. Throughput
 includes startup, reads, and publication.
 
-| Host | Median compute seconds/block, before → after | Tape-hours/wall-hour, before → after |
-| --- | ---: | ---: |
-| Proprius | 100.5 → 46.6 | 33.0 → 70.7 |
-| Genus | 106.0 → 35.2 | 25.3 → 75.3 |
+| Host     | Median compute seconds/block, before → after | Tape-hours/wall-hour, before → after |
+| -------- | -------------------------------------------: | -----------------------------------: |
+| Proprius |                                 100.5 → 46.6 |                          33.0 → 70.7 |
+| Genus    |                                 106.0 → 35.2 |                          25.3 → 75.3 |
 
 The workers use batched real FFTs for Welch estimates and reuse a 256-sample
 sine/cosine basis for each group of stationary harmonics. Each beep-audit
@@ -284,10 +284,10 @@ Real-data regression with the production code on one 64 s read per window
 (`research/flutter_census/p1_production_regression.py`, outputs in the local
 `reports/flutter_census_20261115/p1_*`):
 
-| Set | Windows eligible | Beeps | Identity → curve (median Hz) | Wrong sign | 1.5 s shift | Median ratio | Worse |
-| --- | ---: | ---: | --- | ---: | ---: | ---: | ---: |
-| Research `confirm_cap20` | 20/22 (all 22 audited) | 658 | 50.9 → 12.8 | 94.6 | 59.9 | 0.241 | 0.5 % |
-| Production, same confirmation windows | 22/22 | 661 | 50.9 → 9.8 | 100.4 | 61.9 | 0.181 | 0.3 % |
+| Set                                   |       Windows eligible | Beeps | Identity → curve (median Hz) | Wrong sign | 1.5 s shift | Median ratio | Worse |
+| ------------------------------------- | ---------------------: | ----: | ---------------------------- | ---------: | ----------: | -----------: | ----: |
+| Research `confirm_cap20`              | 20/22 (all 22 audited) |   658 | 50.9 → 12.8                  |       94.6 |        59.9 |        0.241 | 0.5 % |
+| Production, same confirmation windows |                  22/22 |   661 | 50.9 → 9.8                   |      100.4 |        61.9 |        0.181 | 0.3 % |
 
 The confirmation windows were fixed before the research outcome and were not
 used for tuning; the sign-conflict rule left them unchanged. On the 228 sweep3

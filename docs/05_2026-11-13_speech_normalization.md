@@ -74,14 +74,14 @@ channel. Their full-band contrasts were only 7.72 and 7.61 dB. Method v2 rejects
 them below the 9 dB margin, leaving both gain and peak limiting bypassed.
 Reports distinguish candidate duration from accepted speech duration.
 
-| Setting | Default | Meaning |
-| --- | --- | --- |
-| `--target-speech-dbfs` | -23 | Median RMS level across accepted voiced frames, not peak or LUFS |
-| `--max-boost-db` | Disabled | Optional explicit limit on constant gain |
-| `--max-noise-dbfs` | Disabled | Optional explicit ceiling on estimated background RMS after gain |
-| `--min-snr-db` | 9 | Required margins against both the speech-band floor and full-band background |
-| `--min-speech-seconds` | 3 | Minimum accepted voiced duration, independent of total tape length |
-| `--peak-ceiling-dbfs` | -1 | Sample-peak ceiling for qualified speech renders |
+| Setting                | Default  | Meaning                                                                      |
+| ---------------------- | -------- | ---------------------------------------------------------------------------- |
+| `--target-speech-dbfs` | -23      | Median RMS level across accepted voiced frames, not peak or LUFS             |
+| `--max-boost-db`       | Disabled | Optional explicit limit on constant gain                                     |
+| `--max-noise-dbfs`     | Disabled | Optional explicit ceiling on estimated background RMS after gain             |
+| `--min-snr-db`         | 9        | Required margins against both the speech-band floor and full-band background |
+| `--min-speech-seconds` | 3        | Minimum accepted voiced duration, independent of total tape length           |
+| `--peak-ceiling-dbfs`  | -1       | Sample-peak ceiling for qualified speech renders                             |
 
 The main runner exposes the first three as `--speech-target-dbfs`,
 `--speech-max-boost-db`, and `--speech-max-noise-dbfs`.

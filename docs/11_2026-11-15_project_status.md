@@ -159,15 +159,14 @@ The October 30 Dot campaign finished its reporting through I054, but **did not
 qualify a general deflutter method or any production correction time**. It
 searched 1,200 original/denoised source excerpts, totaling 88 source-hours across
 nine tapes: 0.22916% of available source/version time. Thirty tapes remain
-unsearched by that campaign, despite the earlier v5 planner having surveyed all
-39. These are different searches with different methods.
+unsearched by that campaign, despite the earlier v5 planner having surveyed all 39. These are different searches with different methods.
 
-| Campaign outcome | Tapes | Meaning |
-| --- | ---: | --- |
-| Numerical leads | 2 | T510103 and T510108; unqualified, above the absolute residual targets |
-| Too few suitable events in the sampled passage | 2 | T510085 and T510098; not proof that useful references are absent |
-| Sampled validation failures | 5 | Local candidate failures, not whole-tape impossibility |
-| Unsearched by this campaign | 30 | No campaign-level negative finding |
+| Campaign outcome                               | Tapes | Meaning                                                               |
+| ---------------------------------------------- | ----: | --------------------------------------------------------------------- |
+| Numerical leads                                |     2 | T510103 and T510108; unqualified, above the absolute residual targets |
+| Too few suitable events in the sampled passage |     2 | T510085 and T510098; not proof that useful references are absent      |
+| Sampled validation failures                    |     5 | Local candidate failures, not whole-tape impossibility                |
+| Unsearched by this campaign                    |    30 | No campaign-level negative finding                                    |
 
 The critical finding was that stationary electrical interference could pass
 the correction checks even when there was no flutter to correct. Repairing a
@@ -211,19 +210,19 @@ be restored before following their original file links.
 
 ## What is kept where
 
-| Location | Purpose and retention |
-| --- | --- |
-| `scripts/`, `tests/`, `research/`, `docs/` | Tracked implementation, regression checks, methodology and summaries; retained |
-| `reports/deflutter_iterative_20261030/` | Primary I000–I054 evidence, exact code snapshots, maps, failures, source manifests, exposure ledgers, review audio and decisions; retained |
-| `reports/deflutter_discovery_audit_20261030/` | Audit that motivated the campaign; retained |
-| `reports/research_continuous_20261026/`, `research_coverage_20261027/`, `research_v5_allchannel_20261027/` | Earlier planner implementation and qualification evidence; retained |
-| `runs/` | Pipeline execution/provenance logs, including denoising and v5 batch/recovery; retained |
-| `archive/2026-10-16_experiments/` | Pre-existing retired experiments and source; retained |
-| `archive/historical_reports_20261103.zip` | Consolidated older report bundles, review caches, demo/smoke outputs, and retired UI artifacts; verified against original SHA-256 hashes |
-| `sites/` | Listening-site checkout, its nested Git history, and versioned exports; retained because they are not established duplicates |
-| `.venv/` | Working project environment, also used by editor services; retained |
-| `reports/repository_cleanup_20261103/` | Full before-inventory, move manifest, hashes, archive verification, data-root checks, and cleanup record |
-| `2 delete/20261103/` | Recoverable originals of archived bundles, plus expendable caches and test scratch |
+| Location                                                                                                   | Purpose and retention                                                                                                                      |
+| ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `scripts/`, `tests/`, `research/`, `docs/`                                                                 | Tracked implementation, regression checks, methodology and summaries; retained                                                             |
+| `reports/deflutter_iterative_20261030/`                                                                    | Primary I000–I054 evidence, exact code snapshots, maps, failures, source manifests, exposure ledgers, review audio and decisions; retained |
+| `reports/deflutter_discovery_audit_20261030/`                                                              | Audit that motivated the campaign; retained                                                                                                |
+| `reports/research_continuous_20261026/`, `research_coverage_20261027/`, `research_v5_allchannel_20261027/` | Earlier planner implementation and qualification evidence; retained                                                                        |
+| `runs/`                                                                                                    | Pipeline execution/provenance logs, including denoising and v5 batch/recovery; retained                                                    |
+| `archive/2026-10-16_experiments/`                                                                          | Pre-existing retired experiments and source; retained                                                                                      |
+| `archive/historical_reports_20261103.zip`                                                                  | Consolidated older report bundles, review caches, demo/smoke outputs, and retired UI artifacts; verified against original SHA-256 hashes   |
+| `sites/`                                                                                                   | Listening-site checkout, its nested Git history, and versioned exports; retained because they are not established duplicates               |
+| `.venv/`                                                                                                   | Working project environment, also used by editor services; retained                                                                        |
+| `reports/repository_cleanup_20261103/`                                                                     | Full before-inventory, move manifest, hashes, archive verification, data-root checks, and cleanup record                                   |
+| `2 delete/20261103/`                                                                                       | Recoverable originals of archived bundles, plus expendable caches and test scratch                                                         |
 
 Source snapshots that look repetitive are part of the experimental record:
 different iterations bind decisions and measurements to those exact versions.

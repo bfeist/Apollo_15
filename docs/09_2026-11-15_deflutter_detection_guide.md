@@ -16,8 +16,8 @@ Everything below follows those rules.
 
 Saved shared-map coverage is low (median 9.7 % of tape time, 0–35 %), but the
 recordings are not short of flutter evidence. In the saved v5 plans, 92–100 % of
-channel-time is bypassed for one reason: *"Insufficient independent
-calibration/validation events"*. Correction is accepted only when ~2.5 kHz
+channel-time is bypassed for one reason: _"Insufficient independent
+calibration/validation events"_. Correction is accepted only when ~2.5 kHz
 check/Quindar beeps on a target confirm it. Meanwhile, after the
 digitization hum is removed, the 1971 mains hum recorded on the tape carries the
 full ~2 % tape flutter on 10–20 channels at almost every time.
@@ -38,7 +38,7 @@ T510083 13920–14100.
 1. **Flutter size and shape.** 1.5–2.2 % RMS fractional speed error. The dominant
    rate is 6.45–6.84 Hz, with a strong 13.2 Hz harmonic. Correction bounds of
    ±4.9 % are appropriate.
-2. **On-tape vs post-tape.** Every tone recorded *on the tape* is FM-smeared by
+2. **On-tape vs post-tape.** Every tone recorded _on the tape_ is FM-smeared by
    ±3 % of its frequency (±30 Hz at 1 kHz). A narrow, sharp line is post-tape
    (digitization chain) and carries **no** flutter. Do not rank carriers by
    spectral sharpness; that was the main bias of the former
@@ -51,6 +51,7 @@ T510083 13920–14100.
 
    The "119 Hz / 118.5 Hz" frequent centres in the saved inventories are this
    hum.
+
 4. **Digitization hum.** Exact 60·n lines are stationary, 20–60 dB stronger than
    the on-tape hum, and only 0.2–2 Hz away from it. They must be **subtracted
    before tracking**: a capture wide enough for the flutter sidebands always
@@ -71,6 +72,7 @@ T510083 13920–14100.
    6.6 Hz. Use sub-sample (parabolic) peak estimates wherever a lag is
    estimated. Do not add per-channel lags. Recorded channel offsets
    (`start_seconds`) still apply as today.
+
 7. **Data defect.** **A15_T510096**'s 30 channel files are byte-identical, and so
    are its `orig_delivery` fragments. It is effectively one channel. Do not count
    its "channels" as independent witnesses. Flag it for re-delivery.
@@ -121,7 +123,7 @@ stream per tape.
 3. **Agreement graph** per 64 s analysis window (step ≤ 60 s; production can
    compute it on block curves directly).
    - Correlate every pair of tracks.
-   - An edge requires r > 0.6, *different channels*, and frequencies more than
+   - An edge requires r > 0.6, _different channels_, and frequencies more than
      2.5 % apart.
    - Build up to 4 clusters greedily: the seed is the highest-degree node; members
      are nodes with r > 0.6 to the seed.
@@ -135,21 +137,21 @@ stream per tape.
      best-correlated members (`e7_channel_loo.window`).
 5. **Leave-one-channel-out validation.**
    - For every channel with members, predict its best member from members on
-     *other* channels.
-   - Record r and LS gain. A channel *agrees* when r ≥ 0.7 and gain is 0.6–1.6.
+     _other_ channels.
+   - Record r and LS gain. A channel _agrees_ when r ≥ 0.7 and gain is 0.6–1.6.
    - Consider replacing the gain gate with an errors-in-variables gain; the
      current gate fails when the seed is the loudest member.
 
 ### Stage C — gates, per window (all must hold)
 
-| gate | rule | why |
-|---|---|---|
-| agreement | ≥3 agreeing channels | independent witnesses of one motion |
-| diversity | ≥2 frequency families (not the same Hz and not low-order harmonics of one f0 ≥ 80 Hz), **or** hum cluster with ≥5 agreeing channels | protects against a single source with its own FM |
-| magnitude | cluster median FM ≥ 0.8 % and consensus FM in 0.5–4 % | rejects post-tape combs and noise |
-| duplicates | channels whose raw audio correlates > 0.95 count once | T510096 and copied feeds |
-| controls | where beeps exist: +curve median ratio < 0.8, −curve > 1, 1.5 s shift ≥ 0.9 | audit only, never a requirement |
-| speed bound | \|e\| ≤ 4.9 % after joining | existing map preflight |
+| gate        | rule                                                                                                                                | why                                              |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| agreement   | ≥3 agreeing channels                                                                                                                | independent witnesses of one motion              |
+| diversity   | ≥2 frequency families (not the same Hz and not low-order harmonics of one f0 ≥ 80 Hz), **or** hum cluster with ≥5 agreeing channels | protects against a single source with its own FM |
+| magnitude   | cluster median FM ≥ 0.8 % and consensus FM in 0.5–4 %                                                                               | rejects post-tape combs and noise                |
+| duplicates  | channels whose raw audio correlates > 0.95 count once                                                                               | T510096 and copied feeds                         |
+| controls    | where beeps exist: +curve median ratio < 0.8, −curve > 1, 1.5 s shift ≥ 0.9                                                         | audit only, never a requirement                  |
+| speed bound | \|e\| ≤ 4.9 % after joining                                                                                                         | existing map preflight                           |
 
 Windows that fail are **bypassed**; do not force correction into gaps.
 
@@ -190,14 +192,14 @@ Use **`D:/Apollo_15_30-Track/deflutter_detection_census/`** for the data produce
 by this detection phase. Keep detection evidence, compiled maps and rendered
 audio in these separate, explicit destinations:
 
-| root under `D:/Apollo_15_30-Track/` | contents |
-|---|---|
-| `deflutter_detection_census/<run-id>/` | immutable run configuration, implementation/environment/source bindings, worker benchmark reports and selected pool settings |
-| `deflutter_detection_census/<run-id>/<tape>/blocks/<block-id>/` | verified per-block `result.json` and float32 `curves.npy`, including core/halo bounds and completion hashes |
-| `deflutter_detection_census/<run-id>/<tape>/` | joined `consensus.f64` (`<f8`, speed/support pairs at 200 Hz) and completed `evidence.json` binding the stream and all block results |
-| `deflutter_detection_census/<run-id>/cluster/` | job ownership, host progress/heartbeats, logs, isolated inbox, publication acknowledgements and graceful-stop state |
-| `deflutter_planning_census/<run-id>/<tape>/` | native shared `plan.json`, selection, evidence bindings and compiled inverse map from stage 05a |
-| `defluttered_census/<run-id>/<tape>/CHnn/` | stage-05b `deflutter.wav` and its provenance |
+| root under `D:/Apollo_15_30-Track/`                             | contents                                                                                                                             |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `deflutter_detection_census/<run-id>/`                          | immutable run configuration, implementation/environment/source bindings, worker benchmark reports and selected pool settings         |
+| `deflutter_detection_census/<run-id>/<tape>/blocks/<block-id>/` | verified per-block `result.json` and float32 `curves.npy`, including core/halo bounds and completion hashes                          |
+| `deflutter_detection_census/<run-id>/<tape>/`                   | joined `consensus.f64` (`<f8`, speed/support pairs at 200 Hz) and completed `evidence.json` binding the stream and all block results |
+| `deflutter_detection_census/<run-id>/cluster/`                  | job ownership, host progress/heartbeats, logs, isolated inbox, publication acknowledgements and graceful-stop state                  |
+| `deflutter_planning_census/<run-id>/<tape>/`                    | native shared `plan.json`, selection, evidence bindings and compiled inverse map from stage 05a                                      |
+| `defluttered_census/<run-id>/<tape>/CHnn/`                      | stage-05b `deflutter.wav` and its provenance                                                                                         |
 
 `<tape>` is the canonical folder name, e.g. `A15_T510077`. A run ID binds the
 detector settings, code and input identities; resume reuses only verified,
@@ -268,7 +270,7 @@ confirmation set before seeing outcomes, as `confirm_windows.txt` was.
 4. **More families.** CH30-type buzz harmonics (~98.4 Hz series on T510077) and
    hum harmonics above 1 kHz on the full-rate path.
 5. **Beeps as references.** Where beeps exist they are excellent short carriers.
-   Using them *in* the estimate is allowed under the tape rule, but then they are
+   Using them _in_ the estimate is allowed under the tape rule, but then they are
    not validation. Keep a held-out subset.
 6. **Do not** narrow the band to 3–16 Hz, and do not add lags (both measured
    worse).
@@ -277,11 +279,11 @@ confirmation set before seeing outcomes, as `confirm_windows.txt` was.
 
 Measured in W1:
 
-| item | current | new |
-|---|---|---|
-| v5 survey | 5.7–28 k s per tape, 81 process-h archive | — |
-| e5 window evaluator | 36 s per 64 s × 30 ch (53 source-h per wall-h per core) | — |
-| block prototype `w1_fast.py` | — | 160–426 source-h per wall-h per core (8–13×) |
+| item                         | current                                                 | new                                          |
+| ---------------------------- | ------------------------------------------------------- | -------------------------------------------- |
+| v5 survey                    | 5.7–28 k s per tape, 81 process-h archive               | —                                            |
+| e5 window evaluator          | 36 s per 64 s × 30 ch (53 source-h per wall-h per core) | —                                            |
+| block prototype `w1_fast.py` | —                                                       | 160–426 source-h per wall-h per core (8–13×) |
 
 Implementation rules:
 
@@ -406,17 +408,17 @@ Implementation rules:
 
 ## 8. File map
 
-| path | content |
-|---|---|
-| `research/flutter_census/BRIEFING.md` | worker briefing, findings summary |
-| `research/flutter_census/common.py` | read, demod, frac_dev, dewarp, exact_mains, remove_stationary, lagcorr |
-| `research/flutter_census/e4_blind_seed.py`, `e7_channel_loo.py` | blind candidates, tracks, clusters, LOO (reference implementation of stage B/C) |
-| `research/flutter_census/w1_fast.py` | block-based fast prototype (reference for production speed) |
-| `research/flutter_census/e3_consensus.py`, `e11_refine.py` | concentration witness, autofocus refinement |
-| `research/flutter_census/e8_beep_check.py`, `e9_beep_windows.py`, `e13_find_beep_windows.py` | beep audit with controls; fresh beep-window selection |
-| `research/flutter_census/e0_duplicate_audit.py` | duplicate-channel guard (production: `flutter_detection.duplicate_audit`) |
-| `scripts/05_deflutter/flutter_census.py` | production stages A–D numerical core |
-| `scripts/05_deflutter/flutter_detection.py`, `05_detect_flutter.py` | production run identity, Proprius/Genus pool, publication, joined streams |
-| `research/flutter_census/p1_production_regression.py`, `p2_v5_consistency.py` | production regression on saved windows; v5 consistency |
-| `research/flutter_census/w2_*.py`, `w3_*.py` | lag study; check-tone validation and amplitude calibration |
-| `reports/flutter_census_20261115/` | all outputs, `REPORT.md`, worker reports |
+| path                                                                                         | content                                                                         |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `research/flutter_census/BRIEFING.md`                                                        | worker briefing, findings summary                                               |
+| `research/flutter_census/common.py`                                                          | read, demod, frac_dev, dewarp, exact_mains, remove_stationary, lagcorr          |
+| `research/flutter_census/e4_blind_seed.py`, `e7_channel_loo.py`                              | blind candidates, tracks, clusters, LOO (reference implementation of stage B/C) |
+| `research/flutter_census/w1_fast.py`                                                         | block-based fast prototype (reference for production speed)                     |
+| `research/flutter_census/e3_consensus.py`, `e11_refine.py`                                   | concentration witness, autofocus refinement                                     |
+| `research/flutter_census/e8_beep_check.py`, `e9_beep_windows.py`, `e13_find_beep_windows.py` | beep audit with controls; fresh beep-window selection                           |
+| `research/flutter_census/e0_duplicate_audit.py`                                              | duplicate-channel guard (production: `flutter_detection.duplicate_audit`)       |
+| `scripts/05_deflutter/flutter_census.py`                                                     | production stages A–D numerical core                                            |
+| `scripts/05_deflutter/flutter_detection.py`, `05_detect_flutter.py`                          | production run identity, Proprius/Genus pool, publication, joined streams       |
+| `research/flutter_census/p1_production_regression.py`, `p2_v5_consistency.py`                | production regression on saved windows; v5 consistency                          |
+| `research/flutter_census/w2_*.py`, `w3_*.py`                                                 | lag study; check-tone validation and amplitude calibration                      |
+| `reports/flutter_census_20261115/`                                                           | all outputs, `REPORT.md`, worker reports                                        |

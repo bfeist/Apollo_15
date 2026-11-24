@@ -27,12 +27,12 @@ planning evidence; they are not approval to launch that revision unchanged.
 
 The owner's naming policy is:
 
-| Purpose | Absolute directory |
-| --- | --- |
-| Immutable originals | `D:/Apollo_15_30-Track/orig_concatenated` |
-| Current old output, before cutover | `D:/Apollo_15_30-Track/denoised` |
-| Preserved old output, after cutover | `D:/Apollo_15_30-Track/denoised_v1` |
-| New v2 production output | `D:/Apollo_15_30-Track/denoised` |
+| Purpose                             | Absolute directory                        |
+| ----------------------------------- | ----------------------------------------- |
+| Immutable originals                 | `D:/Apollo_15_30-Track/orig_concatenated` |
+| Current old output, before cutover  | `D:/Apollo_15_30-Track/denoised`          |
+| Preserved old output, after cutover | `D:/Apollo_15_30-Track/denoised_v1`       |
+| New v2 production output            | `D:/Apollo_15_30-Track/denoised`          |
 
 Do not use `denoised_v2` as the new production root. Rename the old tree on the
 same volume; do not copy, merge, clean up, or regenerate it. The rename is part
@@ -124,17 +124,17 @@ cutover and batch scheduling. Stage 03 supports explicit v2 dispatch after
 cutover. The v1 stage 03 writer checks the canonical version before writing,
 and `render_denoise_v2.py` remains a review exporter.
 
-| File in `scripts/` | Role |
-| --- | --- |
-| `denoise_v2_background.py` | Starts the rollout with lower Windows process priority |
-| `denoise_v2_rollout.py` | Entry point for the canary, archive cutover and batch scheduling |
-| `denoise_v2_production.py` | Streams whole channels, checkpoints work and verifies published WAVs |
-| `denoise_v2_gain.py` | Measures the program peak and identifies isolated endpoint impulses |
-| `denoise_v2_quality.py` | Measures residuals and checks the canary against the saved review |
-| `denoise_v2.py` and `denoise_v2_refinement.py` | Fit and subtract hum using the frozen model |
-| `denoise_archive.py` | Shares version checks and historical path resolution across writers and readers |
-| `render_denoise_v2.py` | Exports listening comparisons and supplies the frozen frequency-hint reader |
-| `deflutter_readiness.py` | Reports downstream readiness and supplies the legacy acceptance template |
+| File in `scripts/`                             | Role                                                                            |
+| ---------------------------------------------- | ------------------------------------------------------------------------------- |
+| `denoise_v2_background.py`                     | Starts the rollout with lower Windows process priority                          |
+| `denoise_v2_rollout.py`                        | Entry point for the canary, archive cutover and batch scheduling                |
+| `denoise_v2_production.py`                     | Streams whole channels, checkpoints work and verifies published WAVs            |
+| `denoise_v2_gain.py`                           | Measures the program peak and identifies isolated endpoint impulses             |
+| `denoise_v2_quality.py`                        | Measures residuals and checks the canary against the saved review               |
+| `denoise_v2.py` and `denoise_v2_refinement.py` | Fit and subtract hum using the frozen model                                     |
+| `denoise_archive.py`                           | Shares version checks and historical path resolution across writers and readers |
+| `render_denoise_v2.py`                         | Exports listening comparisons and supplies the frozen frequency-hint reader     |
+| `deflutter_readiness.py`                       | Reports downstream readiness and supplies the legacy acceptance template        |
 
 1. **Production writer and restart.** Add a v2 whole-channel writer using the
    output contract above. Use a per-channel lock and a run-owned staging
@@ -235,6 +235,7 @@ synthetic chunks without the compact stage.
    version checks, manifest recording, and crash recovery must surround them.
    After cutover, use `denoised_v1` for all legacy hint logs. Promote validated
    canary outputs into the new root only under their unchanged run identities.
+
 6. Launch the production scheduler against the new canonical root. Log a run
    summary and per-channel status continuously. Stop scheduling on source/code
    identity change, disk exhaustion, repeated systemic failure or version

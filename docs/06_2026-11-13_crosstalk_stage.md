@@ -141,10 +141,10 @@ V2 denoising retains its separate production console and frozen runtime.
 
 Defaults:
 
-| Setting | Path |
-| --- | --- |
-| Target and donor inputs, `--denoised-root` | `D:/Apollo_15_30-Track/denoised` |
-| Output, `--crosstalk-root` | `D:/Apollo_15_30-Track/crosstalk_removed/<tape>/CHnn` |
+| Setting                                     | Path                                                           |
+| ------------------------------------------- | -------------------------------------------------------------- |
+| Target and donor inputs, `--denoised-root`  | `D:/Apollo_15_30-Track/denoised`                               |
+| Output, `--crosstalk-root`                  | `D:/Apollo_15_30-Track/crosstalk_removed/<tape>/CHnn`          |
 | Saved research, `--crosstalk-evidence-root` | `reports/crosstalk_echo_Audition_20261108_v2` in this checkout |
 
 The standalone command offers an input-validating preflight without writing:

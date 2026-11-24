@@ -42,7 +42,7 @@ time may be corrected by the shared map:
    cluster's curve, the reproduction correlation with the census curve,
    family-versus-rest consensus correlations and the largest single feed share,
    mirror/mains-adjacent explanation of anti-correlated clusters, concentration
-   of tones above 200 Hz (member tones dewarped *leave-group-out*, plus
+   of tones above 200 Hz (member tones dewarped _leave-group-out_, plus
    non-member tones), and per-beep sufficient statistics of beep FM against
    the census curve at lags ±0.3 s. Results are content-addressed and reused
    by any later analysis of the same census.
@@ -54,9 +54,9 @@ time may be corrected by the shared map:
    - unflagged candidates apply; a flagged window without follow-up is
      `incomplete`, never silently bypassed;
    - a contradiction is resolved to `apply` only when the decision-half beeps
-   are measured and independent of the tested motion (|r| < 0.3 at zero lag
-   and |r| < 0.6 across the lag sweep), at least two > 200 Hz tones from
-   distinct feed groups and frequency families
+     are measured and independent of the tested motion (|r| < 0.3 at zero lag
+     and |r| < 0.6 across the lag sweep), at least two > 200 Hz tones from
+     distinct feed groups and frequency families
      tones concentrate under the curve and none prefers the reversed sign,
      the census curve is reproduced (r ≥ 0.9), families agree (r ≥ 0.7), no
      single feed carries over half the weight and any sign conflict is
@@ -68,6 +68,7 @@ time may be corrected by the shared map:
    window cannot leak correction into a contradicted interval. Applied census
    curves are joined once (`census.join_windows`) into
    `qualified.f64` with zero support everywhere else.
+
 5. **Validate.** Held-out physical events only, by deterministic tape split
    (A15_T510073, A15_T510083 and A15_T510106 are always development): coverage,
    median ratio and degradation inside applied intervals, the same inside
@@ -98,16 +99,16 @@ ratio 0.22 with 2.2 % worse, the removed ones 2.0.
 
 ## Folders
 
-| Under `D:/Apollo_15_30-Track/deflutter_analysis/<census-run-id>/` | Contents |
-| --- | --- |
-| `<analysis-id>/config.json` | Identity: census run, input-manifest hash, analysis code hashes, settings, policy, seed |
-| `<analysis-id>/input_manifest.json` | Every tape's status and evidence/stream hashes |
-| `<analysis-id>/archive_summary.json`, `tapes.json` | Archive and per-tape summaries |
-| `<analysis-id>/windows.jsonl`, `events.jsonl` | Window index (flags, class) and physical beep events |
-| `<analysis-id>/followup_queue.json`, `followup/` | Queue, job plan and status with yield summary |
-| `<analysis-id>/qualification/<tape>/` | `decisions.json` and `qualified.f64` |
-| `<analysis-id>/validation.json`, `qa/selection.json` | Held-out validation; frozen QA selection |
-| `followup_cache/<key>/` | Shared follow-up results and hypothesis curves |
+| Under `D:/Apollo_15_30-Track/deflutter_analysis/<census-run-id>/` | Contents                                                                                |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `<analysis-id>/config.json`                                       | Identity: census run, input-manifest hash, analysis code hashes, settings, policy, seed |
+| `<analysis-id>/input_manifest.json`                               | Every tape's status and evidence/stream hashes                                          |
+| `<analysis-id>/archive_summary.json`, `tapes.json`                | Archive and per-tape summaries                                                          |
+| `<analysis-id>/windows.jsonl`, `events.jsonl`                     | Window index (flags, class) and physical beep events                                    |
+| `<analysis-id>/followup_queue.json`, `followup/`                  | Queue, job plan and status with yield summary                                           |
+| `<analysis-id>/qualification/<tape>/`                             | `decisions.json` and `qualified.f64`                                                    |
+| `<analysis-id>/validation.json`, `qa/selection.json`              | Held-out validation; frozen QA selection                                                |
+| `followup_cache/<key>/`                                           | Shared follow-up results and hypothesis curves                                          |
 
 An analysis ID (`analysis-<16 hex>`) changes with the census state, the
 analysis code (`qualification_policy.py`, `flutter_analysis.py`,

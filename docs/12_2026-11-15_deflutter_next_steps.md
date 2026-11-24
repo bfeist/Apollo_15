@@ -76,13 +76,13 @@ Not done, because the denoise rollout is running:
 
 Regression results with the production code:
 
-| Check (guide section 6) | Requirement | Result |
-| --- | --- | --- |
-| Confirmation windows, beep median ratio | ≤ 0.26 | **0.181** (661 beeps, 50.9 → 9.8 Hz) |
-| Confirmation windows, beeps made worse | ≤ 1 % | **0.3 %** |
-| Wrong-sign / 1.5 s shift controls | worse than identity / no benefit | 100.4 Hz / 61.9 Hz vs 50.9 Hz |
-| sweep3 windows eligible (228, 38 tapes) | ≥ 85 % | **211/228 = 92.5 %** (research strict rule 88.2 %) |
-| v5 consistency at T510083 14034 | r ≥ 0.8 at lag 0; ratio ≤ v5 + 0.05 | r 0.97; 0.20 vs v5 0.28–0.32 |
+| Check (guide section 6)                 | Requirement                         | Result                                             |
+| --------------------------------------- | ----------------------------------- | -------------------------------------------------- |
+| Confirmation windows, beep median ratio | ≤ 0.26                              | **0.181** (661 beeps, 50.9 → 9.8 Hz)               |
+| Confirmation windows, beeps made worse  | ≤ 1 %                               | **0.3 %**                                          |
+| Wrong-sign / 1.5 s shift controls       | worse than identity / no benefit    | 100.4 Hz / 61.9 Hz vs 50.9 Hz                      |
+| sweep3 windows eligible (228, 38 tapes) | ≥ 85 %                              | **211/228 = 92.5 %** (research strict rule 88.2 %) |
+| v5 consistency at T510083 14034         | r ≥ 0.8 at lag 0; ratio ≤ v5 + 0.05 | r 0.97; 0.20 vs v5 0.28–0.32                       |
 
 On sweep3, 1,322 beeps in eligible or audited windows gave 50.6 → 10.2 Hz
 (median ratio 0.201) but 2.0 % were made worse. Most of those are one window,
@@ -121,14 +121,14 @@ diagnosis. These are sparse research maps, not completed archive censuses.
 Owner feedback, bound to delivered audio/map hashes in that folder's
 `listening_feedback.json`:
 
-| Sample | Tape / channel / canonical start | Listening result |
-| --- | --- | --- |
-| 01 | T510073 / CH21 / 36002 | No clear improvement; tentative preference for C |
-| 02 | T510073 / CH22 / 36002 | C best |
-| 03 | T510073 / CH19 / 36002 | B best |
-| 04 | T510106 / CH20 / 6102 | B better |
-| 05 | T510083 / CH20 / 15385 | B better |
-| 06 | T510106 / CH20 / 25683 | No speech, only line noise; B seems to have less flutter |
+| Sample | Tape / channel / canonical start | Listening result                                         |
+| ------ | -------------------------------- | -------------------------------------------------------- |
+| 01     | T510073 / CH21 / 36002           | No clear improvement; tentative preference for C         |
+| 02     | T510073 / CH22 / 36002           | C best                                                   |
+| 03     | T510073 / CH19 / 36002           | B best                                                   |
+| 04     | T510106 / CH20 / 6102            | B better                                                 |
+| 05     | T510083 / CH20 / 15385           | B better                                                 |
+| 06     | T510106 / CH20 / 25683           | No speech, only line noise; B seems to have less flutter |
 
 Samples 04 and 05 support audible improvement in those excerpts. Sample 06
 does not establish speech improvement. T510073 remains unresolved: the
@@ -188,6 +188,7 @@ short block of one tape if you want the tail case.
    shared D:/network contention. Twelve blocks finish quickly at high worker
    counts; enlarge the list (same list for all trials) if a trial lasts under
    about ten minutes.
+
 3. Repeat the best configurations at least three times in varied order. Note
    warm or cold cache (first read after reboot or other heavy I/O is cold),
    competing I/O, and Proprius responsiveness. Each `report.json` has wall
@@ -200,6 +201,7 @@ short block of one tape if you want the tail case.
    ```
 
    It requires identical gates and curve differences ≤ 1e-5.
+
 5. Bind the choice (fastest stable setting within the six-worker Proprius cap;
    prefer fewer workers when rates are within variability):
 

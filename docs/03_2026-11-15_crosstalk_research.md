@@ -22,12 +22,12 @@ The feedback is recorded in the delivery folder's `listening_feedback.json`.
 
 Each folder contains these matched, 30-second, mono 8 kHz / 24-bit WAVs:
 
-| File | Treatment |
-| --- | --- |
-| `A.wav` | Completed denoised target, unchanged baseline |
-| `B.wav` | Joint main/echo fit; subtract only the earlier copy using frozen transfer coefficients |
-| `C.wav` | Joint main/echo fit with locally adapted coefficients and a withheld-block confidence screen |
-| `removed_B.wav`, `removed_C.wav` | Exactly the respective subtraction, within PCM quantization |
+| File                             | Treatment                                                                                    |
+| -------------------------------- | -------------------------------------------------------------------------------------------- |
+| `A.wav`                          | Completed denoised target, unchanged baseline                                                |
+| `B.wav`                          | Joint main/echo fit; subtract only the earlier copy using frozen transfer coefficients       |
+| `C.wav`                          | Joint main/echo fit with locally adapted coefficients and a withheld-block confidence screen |
+| `removed_B.wav`, `removed_C.wav` | Exactly the respective subtraction, within PCM quantization                                  |
 
 **Listen at 14.1–15.48 seconds, then compare the stronger occurrence around
 15.7–17 seconds.** The files cover canonical 13,555–13,585 seconds, corresponding
@@ -67,9 +67,9 @@ on alternating withheld blocks with guards between the regressors. Both have
 common gain of 1.3996783018483525, with no separate normalization or de-flutter.
 
 | Target | B calibration residual change | B withheld tail, 14.8–15.4 s | C same tail |
-| --- | ---: | ---: | ---: |
-| CH17 | −11.76 dB | −7.11 dB | −8.08 dB |
-| CH20 | −4.84 dB | −1.23 dB | −1.57 dB |
+| ------ | ----------------------------: | ---------------------------: | ----------: |
+| CH17   |                     −11.76 dB |                     −7.11 dB |    −8.08 dB |
+| CH20   |                      −4.84 dB |                     −1.23 dB |    −1.57 dB |
 
 These are total residual-energy changes in the prediction band, **not measured
 perceptual echo attenuation**. B's alignment still uses the evaluation audio;
@@ -362,11 +362,11 @@ transfer diagnostics. A final qualification must reserve untouched events.
 All times below are seconds on the original WAV timeline. A positive lag reads
 the donor later than the target. Residual changes are in the analysis band.
 
-| Reel and subtraction | Lag | Fit start | Check starts | Filtered residual change |
-| --- | ---: | ---: | --- | --- |
-| T510083 CH20 from CH21 | −1.376875 s | 14,295 | 14,475 and 14,335 | +0.003 dB and +0.127 dB |
-| T510083 CH21 from CH22 | +1.377250 s | 14,295 | 14,475 and 14,335 | +0.389 dB and +0.123 dB |
-| T510077 CH28 from CH29 | +1.371125 s | 19,400 | 19,440 and 19,715 | +1.766 dB and −0.098 dB |
+| Reel and subtraction   |         Lag | Fit start | Check starts      | Filtered residual change |
+| ---------------------- | ----------: | --------: | ----------------- | ------------------------ |
+| T510083 CH20 from CH21 | −1.376875 s |    14,295 | 14,475 and 14,335 | +0.003 dB and +0.127 dB  |
+| T510083 CH21 from CH22 | +1.377250 s |    14,295 | 14,475 and 14,335 | +0.389 dB and +0.123 dB  |
+| T510077 CH28 from CH29 | +1.371125 s |    19,400 | 19,440 and 19,715 | +1.766 dB and −0.098 dB  |
 
 All six windows failed at least one filter check. The tests required a
 held-out gain ratio of 0.65–1.5, positive transfer above 0.5 in at least two
