@@ -532,17 +532,20 @@ review:`) to the crew member, with the review as the source.
    and 98 masters and the SIM-bay PNGs into the raw folder (§1). Then write the §3 media tree
    from the Flickr masters and those downloads. Skip outputs whose recorded source checksum is unchanged. Record each media path in the
    photo index.
-9. **Build the table of contents.** Seed it from AFJ and ALSJ chapter titles and their first GET,
+9. **Build the table of contents.** Now `flight_plan.py toc`, run after this pipeline
+   ([flight-plan guide](17_2026-11-23_flight_plan_ingestion.md) §6). Seed it from AFJ and ALSJ chapter titles and their first GET,
    with level-2 mission events from `a15summary.html` and the press-kit timeline. Then review it
    by hand, as for `A13_TOC.csv`.
-10. **Validate.** Port `errorcheckUtterancesDatafile.py` and `errorcheckPhotosDatafile.py` as
+10. **Validate.** The flight-plan and TOC checks are `flight_plan.py validate`. Port `errorcheckUtterancesDatafile.py` and `errorcheckPhotosDatafile.py` as
     tests. Check monotonic GET within each source, malformed stamps, runs of identical stamps
     (the A17 missing-audio check), unmapped speakers, the §4 bracket and unit release check,
     photo IDs without hosted files, and hosted files never referenced. Also check every hosted
     IM-LDI-derived image. It must have a recorded crop and tone setting. Its edges must contain
     no film-base border or sprocket holes, detected as a dark band or a regular hole pattern
     along any side.
-11. **Write the master files and AiRT2 indexes** (§3). Apply display conventions only here:
+11. **Write the master files and AiRT2 indexes** (§3). This is not part of `sg_transcript.py`.
+    It belongs to `web_publish`, a separate, not yet designed step that packages the output of
+    every stage for the web. Requirements so far: apply display conventions only there:
     the garble marker, link targets and `HHHMMSS` IDs. Check the `indexes/` files against the
     AiRT2 loaders' schemas for the existing missions before copying them into
     `../AiRT2/public/15/indexes/`.
@@ -728,7 +731,7 @@ minute-resolution PAO header times are never fitted.
 
 ## 7. Code location
 
-Put the code in `scripts/mission_data/`, registered in `scripts/layout.json`, with tests in
+Put the code in `scripts/sg_transcript/`, registered in `scripts/layout.json`, with tests in
 `tests/`. Run it with `uv run python …`. The existing numbered audio stages (`scripts/00_common/`
 through `scripts/08_irig/`) are planned to move to `scripts/30track/`. That move is separate
 work: update `layout.json`, `pipeline.py`, `run.py` and the frozen-runtime path adapter
@@ -745,6 +748,6 @@ together, and keep the frozen denoise runtime's internal layout unchanged.
    Apollo 11, 13 and 17 inline `(Laughter)` convention, with an approved list (§4).
 5. **PDFs and other raw downloads:** keep them in `N:\Projects\Apollo\Apollo 15 Project`, not in
    Git. Keep their manifest in Git (§3).
-6. **Code:** `scripts/mission_data/`. The numbered audio folders will move to `scripts/30track/`.
+6. **Code:** `scripts/sg_transcript/`. The numbered audio folders will move to `scripts/30track/`.
    This repository is for Apollo 15 mission data. The website is `../AiRT2` (§2, §7).
 7. **HGX model:** `LLM-Alpha-512K`, which is GLM-5.3-Flash.

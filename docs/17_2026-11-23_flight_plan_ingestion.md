@@ -424,47 +424,47 @@ events remain inputs, and the flight-plan structure supplies the complete skelet
 
 ## 7. Steps and commands
 
-These are added as subcommands of `scripts/mission_data/mission_data.py`, in a module
-`md_flightplan.py` registered in `scripts/layout.json`. Run them with `uv run python …`. Each
+These are the steps of `scripts/flight_plan/flight_plan.py`, implemented in
+`scripts/flight_plan/md_flightplan.py` and registered in `scripts/layout.json`. Run them with `uv run python …`. Each
 step reads only its predecessors' outputs, and reruns on unchanged inputs are byte-identical.
 
-1. **`flightplan snapshot`**
+1. **`flight_plan.py snapshot`**
    - Fetch `fplanindex.html`, `a15.fltplan.html` and `a15docs.html` into `MISSION_DATA/journals/`.
    - Download the 464 GIFs, 98 ALSJ JPGs and both PDFs into
      `N:\Projects\Apollo\Apollo 15 Project\original_docs\flight_plan\{afj_gif,alsj_jpg,pdf}\`,
      recording them in `raw_manifest.tsv` (kind `flight_plan`).
    - Throttle requests. A changed upstream file is kept under a dated name.
-2. **`flightplan pages`**
+2. **`flight_plan.py pages`**
    - Do the witness matching (§2).
    - Parse the LEP and index into `fp_pages.tsv`.
    - Resolve the page-count mismatch and list the missing pages.
-3. **`flightplan geometry`**
+3. **`flight_plan.py geometry`**
    - Find rules, boxes, columns and ruler ticks.
    - Classify the page type.
    - Write the ruler fit and the CDT check.
-4. **`flightplan ocr`**
+4. **`flight_plan.py ocr`**
    - Run OXR on the selected witnesses.
    - Import the Virtual AGC layer.
    - Combine the readings. Disagreements go to `review/fp_ocr.tsv`.
    - Scheduling follows the OCR rules in the ingestion guide: one GPU model at a time, and not
      during 06a runs.
-5. **`flightplan structure [--backend hgx|strata] [--budget N]`**
+5. **`flight_plan.py structure [--backend hgx|strata] [--budget N]`**
    - Do the AI structuring (§3.4), with validation.
    - Write `fp_blocks`, `fp_activities`, `fp_events`, `fp_coverage`, `fp_tables` and
      `fp_glossary`.
    - Annotation detection (§3.5) happens here.
-6. **`flightplan updates`**
+6. **`flight_plan.py updates`**
    - Extract the read-ups from the transcripts and journals, giving `fp_updates.tsv`.
-7. **`flightplan actual [--backend …]`**
+7. **`flight_plan.py actual [--backend …]`**
    - Parse the AFJ event index.
    - Match against the Mission Report table and the AI evidence.
    - Fit the slip map. Write `fp_actual.tsv` and the review queue.
-8. **`flightplan media`**
+8. **`flight_plan.py media`**
    - Write the hosted page images (§4).
-9. **`toc`** (extended)
+9. **`flight_plan.py toc`**
    - Write `A15_TOC.csv` and `A15_TOC.tsv`, and the `missionStagesData` and `crewStatusData`
      drafts from the accepted actual timeline plus `review/toc.tsv`.
-10. **`validate`** (extended)
+10. **`flight_plan.py validate`**
     - **Pages:** every LEP page is present or recorded as missing, each page has one witness
       match, and the footer range contains every block GET on its page.
     - **Times:** the ruler residual is under one tick, and the CDT label agrees with
@@ -501,11 +501,11 @@ step reads only its predecessors' outputs, and reruns on unchanged inputs are by
 
 ## 9. Execution status (2026-11-23)
 
-Code: `scripts/mission_data/md_flightplan.py` (CLI and snapshot) with `md_fp_pages`, `md_fp_geometry`,
+Code: `scripts/flight_plan/md_flightplan.py` (CLI and snapshot) with `md_fp_pages`, `md_fp_geometry`,
 `md_fp_ocr`, `md_fp_structure`, `md_fp_actual`, `md_fp_media`, `md_fp_export` and `md_fp_assemble`
-(which rebuilds `fp_pages.tsv` from every step's tables), plus `md_toc` and `md_validate`. Tests:
-`tests/test_flight_plan.py`. Run with `uv run python scripts/run.py mission_data.py flightplan <step>`,
-then `… toc` and `… validate`. Reruns on unchanged inputs are byte-identical (checked).
+(which rebuilds `fp_pages.tsv` from every step's tables), `md_toc` and `md_validate`. Tests:
+`tests/test_flight_plan.py`. Run `uv run python scripts/run.py sg_transcript.py …` first, then
+`uv run python scripts/run.py flight_plan.py <step>` through `toc` and `validate`. Reruns on unchanged inputs are byte-identical (checked).
 
 **Where things live.** Committed: `MISSION_DATA/flight_plan/fp_*.tsv`, `MISSION_DATA/A15_TOC.{csv,tsv}`,
 `MISSION_DATA/indexes/{TOCData,missionStagesData,crewStatusData}.csv`, `indexes/flightPlanData.json`,
@@ -518,7 +518,7 @@ work queues `review/fp_*_queue.tsv`, `toc_held.tsv`, `toc_dropped.tsv`, `validat
 | 1 snapshot | done | `fplanindex.html`, `a15.fltplan.html` in the journal snapshots; 464 GIFs, 98 JPGs, both PDFs and 7 companion PDFs (Mission Report, Mission Operations Report, LSP, LM activation checklist, press kit, two console logs) in the raw folder and `raw_manifest.tsv`. `a15-csm-g+n-ssr-log{,-cleaned}.pdf` return 404 upstream. Searches are in `fp_searches.tsv` |
 | 2 pages | done | 393 AFJ PDF pages are pixel-identical to their GIF and 71 match by perceptual hash. The PDF stores most images bottom-up, so matching tries all eight orientations. **Page count resolved** (`fp_reconciliation.tsv`): PDF page 1 is the cover note, page 48 is an empty page, 3-302 is scanned twice (pages 359 and 360), and the PDF lacks 2-020 (the GIF has it). The Virtual AGC PDF has the same layout. All 98 ALSJ JPGs align by homography. The LEP (pages iv–v, checked on the scan) lists 4-1, 5-1…5-25 and 6-1. **Missing pages:** vi, x, 3-003, 3-004, 4-001, 5-001…5-008, 5-016…5-025 and 6-001 (24). 5-009…5-015 are ALSJ-only |
 | 3 geometry | done (first pass) | 464 pages typed: 285 CSM and 92 LM timelines, 23 procedures, 23 tables, 9 notes, 26 front matter, 6 blank. Timeline pages have one or more **strips** (3-143 has two half-hour rulers), and the rule's ticks can be on either side of it. 420 of 435 strips have a ruler fit from the Virtual AGC text layer. The CDT check agrees on 138 of 144 pages read, and the 6 mismatches are text-layer misreadings. These fits are replaced by OXR in step 4 |
-| 4 ocr | **blocked** | A stage-06a `run --all-tapes` holds the GPU (ETA about 33 h on 2026-11-23), and the OXR container `lsc-oxr` is stopped. `flightplan ocr` refuses to start while 06a runs. Afterwards: start OXR (`../lsc/scripts/setup_oxr.ps1`), score the sample at `--scale 1`, `2` and `3`, then run all pages |
+| 4 ocr | **blocked** | A stage-06a `run --all-tapes` holds the GPU (ETA about 33 h on 2026-11-23), and the OXR container `lsc-oxr` is stopped. `flight_plan.py ocr` refuses to start while 06a runs. Afterwards: start OXR (`../lsc/scripts/setup_oxr.ps1`), score the sample at `--scale 1`, `2` and `3`, then run all pages |
 | 5 structure | implemented, waits for step 4 | Rules plus HGX GLM-5.3-Flash with the strict schema and validators. A smoke run on synthetic blocks for 3-126 completed through HGX (6 s/page). The model's `expansion` must be a glossary expansion, and a printed time more than 30 min from the ruler (for example an OCR `704:40:57`) is queued and never used |
 | 6 updates | done (rules) | 739 page citations from the TEC/CM/LM transcripts and the journals, 350 of them AFJ links to `fplan/*.gif`. `page 384` with the dash lost in the 1971 OCR is resolved to 3-084 or 3-384 by time. Change kinds are rule-based, and 357 are still `unknown` for the AI pass |
 | 7 actual | anchors done; matching waits for step 5 | `fp_anchors.tsv`: 46 Mission Report rows, 50 AFJ index rows, 49 utterance rows (ALSJ chapter starts, sleep and wake per crew lane, countdown). **Mission Report Table 3-I is an image with no text layer.** Its 49 rows were keyed from the page image into `review/mission_report_soe.tsv` and marked `needs_check`. OXR becomes the second reading. `fp_actual.tsv` stays empty until activities exist |

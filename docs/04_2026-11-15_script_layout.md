@@ -16,7 +16,9 @@ grouped by step:
 | `scripts/08_irig/` | Standalone IRIG search; its pipeline integration remains undecided |
 | `scripts/sg-audio/` | Space-to-ground reels: timing transcript (`sg_transcribe.py`) and, next, the reel drift fit |
 | `scripts/video/dvds/` | DVD audio streams: timing transcript (`dvd_transcribe.py`) |
-| `scripts/mission_data/` | Mission transcripts, commentary, photos and AiRT2 indexes ([guide](16_2026-11-23_mission_data_ingestion.md)) |
+| `scripts/sg_transcript/` | Mission transcripts, commentary and photos; runs first ([guide](16_2026-11-23_mission_data_ingestion.md)) |
+| `scripts/flight_plan/` | Flight plan, as-flown timeline, TOC and their checks; runs after `sg_transcript` ([guide](17_2026-11-23_flight_plan_ingestion.md)) |
+| `web_publish` (not yet designed) | Packages the output of every stage for the web, including the AiRT2 master files and indexes |
 
 Run the current denoise console from the repository root:
 

@@ -5,7 +5,8 @@ import unittest
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts' / 'mission_data'))
+for _folder in ('flight_plan', 'sg_transcript'):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts' / _folder))
 import md_common  # noqa: E402
 import md_flightplan as fp  # noqa: E402
 import md_fp_actual as actual  # noqa: E402
