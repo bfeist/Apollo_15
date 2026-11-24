@@ -1,0 +1,134 @@
+-013000|1|Countdown
+0000000|1|Lift-off
+0000012|2|Tower clear
+0000241|1|S-IC/S-II staging
+0000910|2|S-II/S-IVB staging
+0001144|1|Earth orbit insertion
+0025003|1|Translunar injection
+0032227|1|CSM/S-IVB separation
+0033350|1|Transposition and docking
+0041801|1|LM ejection from the S-IVB
+0095941|2|Sequence of UV photography of Earth
+0103045|2|Sequence of UV photography of Moon
+0130819|2|Initiate Passive Thermal Control (PTC)
+0143617|1|Crew sleep
+0252820|1|Crew wake-up
+0284022|1|First midcourse correction, SPS test
+0324555|2|UV photography of Earth
+0333010|2|LM repressurisation
+0334832|2|Electrical glitch reported
+0335606|2|Start of TV transmission
+0343307|2|Scott reports broken glass on LM tapemeter
+0395750|1|Crew sleep
+0490411|1|Crew wake-up
+0513731|2|Start of light flash experiment
+0523441|2|Scott's description of light flashes
+0554822|2|UV photography of Earth
+0611244|2|Scott reports chlorination port leak
+0622124|1|Crew sleep
+0700101|1|Crew wake-up
+0733115|1|Second midcourse correction (MCC-4)
+0740647|1|SIM bay door jettison
+0783147|1|Lunar orbit insertion
+0792442|2|S-IVB lunar impact
+0823949|1|Descent orbit insertion
+0861132|1|Crew sleep
+0933207|1|Crew wake-up
+0945352|2|TV coverage
+0955645|1|DOI trim
+1001821|2|Scott reports failure to Sep (undock)
+1003916|1|Undocking and separation
+1013859|1|CSM circularisation
+1021447|2|P24 landmark tracking PAD
+1024207|2|CSM landmark tracking exercise
+1043009|1|Powered descent initiation
+1044229|1|Landing at Hadley
+1061105|2|Preparations for the stand-up EVA
+1063929|2|Worden spots LM Falcon on surface
+1064249|1|Stand-up EVA begins
+1071556|2|Stand-up EVA ends
+1095819|1|Scott and Irwin: sleep
+1120847|1|Worden: sleep
+1153039|1|Wake-up for EVA-1
+1184825|1|Worden: wake-up
+1190546|1|EVA-1 preparations
+1193917|1|EVA-1 begins
+1195255|2|Deploying the Lunar Roving Vehicle
+1214435|2|Driving to Elbow crater
+1221315|1|Station 1 at Elbow crater
+1223529|1|Station 2 on Mt. Hadley Delta
+1240359|2|ALSEP off-load and deployment
+1251800|2|First ALSEP data
+1254402|1|EVA-1 closeout
+1261159|1|EVA-1 ends
+1281246|2|Worden's descripton of Littrow cinder cones
+1301214|2|Worden's further descripton of Littrow cinder cones
+1305645|1|Scott and Irwin: sleep
+1380343|1|Wake-up for EVA-2
+1400607|1|EVA-2 preparations
+1403019|2|First communication with CSM, Day 7
+1421448|1|EVA-2 begins
+1435433|1|Station 6 on Mt. Hadley Delta
+1450113|1|Station 6a, the Green Boulder
+1452401|1|Station 7 at Spur crater, the Genesis Rock
+1461604|1|Station 4 at Dune crater
+1475618|1|Station 8
+1483216|1|EVA-2 closeout
+1492702|1|EVA-2 ends
+1513506|1|Scott and Irwin: sleep
+1535438|1|Worden: sleep
+1600157|1|EVA-3 preparations
+1615936|1|Worden: wake-up
+1631814|1|EVA-3 begins
+1650155|1|Station 9
+1651133|1|CSM plane change
+1651703|1|Station 9a at Hadley Rille
+1661307|1|Station 10
+1670255|1|EVA-3 closeout, the hammer and the feather
+1680804|1|EVA-3 ends
+1690707|2|P24 landmark tracking PAD
+1713723|1|Lunar lift-off
+1722940|1|Terminal phase initiation
+1731107|2|Terminal phase finalisation
+1733626|1|Docking
+1770407|2|Start of LGC plugs episode
+1774654|2|Instruction to recheck hatch seals
+1793001|1|LM jettison
+1794807|2|Manual Separation burn
+1810420|2|LM deorbit burn
+1812937|2|LM impact
+1830255|1|Crew sleep
+1924516|1|Crew wake-up
+2024557|1|Crew sleep
+2112505|1|Crew wake-up
+2212048|2|Orbit shaping burn
+2223929|1|Subsatellite launch
+2234846|1|Trans-Earth injection
+2284844|1|Crew sleep
+2354546|1|Crew wake-up
+2364331|2|Midcourse correction 5 cancelled
+2381454|2|Leaving the lunar sphere of influence
+2415712|1|Trans-Earth EVA (Worden) begins
+2421442|2|Panoramic Camera film cassette retrieved
+2422125|2|Mapping Camera film cassette retrieved
+2423619|2|Trans-Earth EVA ends
+2481417|2|Passive Thermal Control spinup
+2522527|1|Crew sleep
+2613020|1|Crew wake-up
+2642615|2|Revised light flash procedures
+2643528|2|Start of light flash experiment
+2653648|2|End of light flash experiment
+2685947|1|Lunar eclipse
+2702211|1|Press conference
+2702346|2|Question 1
+2774401|1|Crew sleep
+2863015|2|First communication, Day 13
+2863226|1|Crew wake-up
+2900028|2|UV photography of Earth
+2915650|1|Third midcourse correction (MCC-7)
+2944356|1|CM/SM separation
+2945855|1|Entry interface
+2945913|2|Communications blackout begins
+2950646|2|Drogue parachutes
+2950734|2|Main parachutes
+2951153|1|Splashdown

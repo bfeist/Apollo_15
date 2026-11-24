@@ -1,0 +1,135 @@
+toc_id	get	level	label	description	source	get_basis	evidence
+toc:countdown	-001:30:00	1	Countdown	This is Kennedy Launch Control T-1 hour 31 minutes and count	countdown	utterance	AS15_PAO-p0002-s01r01;header time
+toc:launch	000:00:00	1	Lift-off	Lift-off - 13:34:00.6 G.m.t., July 26, 1971	launch	mission_report	mr:t3-1:01
+toc:tower_clear	000:00:12	2	Tower clear		tower_clear	afj_index	afj:01launch_to_earth_orbit:event:09;afj:01launch_to_earth_orbit:0000012
+toc:staging_sic	000:02:41	1	S-IC/S-II staging		staging_sic	afj_index	afj:01launch_to_earth_orbit:event:16;afj:01launch_to_earth_orbit:0000241
+toc:staging_sii	000:09:10	2	S-II/S-IVB staging		staging_sii	afj_index	afj:01launch_to_earth_orbit:event:27;afj:01launch_to_earth_orbit:0000910
+toc:eoi	000:11:44	1	Earth orbit insertion		eoi	mission_report	mr:t3-1:02
+toc:tli	002:50:03	1	Translunar injection	Translunar injection maneuver	tli	mission_report	mr:t3-1:03
+toc:csm_sivb_sep	003:22:27	1	CSM/S-IVB separation	S-IVB/Command and service module separation	csm_sivb_sep	mission_report	mr:t3-1:04
+toc:td_dock	003:33:50	1	Transposition and docking	Translunar docking	td_dock	mission_report	mr:t3-1:05
+toc:lm_ejection	004:18:01	1	LM ejection from the S-IVB	Spacecraft ejection	lm_ejection	mission_report	mr:t3-1:06
+toc:afj:04troubleshoot_ptc:event:04	009:59:41	2	Sequence of UV photography of Earth		afj:04troubleshoot_ptc:event:04	afj_index	afj:04troubleshoot_ptc:event:04;afj:04troubleshoot_ptc:0095941
+toc:afj:04troubleshoot_ptc:event:05	010:30:45	2	Sequence of UV photography of Moon		afj:04troubleshoot_ptc:event:05	afj_index	afj:04troubleshoot_ptc:event:05;afj:04troubleshoot_ptc:0103045
+toc:afj:04troubleshoot_ptc:event:08	013:08:19	2	Initiate Passive Thermal Control (PTC)		afj:04troubleshoot_ptc:event:08	afj_index	afj:04troubleshoot_ptc:event:08;afj:04troubleshoot_ptc:013:08:19
+toc:rest:crew:00:sleep	014:36:17	1	Crew sleep	Crew: sleep period begins	rest:crew:00:sleep	utterance	afj:04troubleshoot_ptc:0143617;utterance;gap 38835s
+toc:rest:crew:00:wake	025:28:20	1	Crew wake-up	Crew: wake-up	rest:crew:00:wake	utterance	afj:05day2_checking_sps:0252820;utterance
+toc:sps_test	028:40:22	1	First midcourse correction, SPS test	First midcourse correction/service propulsion system test	sps_test	mission_report	mr:t3-1:07
+toc:afj:06day2_enter_lm:event:01	032:45:55	2	UV photography of Earth		afj:06day2_enter_lm:event:01	afj_index	afj:06day2_enter_lm:event:01;afj:06day2_enter_lm:0324555
+toc:afj:06day2_enter_lm:event:02	033:30:10	2	LM repressurisation		afj:06day2_enter_lm:event:02	afj_index	afj:06day2_enter_lm:event:02;afj:06day2_enter_lm:0333010
+toc:afj:06day2_enter_lm:event:03	033:48:32	2	Electrical glitch reported		afj:06day2_enter_lm:event:03	afj_index	afj:06day2_enter_lm:event:03;afj:06day2_enter_lm:0334832
+toc:afj:06day2_enter_lm:event:04	033:56:06	2	Start of TV transmission		afj:06day2_enter_lm:event:04	afj_index	afj:06day2_enter_lm:event:04;afj:06day2_enter_lm:0335606
+toc:afj:06day2_enter_lm:event:05	034:33:07	2	Scott reports broken glass on LM tapemeter		afj:06day2_enter_lm:event:05	afj_index	afj:06day2_enter_lm:event:05;afj:06day2_enter_lm:0343307
+toc:rest:crew:01:sleep	039:57:50	1	Crew sleep	Crew: sleep period begins	rest:crew:01:sleep	utterance	afj:06day2_enter_lm:0395750;last utterance before gap;gap 32781s
+toc:rest:crew:01:wake	049:04:11	1	Crew wake-up	Crew: wake-up	rest:crew:01:wake	utterance	afj:07day3_flashing_lights:0490411;utterance
+toc:afj:07day3_flashing_lights:event:01	051:37:31	2	Start of light flash experiment		afj:07day3_flashing_lights:event:01	afj_index	afj:07day3_flashing_lights:event:01;afj:07day3_flashing_lights:0513731
+toc:afj:07day3_flashing_lights:event:02	052:34:41	2	Scott's description of light flashes		afj:07day3_flashing_lights:event:02	afj_index	afj:07day3_flashing_lights:event:02;afj:07day3_flashing_lights:0523441
+toc:afj:08day3_leak_hilltop:event:01	055:48:22	2	UV photography of Earth		afj:08day3_leak_hilltop:event:01	afj_index	afj:08day3_leak_hilltop:event:01;afj:08day3_leak_hilltop:0554822
+toc:afj:08day3_leak_hilltop:event:03	061:12:44	2	Scott reports chlorination port leak		afj:08day3_leak_hilltop:event:03	afj_index	afj:08day3_leak_hilltop:event:03;afj:08day3_leak_hilltop:0611244
+toc:rest:crew:02:sleep	062:21:24	1	Crew sleep	Crew: sleep period begins	rest:crew:02:sleep	utterance	afj:08day3_leak_hilltop:0622124;utterance;gap 27547s
+toc:rest:crew:02:wake	070:01:01	1	Crew wake-up	Crew: wake-up	rest:crew:02:wake	utterance	afj:09day4_lunar_encounter:0700101;utterance
+toc:mcc4	073:31:15	1	Second midcourse correction (MCC-4)	Second midcourse correction	mcc4	mission_report	mr:t3-1:08
+toc:sim_door	074:06:47	1	SIM bay door jettison	Scientific instrument module door jettison	sim_door	mission_report	mr:t3-1:09
+toc:loi	078:31:47	1	Lunar orbit insertion		loi	mission_report	mr:t3-1:10
+toc:sivb_impact	079:24:42	2	S-IVB lunar impact		sivb_impact	mission_report	mr:t3-1:11
+toc:doi	082:39:49	1	Descent orbit insertion		doi	mission_report	mr:t3-1:12
+toc:rest:crew:03:sleep	086:11:32	1	Crew sleep	Crew: sleep period begins	rest:crew:03:sleep	utterance	afj:10b-day4_doi-rest:0861132;utterance;gap 26400s
+toc:rest:crew:03:wake	093:32:07	1	Crew wake-up	Crew: wake-up	rest:crew:03:wake	utterance	afj:11day5_wakeup:0933207;utterance
+toc:afj:11day5_wakeup:event:01	094:53:52	2	TV coverage		afj:11day5_wakeup:event:01	afj_index	afj:11day5_wakeup:event:01;afj:11day5_wakeup:094:53:52
+toc:doi_trim	095:56:45	1	DOI trim	Descent orbit trim	doi_trim	mission_report	mr:t3-1:13
+toc:afj:12c-day5_lm_undock:event:01	100:18:21	2	Scott reports failure to Sep (undock)		afj:12c-day5_lm_undock:event:01	afj_index	afj:12c-day5_lm_undock:event:01;afj:12c-day5_lm_undock:1001821
+toc:undock	100:39:16	1	Undocking and separation	Lunar module undocking and separation	undock	mission_report	mr:t3-1:14
+toc:circ	101:38:59	1	CSM circularisation	Circularization maneuver	circ	mission_report	mr:t3-1:15
+toc:afj:12e-day5_landing_prep:event:00	102:14:47	2	P24 landmark tracking PAD		afj:12e-day5_landing_prep:event:00	afj_index	afj:12e-day5_landing_prep:event:00;afj:12e-day5_landing_prep:1021447
+toc:afj:12e-day5_landing_prep:event:04	102:42:07	2	CSM landmark tracking exercise		afj:12e-day5_landing_prep:event:04	afj_index	afj:12e-day5_landing_prep:event:04;afj:12e-day5_landing_prep:1024207
+toc:pdi	104:30:09	1	Powered descent initiation		pdi	mission_report	mr:t3-1:16
+toc:landing	104:42:29	1	Landing at Hadley	Lunar landing	landing	mission_report	mr:t3-1:17
+toc:alsj:a15.sevaprep.html	106:11:05	2	Preparations for the stand-up EVA		alsj:a15.sevaprep.html	utterance	alsj:a15.sevaprep:1061105
+toc:afj:13solo_ops1:event:01	106:39:29	2	Worden spots LM Falcon on surface		afj:13solo_ops1:event:01	afj_index	afj:13solo_ops1:event:01;afj:13solo_ops1:1063929
+toc:seva	106:42:49	1	Stand-up EVA begins	Start standup extravehicular activity	seva	mission_report	mr:t3-1:18
+toc:seva_end	107:15:56	2	Stand-up EVA ends	End standup extravehicular activity	seva_end	mission_report	mr:t3-1:19
+toc:rest:lm:00:sleep	109:58:19	1	Scott and Irwin: sleep	Scott and Irwin: sleep period begins	rest:lm:00:sleep	utterance	alsj:a15.postseva:1095819;utterance;gap 15332s
+toc:rest:cmp:00:sleep	112:08:47	1	Worden: sleep	Worden: sleep period begins	rest:cmp:00:sleep	utterance	afj:13solo_ops1:1120847;utterance;gap 23887s
+toc:alsj:a15.eva1wake.html	115:30:39	1	Wake-up for EVA-1		alsj:a15.eva1wake.html	utterance	alsj:a15.eva1wake:1153039
+toc:rest:cmp:00:wake	118:48:25	1	Worden: wake-up		rest:cmp:00:wake	utterance	afj:14solo_ops2:1184825;utterance
+toc:alsj:a15.eva1prep.html	119:05:46	1	EVA-1 preparations		alsj:a15.eva1prep.html	utterance	alsj:a15.eva1prep:1190546
+toc:eva1	119:39:17	1	EVA-1 begins	Start first extravehicular activity	eva1	mission_report	mr:t3-1:20
+toc:alsj:a15.lrvdep.html	119:52:55	2	Deploying the Lunar Roving Vehicle		alsj:a15.lrvdep.html	utterance	alsj:a15.lrvdep:1195255
+toc:alsj:a15.elbowtrv.html	121:44:35	2	Driving to Elbow crater		alsj:a15.elbowtrv.html	utterance	alsj:a15.elbowtrv:1214435
+toc:alsj:a15.elbow.html	122:13:15	1	Station 1 at Elbow crater		alsj:a15.elbow.html	utterance	alsj:a15.elbow:1221315
+toc:alsj:a15.sta2.html	122:35:29	1	Station 2 on Mt. Hadley Delta		alsj:a15.sta2.html	utterance	alsj:a15.sta2:1223529
+toc:alsj:a15.alsepoff.html	124:03:59	2	ALSEP off-load and deployment		alsj:a15.alsepoff.html	utterance	alsj:a15.alsepoff:1240359
+toc:alsep_data	125:18:00	2	First ALSEP data	Data from Apollo lunar surface experiment package	alsep_data	mission_report	mr:t3-1:21
+toc:alsj:a15.clsout1.html	125:44:02	1	EVA-1 closeout		alsj:a15.clsout1.html	utterance	alsj:a15.clsout1:1254402
+toc:eva1_end	126:11:59	1	EVA-1 ends	End first extravehicular activity	eva1_end	mission_report	mr:t3-1:22
+toc:afj:14solo_ops2:event:06	128:12:46	2	Worden's descripton of Littrow cinder cones		afj:14solo_ops2:event:06	afj_index	afj:14solo_ops2:event:06;afj:14solo_ops2:1281246
+toc:afj:14solo_ops2:event:12	130:12:14	2	Worden's further descripton of Littrow cinder cones		afj:14solo_ops2:event:12	afj_index	afj:14solo_ops2:event:12;afj:14solo_ops2:1301214
+toc:rest:lm:01:sleep	130:56:45	1	Scott and Irwin: sleep	Scott and Irwin: sleep period begins	rest:lm:01:sleep	utterance	alsj:a15.eva1post:1305645;utterance;gap 25618s
+toc:alsj:a15.eva2wake.html	138:03:43	1	Wake-up for EVA-2		alsj:a15.eva2wake.html	utterance	alsj:a15.eva2wake:1380343
+toc:alsj:a15.eva2prep.html	140:06:07	1	EVA-2 preparations		alsj:a15.eva2prep.html	utterance	alsj:a15.eva2prep:1400607
+toc:afj:15solo_ops3:event:00	140:30:19	2	First communication with CSM, Day 7		afj:15solo_ops3:event:00	afj_index	afj:15solo_ops3:event:00;afj:15solo_ops3:1403019
+toc:eva2	142:14:48	1	EVA-2 begins	Start second extravehicular activity	eva2	mission_report	mr:t3-1:23
+toc:alsj:a15.sta6abv.html	143:54:33	1	Station 6 on Mt. Hadley Delta		alsj:a15.sta6abv.html	utterance	alsj:a15.sta6abv:1435433
+toc:alsj:a15.sta6a.html	145:01:13	1	Station 6a, the Green Boulder		alsj:a15.sta6a.html	utterance	alsj:a15.sta6a:1450113
+toc:alsj:a15.spur.html	145:24:01	1	Station 7 at Spur crater, the Genesis Rock		alsj:a15.spur.html	utterance	alsj:a15.spur:1452401
+toc:alsj:a15.trvsta4.html	146:16:04	1	Station 4 at Dune crater		alsj:a15.trvsta4.html	utterance	alsj:a15.trvsta4:1461604
+toc:alsj:a15.sta8.html	147:56:18	1	Station 8		alsj:a15.sta8.html	utterance	alsj:a15.sta8:1475618
+toc:alsj:a15.clsout2.html	148:32:16	1	EVA-2 closeout		alsj:a15.clsout2.html	utterance	alsj:a15.clsout2:1483216
+toc:eva2_end	149:27:02	1	EVA-2 ends	End second extravehicular activity	eva2_end	mission_report	mr:t3-1:24
+toc:rest:lm:02:sleep	151:35:06	1	Scott and Irwin: sleep	Scott and Irwin: sleep period begins	rest:lm:02:sleep	utterance	alsj:a15.eva2post:1513506;utterance;gap 22085s
+toc:rest:cmp:01:sleep	153:54:38	1	Worden: sleep	Worden: sleep period begins	rest:cmp:01:sleep	utterance	afj:15solo_ops3:1535438;last utterance before gap;gap 29098s
+toc:alsj:a15.eva3prep.html	160:01:57	1	EVA-3 preparations		alsj:a15.eva3prep.html	utterance	alsj:a15.eva3prep:1600157
+toc:rest:cmp:01:wake	161:59:36	1	Worden: wake-up		rest:cmp:01:wake	utterance	afj:16solo_ops4:1615936;utterance
+toc:eva3	163:18:14	1	EVA-3 begins	Start third extravehicular activity	eva3	mission_report	mr:t3-1:25
+toc:alsj:a15.sta9.html	165:01:55	1	Station 9		alsj:a15.sta9.html	utterance	alsj:a15.sta9:1650155
+toc:plane_change	165:11:33	1	CSM plane change	Command and service module plane change	plane_change	mission_report	mr:t3-1:26
+toc:alsj:a15.rille.html	165:17:03	1	Station 9a at Hadley Rille		alsj:a15.rille.html	utterance	alsj:a15.rille:1651703
+toc:alsj:a15.sta10.html	166:13:07	1	Station 10		alsj:a15.sta10.html	utterance	alsj:a15.sta10:1661307
+toc:alsj:a15.clsout3.html	167:02:55	1	EVA-3 closeout, the hammer and the feather		alsj:a15.clsout3.html	utterance	alsj:a15.clsout3:1670255
+toc:eva3_end	168:08:04	1	EVA-3 ends	End third extravehicular activity	eva3_end	mission_report	mr:t3-1:27
+toc:afj:16solo_ops4:event:07	169:07:07	2	P24 landmark tracking PAD		afj:16solo_ops4:event:07	afj_index	afj:16solo_ops4:event:07;afj:16solo_ops4:1690707
+toc:lunar_liftoff	171:37:23	1	Lunar lift-off	Lunar ascent	lunar_liftoff	mission_report	mr:t3-1:28
+toc:tpi	172:29:40	1	Terminal phase initiation	Terminal phase initiate	tpi	mission_report	mr:t3-1:29
+toc:tpf	173:11:07	2	Terminal phase finalisation	Terminal phase finalize	tpf	mission_report	mr:t3-1:30
+toc:docking	173:36:26	1	Docking		docking	mission_report	mr:t3-1:31
+toc:afj:18tunnel_leak_lm_jett:event:04	177:04:07	2	Start of LGC plugs episode		afj:18tunnel_leak_lm_jett:event:04	afj_index	afj:18tunnel_leak_lm_jett:event:04;afj:18tunnel_leak_lm_jett:1770407
+toc:afj:18tunnel_leak_lm_jett:event:07	177:46:54	2	Instruction to recheck hatch seals		afj:18tunnel_leak_lm_jett:event:07	afj_index	afj:18tunnel_leak_lm_jett:event:07;afj:18tunnel_leak_lm_jett:1774654
+toc:lm_jett	179:30:01	1	LM jettison	Lunar module jettison	lm_jett	mission_report	mr:t3-1:32
+toc:afj:18tunnel_leak_lm_jett:event:11	179:48:07	2	Manual Separation burn		afj:18tunnel_leak_lm_jett:event:11	afj_index	afj:18tunnel_leak_lm_jett:event:11;afj:18tunnel_leak_lm_jett:1794807
+toc:lm_deorbit	181:04:20	2	LM deorbit burn	Lunar module deorbit maneuver	lm_deorbit	mission_report	mr:t3-1:33
+toc:lm_impact	181:29:37	2	LM impact	Lunar module impact	lm_impact	mission_report	mr:t3-1:34
+toc:rest:crew:04:sleep	183:02:55	1	Crew sleep	Crew: sleep period begins	rest:crew:04:sleep	utterance	afj:18tunnel_leak_lm_jett:1830255;utterance;gap 34137s
+toc:rest:crew:04:wake	192:45:16	1	Crew wake-up	Crew: wake-up	rest:crew:04:wake	utterance	afj:19a-day9_orbital_science:1924516;utterance
+toc:rest:crew:05:sleep	202:45:57	1	Crew sleep	Crew: sleep period begins	rest:crew:05:sleep	utterance	afj:19b-day9_orbital_science:2024557;utterance;gap 27756s
+toc:rest:crew:05:wake	211:25:05	1	Crew wake-up	Crew: wake-up	rest:crew:05:wake	utterance	afj:20a-day10_science-68-69:2112505;utterance
+toc:orbit_shaping	221:20:48	2	Orbit shaping burn	Orbit shaping maneuver	orbit_shaping	mission_report	mr:t3-1:35
+toc:subsat	222:39:29	1	Subsatellite launch		subsat	mission_report	mr:t3-1:36
+toc:tei	223:48:46	1	Trans-Earth injection	Transearth injection	tei	mission_report	mr:t3-1:37
+toc:rest:crew:06:sleep	228:48:44	1	Crew sleep	Crew: sleep period begins	rest:crew:06:sleep	utterance	afj:22day10_homeward:2284844;utterance;gap 24416s
+toc:rest:crew:06:wake	235:45:46	1	Crew wake-up	Crew: wake-up	rest:crew:06:wake	utterance	afj:23a-day11_science-sphere:2354546;utterance
+toc:afj:23a-day11_science-sphere:event:02	236:43:31	2	Midcourse correction 5 cancelled		afj:23a-day11_science-sphere:event:02	afj_index	afj:23a-day11_science-sphere:event:02;afj:23a-day11_science-sphere:2364331
+toc:afj:23a-day11_science-sphere:event:03	238:14:54	2	Leaving the lunar sphere of influence		afj:23a-day11_science-sphere:event:03	afj_index	afj:23a-day11_science-sphere:event:03;afj:23a-day11_science-sphere:2381454
+toc:csm_eva	241:57:12	1	Trans-Earth EVA (Worden) begins	Start transearth extravehicular activity	csm_eva	mission_report	mr:t3-1:38
+toc:afj:23b-day11_worden_eva:event:02	242:14:42	2	Panoramic Camera film cassette retrieved		afj:23b-day11_worden_eva:event:02	afj_index	afj:23b-day11_worden_eva:event:02;afj:23b-day11_worden_eva:2421442
+toc:afj:23b-day11_worden_eva:event:03	242:21:25	2	Mapping Camera film cassette retrieved		afj:23b-day11_worden_eva:event:03	afj_index	afj:23b-day11_worden_eva:event:03;afj:23b-day11_worden_eva:2422125
+toc:csm_eva_end	242:36:19	2	Trans-Earth EVA ends	End transearth extravehicular activity	csm_eva_end	mission_report	mr:t3-1:39
+toc:afj:23c-day11_uv-photos-p23:event:04	248:14:17	2	Passive Thermal Control spinup		afj:23c-day11_uv-photos-p23:event:04	afj_index	afj:23c-day11_uv-photos-p23:event:04;afj:23c-day11_uv-photos-p23:2481417
+toc:rest:crew:07:sleep	252:25:27	1	Crew sleep	Crew: sleep period begins	rest:crew:07:sleep	utterance	afj:23c-day11_uv-photos-p23:2522527;last utterance before gap;gap 32693s
+toc:rest:crew:07:wake	261:30:20	1	Crew wake-up	Crew: wake-up	rest:crew:07:wake	utterance	afj:24a-day12_p23-uv-photos:2613020;utterance
+toc:afj:24a-day12_p23-uv-photos:event:04	264:26:15	2	Revised light flash procedures		afj:24a-day12_p23-uv-photos:event:04	afj_index	afj:24a-day12_p23-uv-photos:event:04;afj:24a-day12_p23-uv-photos:2642615
+toc:afj:24a-day12_p23-uv-photos:event:05	264:35:28	2	Start of light flash experiment		afj:24a-day12_p23-uv-photos:event:05	afj_index	afj:24a-day12_p23-uv-photos:event:05;afj:24a-day12_p23-uv-photos:2643528
+toc:afj:24a-day12_p23-uv-photos:event:06	265:36:48	2	End of light flash experiment		afj:24a-day12_p23-uv-photos:event:06	afj_index	afj:24a-day12_p23-uv-photos:event:06;afj:24a-day12_p23-uv-photos:2653648
+toc:eclipse	268:59:47	1	Lunar eclipse		eclipse	afj_index	afj:24b-day12_eclipse-presser:event:00;afj:24b-day12_eclipse-presser:eclipse
+toc:press	270:22:11	1	Press conference	Press conference TV starts	press	afj_index	afj:24b-day12_eclipse-presser:event:02;afj:24b-day12_eclipse-presser:2702211
+toc:afj:24b-day12_eclipse-presser:event:04	270:23:46	2	Question 1		afj:24b-day12_eclipse-presser:event:04	afj_index	afj:24b-day12_eclipse-presser:event:04;afj:24b-day12_eclipse-presser:2702346
+toc:rest:crew:08:sleep	277:44:01	1	Crew sleep	Crew: sleep period begins	rest:crew:08:sleep	utterance	afj:24c-day12_p23-science:2774401;last utterance before gap;gap 31705s
+toc:afj:25a-day13_approach-earth:event:00	286:30:15	2	First communication, Day 13		afj:25a-day13_approach-earth:event:00	afj_index	afj:25a-day13_approach-earth:event:00;afj:25a-day13_approach-earth:2863015
+toc:rest:crew:08:wake	286:32:26	1	Crew wake-up	Crew: wake-up	rest:crew:08:wake	utterance	afj:25a-day13_approach-earth:2863226;utterance
+toc:afj:25a-day13_approach-earth:event:04	290:00:28	2	UV photography of Earth		afj:25a-day13_approach-earth:event:04	afj_index	afj:25a-day13_approach-earth:event:04;afj:25a-day13_approach-earth:2900028
+toc:mcc7	291:56:50	1	Third midcourse correction (MCC-7)	Third midcourse correction	mcc7	mission_report	mr:t3-1:40
+toc:cmsm_sep	294:43:56	1	CM/SM separation	Command module/service module separation	cmsm_sep	mission_report	mr:t3-1:41
+toc:ei	294:58:55	1	Entry interface		ei	mission_report	mr:t3-1:42
+toc:blackout	294:59:13	2	Communications blackout begins	Begin blackout	blackout	mission_report	mr:t3-1:43
+toc:drogue	295:06:46	2	Drogue parachutes	Drogue deployment	drogue	mission_report	mr:t3-1:46
+toc:main_chutes	295:07:34	2	Main parachutes	Main parachute deployment	main_chutes	mission_report	mr:t3-1:47
+toc:splashdown	295:11:53	1	Splashdown	Landing	splashdown	mission_report	mr:t3-1:48

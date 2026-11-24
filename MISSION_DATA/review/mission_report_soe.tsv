@@ -1,0 +1,50 @@
+row	table	pdf_page	label	get	reading	keyed_by	date	check	note
+0	Table 3-I	14	Range zero - 13:34:00 G.m.t., July 26, 1971	000:00:00	keyed from page image	pi agent	2026-11-23	needs_check	epoch row
+1	Table 3-I	14	Lift-off - 13:34:00.6 G.m.t., July 26, 1971	000:00:00	keyed from page image	pi agent	2026-11-23	needs_check	lift-off 0.6 s after range zero; whole seconds truncated
+2	Table 3-I	14	Earth orbit insertion	000:11:44	keyed from page image	pi agent	2026-11-23	needs_check	
+3	Table 3-I	14	Translunar injection maneuver	002:50:03	keyed from page image	pi agent	2026-11-23	needs_check	
+4	Table 3-I	14	S-IVB/Command and service module separation	003:22:27	keyed from page image	pi agent	2026-11-23	needs_check	
+5	Table 3-I	14	Translunar docking	003:33:50	keyed from page image	pi agent	2026-11-23	needs_check	
+6	Table 3-I	14	Spacecraft ejection	004:18:01	keyed from page image	pi agent	2026-11-23	needs_check	
+7	Table 3-I	14	First midcourse correction/service propulsion system test	028:40:22	keyed from page image	pi agent	2026-11-23	needs_check	
+8	Table 3-I	14	Second midcourse correction	073:31:15	keyed from page image	pi agent	2026-11-23	needs_check	
+9	Table 3-I	14	Scientific instrument module door jettison	074:06:47	keyed from page image	pi agent	2026-11-23	needs_check	
+10	Table 3-I	14	Lunar orbit insertion	078:31:47	keyed from page image	pi agent	2026-11-23	needs_check	
+11	Table 3-I	14	S-IVB lunar impact	079:24:42	keyed from page image	pi agent	2026-11-23	needs_check	
+12	Table 3-I	14	Descent orbit insertion	082:39:49	keyed from page image	pi agent	2026-11-23	needs_check	
+13	Table 3-I	14	Descent orbit trim	095:56:45	keyed from page image	pi agent	2026-11-23	needs_check	
+14	Table 3-I	14	Lunar module undocking and separation	100:39:16	keyed from page image	pi agent	2026-11-23	needs_check	
+15	Table 3-I	14	Circularization maneuver	101:38:59	keyed from page image	pi agent	2026-11-23	needs_check	
+16	Table 3-I	14	Powered descent initiation	104:30:09	keyed from page image	pi agent	2026-11-23	needs_check	
+17	Table 3-I	14	Lunar landing	104:42:29	keyed from page image	pi agent	2026-11-23	needs_check	
+18	Table 3-I	14	Start standup extravehicular activity	106:42:49	keyed from page image	pi agent	2026-11-23	needs_check	
+19	Table 3-I	14	End standup extravehicular activity	107:15:56	keyed from page image	pi agent	2026-11-23	needs_check	
+20	Table 3-I	14	Start first extravehicular activity	119:39:17	keyed from page image	pi agent	2026-11-23	needs_check	
+21	Table 3-I	14	Data from Apollo lunar surface experiment package	125:18:00	keyed from page image	pi agent	2026-11-23	needs_check	
+22	Table 3-I	14	End first extravehicular activity	126:11:59	keyed from page image	pi agent	2026-11-23	needs_check	
+23	Table 3-I	14	Start second extravehicular activity	142:14:48	keyed from page image	pi agent	2026-11-23	needs_check	
+24	Table 3-I	14	End second extravehicular activity	149:27:02	keyed from page image	pi agent	2026-11-23	needs_check	
+25	Table 3-I	14	Start third extravehicular activity	163:18:14	keyed from page image	pi agent	2026-11-23	needs_check	
+26	Table 3-I	14	Command and service module plane change	165:11:33	keyed from page image	pi agent	2026-11-23	needs_check	
+27	Table 3-I	14	End third extravehicular activity	168:08:04	keyed from page image	pi agent	2026-11-23	needs_check	
+28	Table 3-I	14	Lunar ascent	171:37:23	keyed from page image	pi agent	2026-11-23	needs_check	
+29	Table 3-I	14	Terminal phase initiate	172:29:40	keyed from page image	pi agent	2026-11-23	needs_check	
+30	Table 3-I	14	Terminal phase finalize	173:11:07	keyed from page image	pi agent	2026-11-23	needs_check	
+31	Table 3-I	14	Docking	173:36:26	keyed from page image	pi agent	2026-11-23	needs_check	
+32	Table 3-I	14	Lunar module jettison	179:30:01	keyed from page image	pi agent	2026-11-23	needs_check	
+33	Table 3-I	14	Lunar module deorbit maneuver	181:04:20	keyed from page image	pi agent	2026-11-23	needs_check	
+34	Table 3-I	14	Lunar module impact	181:29:37	keyed from page image	pi agent	2026-11-23	needs_check	
+35	Table 3-I	14	Orbit shaping maneuver	221:20:48	keyed from page image	pi agent	2026-11-23	needs_check	
+36	Table 3-I	14	Subsatellite launch	222:39:29	keyed from page image	pi agent	2026-11-23	needs_check	
+37	Table 3-I	14	Transearth injection	223:48:46	keyed from page image	pi agent	2026-11-23	needs_check	
+38	Table 3-I	14	Start transearth extravehicular activity	241:57:12	keyed from page image	pi agent	2026-11-23	needs_check	
+39	Table 3-I	14	End transearth extravehicular activity	242:36:19	keyed from page image	pi agent	2026-11-23	needs_check	
+40	Table 3-I	14	Third midcourse correction	291:56:50	keyed from page image	pi agent	2026-11-23	needs_check	
+41	Table 3-I	14	Command module/service module separation	294:43:56	keyed from page image	pi agent	2026-11-23	needs_check	
+42	Table 3-I	14	Entry interface	294:58:55	keyed from page image	pi agent	2026-11-23	needs_check	
+43	Table 3-I	14	Begin blackout	294:59:13	keyed from page image	pi agent	2026-11-23	needs_check	hundreds digit indistinct on the 390 px scan; 294 from sequence order (after EI 294:58:55)
+44	Table 3-I	14	End blackout	295:02:31	keyed from page image	pi agent	2026-11-23	needs_check	
+45	Table 3-I	14	Forward heat shield jettison	295:06:45	keyed from page image	pi agent	2026-11-23	needs_check	
+46	Table 3-I	14	Drogue deployment	295:06:46	keyed from page image	pi agent	2026-11-23	needs_check	
+47	Table 3-I	14	Main parachute deployment	295:07:34	keyed from page image	pi agent	2026-11-23	needs_check	
+48	Table 3-I	14	Landing	295:11:53	keyed from page image	pi agent	2026-11-23	needs_check	

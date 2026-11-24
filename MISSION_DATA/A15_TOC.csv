@@ -1,0 +1,134 @@
+-001:30:00|1|Countdown
+000:00:00|1|Lift-off
+000:00:12|2|Tower clear
+000:02:41|1|S-IC/S-II staging
+000:09:10|2|S-II/S-IVB staging
+000:11:44|1|Earth orbit insertion
+002:50:03|1|Translunar injection
+003:22:27|1|CSM/S-IVB separation
+003:33:50|1|Transposition and docking
+004:18:01|1|LM ejection from the S-IVB
+009:59:41|2|Sequence of UV photography of Earth
+010:30:45|2|Sequence of UV photography of Moon
+013:08:19|2|Initiate Passive Thermal Control (PTC)
+014:36:17|1|Crew sleep
+025:28:20|1|Crew wake-up
+028:40:22|1|First midcourse correction, SPS test
+032:45:55|2|UV photography of Earth
+033:30:10|2|LM repressurisation
+033:48:32|2|Electrical glitch reported
+033:56:06|2|Start of TV transmission
+034:33:07|2|Scott reports broken glass on LM tapemeter
+039:57:50|1|Crew sleep
+049:04:11|1|Crew wake-up
+051:37:31|2|Start of light flash experiment
+052:34:41|2|Scott's description of light flashes
+055:48:22|2|UV photography of Earth
+061:12:44|2|Scott reports chlorination port leak
+062:21:24|1|Crew sleep
+070:01:01|1|Crew wake-up
+073:31:15|1|Second midcourse correction (MCC-4)
+074:06:47|1|SIM bay door jettison
+078:31:47|1|Lunar orbit insertion
+079:24:42|2|S-IVB lunar impact
+082:39:49|1|Descent orbit insertion
+086:11:32|1|Crew sleep
+093:32:07|1|Crew wake-up
+094:53:52|2|TV coverage
+095:56:45|1|DOI trim
+100:18:21|2|Scott reports failure to Sep (undock)
+100:39:16|1|Undocking and separation
+101:38:59|1|CSM circularisation
+102:14:47|2|P24 landmark tracking PAD
+102:42:07|2|CSM landmark tracking exercise
+104:30:09|1|Powered descent initiation
+104:42:29|1|Landing at Hadley
+106:11:05|2|Preparations for the stand-up EVA
+106:39:29|2|Worden spots LM Falcon on surface
+106:42:49|1|Stand-up EVA begins
+107:15:56|2|Stand-up EVA ends
+109:58:19|1|Scott and Irwin: sleep
+112:08:47|1|Worden: sleep
+115:30:39|1|Wake-up for EVA-1
+118:48:25|1|Worden: wake-up
+119:05:46|1|EVA-1 preparations
+119:39:17|1|EVA-1 begins
+119:52:55|2|Deploying the Lunar Roving Vehicle
+121:44:35|2|Driving to Elbow crater
+122:13:15|1|Station 1 at Elbow crater
+122:35:29|1|Station 2 on Mt. Hadley Delta
+124:03:59|2|ALSEP off-load and deployment
+125:18:00|2|First ALSEP data
+125:44:02|1|EVA-1 closeout
+126:11:59|1|EVA-1 ends
+128:12:46|2|Worden's descripton of Littrow cinder cones
+130:12:14|2|Worden's further descripton of Littrow cinder cones
+130:56:45|1|Scott and Irwin: sleep
+138:03:43|1|Wake-up for EVA-2
+140:06:07|1|EVA-2 preparations
+140:30:19|2|First communication with CSM, Day 7
+142:14:48|1|EVA-2 begins
+143:54:33|1|Station 6 on Mt. Hadley Delta
+145:01:13|1|Station 6a, the Green Boulder
+145:24:01|1|Station 7 at Spur crater, the Genesis Rock
+146:16:04|1|Station 4 at Dune crater
+147:56:18|1|Station 8
+148:32:16|1|EVA-2 closeout
+149:27:02|1|EVA-2 ends
+151:35:06|1|Scott and Irwin: sleep
+153:54:38|1|Worden: sleep
+160:01:57|1|EVA-3 preparations
+161:59:36|1|Worden: wake-up
+163:18:14|1|EVA-3 begins
+165:01:55|1|Station 9
+165:11:33|1|CSM plane change
+165:17:03|1|Station 9a at Hadley Rille
+166:13:07|1|Station 10
+167:02:55|1|EVA-3 closeout, the hammer and the feather
+168:08:04|1|EVA-3 ends
+169:07:07|2|P24 landmark tracking PAD
+171:37:23|1|Lunar lift-off
+172:29:40|1|Terminal phase initiation
+173:11:07|2|Terminal phase finalisation
+173:36:26|1|Docking
+177:04:07|2|Start of LGC plugs episode
+177:46:54|2|Instruction to recheck hatch seals
+179:30:01|1|LM jettison
+179:48:07|2|Manual Separation burn
+181:04:20|2|LM deorbit burn
+181:29:37|2|LM impact
+183:02:55|1|Crew sleep
+192:45:16|1|Crew wake-up
+202:45:57|1|Crew sleep
+211:25:05|1|Crew wake-up
+221:20:48|2|Orbit shaping burn
+222:39:29|1|Subsatellite launch
+223:48:46|1|Trans-Earth injection
+228:48:44|1|Crew sleep
+235:45:46|1|Crew wake-up
+236:43:31|2|Midcourse correction 5 cancelled
+238:14:54|2|Leaving the lunar sphere of influence
+241:57:12|1|Trans-Earth EVA (Worden) begins
+242:14:42|2|Panoramic Camera film cassette retrieved
+242:21:25|2|Mapping Camera film cassette retrieved
+242:36:19|2|Trans-Earth EVA ends
+248:14:17|2|Passive Thermal Control spinup
+252:25:27|1|Crew sleep
+261:30:20|1|Crew wake-up
+264:26:15|2|Revised light flash procedures
+264:35:28|2|Start of light flash experiment
+265:36:48|2|End of light flash experiment
+268:59:47|1|Lunar eclipse
+270:22:11|1|Press conference
+270:23:46|2|Question 1
+277:44:01|1|Crew sleep
+286:30:15|2|First communication, Day 13
+286:32:26|1|Crew wake-up
+290:00:28|2|UV photography of Earth
+291:56:50|1|Third midcourse correction (MCC-7)
+294:43:56|1|CM/SM separation
+294:58:55|1|Entry interface
+294:59:13|2|Communications blackout begins
+295:06:46|2|Drogue parachutes
+295:07:34|2|Main parachutes
+295:11:53|1|Splashdown

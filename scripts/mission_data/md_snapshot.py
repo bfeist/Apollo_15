@@ -20,9 +20,9 @@ JOURNAL_FIELDS = ('file', 'url', 'final_url', 'fetch_date', 'bytes', 'sha256', '
 RAW_FIELDS = ('path', 'url', 'final_url', 'fetch_date', 'bytes', 'sha256', 'count', 'kind', 'note')
 
 AFJ_SUPPORT = ('index.html', 'a15images.html', 'a15docs.html', 'a15videoindex.html', 'a15summary.html',
-               'a15explan.html')
+               'a15explan.html', 'fplanindex.html')
 ALSJ_SUPPORT = ('a15.html', 'a15trans.html', 'images15.html', 'video15.html', 'a15tecdbrf.html',
-                'a15.summary.html', 'a15.crew.html')
+                'a15.summary.html', 'a15.crew.html', 'a15.fltplan.html')
 RAW_DOCUMENTS = (
     ('original_docs/AS15_TEC.PDF', ALSJ_BASE + 'AS15_TEC.PDF', 'transcript'),
     ('original_docs/AS15_PAO.PDF', ALSJ_BASE + 'AS15_PAO.PDF', 'transcript'),

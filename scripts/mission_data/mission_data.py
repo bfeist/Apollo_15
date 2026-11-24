@@ -63,6 +63,9 @@ def main(argv=None) -> int:
     p.add_argument('--dpi', type=int, default=180)
     p.add_argument('--url', default='http://127.0.0.1:8010')
 
+    import md_flightplan
+    md_flightplan.add_parser(sub)
+
     sub.add_parser('all', help='run every offline text step in order (3–7, 9–11)')
     args = parser.parse_args(argv)
 
@@ -112,6 +115,8 @@ def main(argv=None) -> int:
     if args.command == 'ocr':
         import md_ocr
         return md_ocr.main(args)
+    if args.command == 'flightplan':
+        return md_flightplan.main(args)
     if args.command == 'all':
         import md_commentary, md_journals, md_photos, md_publish, md_reconcile, md_spans, md_speakers, md_toc, md_validate
         ns = argparse.Namespace(record=False, ai=False, backend='hgx', budget=0, window=40, seed=False, what='hasselblad',

@@ -1,0 +1,740 @@
+update_id	cited_page_id	cited_get	change_text	utterance_event_ids	source_get	source	annotation_block_ids	kind	kind_basis
+upd:journal_afj:afj:05day2_checking_sps:start+12:0	3-023		Flight Plan page 3-23.	afj:05day2_checking_sps:start+12		journal_afj		unknown	rule
+upd:journal_afj:afj:05day2_checking_sps:start+20:0	3-024		Flight Plan page 3-24.	afj:05day2_checking_sps:start+20		journal_afj		unknown	rule
+upd:journal_afj:afj:05day2_checking_sps:start+27:0	3-025		Flight Plan page 3-25.	afj:05day2_checking_sps:start+27		journal_afj		unknown	rule
+upd:journal_afj:afj:05day2_checking_sps:start+34:0	3-026		Flight Plan page 3-26.	afj:05day2_checking_sps:start+34		journal_afj		unknown	rule
+upd:journal_afj:afj:05day2_checking_sps:start+40:0	3-027		Flight Plan page 3-27.	afj:05day2_checking_sps:start+40		journal_afj		unknown	rule
+upd:journal_afj:afj:06day2_enter_lm:start+7:0	3-036		Flight Plan page 3-36.	afj:06day2_enter_lm:start+7		journal_afj		unknown	rule
+upd:journal_afj:afj:07day3_flashing_lights:start+13:0	3-047		Flight Plan page 3-47.	afj:07day3_flashing_lights:start+13		journal_afj		unknown	rule
+upd:journal_afj:afj:07day3_flashing_lights:start+20:0	3-048		Flight Plan page 3-48.	afj:07day3_flashing_lights:start+20		journal_afj		unknown	rule
+upd:journal_afj:afj:07day3_flashing_lights:start+27:0	3-049		Flight Plan page 3-49.	afj:07day3_flashing_lights:start+27		journal_afj		unknown	rule
+upd:journal_afj:afj:07day3_flashing_lights:start+37:0	3-050		Flight Plan page 3-50.	afj:07day3_flashing_lights:start+37		journal_afj		unknown	rule
+upd:journal_afj:afj:07day3_flashing_lights:start+6:0	3-046		Flight Plan page 3-46.	afj:07day3_flashing_lights:start+6		journal_afj		unknown	rule
+upd:journal_afj:afj:09day4_lunar_encounter:start+13:0	3-069		Flight Plan page 3-69.	afj:09day4_lunar_encounter:start+13		journal_afj		unknown	rule
+upd:journal_afj:afj:09day4_lunar_encounter:start+20:0	3-070		Flight Plan page 3-70.	afj:09day4_lunar_encounter:start+20		journal_afj		unknown	rule
+upd:journal_afj:afj:09day4_lunar_encounter:start+6:0	3-068		Flight Plan page 3-68.	afj:09day4_lunar_encounter:start+6		journal_afj		unknown	rule
+upd:journal_afj:afj:10a-day4_lunar_orbit1-2:start+5:0	3-084		Flight Plan page 3-84.	afj:10a-day4_lunar_orbit1-2:start+5		journal_afj		unknown	rule
+upd:journal_afj:afj:11day5_wakeup:start+14:0	3-095		Flight Plan page 3-95.	afj:11day5_wakeup:start+14		journal_afj		unknown	rule
+upd:journal_afj:afj:11day5_wakeup:start+15:0	3-096		Flight Plan page 3-96.	afj:11day5_wakeup:start+15		journal_afj		unknown	rule
+upd:journal_afj:afj:11day5_wakeup:start+20:0	3-097		Flight Plan page 3-97.	afj:11day5_wakeup:start+20		journal_afj		unknown	rule
+upd:journal_afj:afj:11day5_wakeup:start+21:0	3-098		Flight Plan page 3-98.	afj:11day5_wakeup:start+21		journal_afj		unknown	rule
+upd:journal_afj:afj:11day5_wakeup:start+23:0	3-099		Flight Plan page 3-99.	afj:11day5_wakeup:start+23		journal_afj		unknown	rule
+upd:journal_afj:afj:11day5_wakeup:start+24:0	3-100		Flight Plan page 3-100.	afj:11day5_wakeup:start+24		journal_afj		unknown	rule
+upd:journal_afj:afj:11day5_wakeup:start+9:0	3-094		Flight Plan page 3-94.	afj:11day5_wakeup:start+9		journal_afj		unknown	rule
+upd:journal_afj:afj:12a-day5_doi_trim:start+7:0	3-103		Flight Plan page 3-103.	afj:12a-day5_doi_trim:start+7		journal_afj		unknown	rule
+upd:journal_afj:afj:12b-day5_lm_activation:start+5:0	3-105		Flight Plan page 3-105.	afj:12b-day5_lm_activation:start+5		journal_afj		unknown	rule
+upd:journal_afj:afj:12b-day5_lm_activation:start+6:0	3-105		Apollo 15 is about to make a tracking pass over the landing site so that Dave can get a close look at the landing site. They are still on Flight Plan page 105.	afj:12b-day5_lm_activation:start+6		journal_afj		unknown	rule
+upd:journal_afj:afj:12d-day5_csm_circ:start+6:0	3-116		LM Flight Plan page 3-116.	afj:12d-day5_csm_circ:start+6		journal_afj		unknown	rule
+upd:journal_afj:afj:12d-day5_csm_circ:start+7:0	3-117		CSM Flight Plan page 3-117.	afj:12d-day5_csm_circ:start+7		journal_afj		unknown	rule
+upd:journal_afj:afj:12d-day5_csm_circ:start+8:0	3-117		Al is near the top of page 3-117 of the Flight Plan and is about to receive details of the circularisation burn.	afj:12d-day5_csm_circ:start+8		journal_afj		unknown	rule
+upd:journal_afj:afj:12e-day5_landing_prep:start+5:0	3-120		LM Flight Plan page 3-120.	afj:12e-day5_landing_prep:start+5		journal_afj		unknown	rule
+upd:journal_afj:afj:12e-day5_landing_prep:start+6:0	3-121		CSM Flight Plan page 3-121.	afj:12e-day5_landing_prep:start+6		journal_afj		unknown	rule
+upd:journal_afj:afj:13solo_ops1:start+71:0	3-131		CSM Flight Plan page 3-131.	afj:13solo_ops1:start+71		journal_afj		unknown	rule
+upd:journal_afj:afj:14solo_ops2:start+12:0	3-147		CSM Flight Plan page 3-147.	afj:14solo_ops2:start+12		journal_afj		unknown	rule
+upd:journal_afj:afj:14solo_ops2:start+13:0	3-149		CSM Flight Plan page 3-149.	afj:14solo_ops2:start+13		journal_afj		unknown	rule
+upd:journal_afj:afj:14solo_ops2:start+14:0	3-151		CSM Flight Plan page 3-151.	afj:14solo_ops2:start+14		journal_afj		unknown	rule
+upd:journal_afj:afj:14solo_ops2:start+15:0	3-153		CSM Flight Plan page 3-153.	afj:14solo_ops2:start+15		journal_afj		unknown	rule
+upd:journal_afj:afj:14solo_ops2:start+16:0	3-155		CSM Flight Plan page 3-155.	afj:14solo_ops2:start+16		journal_afj		unknown	rule
+upd:journal_afj:afj:14solo_ops2:start+17:0	3-157		CSM Flight Plan page 3-157.	afj:14solo_ops2:start+17		journal_afj		unknown	rule
+upd:journal_afj:afj:15solo_ops3:start+13:0	3-193		CSM Flight Plan page 3-193.	afj:15solo_ops3:start+13		journal_afj		unknown	rule
+upd:journal_afj:afj:15solo_ops3:start+17:0	3-195		CSM Flight Plan page 3-195.	afj:15solo_ops3:start+17		journal_afj		unknown	rule
+upd:journal_afj:afj:15solo_ops3:start+9:0	3-191		CSM Flight Plan page 3-191.	afj:15solo_ops3:start+9		journal_afj		unknown	rule
+upd:journal_afj:afj:16solo_ops4:start+11:0	3-233		CSM Flight Plan page 3-233.	afj:16solo_ops4:start+11		journal_afj		unknown	rule
+upd:journal_afj:afj:16solo_ops4:start+15:0	3-235		CSM Flight Plan page 3-235.	afj:16solo_ops4:start+15		journal_afj		unknown	rule
+upd:journal_afj:afj:16solo_ops4:start+19:0	3-237		CSM Flight Plan page 3-237.	afj:16solo_ops4:start+19		journal_afj		unknown	rule
+upd:journal_afj:afj:16solo_ops4:start+23:0	3-239		CSM Flight Plan page 3-239.	afj:16solo_ops4:start+23		journal_afj		unknown	rule
+upd:journal_afj:afj:16solo_ops4:start+27:0	3-241		CSM Flight Plan page 3-241.	afj:16solo_ops4:start+27		journal_afj		unknown	rule
+upd:journal_afj:afj:16solo_ops4:start+29:0	3-243		CSM Flight Plan page 3-243.	afj:16solo_ops4:start+29		journal_afj		unknown	rule
+upd:journal_afj:afj:16solo_ops4:start+7:0	3-231		CSM Flight Plan page 3-231.	afj:16solo_ops4:start+7		journal_afj		unknown	rule
+upd:journal_afj:afj:17rndz_dock:start+13:0	3-267		CSM Flight Plan page 3-267.	afj:17rndz_dock:start+13		journal_afj		unknown	rule
+upd:journal_afj:afj:17rndz_dock:start+16:0	3-269		CSM Flight Plan page 3-269.	afj:17rndz_dock:start+16		journal_afj		unknown	rule
+upd:journal_afj:afj:19a-day9_orbital_science:start+10:0	3-297		Flight Plan page 3-297.	afj:19a-day9_orbital_science:start+10		journal_afj		unknown	rule
+upd:journal_afj:afj:19a-day9_orbital_science:start+11:0	3-298		Flight Plan page 3-298.	afj:19a-day9_orbital_science:start+11		journal_afj		unknown	rule
+upd:journal_afj:afj:19a-day9_orbital_science:start+12:0	3-299		Flight Plan page 3-299.	afj:19a-day9_orbital_science:start+12		journal_afj		unknown	rule
+upd:journal_afj:afj:19a-day9_orbital_science:start+13:0	3-300		Flight Plan page 3-300.	afj:19a-day9_orbital_science:start+13		journal_afj		unknown	rule
+upd:journal_afj:afj:19a-day9_orbital_science:start+14:0	3-301		Flight Plan page 3-301.	afj:19a-day9_orbital_science:start+14		journal_afj		unknown	rule
+upd:journal_afj:afj:19a-day9_orbital_science:start+18:0	3-302		Flight Plan page 3-302.	afj:19a-day9_orbital_science:start+18		journal_afj		unknown	rule
+upd:journal_afj:afj:19a-day9_orbital_science:start+19:0	3-303		Flight Plan page 3-303.	afj:19a-day9_orbital_science:start+19		journal_afj		unknown	rule
+upd:journal_afj:afj:19a-day9_orbital_science:start+27:0	3-304		Flight Plan page 3-304.	afj:19a-day9_orbital_science:start+27		journal_afj		unknown	rule
+upd:journal_afj:afj:19a-day9_orbital_science:start+6:0	3-296		Flight Plan page 3-296.	afj:19a-day9_orbital_science:start+6		journal_afj		unknown	rule
+upd:journal_afj:afj:20a-day10_science-68-69:start+14:0	3-317		Flight Plan page 3-317.	afj:20a-day10_science-68-69:start+14		journal_afj		unknown	rule
+upd:journal_afj:afj:20a-day10_science-68-69:start+18:0	3-318		Flight Plan page 3-318.	afj:20a-day10_science-68-69:start+18		journal_afj		unknown	rule
+upd:journal_afj:afj:20a-day10_science-68-69:start+22:0	3-319		Flight Plan page 3-319.	afj:20a-day10_science-68-69:start+22		journal_afj		unknown	rule
+upd:journal_afj:afj:20a-day10_science-68-69:start+26:0	3-320		Flight Plan page 3-320.	afj:20a-day10_science-68-69:start+26		journal_afj		unknown	rule
+upd:journal_afj:afj:20a-day10_science-68-69:start+27:0	3-321		Flight Plan page 3-321.	afj:20a-day10_science-68-69:start+27		journal_afj		unknown	rule
+upd:journal_afj:afj:20a-day10_science-68-69:start+31:0	3-322		Flight Plan page 3-322.	afj:20a-day10_science-68-69:start+31		journal_afj		unknown	rule
+upd:journal_afj:afj:20a-day10_science-68-69:start+66:0	3-323		Flight Plan page 3-323.	afj:20a-day10_science-68-69:start+66		journal_afj		unknown	rule
+upd:journal_afj:afj:20a-day10_science-68-69:start+8:0	3-316		Flight Plan page 3-316.	afj:20a-day10_science-68-69:start+8		journal_afj		unknown	rule
+upd:journal_afj:afj:20b-day10_science-70:start+8:0	3-326		Flight Plan page 3-326.	afj:20b-day10_science-70:start+8		journal_afj		unknown	rule
+upd:journal_afj:afj:23a-day11_science-sphere:start+11:0	3-346		Flight Plan page 3-346.	afj:23a-day11_science-sphere:start+11		journal_afj		unknown	rule
+upd:journal_afj:afj:23a-day11_science-sphere:start+18:0	3-347		Flight Plan page 3-347.	afj:23a-day11_science-sphere:start+18		journal_afj		unknown	rule
+upd:journal_afj:afj:23a-day11_science-sphere:start+7:0	3-345		Flight Plan page 3-345.	afj:23a-day11_science-sphere:start+7		journal_afj		unknown	rule
+upd:journal_afj:afj:23b-day11_worden_eva:start+9:0	3-001		The procedures for the EVA begin on page 3-1 of the CSM Systems Checklist.	afj:23b-day11_worden_eva:start+9		journal_afj		unknown	rule
+upd:journal_afj:afj:24a-day12_p23-uv-photos:start+16:0	3-368		Flight Plan page 3-368.	afj:24a-day12_p23-uv-photos:start+16		journal_afj		unknown	rule
+upd:journal_afj:afj:24a-day12_p23-uv-photos:start+20:0	3-369		Flight Plan page 3-369.	afj:24a-day12_p23-uv-photos:start+20		journal_afj		unknown	rule
+upd:journal_afj:afj:24a-day12_p23-uv-photos:start+24:0	3-370		Flight Plan page 3-370.	afj:24a-day12_p23-uv-photos:start+24		journal_afj		unknown	rule
+upd:journal_afj:afj:24a-day12_p23-uv-photos:start+25:0	3-371		Flight Plan page 3-371.	afj:24a-day12_p23-uv-photos:start+25		journal_afj		unknown	rule
+upd:journal_afj:afj:24a-day12_p23-uv-photos:start+9:0	3-367		Flight Plan page 3-367.	afj:24a-day12_p23-uv-photos:start+9		journal_afj		unknown	rule
+upd:journal_afj:afj:24b-day12_eclipse-presser:start+6:0	3-381		Flight Plan page 3-381.	afj:24b-day12_eclipse-presser:start+6		journal_afj		unknown	rule
+upd:journal_afj:afj:24b-day12_eclipse-presser:start+9:0	3-380		t 268:59:47 GET, the Mission Timer is started from zero, leading up to photography of the starting phase of the lunar eclipse. Procedures for this are given on page 3-380 of the Flight Plan. Two cameras are used; a Hasselblad loaded with colour film is to be used at the left-hand rendezvous window (number 2) and the Nikon 35-mm camera with very high speed black and white film looks through the right-hand re	afj:24b-day12_eclipse-presser:start+9		journal_afj		unknown	rule
+upd:journal_afj:afj:25a-day13_approach-earth:start+6:0	3-396		Flight Plan page 3-396.	afj:25a-day13_approach-earth:start+6		journal_afj		unknown	rule
+upd:journal_afj:afj:25a-day13_approach-earth:start+7:0	3-397		Flight Plan page 3-397.	afj:25a-day13_approach-earth:start+7		journal_afj		unknown	rule
+upd:journal_afj:afj:25a-day13_approach-earth:start+8:0	3-398		Flight Plan page 3-398.	afj:25a-day13_approach-earth:start+8		journal_afj		unknown	rule
+upd:journal_afj_link:afj:05day2_checking_sps:start+12:0	3-023		[link] page 3-023	afj:05day2_checking_sps:start+12		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:05day2_checking_sps:start+20:0	3-024		[link] page 3-024	afj:05day2_checking_sps:start+20		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:05day2_checking_sps:start+27:0	3-025		[link] page 3-025	afj:05day2_checking_sps:start+27		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:05day2_checking_sps:start+34:0	3-026		[link] page 3-026	afj:05day2_checking_sps:start+34		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:05day2_checking_sps:start+40:0	3-027		[link] page 3-027	afj:05day2_checking_sps:start+40		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:06day2_enter_lm:start+7:0	3-036		[link] page 3-036	afj:06day2_enter_lm:start+7		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:07day3_flashing_lights:start+13:0	3-047		[link] page 3-047	afj:07day3_flashing_lights:start+13		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:07day3_flashing_lights:start+20:0	3-048		[link] page 3-048	afj:07day3_flashing_lights:start+20		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:07day3_flashing_lights:start+27:0	3-049		[link] page 3-049	afj:07day3_flashing_lights:start+27		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:07day3_flashing_lights:start+37:0	3-050		[link] page 3-050	afj:07day3_flashing_lights:start+37		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:07day3_flashing_lights:start+6:0	3-046		[link] page 3-046	afj:07day3_flashing_lights:start+6		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:09day4_lunar_encounter:start+13:0	3-069		[link] page 3-069	afj:09day4_lunar_encounter:start+13		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:09day4_lunar_encounter:start+20:0	3-070		[link] page 3-070	afj:09day4_lunar_encounter:start+20		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:09day4_lunar_encounter:start+6:0	3-068		[link] page 3-068	afj:09day4_lunar_encounter:start+6		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:10a-day4_lunar_orbit1-2:start+5:0	3-084		[link] page 3-084	afj:10a-day4_lunar_orbit1-2:start+5		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:10b-day4_doi-rest:start+8:0	3-089		[link] page 3-089	afj:10b-day4_doi-rest:start+8		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:11day5_wakeup:start+14:0	3-095		[link] page 3-095	afj:11day5_wakeup:start+14		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:11day5_wakeup:start+15:0	3-096		[link] page 3-096	afj:11day5_wakeup:start+15		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:11day5_wakeup:start+20:0	3-097		[link] page 3-097	afj:11day5_wakeup:start+20		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:11day5_wakeup:start+21:0	3-098		[link] page 3-098	afj:11day5_wakeup:start+21		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:11day5_wakeup:start+23:0	3-099		[link] page 3-099	afj:11day5_wakeup:start+23		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:11day5_wakeup:start+24:0	3-100		[link] page 3-100	afj:11day5_wakeup:start+24		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:11day5_wakeup:start+9:0	3-094		[link] page 3-094	afj:11day5_wakeup:start+9		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:12a-day5_doi_trim:start+7:0	3-103		[link] page 3-103	afj:12a-day5_doi_trim:start+7		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:12b-day5_lm_activation:start+5:0	3-105		[link] page 3-105	afj:12b-day5_lm_activation:start+5		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:12d-day5_csm_circ:start+6:0	3-116		[link] page 3-116	afj:12d-day5_csm_circ:start+6		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:12d-day5_csm_circ:start+7:0	3-117		[link] page 3-117	afj:12d-day5_csm_circ:start+7		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:12e-day5_landing_prep:start+5:0	3-120		[link] page 3-120	afj:12e-day5_landing_prep:start+5		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:12e-day5_landing_prep:start+6:0	3-121		[link] page 3-121	afj:12e-day5_landing_prep:start+6		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:13solo_ops1:start+71:0	3-131		[link] page 3-131	afj:13solo_ops1:start+71		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:14solo_ops2:start+12:0	3-147		[link] page 3-147	afj:14solo_ops2:start+12		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:14solo_ops2:start+13:0	3-149		[link] page 3-149	afj:14solo_ops2:start+13		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:14solo_ops2:start+14:0	3-151		[link] page 3-151	afj:14solo_ops2:start+14		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:14solo_ops2:start+15:0	3-153		[link] page 3-153	afj:14solo_ops2:start+15		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:14solo_ops2:start+16:0	3-155		[link] page 3-155	afj:14solo_ops2:start+16		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:14solo_ops2:start+17:0	3-157		[link] page 3-157	afj:14solo_ops2:start+17		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:15solo_ops3:start+13:0	3-193		[link] page 3-193	afj:15solo_ops3:start+13		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:15solo_ops3:start+17:0	3-195		[link] page 3-195	afj:15solo_ops3:start+17		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:15solo_ops3:start+9:0	3-191		[link] page 3-191	afj:15solo_ops3:start+9		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:16solo_ops4:start+11:0	3-233		[link] page 3-233	afj:16solo_ops4:start+11		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:16solo_ops4:start+15:0	3-235		[link] page 3-235	afj:16solo_ops4:start+15		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:16solo_ops4:start+19:0	3-237		[link] page 3-237	afj:16solo_ops4:start+19		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:16solo_ops4:start+23:0	3-239		[link] page 3-239	afj:16solo_ops4:start+23		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:16solo_ops4:start+27:0	3-241		[link] page 3-241	afj:16solo_ops4:start+27		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:16solo_ops4:start+29:0	3-243		[link] page 3-243	afj:16solo_ops4:start+29		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:16solo_ops4:start+7:0	3-231		[link] page 3-231	afj:16solo_ops4:start+7		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:17rndz_dock:start+13:0	3-267		[link] page 3-267	afj:17rndz_dock:start+13		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:17rndz_dock:start+16:0	3-269		[link] page 3-269	afj:17rndz_dock:start+16		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:18tunnel_leak_lm_jett:start+5:0	3-279		[link] page 3-279	afj:18tunnel_leak_lm_jett:start+5		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:19a-day9_orbital_science:start+10:0	3-297		[link] page 3-297	afj:19a-day9_orbital_science:start+10		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:19a-day9_orbital_science:start+11:0	3-298		[link] page 3-298	afj:19a-day9_orbital_science:start+11		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:19a-day9_orbital_science:start+12:0	3-299		[link] page 3-299	afj:19a-day9_orbital_science:start+12		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:19a-day9_orbital_science:start+13:0	3-300		[link] page 3-300	afj:19a-day9_orbital_science:start+13		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:19a-day9_orbital_science:start+14:0	3-301		[link] page 3-301	afj:19a-day9_orbital_science:start+14		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:19a-day9_orbital_science:start+18:0	3-302		[link] page 3-302	afj:19a-day9_orbital_science:start+18		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:19a-day9_orbital_science:start+19:0	3-303		[link] page 3-303	afj:19a-day9_orbital_science:start+19		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:19a-day9_orbital_science:start+27:0	3-304		[link] page 3-304	afj:19a-day9_orbital_science:start+27		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:19a-day9_orbital_science:start+6:0	3-296		[link] page 3-296	afj:19a-day9_orbital_science:start+6		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:20a-day10_science-68-69:start+14:0	3-317		[link] page 3-317	afj:20a-day10_science-68-69:start+14		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:20a-day10_science-68-69:start+18:0	3-318		[link] page 3-318	afj:20a-day10_science-68-69:start+18		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:20a-day10_science-68-69:start+22:0	3-319		[link] page 3-319	afj:20a-day10_science-68-69:start+22		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:20a-day10_science-68-69:start+26:0	3-320		[link] page 3-320	afj:20a-day10_science-68-69:start+26		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:20a-day10_science-68-69:start+27:0	3-321		[link] page 3-321	afj:20a-day10_science-68-69:start+27		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:20a-day10_science-68-69:start+31:0	3-322		[link] page 3-322	afj:20a-day10_science-68-69:start+31		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:20a-day10_science-68-69:start+66:0	3-323		[link] page 3-323	afj:20a-day10_science-68-69:start+66		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:20a-day10_science-68-69:start+8:0	3-316		[link] page 3-316	afj:20a-day10_science-68-69:start+8		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:20b-day10_science-70:start+8:0	3-326		[link] page 3-326	afj:20b-day10_science-70:start+8		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:23a-day11_science-sphere:start+11:0	3-346		[link] page 3-346	afj:23a-day11_science-sphere:start+11		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:23a-day11_science-sphere:start+18:0	3-347		[link] page 3-347	afj:23a-day11_science-sphere:start+18		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:23a-day11_science-sphere:start+7:0	3-345		[link] page 3-345	afj:23a-day11_science-sphere:start+7		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:24a-day12_p23-uv-photos:start+16:0	3-368		[link] page 3-368	afj:24a-day12_p23-uv-photos:start+16		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:24a-day12_p23-uv-photos:start+20:0	3-369		[link] page 3-369	afj:24a-day12_p23-uv-photos:start+20		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:24a-day12_p23-uv-photos:start+24:0	3-370		[link] page 3-370	afj:24a-day12_p23-uv-photos:start+24		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:24a-day12_p23-uv-photos:start+25:0	3-371		[link] page 3-371	afj:24a-day12_p23-uv-photos:start+25		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:24a-day12_p23-uv-photos:start+9:0	3-367		[link] page 3-367	afj:24a-day12_p23-uv-photos:start+9		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:24b-day12_eclipse-presser:start+6:0	3-381		[link] page 3-381	afj:24b-day12_eclipse-presser:start+6		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:24b-day12_eclipse-presser:start+9:0	3-380		[link] page 3-380	afj:24b-day12_eclipse-presser:start+9		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:25a-day13_approach-earth:start+6:0	3-396		[link] page 3-396	afj:25a-day13_approach-earth:start+6		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:25a-day13_approach-earth:start+7:0	3-397		[link] page 3-397	afj:25a-day13_approach-earth:start+7		journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:25a-day13_approach-earth:start+8:0	3-398		[link] page 3-398	afj:25a-day13_approach-earth:start+8		journal_afj_link		reference	journal link
+upd:journal_afj:afj:01launch_to_earth_orbit:0000000+1:0	3-001		Flight Plan page 3-1.	afj:01launch_to_earth_orbit:0000000+1	000:00:00	journal_afj		unknown	rule
+upd:journal_afj_link:afj:01launch_to_earth_orbit:0000000+1:0	3-001		[link] page 3-001	afj:01launch_to_earth_orbit:0000000+1	000:00:00	journal_afj_link		reference	journal link
+upd:journal_afj:afj:01launch_to_earth_orbit:0000638+3:0	3-002		The crew is at the top of page 2-9 of the CSM Launch Checklist. Communication with Mission Control is through a ground station in Bermuda and is via one of four antennas spaced around the Command Module at 90° intervals, designated A, B, C and D. The Flight Plan calls for	afj:01launch_to_earth_orbit:0000638+3	000:06:38	journal_afj		time_change	rule
+upd:journal_afj:afj:02earth_orbit_tli:0005926+2:0	3-002		Flight Plan page 3-002	afj:02earth_orbit_tli:0005926+2	000:59:26	journal_afj		unknown	rule
+upd:journal_afj_link:afj:02earth_orbit_tli:0005926+2:0	3-002		[link] page 3-002	afj:02earth_orbit_tli:0005926+2	000:59:26	journal_afj_link		reference	journal link
+upd:journal_afj:afj:02earth_orbit_tli:0005957+1:0	3-002		Flight Plan page 3-2.	afj:02earth_orbit_tli:0005957+1	000:59:57	journal_afj		unknown	rule
+upd:journal_afj_link:afj:02earth_orbit_tli:0005957+1:0	3-002		[link] page 3-002	afj:02earth_orbit_tli:0005957+1	000:59:57	journal_afj_link		reference	journal link
+upd:journal_afj:afj:02earth_orbit_tli:0013038+9:0	3-002		Page 2-15 of the Flight Plan includes a schedule of all the "Return to Earth Block Data" PADs. Three basic types of abort PAD are shown; "Complete P30" which defines all the parameters for a return to Earth, "P37" short versions which give data f	afj:02earth_orbit_tli:0013038+9	001:30:38	journal_afj		pad	rule
+upd:journal_afj_link:afj:02earth_orbit_tli:0013038+9:0	3-002		[link] page 2-015	afj:02earth_orbit_tli:0013038+9	001:30:38	journal_afj_link		reference	journal link
+upd:journal_afj:afj:02earth_orbit_tli:0014853+3:0	3-005		Flight Plan page 3-005.	afj:02earth_orbit_tli:0014853+3	001:48:53	journal_afj		unknown	rule
+upd:journal_afj_link:afj:02earth_orbit_tli:0014853+3:0	3-005		[link] page 3-005	afj:02earth_orbit_tli:0014853+3	001:48:53	journal_afj_link		reference	journal link
+upd:journal_afj:afj:02earth_orbit_tli:0015955+1:0	3-005		Flight Plan page 3-5.	afj:02earth_orbit_tli:0015955+1	001:59:55	journal_afj		unknown	rule
+upd:journal_afj_link:afj:02earth_orbit_tli:0015955+1:0	3-005		[link] page 3-005	afj:02earth_orbit_tli:0015955+1	001:59:55	journal_afj_link		reference	journal link
+upd:journal_afj:afj:02earth_orbit_tli:0025924+1:0	3-006		Flight Plan page 3-6.	afj:02earth_orbit_tli:0025924+1	002:59:24	journal_afj		unknown	rule
+upd:journal_afj_link:afj:02earth_orbit_tli:0025924+1:0	3-006		[link] page 3-006	afj:02earth_orbit_tli:0025924+1	002:59:24	journal_afj_link		reference	journal link
+upd:journal_afj:afj:03tde:0032856+1:0	3-003		The CSM Launch Checklist, page 3-3 calls for the newly deployed HGA to be slewed around to check its operation. Jim is happy with it and Dave has offered it to be used for the TV transmission. Being a directional antenna, the HGA will allow a higher signal strength to be re	afj:03tde:0032856+1	003:28:56	journal_afj		unknown	rule
+upd:journal_afj:afj:03tde:0033859+18:0	3-005		als connected within the tunnel, and the tunnel hatch reinstalled, the crew make the final preparations to separate from the launch vehicle using procedures on page 3-5 of the CSM Launch Checklist. As a final step, the CM and LM are sealed from each other by closing the Pressure Equalization Valve in the tunnel hatch. A separate valve between the CM and the tunnel, the Tunnel Vent valve, is set in a posit	afj:03tde:0033859+18	003:38:59	journal_afj		unknown	rule
+upd:journal_afj:afj:03tde:0035521+2:0	3-008		Flight Plan page 3-8. This page has a diagram of the expected S-IVB attitude.	afj:03tde:0035521+2	003:55:21	journal_afj		unknown	rule
+upd:journal_afj:afj:03tde:0035521+3:0	3-009		Flight Plan page 3-9.	afj:03tde:0035521+3	003:55:21	journal_afj		unknown	rule
+upd:journal_afj_link:afj:03tde:0035521+2:0	3-008		[link] page 3-008	afj:03tde:0035521+2	003:55:21	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:03tde:0035521+3:0	3-009		[link] page 3-009	afj:03tde:0035521+3	003:55:21	journal_afj_link		reference	journal link
+upd:journal_afj:afj:03tde:0045300+2:0	3-010		Flight Plan page 3-10.	afj:03tde:0045300+2	004:53:00	journal_afj		unknown	rule
+upd:journal_afj_link:afj:03tde:0045300+2:0	3-010		[link] page 3-010	afj:03tde:0045300+2	004:53:00	journal_afj_link		reference	journal link
+upd:journal_afj:afj:04troubleshoot_ptc:0055939+2:0	3-011		Flight Plan page 3-11.	afj:04troubleshoot_ptc:0055939+2	005:59:39	journal_afj		unknown	rule
+upd:journal_afj_link:afj:04troubleshoot_ptc:0055939+2:0	3-011		[link] page 3-011	afj:04troubleshoot_ptc:0055939+2	005:59:39	journal_afj_link		reference	journal link
+upd:journal_afj:afj:04troubleshoot_ptc:0064453+2:0	3-012		Flight Plan page 3-12.	afj:04troubleshoot_ptc:0064453+2	006:44:53	journal_afj		unknown	rule
+upd:journal_afj_link:afj:04troubleshoot_ptc:0064453+2:0	3-012		[link] page 3-012	afj:04troubleshoot_ptc:0064453+2	006:44:53	journal_afj_link		reference	journal link
+upd:journal_afj:afj:04troubleshoot_ptc:0075318+28:0	3-014		Flight Plan page 3-14.	afj:04troubleshoot_ptc:0075318+28	007:53:18	journal_afj		unknown	rule
+upd:journal_afj:afj:04troubleshoot_ptc:0075318+8:0	3-013		Flight Plan page 3-13.	afj:04troubleshoot_ptc:0075318+8	007:53:18	journal_afj		unknown	rule
+upd:journal_afj_link:afj:04troubleshoot_ptc:0075318+28:0	3-014		[link] page 3-014	afj:04troubleshoot_ptc:0075318+28	007:53:18	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:04troubleshoot_ptc:0075318+8:0	3-013		[link] page 3-013	afj:04troubleshoot_ptc:0075318+8	007:53:18	journal_afj_link		reference	journal link
+upd:journal_afj:afj:04troubleshoot_ptc:0092236+1:0	3-015		The second period of UV photography of both Earth and the Moon is due to begin at 9:45 GET. The whole of page 3-15 in the Flight Plan is devoted to the procedures for this session.	afj:04troubleshoot_ptc:0092236+1	009:22:36	journal_afj		time_change	rule
+upd:journal_afj_link:afj:04troubleshoot_ptc:0092236+1:0	3-015		[link] page 3-015	afj:04troubleshoot_ptc:0092236+1	009:22:36	journal_afj_link		reference	journal link
+upd:journal_afj:afj:04troubleshoot_ptc:0092242:0	3-015		Roger. On page 3-15 in the Flight Plan, in the left column, about the 17th line down, we have 2 frames with filter number 2.	afj:04troubleshoot_ptc:0092242	009:22:42	journal_afj		unknown	rule
+upd:transcript_tec:AS15_TEC-p0039-r12:0	3-015		Roger. On page 3-15 in the Flight Plan, in the left column, about the 17th line down, we have two frames with filter number 2.	AS15_TEC-p0039-r12	009:22:42	transcript_tec		unknown	rule
+upd:journal_afj:afj:04troubleshoot_ptc:0095941+2:0	3-017		Flight Plan page 3-17.	afj:04troubleshoot_ptc:0095941+2	009:59:41	journal_afj		unknown	rule
+upd:journal_afj:afj:04troubleshoot_ptc:0095941+6:0	3-015		Page 3-15 of the Flight Plan has detailed instructions for a series of photographs to be taken of Earth using film that is sensitive to ultraviolet light.	afj:04troubleshoot_ptc:0095941+6	009:59:41	journal_afj		unknown	rule
+upd:journal_afj:afj:04troubleshoot_ptc:0095941+7:0	3-015		Flight Plan page 3-15.	afj:04troubleshoot_ptc:0095941+7	009:59:41	journal_afj		unknown	rule
+upd:journal_afj_link:afj:04troubleshoot_ptc:0095941+2:0	3-017		[link] page 3-017	afj:04troubleshoot_ptc:0095941+2	009:59:41	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:04troubleshoot_ptc:0095941+7:0	3-015		[link] page 3-015	afj:04troubleshoot_ptc:0095941+7	009:59:41	journal_afj_link		reference	journal link
+upd:journal_afj:afj:04troubleshoot_ptc:0103045+2:0	3-015		agazine, has been re-affixed to the Hasselblad so that calibration UV pictures can be taken of the Moon, repeating the sequence of eight shots as instructed on page 3-15 of the Flight Plan. These are AS15-99-13417 to 13424. The Moon is still very far away and with this lens/camera combination, appears only as a small crescent. There is a great deal of flare, perhaps due to the proximity of the Sun in the w	afj:04troubleshoot_ptc:0103045+2	010:30:45	journal_afj		unknown	rule
+upd:journal_afj:afj:04troubleshoot_ptc:0104555+3:0	3-019		Flight Plan page 3-19.	afj:04troubleshoot_ptc:0104555+3	010:45:55	journal_afj		unknown	rule
+upd:journal_afj_link:afj:04troubleshoot_ptc:0104555+3:0	3-019		[link] page 3-019	afj:04troubleshoot_ptc:0104555+3	010:45:55	journal_afj_link		reference	journal link
+upd:journal_afj:afj:04troubleshoot_ptc:0114001:0	3-038		me of 20 seconds. And one frame, filter 2, exposure time 2 seconds. And the following is the places that this occurs in the Flight Plan in the future. First is page 3-38, line 17. I believe we've probably passed that one already. The next one is - Negative, we haven't passed that one yet. The next one is page 3-57, line 16. The third is page 3-167 - both at 123 hours, 49 minutes and 123 hours, 56 minutes.	afj:04troubleshoot_ptc:0114001	011:40:01	journal_afj		time_change	rule
+upd:journal_afj:afj:04troubleshoot_ptc:0114001:1	3-057		ure. First is page 3-38, line 17. I believe we've probably passed that one already. The next one is - Negative, we haven't passed that one yet. The next one is page 3-57, line 16. The third is page 3-167 - both at 123 hours, 49 minutes and 123 hours, 56 minutes. The next is page 3-352, line 16. The next is page 3-378, line 16, and the final one is page 3-402 parenthesis, it says here, Earth UV line 16.	afj:04troubleshoot_ptc:0114001	011:40:01	journal_afj		time_change	rule
+upd:journal_afj:afj:04troubleshoot_ptc:0114001:2	3-167		I believe we've probably passed that one already. The next one is - Negative, we haven't passed that one yet. The next one is page 3-57, line 16. The third is page 3-167 - both at 123 hours, 49 minutes and 123 hours, 56 minutes. The next is page 3-352, line 16. The next is page 3-378, line 16, and the final one is page 3-402 parenthesis, it says here, Earth UV line 16.	afj:04troubleshoot_ptc:0114001	011:40:01	journal_afj		time_change	rule
+upd:journal_afj:afj:04troubleshoot_ptc:0114001:3	3-352		haven't passed that one yet. The next one is page 3-57, line 16. The third is page 3-167 - both at 123 hours, 49 minutes and 123 hours, 56 minutes. The next is page 3-352, line 16. The next is page 3-378, line 16, and the final one is page 3-402 parenthesis, it says here, Earth UV line 16.	afj:04troubleshoot_ptc:0114001	011:40:01	journal_afj		time_change	rule
+upd:journal_afj:afj:04troubleshoot_ptc:0114001:4	3-378		next one is page 3-57, line 16. The third is page 3-167 - both at 123 hours, 49 minutes and 123 hours, 56 minutes. The next is page 3-352, line 16. The next is page 3-378, line 16, and the final one is page 3-402 parenthesis, it says here, Earth UV line 16.	afj:04troubleshoot_ptc:0114001	011:40:01	journal_afj		time_change	rule
+upd:journal_afj:afj:04troubleshoot_ptc:0114001:5	3-402		is page 3-167 - both at 123 hours, 49 minutes and 123 hours, 56 minutes. The next is page 3-352, line 16. The next is page 3-378, line 16, and the final one is page 3-402 parenthesis, it says here, Earth UV line 16.	afj:04troubleshoot_ptc:0114001	011:40:01	journal_afj		time_change	rule
+upd:transcript_tec:AS15_TEC-p0047-r09:0	3-038		me of 20 seconds. And one frame, filter 2, exposure time 2 seconds. And the following is a - places that this occurs in the Flight Plan in the future. First is page 3-38, line 17. I believe we've probably passed that one already. The next one is - Negative, we haven't passed that one yet. The next one is page 3-57, line 16. The third is page 3-167 - both at 123 hours 49 minutes and 123 hours 56 minutes. Th	AS15_TEC-p0047-r09	011:40:01	transcript_tec		time_change	rule
+upd:transcript_tec:AS15_TEC-p0047-r09:1	3-057		ure. First is page 3-38, line 17. I believe we've probably passed that one already. The next one is - Negative, we haven't passed that one yet. The next one is page 3-57, line 16. The third is page 3-167 - both at 123 hours 49 minutes and 123 hours 56 minutes. The next is page 3-352, line 16. The next is page 3-378, line 16, and the final one is page 3-402 parenthesis, it says here, Earth UV, line 16.	AS15_TEC-p0047-r09	011:40:01	transcript_tec		time_change	rule
+upd:transcript_tec:AS15_TEC-p0047-r09:2	3-167		I believe we've probably passed that one already. The next one is - Negative, we haven't passed that one yet. The next one is page 3-57, line 16. The third is page 3-167 - both at 123 hours 49 minutes and 123 hours 56 minutes. The next is page 3-352, line 16. The next is page 3-378, line 16, and the final one is page 3-402 parenthesis, it says here, Earth UV, line 16.	AS15_TEC-p0047-r09	011:40:01	transcript_tec		time_change	rule
+upd:transcript_tec:AS15_TEC-p0047-r09:3	3-352		e haven't passed that one yet. The next one is page 3-57, line 16. The third is page 3-167 - both at 123 hours 49 minutes and 123 hours 56 minutes. The next is page 3-352, line 16. The next is page 3-378, line 16, and the final one is page 3-402 parenthesis, it says here, Earth UV, line 16.	AS15_TEC-p0047-r09	011:40:01	transcript_tec		time_change	rule
+upd:transcript_tec:AS15_TEC-p0047-r09:4	3-378		e next one is page 3-57, line 16. The third is page 3-167 - both at 123 hours 49 minutes and 123 hours 56 minutes. The next is page 3-352, line 16. The next is page 3-378, line 16, and the final one is page 3-402 parenthesis, it says here, Earth UV, line 16.	AS15_TEC-p0047-r09	011:40:01	transcript_tec		time_change	rule
+upd:transcript_tec:AS15_TEC-p0047-r09:5	3-402		d is page 3-167 - both at 123 hours 49 minutes and 123 hours 56 minutes. The next is page 3-352, line 16. The next is page 3-378, line 16, and the final one is page 3-402 parenthesis, it says here, Earth UV, line 16.	AS15_TEC-p0047-r09	011:40:01	transcript_tec		time_change	rule
+upd:journal_afj:afj:04troubleshoot_ptc:0115153+2:0	3-020		Flight Plan page 3-20.	afj:04troubleshoot_ptc:0115153+2	011:51:53	journal_afj		unknown	rule
+upd:journal_afj_link:afj:04troubleshoot_ptc:0115153+2:0	3-020		[link] page 3-020	afj:04troubleshoot_ptc:0115153+2	011:51:53	journal_afj_link		reference	journal link
+upd:journal_afj:afj:04troubleshoot_ptc:0122921+6:0	3-021		Flight Plan page 3-21.	afj:04troubleshoot_ptc:0122921+6	012:29:21	journal_afj		unknown	rule
+upd:journal_afj_link:afj:04troubleshoot_ptc:0122921+6:0	3-021		[link] page 3-021	afj:04troubleshoot_ptc:0122921+6	012:29:21	journal_afj_link		reference	journal link
+upd:journal_afj:afj:04troubleshoot_ptc:0135607+2:0	3-022		Flight Plan page 3-22.	afj:04troubleshoot_ptc:0135607+2	013:56:07	journal_afj		unknown	rule
+upd:journal_afj_link:afj:04troubleshoot_ptc:0135607+2:0	3-022		[link] page 3-022	afj:04troubleshoot_ptc:0135607+2	013:56:07	journal_afj_link		reference	journal link
+upd:journal_afj:afj:05day2_checking_sps:0255729+25:0	3-029		Flight Plan page 3-29.	afj:05day2_checking_sps:0255729+25	025:57:29	journal_afj		unknown	rule
+upd:journal_afj_link:afj:05day2_checking_sps:0255729+25:0	3-029		[link] page 3-029	afj:05day2_checking_sps:0255729+25	025:57:29	journal_afj_link		reference	journal link
+upd:journal_afj:afj:05day2_checking_sps:0260403+2:0	3-028		The procedures for cycling the film in the SIM bay are listed in page 3-28 of the Flight Plan. The HGA (High Gain Antenna) is used with its auxiliary channel switched to relay data from the SIM bay at a high bit rate so the Mission Control can monitor the progress of the operation. Mission Control has to advise t	afj:05day2_checking_sps:0260403+2	026:04:03	journal_afj		unknown	rule
+upd:journal_afj_link:afj:05day2_checking_sps:0260403+2:0	3-028		[link] page 3-028	afj:05day2_checking_sps:0260403+2	026:04:03	journal_afj_link		reference	journal link
+upd:journal_afj:afj:05day2_checking_sps:0265827+2:0	3-030		Flight Plan page 3-30.	afj:05day2_checking_sps:0265827+2	026:58:27	journal_afj		unknown	rule
+upd:journal_afj_link:afj:05day2_checking_sps:0265827+2:0	3-030		[link] page 3-030	afj:05day2_checking_sps:0265827+2	026:58:27	journal_afj_link		reference	journal link
+upd:journal_afj:afj:05day2_checking_sps:0272316+2:0	3-028		At any rate, the camera tests shown on page 3-28 of the Apollo 15 Flight Plan, were completed satisfactorily and the crew is presently doing a P52 realignment - program 52 realignment of the Inertial Measurement Unit. Earlier, the midcourse 2 correction burn time was shown on displays he	afj:05day2_checking_sps:0272316+2	027:23:16	journal_afj		unknown	rule
+upd:journal_afj_link:afj:05day2_checking_sps:0272316+2:0	3-028		[link] page 3-028	afj:05day2_checking_sps:0272316+2	027:23:16	journal_afj_link		reference	journal link
+upd:journal_afj:afj:05day2_checking_sps:0275826+15:0	3-031		Flight Plan page 3-31.	afj:05day2_checking_sps:0275826+15	027:58:26	journal_afj		unknown	rule
+upd:journal_afj_link:afj:05day2_checking_sps:0275826+15:0	3-031		[link] page 3-031	afj:05day2_checking_sps:0275826+15	027:58:26	journal_afj_link		reference	journal link
+upd:journal_afj:afj:05day2_checking_sps:0285928+3:0	3-032		Flight Plan page 3-32.	afj:05day2_checking_sps:0285928+3	028:59:28	journal_afj		unknown	rule
+upd:journal_afj_link:afj:05day2_checking_sps:0285928+3:0	3-032		[link] page 3-032	afj:05day2_checking_sps:0285928+3	028:59:28	journal_afj_link		reference	journal link
+upd:journal_afj:afj:05day2_checking_sps:0295513+2:0	3-035		Flight Plan page 3-35.	afj:05day2_checking_sps:0295513+2	029:55:13	journal_afj		unknown	rule
+upd:journal_afj_link:afj:05day2_checking_sps:0295513+2:0	3-035		[link] page 3-035	afj:05day2_checking_sps:0295513+2	029:55:13	journal_afj_link		reference	journal link
+upd:journal_afj:afj:06day2_enter_lm:0315820+2:0	3-039		Flight Plan page 3-39.	afj:06day2_enter_lm:0315820+2	031:58:20	journal_afj		unknown	rule
+upd:journal_afj:afj:06day2_enter_lm:0315820+3:0	3-038		The next hour is dominated by the sextant photo test and, afterwards, UV photography of Earth. Page 3-38 of the Flight Plan is given over to the checklist for these two activities.	afj:06day2_enter_lm:0315820+3	031:58:20	journal_afj		unknown	rule
+upd:journal_afj_link:afj:06day2_enter_lm:0315820+2:0	3-039		[link] page 3-039	afj:06day2_enter_lm:0315820+2	031:58:20	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:06day2_enter_lm:0315820+3:0	3-038		[link] page 3-038	afj:06day2_enter_lm:0315820+3	031:58:20	journal_afj_link		reference	journal link
+upd:journal_afj:afj:06day2_enter_lm:0325424+1:0	3-040		Flight Plan page 3-40.	afj:06day2_enter_lm:0325424+1	032:54:24	journal_afj		unknown	rule
+upd:journal_afj_link:afj:06day2_enter_lm:0325424+1:0	3-040		[link] page 3-040	afj:06day2_enter_lm:0325424+1	032:54:24	journal_afj_link		reference	journal link
+upd:journal_afj:afj:06day2_enter_lm:0333018+2:0	3-040		The crew is on page 3-40 of the Flight Plan. From there, they are instructed to follow page 2-1 on the CSM Systems Checklist. This deals with the steps required to prepare the LM to be entered by pressurising it, removing the forward hatch, docking probe and drogu	afj:06day2_enter_lm:0333018+2	033:30:18	journal_afj		unknown	rule
+upd:journal_afj:afj:06day2_enter_lm:0333018+2:1	3-002		The crew is on page 3-40 of the Flight Plan. From there, they are instructed to follow page 2-1 on the CSM Systems Checklist. This deals with the steps required to prepare the LM to be entered by pressurising it, removing the forward hatch, docking probe and drogue, and reading off the tunnel index angle. This angle indicates by ho	afj:06day2_enter_lm:0333018+2	033:30:18	journal_afj		unknown	rule
+upd:journal_afj_link:afj:06day2_enter_lm:0333018+2:0	3-040		[link] page 3-040	afj:06day2_enter_lm:0333018+2	033:30:18	journal_afj_link		reference	journal link
+upd:journal_afj:afj:06day2_enter_lm:0335938+4:0	3-041		Flight Plan page 3-41.	afj:06day2_enter_lm:0335938+4	033:59:38	journal_afj		unknown	rule
+upd:journal_afj_link:afj:06day2_enter_lm:0335938+4:0	3-041		[link] page 3-041	afj:06day2_enter_lm:0335938+4	033:59:38	journal_afj_link		reference	journal link
+upd:journal_afj:afj:06day2_enter_lm:0344612+11:0	3-042		Flight Plan page 3-42.	afj:06day2_enter_lm:0344612+11	034:46:12	journal_afj		unknown	rule
+upd:journal_afj_link:afj:06day2_enter_lm:0344612+11:0	3-042		[link] page 3-042	afj:06day2_enter_lm:0344612+11	034:46:12	journal_afj_link		reference	journal link
+upd:journal_afj:afj:06day2_enter_lm:0351150+5:0	3-043		Flight Plan page 3-043.	afj:06day2_enter_lm:0351150+5	035:11:50	journal_afj		unknown	rule
+upd:journal_afj_link:afj:06day2_enter_lm:0351150+5:0	3-043		[link] page 3-043	afj:06day2_enter_lm:0351150+5	035:11:50	journal_afj_link		reference	journal link
+upd:journal_afj:afj:06day2_enter_lm:0362036+1:0	3-002		Page 2-15 of the Flight Plan carries a table listing a schedule of block data read-ups, or PADs which are to be given to the crew throughout the mission. These PADs give the necessary information to allow the spacecraft to return to Earth in an e	afj:06day2_enter_lm:0362036+1	036:20:36	journal_afj		unknown	rule
+upd:journal_afj_link:afj:06day2_enter_lm:0362036+1:0	3-002		[link] page 2-015	afj:06day2_enter_lm:0362036+1	036:20:36	journal_afj_link		reference	journal link
+upd:journal_afj:afj:06day2_enter_lm:0365843+2:0	3-044		Flight Plan page 3-44.	afj:06day2_enter_lm:0365843+2	036:58:43	journal_afj		unknown	rule
+upd:journal_afj_link:afj:06day2_enter_lm:0365843+2:0	3-044		[link] page 3-044	afj:06day2_enter_lm:0365843+2	036:58:43	journal_afj_link		reference	journal link
+upd:journal_afj:afj:06day2_enter_lm:0373237+2:0	3-045		Flight Plan page 3-45.	afj:06day2_enter_lm:0373237+2	037:32:37	journal_afj		unknown	rule
+upd:journal_afj_link:afj:06day2_enter_lm:0373237+2:0	3-045		[link] page 3-045	afj:06day2_enter_lm:0373237+2	037:32:37	journal_afj_link		reference	journal link
+upd:journal_afj:afj:07day3_flashing_lights:0495943+2:0	3-051		Flight Plan page 3-51.	afj:07day3_flashing_lights:0495943+2	049:59:43	journal_afj		unknown	rule
+upd:journal_afj_link:afj:07day3_flashing_lights:0495943+2:0	3-051		[link] page 3-051	afj:07day3_flashing_lights:0495943+2	049:59:43	journal_afj_link		reference	journal link
+upd:journal_afj:afj:07day3_flashing_lights:0501205+6:0	3-052		Flight Plan page 3-52.	afj:07day3_flashing_lights:0501205+6	050:12:05	journal_afj		unknown	rule
+upd:journal_afj_link:afj:07day3_flashing_lights:0501205+6:0	3-052		[link] page 3-052	afj:07day3_flashing_lights:0501205+6	050:12:05	journal_afj_link		reference	journal link
+upd:journal_afj:afj:07day3_flashing_lights:0515914+1:0	3-053		Flight Plan page 3-53.	afj:07day3_flashing_lights:0515914+1	051:59:14	journal_afj		unknown	rule
+upd:journal_afj_link:afj:07day3_flashing_lights:0515914+1:0	3-053		[link] page 3-053	afj:07day3_flashing_lights:0515914+1	051:59:14	journal_afj_link		reference	journal link
+upd:journal_afj:afj:07day3_flashing_lights:0525825+9:0	3-055		Flight Plan page 3-55.	afj:07day3_flashing_lights:0525825+9	052:58:25	journal_afj		unknown	rule
+upd:journal_afj_link:afj:07day3_flashing_lights:0525825+9:0	3-055		[link] page 3-055	afj:07day3_flashing_lights:0525825+9	052:58:25	journal_afj_link		reference	journal link
+upd:journal_afj:afj:07day3_flashing_lights:0535905+2:0	3-056		Flight Plan page 3-56.	afj:07day3_flashing_lights:0535905+2	053:59:05	journal_afj		unknown	rule
+upd:journal_afj_link:afj:07day3_flashing_lights:0535905+2:0	3-056		[link] page 3-056	afj:07day3_flashing_lights:0535905+2	053:59:05	journal_afj_link		reference	journal link
+upd:journal_afj:afj:07day3_flashing_lights:0543015+5:0	3-059		Flight Plan page 3-059.	afj:07day3_flashing_lights:0543015+5	054:30:15	journal_afj		unknown	rule
+upd:journal_afj_link:afj:07day3_flashing_lights:0543015+5:0	3-059		[link] page 3-059	afj:07day3_flashing_lights:0543015+5	054:30:15	journal_afj_link		reference	journal link
+upd:journal_afj:afj:08day3_leak_hilltop:0552035+1:0	3-054	054:00	mounted in the SIM bay to prevent them becoming set in their current position around the idlers and guides of the camera systems. This operation is set out in page 3-054 of the Flight Plan and was deferred from 54:00. As part of this operation, Houston is supposed to give the crew a set of angles for the HGA (High Gain Antenna) so that Mission Control can monitor the cameras during the cycling.	afj:08day3_leak_hilltop:0552035+1	055:20:35	journal_afj		unknown	rule
+upd:journal_afj_link:afj:08day3_leak_hilltop:0552035+1:0	3-054		[link] page 3-054	afj:08day3_leak_hilltop:0552035+1	055:20:35	journal_afj_link		reference	journal link
+upd:journal_afj:afj:08day3_leak_hilltop:0552918+1:0	3-057		The checklist for the UV photos procedure is on page 3-57 of the Flight Plan. The attitude for the photos is given in the first line, followed by an instruction to use omni antenna D, the most appropriate antenna for that attitude.	afj:08day3_leak_hilltop:0552918+1	055:29:18	journal_afj		unknown	rule
+upd:journal_afj_link:afj:08day3_leak_hilltop:0552918+1:0	3-057		[link] page 3-057	afj:08day3_leak_hilltop:0552918+1	055:29:18	journal_afj_link		reference	journal link
+upd:journal_afj:afj:08day3_leak_hilltop:0554822+2:0	3-057		During this comm break, the crew are taking the UV photographs of Earth. The checklist for this is on page 3-57 and this is the fourth time they have done it. The first was while Apollo 15 was in Earth orbit, the second was 8.5 hours later when the spacecraft was 90,000 km from Earth. The third was at about 32:45 and 240,000 km out; and this, the fi	afj:08day3_leak_hilltop:0554822+2	055:48:22	journal_afj		unknown	rule
+upd:journal_afj_link:afj:08day3_leak_hilltop:0554822+2:0	3-057		[link] page 3-057	afj:08day3_leak_hilltop:0554822+2	055:48:22	journal_afj_link		reference	journal link
+upd:journal_afj:afj:08day3_leak_hilltop:0555949+2:0	3-061		Flight Plan page 3-61.	afj:08day3_leak_hilltop:0555949+2	055:59:49	journal_afj		unknown	rule
+upd:journal_afj_link:afj:08day3_leak_hilltop:0555949+2:0	3-061		[link] page 3-061	afj:08day3_leak_hilltop:0555949+2	055:59:49	journal_afj_link		reference	journal link
+upd:journal_afj:afj:08day3_leak_hilltop:0564542+6:0	3-062		Flight Plan page 3-62.	afj:08day3_leak_hilltop:0564542+6	056:45:42	journal_afj		unknown	rule
+upd:journal_afj_link:afj:08day3_leak_hilltop:0564542+6:0	3-062		[link] page 3-062	afj:08day3_leak_hilltop:0564542+6	056:45:42	journal_afj_link		reference	journal link
+upd:journal_afj:afj:08day3_leak_hilltop:0575728+4:0	3-063		Flight Plan page 3-063.	afj:08day3_leak_hilltop:0575728+4	057:57:28	journal_afj		unknown	rule
+upd:journal_afj_link:afj:08day3_leak_hilltop:0575728+4:0	3-063		[link] page 3-063	afj:08day3_leak_hilltop:0575728+4	057:57:28	journal_afj_link		reference	journal link
+upd:journal_afj:afj:08day3_leak_hilltop:0585958+1:0	3-064		Flight Plan page 3-064.	afj:08day3_leak_hilltop:0585958+1	058:59:58	journal_afj		unknown	rule
+upd:journal_afj_link:afj:08day3_leak_hilltop:0585958+1:0	3-064		[link] page 3-064	afj:08day3_leak_hilltop:0585958+1	058:59:58	journal_afj_link		reference	journal link
+upd:journal_afj:afj:08day3_leak_hilltop:0595938+2:0	3-065		Flight Plan page 3-65.	afj:08day3_leak_hilltop:0595938+2	059:59:38	journal_afj		unknown	rule
+upd:journal_afj_link:afj:08day3_leak_hilltop:0595938+2:0	3-065		[link] page 3-065	afj:08day3_leak_hilltop:0595938+2	059:59:38	journal_afj_link		reference	journal link
+upd:journal_afj:afj:08day3_leak_hilltop:0604432+6:0	3-066		Flight Plan page 3-66.	afj:08day3_leak_hilltop:0604432+6	060:44:32	journal_afj		unknown	rule
+upd:journal_afj_link:afj:08day3_leak_hilltop:0604432+6:0	3-066		[link] page 3-066	afj:08day3_leak_hilltop:0604432+6	060:44:32	journal_afj_link		reference	journal link
+upd:journal_afj:afj:08day3_leak_hilltop:0622124+3:0	3-067		Flight Plan page 3-67.	afj:08day3_leak_hilltop:0622124+3	062:21:24	journal_afj		unknown	rule
+upd:journal_afj_link:afj:08day3_leak_hilltop:0622124+3:0	3-067		[link] page 3-067	afj:08day3_leak_hilltop:0622124+3	062:21:24	journal_afj_link		reference	journal link
+upd:journal_afj:afj:09day4_lunar_encounter:0703742+1:0	3-076		As part of the procedure to jettison the door over the SIM bay, shown of page 3-76 of the Flight Plan, the crew are requested to observe and photograph the event through window 5. As this window is transparent to ultraviolet light, a shield made from Lexan, which is opaque to UV, should be put over to window to minimise	afj:09day4_lunar_encounter:0703742+1	070:37:42	journal_afj		unknown	rule
+upd:journal_afj_link:afj:09day4_lunar_encounter:0703742+1:0	3-076		[link] page 3-076	afj:09day4_lunar_encounter:0703742+1	070:37:42	journal_afj_link		reference	journal link
+upd:journal_afj:afj:09day4_lunar_encounter:0705539+2:0	3-071		Flight Plan page 3-71.	afj:09day4_lunar_encounter:0705539+2	070:55:39	journal_afj		unknown	rule
+upd:journal_afj_link:afj:09day4_lunar_encounter:0705539+2:0	3-071		[link] page 3-071	afj:09day4_lunar_encounter:0705539+2	070:55:39	journal_afj_link		reference	journal link
+upd:journal_afj:afj:09day4_lunar_encounter:0714952+2:0	3-072		Flight Plan page 3-72.	afj:09day4_lunar_encounter:0714952+2	071:49:52	journal_afj		unknown	rule
+upd:journal_afj_link:afj:09day4_lunar_encounter:0714952+2:0	3-072		[link] page 3-072	afj:09day4_lunar_encounter:0714952+2	071:49:52	journal_afj_link		reference	journal link
+upd:journal_afj:afj:09day4_lunar_encounter:0725422+8:0	3-075		Flight Plan page 3-75.	afj:09day4_lunar_encounter:0725422+8	072:54:22	journal_afj		unknown	rule
+upd:journal_afj_link:afj:09day4_lunar_encounter:0725422+8:0	3-075		[link] page 3-075	afj:09day4_lunar_encounter:0725422+8	072:54:22	journal_afj_link		reference	journal link
+upd:journal_afj:afj:09day4_lunar_encounter:0731639+3:0	3-074		Final preparations are made for the midcourse correction burn. This occurs at 073:31:14.81 GET. A small table of rules that apply to the burn are given on page 3-074 of the Flight Plan. These define the limits of attitude deviation and burn time that should cause the crew to terminate the burn. They also define how the residual velocities should be trimmed.	afj:09day4_lunar_encounter:0731639+3	073:16:39	journal_afj		time_change	rule
+upd:journal_afj_link:afj:09day4_lunar_encounter:0731639+3:0	3-074		[link] page 3-074	afj:09day4_lunar_encounter:0731639+3	073:16:39	journal_afj_link		reference	journal link
+upd:journal_afj:afj:09day4_lunar_encounter:0735303+2:0	3-076		Page 3-76 of the Flight Plan carries the procedure for the SIM bay door jettison. The first few item are verifications of some switch positions. Next, on a cue from Mission Control, power is applied to the Panoramic Camera.	afj:09day4_lunar_encounter:0735303+2	073:53:03	journal_afj		unknown	rule
+upd:journal_afj_link:afj:09day4_lunar_encounter:0735303+2:0	3-076		[link] page 3-076	afj:09day4_lunar_encounter:0735303+2	073:53:03	journal_afj_link		reference	journal link
+upd:journal_afj:afj:09day4_lunar_encounter:0735956+3:0	3-077		Flight Plan page 3-77.	afj:09day4_lunar_encounter:0735956+3	073:59:56	journal_afj		unknown	rule
+upd:journal_afj_link:afj:09day4_lunar_encounter:0735956+3:0	3-077		[link] page 3-077	afj:09day4_lunar_encounter:0735956+3	073:59:56	journal_afj_link		reference	journal link
+upd:journal_afj:afj:09day4_lunar_encounter:0745656+2:0	3-078		Flight Plan page 3-78.	afj:09day4_lunar_encounter:0745656+2	074:56:56	journal_afj		unknown	rule
+upd:journal_afj_link:afj:09day4_lunar_encounter:0745656+2:0	3-078		[link] page 3-078	afj:09day4_lunar_encounter:0745656+2	074:56:56	journal_afj_link		reference	journal link
+upd:journal_afj:afj:09day4_lunar_encounter:0751924+2:0	3-079		Flight Plan page 3-79.	afj:09day4_lunar_encounter:0751924+2	075:19:24	journal_afj		unknown	rule
+upd:journal_afj_link:afj:09day4_lunar_encounter:0751924+2:0	3-079		[link] page 3-079	afj:09day4_lunar_encounter:0751924+2	075:19:24	journal_afj_link		reference	journal link
+upd:journal_afj:afj:09day4_lunar_encounter:0765227+2:0	3-079		This pressure difference reading is requested at the bottom of page 3-79 of the Flight Plan.	afj:09day4_lunar_encounter:0765227+2	076:52:27	journal_afj		unknown	rule
+upd:journal_afj:afj:09day4_lunar_encounter:0765227+3:0	3-080		Flight Plan page 3-80.	afj:09day4_lunar_encounter:0765227+3	076:52:27	journal_afj		unknown	rule
+upd:journal_afj_link:afj:09day4_lunar_encounter:0765227+2:0	3-079		[link] page 3-079	afj:09day4_lunar_encounter:0765227+2	076:52:27	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:09day4_lunar_encounter:0765227+3:0	3-080		[link] page 3-080	afj:09day4_lunar_encounter:0765227+3	076:52:27	journal_afj_link		reference	journal link
+upd:journal_afj:afj:09day4_lunar_encounter:0773104+1:0	3-081		and is based on more recent tracking data. The preliminary PAD would be perfectly adequate to perform the LOI task but to a lesser accuracy. There is a form on page 3-081 of the Flight Plan to write these details down prior to the data being entered under Program 30. An interpretation of the PAD follows:	afj:09day4_lunar_encounter:0773104+1	077:31:04	journal_afj		pad	rule
+upd:journal_afj_link:afj:09day4_lunar_encounter:0773104+1:0	3-081		[link] page 3-081	afj:09day4_lunar_encounter:0773104+1	077:31:04	journal_afj_link		reference	journal link
+upd:journal_afj:afj:09day4_lunar_encounter:0775000+12:0	3-083		Flight Plan page 3-83.	afj:09day4_lunar_encounter:0775000+12	077:50:00	journal_afj		unknown	rule
+upd:journal_afj:afj:09day4_lunar_encounter:0775000+2:0	3-080		There is a box in the corner of page 3-80 of the Flight Plan for Jim to enter these times. They tell the crew when to expect certain events during their first pass behind the Moon.	afj:09day4_lunar_encounter:0775000+2	077:50:00	journal_afj		unknown	rule
+upd:journal_afj_link:afj:09day4_lunar_encounter:0775000+12:0	3-083		[link] page 3-083	afj:09day4_lunar_encounter:0775000+12	077:50:00	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:09day4_lunar_encounter:0775000+2:0	3-080		[link] page 3-080	afj:09day4_lunar_encounter:0775000+2	077:50:00	journal_afj_link		reference	journal link
+upd:journal_afj:afj:10a-day4_lunar_orbit1-2:0795137+2:0	3-085		Flight Plan page 3-85.	afj:10a-day4_lunar_orbit1-2:0795137+2	079:51:37	journal_afj		unknown	rule
+upd:journal_afj_link:afj:10a-day4_lunar_orbit1-2:0795137+2:0	3-085		[link] page 3-085	afj:10a-day4_lunar_orbit1-2:0795137+2	079:51:37	journal_afj_link		reference	journal link
+upd:journal_afj:afj:10a-day4_lunar_orbit1-2:0810627+2:0	3-086		Flight Plan page 3-086.	afj:10a-day4_lunar_orbit1-2:0810627+2	081:06:27	journal_afj		unknown	rule
+upd:journal_afj_link:afj:10a-day4_lunar_orbit1-2:0810627+2:0	3-086		[link] page 3-086	afj:10a-day4_lunar_orbit1-2:0810627+2	081:06:27	journal_afj_link		reference	journal link
+upd:journal_afj:afj:10a-day4_lunar_orbit1-2:0814856+1:0	3-089		Time) timings for Loss Of Signal, passing over the 180° longitude meridian on the far-side, and Acquisition Of Signal. A box is provided in the Flight Plan on page 3-89 for the times to be written in. They can be used to provide a reference for when they will be flying over various terrain.	afj:10a-day4_lunar_orbit1-2:0814856+1	081:48:56	journal_afj		unknown	rule
+upd:journal_afj_link:afj:10a-day4_lunar_orbit1-2:0814856+1:0	3-089		[link] page 3-089	afj:10a-day4_lunar_orbit1-2:0814856+1	081:48:56	journal_afj_link		reference	journal link
+upd:journal_afj:afj:10a-day4_lunar_orbit1-2:0815607+3:0	3-087		Flight Plan page 3-87.	afj:10a-day4_lunar_orbit1-2:0815607+3	081:56:07	journal_afj		unknown	rule
+upd:journal_afj_link:afj:10a-day4_lunar_orbit1-2:0815607+3:0	3-087		[link] page 3-087	afj:10a-day4_lunar_orbit1-2:0815607+3	081:56:07	journal_afj_link		reference	journal link
+upd:journal_afj:afj:10a-day4_lunar_orbit1-2:0822636+2:0	3-088		Flight Plan page 3-88.	afj:10a-day4_lunar_orbit1-2:0822636+2	082:26:36	journal_afj		unknown	rule
+upd:journal_afj_link:afj:10a-day4_lunar_orbit1-2:0822636+2:0	3-088		[link] page 3-088	afj:10a-day4_lunar_orbit1-2:0822636+2	082:26:36	journal_afj_link		reference	journal link
+upd:journal_afj:afj:10b-day4_doi-rest:0825958+1:0	3-089		Flight Plan page 3-089.	afj:10b-day4_doi-rest:0825958+1	082:59:58	journal_afj		unknown	rule
+upd:journal_afj_link:afj:10b-day4_doi-rest:0825958+1:0	3-089		[link] page 3-089	afj:10b-day4_doi-rest:0825958+1	082:59:58	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:10b-day4_doi-rest:0832231+1:0	3-089		[link] page 3-089	afj:10b-day4_doi-rest:0832231+1	083:22:31	journal_afj_link		reference	journal link
+upd:journal_afj:afj:10b-day4_doi-rest:0835508+2:0	3-090		Flight Plan page 3-90.	afj:10b-day4_doi-rest:0835508+2	083:55:08	journal_afj		unknown	rule
+upd:journal_afj_link:afj:10b-day4_doi-rest:0835508+2:0	3-090		[link] page 3-090	afj:10b-day4_doi-rest:0835508+2	083:55:08	journal_afj_link		reference	journal link
+upd:journal_afj:afj:10b-day4_doi-rest:0842042+15:0	3-091		Flight Plan page 3-91.	afj:10b-day4_doi-rest:0842042+15	084:20:42	journal_afj		unknown	rule
+upd:journal_afj_link:afj:10b-day4_doi-rest:0842042+15:0	3-091		[link] page 3-091	afj:10b-day4_doi-rest:0842042+15	084:20:42	journal_afj_link		reference	journal link
+upd:journal_afj:afj:10b-day4_doi-rest:0855952+2:0	3-092		Flight Plan page 3-92.	afj:10b-day4_doi-rest:0855952+2	085:59:52	journal_afj		unknown	rule
+upd:journal_afj_link:afj:10b-day4_doi-rest:0855952+2:0	3-092		[link] page 3-092	afj:10b-day4_doi-rest:0855952+2	085:59:52	journal_afj_link		reference	journal link
+upd:journal_afj:afj:11day5_wakeup:0934501+6:0	3-101		Flight Plan page 3-101.	afj:11day5_wakeup:0934501+6	093:45:01	journal_afj		unknown	rule
+upd:journal_afj_link:afj:11day5_wakeup:0934501+6:0	3-101		[link] page 3-101	afj:11day5_wakeup:0934501+6	093:45:01	journal_afj_link		reference	journal link
+upd:journal_afj:afj:11day5_wakeup:0945950+1:0	3-102		Flight Plan page 3-102.	afj:11day5_wakeup:0945950+1	094:59:50	journal_afj		unknown	rule
+upd:journal_afj_link:afj:11day5_wakeup:0945950+1:0	3-102		[link] page 3-102	afj:11day5_wakeup:0945950+1	094:59:50	journal_afj_link		reference	journal link
+upd:journal_afj:afj:11day5_wakeup:0952925+1:0	3-103		Flight Plan page 3-103.	afj:11day5_wakeup:0952925+1	095:29:25	journal_afj		unknown	rule
+upd:journal_afj_link:afj:11day5_wakeup:0952925+1:0	3-103		[link] page 3-103	afj:11day5_wakeup:0952925+1	095:29:25	journal_afj_link		reference	journal link
+upd:journal_afj:afj:12a-day5_doi_trim:0954341+4:0	3-104	095:56:00	Flight Plan page 3-104. This nominally starts at 96 hours but because the DOI trim burn has been moved to 095:56:00, the page is presented here.	afj:12a-day5_doi_trim:0954341+4	095:43:41	journal_afj		time_change	rule
+upd:journal_afj_link:afj:12a-day5_doi_trim:0954341+4:0	3-104		[link] page 3-104	afj:12a-day5_doi_trim:0954341+4	095:43:41	journal_afj_link		reference	journal link
+upd:journal_afj:afj:12a-day5_doi_trim:0963000+2:0	3-105		Flight Plan page 3-105.	afj:12a-day5_doi_trim:0963000+2	096:30:00	journal_afj		unknown	rule
+upd:journal_afj_link:afj:12a-day5_doi_trim:0963000+2:0	3-105		[link] page 3-105	afj:12a-day5_doi_trim:0963000+2	096:30:00	journal_afj_link		reference	journal link
+upd:journal_afj:afj:12b-day5_lm_activation:0965622+8:0	3-106		LM Flight Plan page 3-106.	afj:12b-day5_lm_activation:0965622+8	096:56:22	journal_afj		unknown	rule
+upd:journal_afj:afj:12b-day5_lm_activation:0965622+9:0	3-107		CSM Flight Plan page 3-107.	afj:12b-day5_lm_activation:0965622+9	096:56:22	journal_afj		unknown	rule
+upd:journal_afj_link:afj:12b-day5_lm_activation:0965622+8:0	3-106		[link] page 3-106	afj:12b-day5_lm_activation:0965622+8	096:56:22	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:12b-day5_lm_activation:0965622+9:0	3-107		[link] page 3-107	afj:12b-day5_lm_activation:0965622+9	096:56:22	journal_afj_link		reference	journal link
+upd:journal_afj:afj:12b-day5_lm_activation:0975408+2:0	3-108		LM Flight Plan page 3-108.	afj:12b-day5_lm_activation:0975408+2	097:54:08	journal_afj		unknown	rule
+upd:journal_afj:afj:12b-day5_lm_activation:0975408+3:0	3-109		CSM Flight Plan page 3-109.	afj:12b-day5_lm_activation:0975408+3	097:54:08	journal_afj		unknown	rule
+upd:journal_afj_link:afj:12b-day5_lm_activation:0975408+2:0	3-108		[link] page 3-108	afj:12b-day5_lm_activation:0975408+2	097:54:08	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:12b-day5_lm_activation:0975408+3:0	3-109		[link] page 3-109	afj:12b-day5_lm_activation:0975408+3	097:54:08	journal_afj_link		reference	journal link
+upd:journal_afj:afj:12b-day5_lm_activation:0985555+2:0	3-110		LM Flight Plan page 3-110.	afj:12b-day5_lm_activation:0985555+2	098:55:55	journal_afj		unknown	rule
+upd:journal_afj:afj:12b-day5_lm_activation:0985555+3:0	3-111		CSM Flight Plan page 3-111.	afj:12b-day5_lm_activation:0985555+3	098:55:55	journal_afj		unknown	rule
+upd:journal_afj_link:afj:12b-day5_lm_activation:0985555+2:0	3-110		[link] page 3-110	afj:12b-day5_lm_activation:0985555+2	098:55:55	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:12b-day5_lm_activation:0985555+3:0	3-111		[link] page 3-111	afj:12b-day5_lm_activation:0985555+3	098:55:55	journal_afj_link		reference	journal link
+upd:journal_afj:afj:12c-day5_lm_undock:0992940+11:0	3-112		LM Flight Plan page 3-112.	afj:12c-day5_lm_undock:0992940+11	099:29:40	journal_afj		unknown	rule
+upd:journal_afj:afj:12c-day5_lm_undock:0992940+12:0	3-113		CSM Flight Plan page 3-113.	afj:12c-day5_lm_undock:0992940+12	099:29:40	journal_afj		unknown	rule
+upd:journal_afj_link:afj:12c-day5_lm_undock:0992940+11:0	3-112		[link] page 3-112	afj:12c-day5_lm_undock:0992940+11	099:29:40	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:12c-day5_lm_undock:0992940+12:0	3-113		[link] page 3-113	afj:12c-day5_lm_undock:0992940+12	099:29:40	journal_afj_link		reference	journal link
+upd:journal_afj:afj:12c-day5_lm_undock:1002908+2:0	3-114		LM Flight Plan page 3-114.	afj:12c-day5_lm_undock:1002908+2	100:29:08	journal_afj		unknown	rule
+upd:journal_afj:afj:12c-day5_lm_undock:1002908+3:0	3-115		CSM Flight Plan page 3-115.	afj:12c-day5_lm_undock:1002908+3	100:29:08	journal_afj		unknown	rule
+upd:journal_afj_link:afj:12c-day5_lm_undock:1002908+2:0	3-114		[link] page 3-114	afj:12c-day5_lm_undock:1002908+2	100:29:08	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:12c-day5_lm_undock:1002908+3:0	3-115		[link] page 3-115	afj:12c-day5_lm_undock:1002908+3	100:29:08	journal_afj_link		reference	journal link
+upd:journal_afj:afj:12c-day5_lm_undock:1005910+3:0	3-116		LM Flight Plan page 3-116.	afj:12c-day5_lm_undock:1005910+3	100:59:10	journal_afj		unknown	rule
+upd:journal_afj:afj:12c-day5_lm_undock:1005910+4:0	3-117		CSM Flight Plan page 3-117.	afj:12c-day5_lm_undock:1005910+4	100:59:10	journal_afj		unknown	rule
+upd:journal_afj_link:afj:12c-day5_lm_undock:1005910+3:0	3-116		[link] page 3-116	afj:12c-day5_lm_undock:1005910+3	100:59:10	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:12c-day5_lm_undock:1005910+4:0	3-117		[link] page 3-117	afj:12c-day5_lm_undock:1005910+4	100:59:10	journal_afj_link		reference	journal link
+upd:journal_afj:afj:12d-day5_csm_circ:1012551+1:0	3-118		LM Flight Plan page 3-118.	afj:12d-day5_csm_circ:1012551+1	101:25:51	journal_afj		unknown	rule
+upd:journal_afj:afj:12d-day5_csm_circ:1012551+2:0	3-119		CSM Flight Plan page 3-119.	afj:12d-day5_csm_circ:1012551+2	101:25:51	journal_afj		unknown	rule
+upd:journal_afj_link:afj:12d-day5_csm_circ:1012551+1:0	3-118		[link] page 3-118	afj:12d-day5_csm_circ:1012551+1	101:25:51	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:12d-day5_csm_circ:1012551+2:0	3-119		[link] page 3-119	afj:12d-day5_csm_circ:1012551+2	101:25:51	journal_afj_link		reference	journal link
+upd:journal_afj:afj:12e-day5_landing_prep:1022918+1:0	3-122		LM Flight Plan page 3-122.	afj:12e-day5_landing_prep:1022918+1	102:29:18	journal_afj		unknown	rule
+upd:journal_afj:afj:12e-day5_landing_prep:1022918+2:0	3-123		CSM Flight Plan page 3-123.	afj:12e-day5_landing_prep:1022918+2	102:29:18	journal_afj		unknown	rule
+upd:journal_afj_link:afj:12e-day5_landing_prep:1022918+1:0	3-122		[link] page 3-122	afj:12e-day5_landing_prep:1022918+1	102:29:18	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:12e-day5_landing_prep:1022918+2:0	3-123		[link] page 3-123	afj:12e-day5_landing_prep:1022918+2	102:29:18	journal_afj_link		reference	journal link
+upd:journal_afj:afj:12e-day5_landing_prep:1030012+2:0	3-124		LM Flight Plan page 3-124.	afj:12e-day5_landing_prep:1030012+2	103:00:12	journal_afj		unknown	rule
+upd:journal_afj:afj:12e-day5_landing_prep:1030012+3:0	3-125		CSM Flight Plan page 3-125.	afj:12e-day5_landing_prep:1030012+3	103:00:12	journal_afj		unknown	rule
+upd:journal_afj_link:afj:12e-day5_landing_prep:1030012+2:0	3-124		[link] page 3-124	afj:12e-day5_landing_prep:1030012+2	103:00:12	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:12e-day5_landing_prep:1030012+3:0	3-125		[link] page 3-125	afj:12e-day5_landing_prep:1030012+3	103:00:12	journal_afj_link		reference	journal link
+upd:journal_afj:afj:12e-day5_landing_prep:1032153+8:0	3-126		LM Flight Plan page 3-126.	afj:12e-day5_landing_prep:1032153+8	103:21:53	journal_afj		unknown	rule
+upd:journal_afj:afj:12e-day5_landing_prep:1032153+9:0	3-127		CSM Flight Plan page 3-127.	afj:12e-day5_landing_prep:1032153+9	103:21:53	journal_afj		unknown	rule
+upd:journal_afj_link:afj:12e-day5_landing_prep:1032153+8:0	3-126		[link] page 3-126	afj:12e-day5_landing_prep:1032153+8	103:21:53	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:12e-day5_landing_prep:1032153+9:0	3-127		[link] page 3-127	afj:12e-day5_landing_prep:1032153+9	103:21:53	journal_afj_link		reference	journal link
+upd:journal_afj:afj:12e-day5_landing_prep:1042619+1:0	3-128		LM Flight Plan page 3-128.	afj:12e-day5_landing_prep:1042619+1	104:26:19	journal_afj		unknown	rule
+upd:journal_afj:afj:12e-day5_landing_prep:1042619+2:0	3-129		CSM Flight Plan page 3-129.	afj:12e-day5_landing_prep:1042619+2	104:26:19	journal_afj		unknown	rule
+upd:journal_afj_link:afj:12e-day5_landing_prep:1042619+1:0	3-128		[link] page 3-128	afj:12e-day5_landing_prep:1042619+1	104:26:19	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:12e-day5_landing_prep:1042619+2:0	3-129		[link] page 3-129	afj:12e-day5_landing_prep:1042619+2	104:26:19	journal_afj_link		reference	journal link
+upd:journal_afj:afj:13solo_ops1:1062638+2:0	3-133		CSM Flight Plan page 3-133.	afj:13solo_ops1:1062638+2	106:26:38	journal_afj		unknown	rule
+upd:journal_afj_link:afj:13solo_ops1:1062638+2:0	3-133		[link] page 3-133	afj:13solo_ops1:1062638+2	106:26:38	journal_afj_link		reference	journal link
+upd:journal_afj:afj:13solo_ops1:1065854+3:0	3-135		CSM Flight Plan page 3-135.	afj:13solo_ops1:1065854+3	106:58:54	journal_afj		unknown	rule
+upd:journal_afj_link:afj:13solo_ops1:1065854+3:0	3-135		[link] page 3-135	afj:13solo_ops1:1065854+3	106:58:54	journal_afj_link		reference	journal link
+upd:journal_afj:afj:13solo_ops1:1071826+31:0	3-137		CSM Flight Plan page 3-137.	afj:13solo_ops1:1071826+31	107:18:26	journal_afj		unknown	rule
+upd:journal_afj_link:afj:13solo_ops1:1071826+31:0	3-137		[link] page 3-137	afj:13solo_ops1:1071826+31	107:18:26	journal_afj_link		reference	journal link
+upd:journal_afj:afj:13solo_ops1:1085916+11:0	3-139		CSM Flight Plan page 3-139.	afj:13solo_ops1:1085916+11	108:59:16	journal_afj		unknown	rule
+upd:journal_afj_link:afj:13solo_ops1:1085916+11:0	3-139		[link] page 3-139	afj:13solo_ops1:1085916+11	108:59:16	journal_afj_link		reference	journal link
+upd:journal_afj:afj:13solo_ops1:1091649+13:0	3-143		CSM Flight Plan page 3-143.	afj:13solo_ops1:1091649+13	109:16:49	journal_afj		unknown	rule
+upd:journal_afj:afj:13solo_ops1:1091649+17:0	3-145		CSM Flight Plan page 3-145.	afj:13solo_ops1:1091649+17	109:16:49	journal_afj		unknown	rule
+upd:journal_afj:afj:13solo_ops1:1091649+9:0	3-141		CSM Flight Plan page 3-141.	afj:13solo_ops1:1091649+9	109:16:49	journal_afj		unknown	rule
+upd:journal_afj_link:afj:13solo_ops1:1091649+13:0	3-143		[link] page 3-143	afj:13solo_ops1:1091649+13	109:16:49	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:13solo_ops1:1091649+17:0	3-145		[link] page 3-145	afj:13solo_ops1:1091649+17	109:16:49	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:13solo_ops1:1091649+9:0	3-141		[link] page 3-141	afj:13solo_ops1:1091649+9	109:16:49	journal_afj_link		reference	journal link
+upd:journal_alsj:alsj:a15.eva1wake:1181317+1:0	3-001		[Very Long Comm Break. As Dave indicates in his next transmission, they reach checklist page Surface 3-6. On Page 3-1, they stowed all unnecessary items, and on 3-5 they donned their boots, unstowed and checked their Oxygen Purge Systems (OPSs) which contain a reserve supply of oxygen for use in an emergency, and prepared their helmets and Lunar Extravehi	alsj:a15.eva1wake:1181317+1	118:13:17	journal_alsj		unknown	rule
+upd:journal_afj:afj:14solo_ops2:1185931+2:0	3-159		CSM Flight Plan page 3-159.	afj:14solo_ops2:1185931+2	118:59:31	journal_afj		unknown	rule
+upd:journal_afj_link:afj:14solo_ops2:1185931+2:0	3-159		[link] page 3-159	afj:14solo_ops2:1185931+2	118:59:31	journal_afj_link		reference	journal link
+upd:journal_afj:afj:14solo_ops2:1195921+1:0	3-161		CSM Flight Plan page 3-161.	afj:14solo_ops2:1195921+1	119:59:21	journal_afj		unknown	rule
+upd:journal_afj_link:afj:14solo_ops2:1195921+1:0	3-161		[link] page 3-161	afj:14solo_ops2:1195921+1	119:59:21	journal_afj_link		reference	journal link
+upd:journal_afj:afj:14solo_ops2:1205842+2:0	3-163		CSM Flight Plan page 3-163.	afj:14solo_ops2:1205842+2	120:58:42	journal_afj		unknown	rule
+upd:journal_afj_link:afj:14solo_ops2:1205842+2:0	3-163		[link] page 3-163	afj:14solo_ops2:1205842+2	120:58:42	journal_afj_link		reference	journal link
+upd:journal_afj:afj:14solo_ops2:1215604+2:0	3-165		CSM Flight Plan page 3-165.	afj:14solo_ops2:1215604+2	121:56:04	journal_afj		unknown	rule
+upd:journal_afj_link:afj:14solo_ops2:1215604+2:0	3-165		[link] page 3-165	afj:14solo_ops2:1215604+2	121:56:04	journal_afj_link		reference	journal link
+upd:journal_afj:afj:14solo_ops2:1225958+1:0	3-167		CSM Flight Plan page 3-167.	afj:14solo_ops2:1225958+1	122:59:58	journal_afj		unknown	rule
+upd:journal_afj_link:afj:14solo_ops2:1225958+1:0	3-167		[link] page 3-167	afj:14solo_ops2:1225958+1	122:59:58	journal_afj_link		reference	journal link
+upd:journal_afj:afj:14solo_ops2:1235546+3:0	3-169		CSM Flight Plan page 3-169.	afj:14solo_ops2:1235546+3	123:55:46	journal_afj		unknown	rule
+upd:journal_afj_link:afj:14solo_ops2:1235546+3:0	3-169		[link] page 3-169	afj:14solo_ops2:1235546+3	123:55:46	journal_afj_link		reference	journal link
+upd:journal_afj:afj:14solo_ops2:1245956+3:0	3-171		CSM Flight Plan page 3-171.	afj:14solo_ops2:1245956+3	124:59:56	journal_afj		unknown	rule
+upd:journal_afj_link:afj:14solo_ops2:1245956+3:0	3-171		[link] page 3-171	afj:14solo_ops2:1245956+3	124:59:56	journal_afj_link		reference	journal link
+upd:journal_afj:afj:14solo_ops2:1255947+2:0	3-173		CSM Flight Plan page 3-173.	afj:14solo_ops2:1255947+2	125:59:47	journal_afj		unknown	rule
+upd:journal_afj_link:afj:14solo_ops2:1255947+2:0	3-173		[link] page 3-173	afj:14solo_ops2:1255947+2	125:59:47	journal_afj_link		reference	journal link
+upd:journal_afj:afj:14solo_ops2:1262312+1:0	3-002		It is unclear what Al is referring to by landmark "15 dash 40". On page 2-17 of the Flight Plan, there is a table of landmark data which goes up to 15-6.	afj:14solo_ops2:1262312+1	126:23:12	journal_afj		unknown	rule
+upd:journal_afj_link:afj:14solo_ops2:1262312+1:0	3-002		[link] page 2-017	afj:14solo_ops2:1262312+1	126:23:12	journal_afj_link		reference	journal link
+upd:journal_afj:afj:14solo_ops2:1265725+2:0	3-175		CSM Flight Plan page 3-175.	afj:14solo_ops2:1265725+2	126:57:25	journal_afj		unknown	rule
+upd:journal_afj_link:afj:14solo_ops2:1265725+2:0	3-175		[link] page 3-175	afj:14solo_ops2:1265725+2	126:57:25	journal_afj_link		reference	journal link
+upd:journal_afj:afj:14solo_ops2:1275847+2:0	3-177		CSM Flight Plan page 3-177.	afj:14solo_ops2:1275847+2	127:58:47	journal_afj		unknown	rule
+upd:journal_afj_link:afj:14solo_ops2:1275847+2:0	3-177		[link] page 3-177	afj:14solo_ops2:1275847+2	127:58:47	journal_afj_link		reference	journal link
+upd:journal_afj:afj:14solo_ops2:1285846+2:0	3-179		CSM Flight Plan page 3-179.	afj:14solo_ops2:1285846+2	128:58:46	journal_afj		unknown	rule
+upd:journal_afj_link:afj:14solo_ops2:1285846+2:0	3-179		[link] page 3-179	afj:14solo_ops2:1285846+2	128:58:46	journal_afj_link		reference	journal link
+upd:journal_afj:afj:14solo_ops2:1295907+3:0	3-181		CSM Flight Plan page 3-181.	afj:14solo_ops2:1295907+3	129:59:07	journal_afj		unknown	rule
+upd:journal_afj_link:afj:14solo_ops2:1295907+3:0	3-181		[link] page 3-181	afj:14solo_ops2:1295907+3	129:59:07	journal_afj_link		reference	journal link
+upd:journal_afj:afj:14solo_ops2:1305556+15:0	3-187		CSM Flight Plan page 3-187.	afj:14solo_ops2:1305556+15	130:55:56	journal_afj		unknown	rule
+upd:journal_afj:afj:14solo_ops2:1305556+5:0	3-183		CSM Flight Plan page 3-183.	afj:14solo_ops2:1305556+5	130:55:56	journal_afj		unknown	rule
+upd:journal_afj:afj:14solo_ops2:1305556+7:0	3-185		CSM Flight Plan page 3-185.	afj:14solo_ops2:1305556+7	130:55:56	journal_afj		unknown	rule
+upd:journal_afj_link:afj:14solo_ops2:1305556+15:0	3-187		[link] page 3-187	afj:14solo_ops2:1305556+15	130:55:56	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:14solo_ops2:1305556+5:0	3-183		[link] page 3-183	afj:14solo_ops2:1305556+5	130:55:56	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:14solo_ops2:1305556+7:0	3-185		[link] page 3-185	afj:14solo_ops2:1305556+7	130:55:56	journal_afj_link		reference	journal link
+upd:journal_afj:afj:14solo_ops2:1335240+6:0	3-189		CSM Flight Plan page 3-189.	afj:14solo_ops2:1335240+6	133:52:40	journal_afj		unknown	rule
+upd:journal_afj_link:afj:14solo_ops2:1335240+6:0	3-189		[link] page 3-189	afj:14solo_ops2:1335240+6	133:52:40	journal_afj_link		reference	journal link
+upd:journal_afj:afj:15solo_ops3:1374512+1:0	3-197		CSM Flight Plan page 3-197.	afj:15solo_ops3:1374512+1	137:45:12	journal_afj		unknown	rule
+upd:journal_afj:afj:15solo_ops3:1374512+2:0	3-199		CSM Flight Plan page 3-199.	afj:15solo_ops3:1374512+2	137:45:12	journal_afj		unknown	rule
+upd:journal_afj:afj:15solo_ops3:1374512+6:0	3-201		CSM Flight Plan page 3-201.	afj:15solo_ops3:1374512+6	137:45:12	journal_afj		unknown	rule
+upd:journal_afj_link:afj:15solo_ops3:1374512+1:0	3-197		[link] page 3-197	afj:15solo_ops3:1374512+1	137:45:12	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:15solo_ops3:1374512+2:0	3-199		[link] page 3-199	afj:15solo_ops3:1374512+2	137:45:12	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:15solo_ops3:1374512+6:0	3-201		[link] page 3-201	afj:15solo_ops3:1374512+6	137:45:12	journal_afj_link		reference	journal link
+upd:journal_afj:afj:15solo_ops3:1404710+2:0	3-203		CSM Flight Plan page 3-203.	afj:15solo_ops3:1404710+2	140:47:10	journal_afj		unknown	rule
+upd:journal_afj_link:afj:15solo_ops3:1404710+2:0	3-203		[link] page 3-203	afj:15solo_ops3:1404710+2	140:47:10	journal_afj_link		reference	journal link
+upd:journal_afj:afj:15solo_ops3:1415645+2:0	3-205		CSM Flight Plan page 3-205.	afj:15solo_ops3:1415645+2	141:56:45	journal_afj		unknown	rule
+upd:journal_afj_link:afj:15solo_ops3:1415645+2:0	3-205		[link] page 3-205	afj:15solo_ops3:1415645+2	141:56:45	journal_afj_link		reference	journal link
+upd:journal_afj:afj:15solo_ops3:1424516+3:0	3-207		CSM Flight Plan page 3-207.	afj:15solo_ops3:1424516+3	142:45:16	journal_afj		unknown	rule
+upd:journal_afj_link:afj:15solo_ops3:1424516+3:0	3-207		[link] page 3-207	afj:15solo_ops3:1424516+3	142:45:16	journal_afj_link		reference	journal link
+upd:journal_alsj:alsj:a15.eva2prelim:1425847+1:0	3-006		[Dave is probably talking about the tool harness which they fit over the PLSS during the EVA Prep, as per checklist page 3-6.]	alsj:a15.eva2prelim:1425847+1	142:58:47	journal_alsj		unknown	rule
+upd:journal_afj:afj:15solo_ops3:1435852+2:0	3-209		CSM Flight Plan page 3-209.	afj:15solo_ops3:1435852+2	143:58:52	journal_afj		unknown	rule
+upd:journal_afj_link:afj:15solo_ops3:1435852+2:0	3-209		[link] page 3-209	afj:15solo_ops3:1435852+2	143:58:52	journal_afj_link		reference	journal link
+upd:journal_afj:afj:15solo_ops3:1444208+3:0	3-211		CSM Flight Plan page 3-211.	afj:15solo_ops3:1444208+3	144:42:08	journal_afj		unknown	rule
+upd:journal_afj_link:afj:15solo_ops3:1444208+3:0	3-211		[link] page 3-211	afj:15solo_ops3:1444208+3	144:42:08	journal_afj_link		reference	journal link
+upd:journal_afj:afj:15solo_ops3:1455712+16:0	3-213		CSM Flight Plan page 3-213.	afj:15solo_ops3:1455712+16	145:57:12	journal_afj		unknown	rule
+upd:journal_afj_link:afj:15solo_ops3:1455712+16:0	3-213		[link] page 3-213	afj:15solo_ops3:1455712+16	145:57:12	journal_afj_link		reference	journal link
+upd:journal_afj:afj:15solo_ops3:1464013+4:0	3-215		CSM Flight Plan page 3-215.	afj:15solo_ops3:1464013+4	146:40:13	journal_afj		unknown	rule
+upd:journal_afj_link:afj:15solo_ops3:1464013+4:0	3-215		[link] page 3-215	afj:15solo_ops3:1464013+4	146:40:13	journal_afj_link		reference	journal link
+upd:journal_afj:afj:15solo_ops3:1475939+2:0	3-217		CSM Flight Plan page 3-217.	afj:15solo_ops3:1475939+2	147:59:39	journal_afj		unknown	rule
+upd:journal_afj_link:afj:15solo_ops3:1475939+2:0	3-217		[link] page 3-217	afj:15solo_ops3:1475939+2	147:59:39	journal_afj_link		reference	journal link
+upd:journal_afj:afj:15solo_ops3:1483352+3:0	3-219		CSM Flight Plan page 3-219.	afj:15solo_ops3:1483352+3	148:33:52	journal_afj		unknown	rule
+upd:journal_afj_link:afj:15solo_ops3:1483352+3:0	3-219		[link] page 3-219	afj:15solo_ops3:1483352+3	148:33:52	journal_afj_link		reference	journal link
+upd:journal_afj:afj:15solo_ops3:1495956+1:0	3-221		CSM Flight Plan page 3-221.	afj:15solo_ops3:1495956+1	149:59:56	journal_afj		unknown	rule
+upd:journal_afj_link:afj:15solo_ops3:1495956+1:0	3-221		[link] page 3-221	afj:15solo_ops3:1495956+1	149:59:56	journal_afj_link		reference	journal link
+upd:journal_afj:afj:15solo_ops3:1503606+2:0	3-223		CSM Flight Plan page 3-223.	afj:15solo_ops3:1503606+2	150:36:06	journal_afj		unknown	rule
+upd:journal_afj_link:afj:15solo_ops3:1503606+2:0	3-223		[link] page 3-223	afj:15solo_ops3:1503606+2	150:36:06	journal_afj_link		reference	journal link
+upd:journal_afj:afj:15solo_ops3:1515949+1:0	3-225		CSM Flight Plan page 3-225.	afj:15solo_ops3:1515949+1	151:59:49	journal_afj		unknown	rule
+upd:journal_afj_link:afj:15solo_ops3:1515949+1:0	3-225		[link] page 3-225	afj:15solo_ops3:1515949+1	151:59:49	journal_afj_link		reference	journal link
+upd:journal_afj:afj:15solo_ops3:1523322+4:0	3-227		CSM Flight Plan page 3-227.	afj:15solo_ops3:1523322+4	152:33:22	journal_afj		unknown	rule
+upd:journal_afj_link:afj:15solo_ops3:1523322+4:0	3-227		[link] page 3-227	afj:15solo_ops3:1523322+4	152:33:22	journal_afj_link		reference	journal link
+upd:journal_afj:afj:15solo_ops3:1535438+2:0	3-229		CSM Flight Plan page 3-229.	afj:15solo_ops3:1535438+2	153:54:38	journal_afj		unknown	rule
+upd:journal_afj_link:afj:15solo_ops3:1535438+2:0	3-229		[link] page 3-229	afj:15solo_ops3:1535438+2	153:54:38	journal_afj_link		reference	journal link
+upd:journal_afj:afj:16solo_ops4:1615936+1:0	3-245		CSM Flight Plan page 3-245.	afj:16solo_ops4:1615936+1	161:59:36	journal_afj		unknown	rule
+upd:journal_afj_link:afj:16solo_ops4:1615936+1:0	3-245		[link] page 3-245	afj:16solo_ops4:1615936+1	161:59:36	journal_afj_link		reference	journal link
+upd:journal_afj:afj:16solo_ops4:1622353+8:0	3-247		CSM Flight Plan page 3-247.	afj:16solo_ops4:1622353+8	162:23:53	journal_afj		unknown	rule
+upd:journal_afj_link:afj:16solo_ops4:1622353+8:0	3-247		[link] page 3-247	afj:16solo_ops4:1622353+8	162:23:53	journal_afj_link		reference	journal link
+upd:journal_afj:afj:16solo_ops4:1635906+3:0	3-249		CSM Flight Plan page 3-249.	afj:16solo_ops4:1635906+3	163:59:06	journal_afj		unknown	rule
+upd:journal_afj_link:afj:16solo_ops4:1635906+3:0	3-249		[link] page 3-249	afj:16solo_ops4:1635906+3	163:59:06	journal_afj_link		reference	journal link
+upd:journal_afj:afj:16solo_ops4:1642128+3:0	3-251		CSM Flight Plan page 3-251.	afj:16solo_ops4:1642128+3	164:21:28	journal_afj		unknown	rule
+upd:journal_afj:afj:16solo_ops4:1642128+5:0	3-253		CSM Flight Plan page 3-253.	afj:16solo_ops4:1642128+5	164:21:28	journal_afj		unknown	rule
+upd:journal_afj_link:afj:16solo_ops4:1642128+3:0	3-251		[link] page 3-251	afj:16solo_ops4:1642128+3	164:21:28	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:16solo_ops4:1642128+5:0	3-253		[link] page 3-253	afj:16solo_ops4:1642128+5	164:21:28	journal_afj_link		reference	journal link
+upd:journal_afj:afj:16solo_ops4:1655632+3:0	3-255		CSM Flight Plan page 3-255.	afj:16solo_ops4:1655632+3	165:56:32	journal_afj		unknown	rule
+upd:journal_afj_link:afj:16solo_ops4:1655632+3:0	3-255		[link] page 3-255	afj:16solo_ops4:1655632+3	165:56:32	journal_afj_link		reference	journal link
+upd:journal_afj:afj:16solo_ops4:1662005+4:0	3-257		CSM Flight Plan page 3-257.	afj:16solo_ops4:1662005+4	166:20:05	journal_afj		unknown	rule
+upd:journal_afj_link:afj:16solo_ops4:1662005+4:0	3-257		[link] page 3-257	afj:16solo_ops4:1662005+4	166:20:05	journal_afj_link		reference	journal link
+upd:journal_afj:afj:16solo_ops4:1675549+2:0	3-259		CSM Flight Plan page 3-259.	afj:16solo_ops4:1675549+2	167:55:49	journal_afj		unknown	rule
+upd:journal_afj_link:afj:16solo_ops4:1675549+2:0	3-259		[link] page 3-259	afj:16solo_ops4:1675549+2	167:55:49	journal_afj_link		reference	journal link
+upd:journal_afj:afj:16solo_ops4:1681801+13:0	3-261		CSM Flight Plan page 3-261.	afj:16solo_ops4:1681801+13	168:18:01	journal_afj		unknown	rule
+upd:journal_afj_link:afj:16solo_ops4:1681801+13:0	3-261		[link] page 3-261	afj:16solo_ops4:1681801+13	168:18:01	journal_afj_link		reference	journal link
+upd:journal_afj:afj:16solo_ops4:1692925+2:0	3-263		CSM Flight Plan page 3-263.	afj:16solo_ops4:1692925+2	169:29:25	journal_afj		unknown	rule
+upd:journal_afj_link:afj:16solo_ops4:1692925+2:0	3-263		[link] page 3-263	afj:16solo_ops4:1692925+2	169:29:25	journal_afj_link		reference	journal link
+upd:journal_afj:afj:16solo_ops4:1695952+1:0	3-265		CSM Flight Plan page 3-265.	afj:16solo_ops4:1695952+1	169:59:52	journal_afj		unknown	rule
+upd:journal_afj_link:afj:16solo_ops4:1695952+1:0	3-265		[link] page 3-265	afj:16solo_ops4:1695952+1	169:59:52	journal_afj_link		reference	journal link
+upd:journal_afj:afj:17rndz_dock:1712938+1:0	3-270		LM Flight Plan page 3-270.	afj:17rndz_dock:1712938+1	171:29:38	journal_afj		unknown	rule
+upd:journal_afj:afj:17rndz_dock:1712938+2:0	3-271		CSM Flight Plan page 3-271.	afj:17rndz_dock:1712938+2	171:29:38	journal_afj		unknown	rule
+upd:journal_afj_link:afj:17rndz_dock:1712938+1:0	3-270		[link] page 3-270	afj:17rndz_dock:1712938+1	171:29:38	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:17rndz_dock:1712938+2:0	3-271		[link] page 3-271	afj:17rndz_dock:1712938+2	171:29:38	journal_afj_link		reference	journal link
+upd:journal_afj:afj:17rndz_dock:1715719+3:0	3-272		LM Flight Plan page 3-272.	afj:17rndz_dock:1715719+3	171:57:19	journal_afj		unknown	rule
+upd:journal_afj:afj:17rndz_dock:1715719+4:0	3-273		CSM Flight Plan page 3-273.	afj:17rndz_dock:1715719+4	171:57:19	journal_afj		unknown	rule
+upd:journal_afj_link:afj:17rndz_dock:1715719+3:0	3-272		[link] page 3-272	afj:17rndz_dock:1715719+3	171:57:19	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:17rndz_dock:1715719+4:0	3-273		[link] page 3-273	afj:17rndz_dock:1715719+4	171:57:19	journal_afj_link		reference	journal link
+upd:journal_afj:afj:17rndz_dock:1721557+10:0	3-275		CSM Flight Plan page 3-275.	afj:17rndz_dock:1721557+10	172:15:57	journal_afj		unknown	rule
+upd:journal_afj:afj:17rndz_dock:1721557+15:0	3-276		LM Flight Plan page 3-276.	afj:17rndz_dock:1721557+15	172:15:57	journal_afj		unknown	rule
+upd:journal_afj:afj:17rndz_dock:1721557+16:0	3-277		CSM Flight Plan page 3-277.	afj:17rndz_dock:1721557+16	172:15:57	journal_afj		unknown	rule
+upd:journal_afj:afj:17rndz_dock:1721557+9:0	3-274		LM Flight Plan page 3-274.	afj:17rndz_dock:1721557+9	172:15:57	journal_afj		unknown	rule
+upd:journal_afj_link:afj:17rndz_dock:1721557+10:0	3-275		[link] page 3-275	afj:17rndz_dock:1721557+10	172:15:57	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:17rndz_dock:1721557+15:0	3-276		[link] page 3-276	afj:17rndz_dock:1721557+15	172:15:57	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:17rndz_dock:1721557+16:0	3-277		[link] page 3-277	afj:17rndz_dock:1721557+16	172:15:57	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:17rndz_dock:1721557+9:0	3-274		[link] page 3-274	afj:17rndz_dock:1721557+9	172:15:57	journal_afj_link		reference	journal link
+upd:journal_afj:afj:17rndz_dock:1732909+1:0	3-279		LM Flight Plan page 3-279.	afj:17rndz_dock:1732909+1	173:29:09	journal_afj		unknown	rule
+upd:journal_afj:afj:17rndz_dock:1732909+2:0	3-279		CSM Flight Plan page 3-279.	afj:17rndz_dock:1732909+2	173:29:09	journal_afj		unknown	rule
+upd:journal_afj_link:afj:17rndz_dock:1732909+1:0	3-278		[link] page 3-278	afj:17rndz_dock:1732909+1	173:29:09	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:17rndz_dock:1732909+2:0	3-279		[link] page 3-279	afj:17rndz_dock:1732909+2	173:29:09	journal_afj_link		reference	journal link
+upd:journal_afj:afj:18tunnel_leak_lm_jett:1735843+11:0	3-018		and contemporaneous notes taken during the Apollo 15 mission and discovered [this]. The Sunday, July 25, 1971 of the San Francisco Examiner newspaper states on page 18 of the 'datebook' section: 'In light of ... the Soviet tragedy, precautions have been unusually tight. Flight safety officials, for instance, recommend that the astronauts wear spacesuits when jettisoning their Moon-landing craft. The Flig	afj:18tunnel_leak_lm_jett:1735843+11	173:58:43	journal_afj		unknown	rule
+upd:journal_afj:afj:18tunnel_leak_lm_jett:1735843+12:0	3-280		LM Flight Plan page 3-280.	afj:18tunnel_leak_lm_jett:1735843+12	173:58:43	journal_afj		unknown	rule
+upd:journal_afj:afj:18tunnel_leak_lm_jett:1735843+13:0	3-281		CSM Flight Plan page 3-281.	afj:18tunnel_leak_lm_jett:1735843+13	173:58:43	journal_afj		unknown	rule
+upd:journal_afj_link:afj:18tunnel_leak_lm_jett:1735843+12:0	3-280		[link] page 3-280	afj:18tunnel_leak_lm_jett:1735843+12	173:58:43	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:18tunnel_leak_lm_jett:1735843+13:0	3-281		[link] page 3-281	afj:18tunnel_leak_lm_jett:1735843+13	173:58:43	journal_afj_link		reference	journal link
+upd:journal_afj:afj:18tunnel_leak_lm_jett:1741400+17:0	3-284		LM Flight Plan page 3-284.	afj:18tunnel_leak_lm_jett:1741400+17	174:14:00	journal_afj		unknown	rule
+upd:journal_afj:afj:18tunnel_leak_lm_jett:1741400+18:0	3-285		CSM Flight Plan page 3-285.	afj:18tunnel_leak_lm_jett:1741400+18	174:14:00	journal_afj		unknown	rule
+upd:journal_afj:afj:18tunnel_leak_lm_jett:1741400+5:0	3-282		LM Flight Plan page 3-282.	afj:18tunnel_leak_lm_jett:1741400+5	174:14:00	journal_afj		unknown	rule
+upd:journal_afj:afj:18tunnel_leak_lm_jett:1741400+6:0	3-283		CSM Flight Plan page 3-283.	afj:18tunnel_leak_lm_jett:1741400+6	174:14:00	journal_afj		unknown	rule
+upd:journal_afj_link:afj:18tunnel_leak_lm_jett:1741400+17:0	3-284		[link] page 3-284	afj:18tunnel_leak_lm_jett:1741400+17	174:14:00	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:18tunnel_leak_lm_jett:1741400+18:0	3-285		[link] page 3-285	afj:18tunnel_leak_lm_jett:1741400+18	174:14:00	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:18tunnel_leak_lm_jett:1741400+5:0	3-282		[link] page 3-282	afj:18tunnel_leak_lm_jett:1741400+5	174:14:00	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:18tunnel_leak_lm_jett:1741400+6:0	3-283		[link] page 3-283	afj:18tunnel_leak_lm_jett:1741400+6	174:14:00	journal_afj_link		reference	journal link
+upd:journal_afj:afj:18tunnel_leak_lm_jett:1755937+1:0	3-286		LM Flight Plan page 3-286.	afj:18tunnel_leak_lm_jett:1755937+1	175:59:37	journal_afj		unknown	rule
+upd:journal_afj:afj:18tunnel_leak_lm_jett:1755937+2:0	3-287		CSM Flight Plan page 3-287.	afj:18tunnel_leak_lm_jett:1755937+2	175:59:37	journal_afj		unknown	rule
+upd:journal_afj_link:afj:18tunnel_leak_lm_jett:1755937+1:0	3-286		[link] page 3-286	afj:18tunnel_leak_lm_jett:1755937+1	175:59:37	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:18tunnel_leak_lm_jett:1755937+2:0	3-287		[link] page 3-287	afj:18tunnel_leak_lm_jett:1755937+2	175:59:37	journal_afj_link		reference	journal link
+upd:journal_afj:afj:18tunnel_leak_lm_jett:1770006+2:0	3-288		Flight Plan page 3-288.	afj:18tunnel_leak_lm_jett:1770006+2	177:00:06	journal_afj		unknown	rule
+upd:journal_afj_link:afj:18tunnel_leak_lm_jett:1770006+2:0	3-288		[link] page 3-288	afj:18tunnel_leak_lm_jett:1770006+2	177:00:06	journal_afj_link		reference	journal link
+upd:journal_afj:afj:18tunnel_leak_lm_jett:1772933+1:0	3-289		Flight Plan page 3-289.	afj:18tunnel_leak_lm_jett:1772933+1	177:29:33	journal_afj		unknown	rule
+upd:journal_afj_link:afj:18tunnel_leak_lm_jett:1772933+1:0	3-289		[link] page 3-289	afj:18tunnel_leak_lm_jett:1772933+1	177:29:33	journal_afj_link		reference	journal link
+upd:journal_afj:afj:18tunnel_leak_lm_jett:1775835+2:0	3-290		Flight Plan page 3-290.	afj:18tunnel_leak_lm_jett:1775835+2	177:58:35	journal_afj		unknown	rule
+upd:journal_afj_link:afj:18tunnel_leak_lm_jett:1775835+2:0	3-290		[link] page 3-290	afj:18tunnel_leak_lm_jett:1775835+2	177:58:35	journal_afj_link		reference	journal link
+upd:journal_afj:afj:18tunnel_leak_lm_jett:1790005+2:0	3-291		Flight Plan page 3-291.	afj:18tunnel_leak_lm_jett:1790005+2	179:00:05	journal_afj		unknown	rule
+upd:journal_afj_link:afj:18tunnel_leak_lm_jett:1790005+2:0	3-291		[link] page 3-291	afj:18tunnel_leak_lm_jett:1790005+2	179:00:05	journal_afj_link		reference	journal link
+upd:journal_afj:afj:18tunnel_leak_lm_jett:1795959+1:0	3-292		Flight Plan page 3-292.	afj:18tunnel_leak_lm_jett:1795959+1	179:59:59	journal_afj		unknown	rule
+upd:journal_afj_link:afj:18tunnel_leak_lm_jett:1795959+1:0	3-292		[link] page 3-292	afj:18tunnel_leak_lm_jett:1795959+1	179:59:59	journal_afj_link		reference	journal link
+upd:journal_afj:afj:18tunnel_leak_lm_jett:1805839+2:0	3-293		Flight Plan page 3-293.	afj:18tunnel_leak_lm_jett:1805839+2	180:58:39	journal_afj		unknown	rule
+upd:journal_afj_link:afj:18tunnel_leak_lm_jett:1805839+2:0	3-293		[link] page 3-293	afj:18tunnel_leak_lm_jett:1805839+2	180:58:39	journal_afj_link		reference	journal link
+upd:journal_afj:afj:18tunnel_leak_lm_jett:1811708+1:0	3-002		Jim is scheduled to be wearing his biomedical harness tonight as detailed on page 2-2 of the Flight Plan.	afj:18tunnel_leak_lm_jett:1811708+1	181:17:08	journal_afj		unknown	rule
+upd:journal_afj:afj:18tunnel_leak_lm_jett:1812120+15:0	3-294		Flight Plan page 3-294.	afj:18tunnel_leak_lm_jett:1812120+15	181:21:20	journal_afj		unknown	rule
+upd:journal_afj_link:afj:18tunnel_leak_lm_jett:1812120+15:0	3-294		[link] page 3-294	afj:18tunnel_leak_lm_jett:1812120+15	181:21:20	journal_afj_link		reference	journal link
+upd:journal_afj:afj:18tunnel_leak_lm_jett:1825959+1:0	3-295		Flight Plan page 3-295.	afj:18tunnel_leak_lm_jett:1825959+1	182:59:59	journal_afj		unknown	rule
+upd:journal_afj_link:afj:18tunnel_leak_lm_jett:1825959+1:0	3-295		[link] page 3-295	afj:18tunnel_leak_lm_jett:1825959+1	182:59:59	journal_afj_link		reference	journal link
+upd:journal_afj:afj:19a-day9_orbital_science:1925938+1:0	3-305		Flight Plan page 3-305.	afj:19a-day9_orbital_science:1925938+1	192:59:38	journal_afj		unknown	rule
+upd:journal_afj_link:afj:19a-day9_orbital_science:1925938+1:0	3-305		[link] page 3-305	afj:19a-day9_orbital_science:1925938+1	192:59:38	journal_afj_link		reference	journal link
+upd:journal_afj:afj:19a-day9_orbital_science:1935917+1:0	3-306		Flight Plan page 3-306.	afj:19a-day9_orbital_science:1935917+1	193:59:17	journal_afj		unknown	rule
+upd:journal_afj_link:afj:19a-day9_orbital_science:1935917+1:0	3-306		[link] page 3-306	afj:19a-day9_orbital_science:1935917+1	193:59:17	journal_afj_link		reference	journal link
+upd:journal_afj:afj:19a-day9_orbital_science:1945834+2:0	3-307		Flight Plan page 3-307.	afj:19a-day9_orbital_science:1945834+2	194:58:34	journal_afj		unknown	rule
+upd:journal_afj_link:afj:19a-day9_orbital_science:1945834+2:0	3-307		[link] page 3-307	afj:19a-day9_orbital_science:1945834+2	194:58:34	journal_afj_link		reference	journal link
+upd:journal_afj:afj:19a-day9_orbital_science:1955401+3:0	3-308		Flight Plan page 3-308.	afj:19a-day9_orbital_science:1955401+3	195:54:01	journal_afj		unknown	rule
+upd:journal_afj_link:afj:19a-day9_orbital_science:1955401+3:0	3-308		[link] page 3-308	afj:19a-day9_orbital_science:1955401+3	195:54:01	journal_afj_link		reference	journal link
+upd:journal_afj:afj:19a-day9_orbital_science:1965924+4:0	3-309		Flight Plan page 3-309.	afj:19a-day9_orbital_science:1965924+4	196:59:24	journal_afj		unknown	rule
+upd:journal_afj_link:afj:19a-day9_orbital_science:1965924+4:0	3-309		[link] page 3-309	afj:19a-day9_orbital_science:1965924+4	196:59:24	journal_afj_link		reference	journal link
+upd:journal_afj:afj:19b-day9_orbital_science:1975806+1:0	3-310		Flight Plan page 3-310.	afj:19b-day9_orbital_science:1975806+1	197:58:06	journal_afj		unknown	rule
+upd:journal_afj_link:afj:19b-day9_orbital_science:1975806+1:0	3-310		[link] page 3-310	afj:19b-day9_orbital_science:1975806+1	197:58:06	journal_afj_link		reference	journal link
+upd:journal_afj:afj:19b-day9_orbital_science:1984150:0	3-002		ou very much. Some time during this pass, we're going to be requesting an ISA [Interim Stowage Assembly] weight which you have in your Lunar Surface Checklist, page 3-2. And we'll have a Map Camera and a Pan Camera PAD to send up to you. [Long pause.]	afj:19b-day9_orbital_science:1984150	198:41:50	journal_afj		pad	rule
+upd:transcript_tec:AS15_TEC-p1236-r02:0	3-002		Okay, Al, thank you very much. Some time during this pass, we are going to be requesting an ISA weight which you have in your Lunar Surface Check- list, page 3-2. And we'll have a map camera and a pan camera pad to send up to you.	AS15_TEC-p1236-r02	198:41:50	transcript_tec		pad	rule
+upd:journal_afj:afj:19b-day9_orbital_science:1984315+36:0	3-311		Flight Plan page 3-311.	afj:19b-day9_orbital_science:1984315+36	198:43:15	journal_afj		unknown	rule
+upd:journal_afj_link:afj:19b-day9_orbital_science:1984315+36:0	3-311		[link] page 3-311	afj:19b-day9_orbital_science:1984315+36	198:43:15	journal_afj_link		reference	journal link
+upd:journal_afj:afj:19b-day9_orbital_science:1994957+4:0	3-312		Flight Plan page 3-312.	afj:19b-day9_orbital_science:1994957+4	199:49:57	journal_afj		unknown	rule
+upd:journal_afj_link:afj:19b-day9_orbital_science:1994957+4:0	3-312		[link] page 3-312	afj:19b-day9_orbital_science:1994957+4	199:49:57	journal_afj_link		reference	journal link
+upd:journal_afj:afj:19b-day9_orbital_science:2005856+31:0	3-313		Flight Plan page 3-313.	afj:19b-day9_orbital_science:2005856+31	200:58:56	journal_afj		unknown	rule
+upd:journal_afj_link:afj:19b-day9_orbital_science:2005856+31:0	3-313		[link] page 3-313	afj:19b-day9_orbital_science:2005856+31	200:58:56	journal_afj_link		reference	journal link
+upd:journal_afj:afj:19b-day9_orbital_science:2014729+5:0	3-314		Flight Plan page 3-314.	afj:19b-day9_orbital_science:2014729+5	201:47:29	journal_afj		unknown	rule
+upd:journal_afj_link:afj:19b-day9_orbital_science:2014729+5:0	3-314		[link] page 3-314	afj:19b-day9_orbital_science:2014729+5	201:47:29	journal_afj_link		reference	journal link
+upd:journal_afj:afj:19b-day9_orbital_science:2025316+2:0	3-315		Flight Plan page 3-315.	afj:19b-day9_orbital_science:2025316+2	202:53:16	journal_afj		unknown	rule
+upd:journal_afj_link:afj:19b-day9_orbital_science:2025316+2:0	3-315		[link] page 3-315	afj:19b-day9_orbital_science:2025316+2	202:53:16	journal_afj_link		reference	journal link
+upd:journal_afj:afj:20a-day10_science-68-69:2113633+6:0	3-324		Flight Plan page 3-324.	afj:20a-day10_science-68-69:2113633+6	211:36:33	journal_afj		unknown	rule
+upd:journal_afj_link:afj:20a-day10_science-68-69:2113633+6:0	3-324		[link] page 3-324	afj:20a-day10_science-68-69:2113633+6	211:36:33	journal_afj_link		reference	journal link
+upd:journal_afj:afj:20a-day10_science-68-69:2125952+29:0	3-325		Flight Plan page 3-325.	afj:20a-day10_science-68-69:2125952+29	212:59:52	journal_afj		unknown	rule
+upd:journal_afj_link:afj:20a-day10_science-68-69:2125952+29:0	3-325		[link] page 3-325	afj:20a-day10_science-68-69:2125952+29	212:59:52	journal_afj_link		reference	journal link
+upd:journal_afj:afj:20b-day10_science-70:2150039+2:0	3-327		Flight Plan page 3-327.	afj:20b-day10_science-70:2150039+2	215:00:39	journal_afj		unknown	rule
+upd:journal_afj_link:afj:20b-day10_science-70:2150039+2:0	3-327		[link] page 3-327	afj:20b-day10_science-70:2150039+2	215:00:39	journal_afj_link		reference	journal link
+upd:journal_afj:afj:20c-day10_science-71:2155946+1:0	3-328		Flight Plan page 3-328.	afj:20c-day10_science-71:2155946+1	215:59:46	journal_afj		unknown	rule
+upd:journal_afj_link:afj:20c-day10_science-71:2155946+1:0	3-328		[link] page 3-328	afj:20c-day10_science-71:2155946+1	215:59:46	journal_afj_link		reference	journal link
+upd:journal_afj:afj:20c-day10_science-71:2165844+2:0	3-329		Flight Plan page 3-329.	afj:20c-day10_science-71:2165844+2	216:58:44	journal_afj		unknown	rule
+upd:journal_afj_link:afj:20c-day10_science-71:2165844+2:0	3-329		[link] page 3-329	afj:20c-day10_science-71:2165844+2	216:58:44	journal_afj_link		reference	journal link
+upd:journal_afj:afj:20d-day10_science-72:2175035+2:0	3-330		Flight Plan page 3-330.	afj:20d-day10_science-72:2175035+2	217:50:35	journal_afj		unknown	rule
+upd:journal_afj_link:afj:20d-day10_science-72:2175035+2:0	3-330		[link] page 3-330	afj:20d-day10_science-72:2175035+2	217:50:35	journal_afj_link		reference	journal link
+upd:journal_afj:afj:20d-day10_science-72:2184130+13:0	3-331		Flight Plan page 3-331.	afj:20d-day10_science-72:2184130+13	218:41:30	journal_afj		unknown	rule
+upd:journal_afj_link:afj:20d-day10_science-72:2184130+13:0	3-331		[link] page 3-331	afj:20d-day10_science-72:2184130+13	218:41:30	journal_afj_link		reference	journal link
+upd:journal_afj:afj:21a-day10_subsat:2195825+1:0	3-332		Flight Plan page 3-332.	afj:21a-day10_subsat:2195825+1	219:58:25	journal_afj		unknown	rule
+upd:journal_afj_link:afj:21a-day10_subsat:2195825+1:0	3-332		[link] page 3-332	afj:21a-day10_subsat:2195825+1	219:58:25	journal_afj_link		reference	journal link
+upd:journal_afj:afj:21a-day10_subsat:2205329+4:0	3-333		Flight Plan page 3-333.	afj:21a-day10_subsat:2205329+4	220:53:29	journal_afj		unknown	rule
+upd:journal_afj_link:afj:21a-day10_subsat:2205329+4:0	3-333		[link] page 3-333	afj:21a-day10_subsat:2205329+4	220:53:29	journal_afj_link		reference	journal link
+upd:journal_afj:afj:21a-day10_subsat:2212812+3:0	3-334		Flight Plan page 3-334.	afj:21a-day10_subsat:2212812+3	221:28:12	journal_afj		unknown	rule
+upd:journal_afj_link:afj:21a-day10_subsat:2212812+3:0	3-334		[link] page 3-334	afj:21a-day10_subsat:2212812+3	221:28:12	journal_afj_link		reference	journal link
+upd:journal_afj:afj:21a-day10_subsat:2214955+2:0	3-335		Flight Plan page 3-335.	afj:21a-day10_subsat:2214955+2	221:49:55	journal_afj		unknown	rule
+upd:journal_afj_link:afj:21a-day10_subsat:2214955+2:0	3-335		[link] page 3-335	afj:21a-day10_subsat:2214955+2	221:49:55	journal_afj_link		reference	journal link
+upd:journal_afj:afj:21a-day10_subsat:2222046+8:0	3-336		Flight Plan page 3-336.	afj:21a-day10_subsat:2222046+8	222:20:46	journal_afj		unknown	rule
+upd:journal_afj_link:afj:21a-day10_subsat:2222046+8:0	3-336		[link] page 3-336	afj:21a-day10_subsat:2222046+8	222:20:46	journal_afj_link		reference	journal link
+upd:journal_afj:afj:21b-day10_tei:2225308+6:0	3-001		The last system check called for at this time in the Flight Plan is of the all-important SPS as per the top of page 1-1 of the CSM Systems Checklist. The temperatures of the propellant tanks are monitored and if the reading is outside limits, appropriate heaters are switched on or off. The pressures of three tanks that are crucial to the operation of the	afj:21b-day10_tei:2225308+6	222:53:08	journal_afj		unknown	rule
+upd:journal_afj:afj:21b-day10_tei:2225654+2:0	3-337		Flight Plan page 3-337.	afj:21b-day10_tei:2225654+2	222:56:54	journal_afj		unknown	rule
+upd:journal_afj_link:afj:21b-day10_tei:2225654+2:0	3-337		[link] page 3-337	afj:21b-day10_tei:2225654+2	222:56:54	journal_afj_link		reference	journal link
+upd:journal_afj:afj:21b-day10_tei:2232337+11:0	3-339		Flight Plan page 3-339.	afj:21b-day10_tei:2232337+11	223:23:37	journal_afj		unknown	rule
+upd:journal_afj:afj:21b-day10_tei:2232337+7:0	3-338		Flight Plan page 3-338.	afj:21b-day10_tei:2232337+7	223:23:37	journal_afj		unknown	rule
+upd:journal_afj_link:afj:21b-day10_tei:2232337+11:0	3-339		[link] page 3-339	afj:21b-day10_tei:2232337+11	223:23:37	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:21b-day10_tei:2232337+7:0	3-338		[link] page 3-338	afj:21b-day10_tei:2232337+7	223:23:37	journal_afj_link		reference	journal link
+upd:journal_afj:afj:22day10_homeward:2245740+3:0	3-341		Flight Plan page 3-341.	afj:22day10_homeward:2245740+3	224:57:40	journal_afj		unknown	rule
+upd:journal_afj_link:afj:22day10_homeward:2245740+3:0	3-341		[link] page 3-341	afj:22day10_homeward:2245740+3	224:57:40	journal_afj_link		reference	journal link
+upd:journal_afj:afj:22day10_homeward:2253031+5:0	3-340		Page 3-340 in the Flight Plan includes a diagram showing the field of view of the Moon at this time.	afj:22day10_homeward:2253031+5	225:30:31	journal_afj		unknown	rule
+upd:journal_afj_link:afj:22day10_homeward:2253031+5:0	3-340		[link] page 3-340	afj:22day10_homeward:2253031+5	225:30:31	journal_afj_link		reference	journal link
+upd:journal_afj:afj:22day10_homeward:2255310+3:0	3-342		Flight Plan page 3-342.	afj:22day10_homeward:2255310+3	225:53:10	journal_afj		unknown	rule
+upd:journal_afj_link:afj:22day10_homeward:2255310+3:0	3-342		[link] page 3-342	afj:22day10_homeward:2255310+3	225:53:10	journal_afj_link		reference	journal link
+upd:journal_afj:afj:22day10_homeward:2262705+10:0	3-343		Flight Plan page 3-343.	afj:22day10_homeward:2262705+10	226:27:05	journal_afj		unknown	rule
+upd:journal_afj_link:afj:22day10_homeward:2262705+10:0	3-343		[link] page 3-343	afj:22day10_homeward:2262705+10	226:27:05	journal_afj_link		reference	journal link
+upd:journal_afj:afj:22day10_homeward:2274107:0	3-343		You mean that little box on page 3-343?	afj:22day10_homeward:2274107	227:41:07	journal_afj		unknown	rule
+upd:transcript_tec:AS15_TEC-p1314-r02:0	3-343		You mean that little box on page 3-343?	AS15_TEC-p1314-r02	227:41:07	transcript_tec		unknown	rule
+upd:journal_afj:afj:22day10_homeward:2280014+2:0	3-344		Flight Plan page 3-344.	afj:22day10_homeward:2280014+2	228:00:14	journal_afj		unknown	rule
+upd:journal_afj_link:afj:22day10_homeward:2280014+2:0	3-344		[link] page 3-344	afj:22day10_homeward:2280014+2	228:00:14	journal_afj_link		reference	journal link
+upd:journal_afj:afj:23a-day11_science-sphere:2355959+1:0	3-348		Flight Plan page 3-348.	afj:23a-day11_science-sphere:2355959+1	235:59:59	journal_afj		unknown	rule
+upd:journal_afj_link:afj:23a-day11_science-sphere:2355959+1:0	3-348		[link] page 3-348	afj:23a-day11_science-sphere:2355959+1	235:59:59	journal_afj_link		reference	journal link
+upd:journal_afj:afj:23a-day11_science-sphere:2365905+2:0	3-349		Flight Plan page 3-349.	afj:23a-day11_science-sphere:2365905+2	236:59:05	journal_afj		unknown	rule
+upd:journal_afj_link:afj:23a-day11_science-sphere:2365905+2:0	3-349		[link] page 3-349	afj:23a-day11_science-sphere:2365905+2	236:59:05	journal_afj_link		reference	journal link
+upd:journal_afj:afj:23a-day11_science-sphere:2375903+1:0	3-351		Flight Plan page 3-351.	afj:23a-day11_science-sphere:2375903+1	237:59:03	journal_afj		unknown	rule
+upd:journal_afj_link:afj:23a-day11_science-sphere:2375903+1:0	3-351		[link] page 3-351	afj:23a-day11_science-sphere:2375903+1	237:59:03	journal_afj_link		reference	journal link
+upd:journal_afj:afj:23a-day11_science-sphere:2384855:0	3-352		Okay. If you'll turn to page 3-352, which is the Corona Window Calibration and UV photos procedures page.	afj:23a-day11_science-sphere:2384855	238:48:55	journal_afj		unknown	rule
+upd:journal_afj_link:afj:23a-day11_science-sphere:2384855:0	3-352		[link] page 3-352	afj:23a-day11_science-sphere:2384855	238:48:55	journal_afj_link		reference	journal link
+upd:transcript_tec:AS15_TEC-p1339-r10:0	3-352		Okay. If you'll turn to page 3-352, which is the Corona Window Calibration and UV photos procedures page.	AS15_TEC-p1339-r10	238:48:55	transcript_tec		unknown	rule
+upd:journal_afj:afj:23a-day11_science-sphere:2385808+3:0	3-353		Flight Plan page 3-353.	afj:23a-day11_science-sphere:2385808+3	238:58:08	journal_afj		unknown	rule
+upd:journal_afj_link:afj:23a-day11_science-sphere:2385808+3:0	3-353		[link] page 3-353	afj:23a-day11_science-sphere:2385808+3	238:58:08	journal_afj_link		reference	journal link
+upd:journal_afj:afj:23b-day11_worden_eva:2395512+5:0	3-354		Flight Plan page 3-354.	afj:23b-day11_worden_eva:2395512+5	239:55:12	journal_afj		unknown	rule
+upd:journal_afj_link:afj:23b-day11_worden_eva:2395512+5:0	3-354		[link] page 3-354	afj:23b-day11_worden_eva:2395512+5	239:55:12	journal_afj_link		reference	journal link
+upd:journal_afj:afj:23b-day11_worden_eva:2400159+19:0	3-355		Flight Plan page 3-355.	afj:23b-day11_worden_eva:2400159+19	240:01:59	journal_afj		unknown	rule
+upd:journal_afj_link:afj:23b-day11_worden_eva:2400159+19:0	3-355		[link] page 3-355	afj:23b-day11_worden_eva:2400159+19	240:01:59	journal_afj_link		reference	journal link
+upd:journal_afj:afj:23b-day11_worden_eva:2420035+2:0	3-356		Flight Plan page 3-356.	afj:23b-day11_worden_eva:2420035+2	242:00:35	journal_afj		unknown	rule
+upd:journal_afj_link:afj:23b-day11_worden_eva:2420035+2:0	3-356		[link] page 3-356	afj:23b-day11_worden_eva:2420035+2	242:00:35	journal_afj_link		reference	journal link
+upd:journal_afj:afj:23c-day11_uv-photos-p23:2425818+3:0	3-357		Flight Plan page 3-357.	afj:23c-day11_uv-photos-p23:2425818+3	242:58:18	journal_afj		unknown	rule
+upd:journal_afj_link:afj:23c-day11_uv-photos-p23:2425818+3:0	3-357		[link] page 3-357	afj:23c-day11_uv-photos-p23:2425818+3	242:58:18	journal_afj_link		reference	journal link
+upd:journal_afj:afj:23c-day11_uv-photos-p23:2432651+5:0	3-358		Flight Plan page 3-358.	afj:23c-day11_uv-photos-p23:2432651+5	243:26:51	journal_afj		unknown	rule
+upd:journal_afj_link:afj:23c-day11_uv-photos-p23:2432651+5:0	3-358		[link] page 3-358	afj:23c-day11_uv-photos-p23:2432651+5	243:26:51	journal_afj_link		reference	journal link
+upd:journal_afj:afj:23c-day11_uv-photos-p23:2444113+2:0	3-359		Flight Plan page 3-359.	afj:23c-day11_uv-photos-p23:2444113+2	244:41:13	journal_afj		unknown	rule
+upd:journal_afj_link:afj:23c-day11_uv-photos-p23:2444113+2:0	3-359		[link] page 3-359	afj:23c-day11_uv-photos-p23:2444113+2	244:41:13	journal_afj_link		reference	journal link
+upd:journal_afj:afj:23c-day11_uv-photos-p23:2454032+1:0	3-352		's excursion. Now Al has realised that in the six hours delay, the direction for pointing the spacecraft will have changed from that given in the procedures on page 3-352 of the Flight Plan.	afj:23c-day11_uv-photos-p23:2454032+1	245:40:32	journal_afj		time_change	rule
+upd:journal_afj:afj:23c-day11_uv-photos-p23:2454032:0	3-352		Roger, Al. The information on - on UV photos is to follow the procedures - Okay - you want the attitude - the procedures are on page 3-352, and the attitude to be used is 210, 242, 322.	afj:23c-day11_uv-photos-p23:2454032	245:40:32	journal_afj		unknown	rule
+upd:journal_afj_link:afj:23c-day11_uv-photos-p23:2454032+1:0	3-352		[link] page 3-352	afj:23c-day11_uv-photos-p23:2454032+1	245:40:32	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:23c-day11_uv-photos-p23:2454032:0	3-352		[link] page 3-352	afj:23c-day11_uv-photos-p23:2454032	245:40:32	journal_afj_link		reference	journal link
+upd:transcript_tec:AS15_TEC-p1363-r10:0	3-352		Roger, Al. The information on UV photos is to follow the procedures - Okay - you want the attitudes - the procedure's on page 3-352, and the attitude to be used is 210, 242, 322.	AS15_TEC-p1363-r10	245:40:32	transcript_tec		unknown	rule
+upd:transcript_tec:AS15_TEC-p1363-r14:0	3-352	247:45	Okay. Understand. Use the procedures on page 3-352, except change the attitude to 210, 242, and 322, and this whole thing is to be done at 247:45.	AS15_TEC-p1363-r14	245:42:01	transcript_tec		time_change	rule
+upd:journal_afj:afj:23c-day11_uv-photos-p23:2454202:0	3-352	247:45	Okay. Understand. Use the procedures on page 3-352, except change the attitude to 210, 242, and 322, and this whole thing is to be done at 247:45.	afj:23c-day11_uv-photos-p23:2454202	245:42:02	journal_afj		time_change	rule
+upd:journal_afj_link:afj:23c-day11_uv-photos-p23:2454202:0	3-352		[link] page 3-352	afj:23c-day11_uv-photos-p23:2454202	245:42:02	journal_afj_link		reference	journal link
+upd:journal_afj:afj:23c-day11_uv-photos-p23:2455945+1:0	3-360		Flight Plan page 3-360.	afj:23c-day11_uv-photos-p23:2455945+1	245:59:45	journal_afj		unknown	rule
+upd:journal_afj_link:afj:23c-day11_uv-photos-p23:2455945+1:0	3-360		[link] page 3-360	afj:23c-day11_uv-photos-p23:2455945+1	245:59:45	journal_afj_link		reference	journal link
+upd:journal_afj:afj:23c-day11_uv-photos-p23:2460005:0	3-352		Affirmative. Also at 247:36 is "Add the UV photos," and we've already sent up the changes required for that; the changes over and above what's on page 3-352. And there's one reminder there, and that is to verify that when you use filter 2, that you take one frame for 20 seconds and one frame for 2 seconds.	afj:23c-day11_uv-photos-p23:2460005	246:00:05	journal_afj		added	rule
+upd:journal_afj_link:afj:23c-day11_uv-photos-p23:2460005:0	3-352		[link] page 3-352	afj:23c-day11_uv-photos-p23:2460005	246:00:05	journal_afj_link		reference	journal link
+upd:transcript_tec:AS15_TEC-p1370-r14:0	3-352		Affirmative. Also at 247:36 is "Add the UV photos,'! and we've already sent up the changes required for that; the changes over and above what's on page 3-352. And there's one reminder there, and that is to verify that when you use filter 2, that you take one frame for 20 seconds and one frame for 2 seconds.	AS15_TEC-p1370-r14	246:00:05	transcript_tec		added	rule
+upd:journal_afj:afj:23c-day11_uv-photos-p23:2463750+6:0	3-361		Flight Plan page 3-361.	afj:23c-day11_uv-photos-p23:2463750+6	246:37:50	journal_afj		unknown	rule
+upd:journal_afj_link:afj:23c-day11_uv-photos-p23:2463750+6:0	3-361		[link] page 3-361	afj:23c-day11_uv-photos-p23:2463750+6	246:37:50	journal_afj_link		reference	journal link
+upd:journal_afj:afj:23c-day11_uv-photos-p23:2470459:0	3-352		Roger. We overlooked the fact that you are taking these photos in the midst of SIM bay operation, so a couple of little things change. Going back to page 3-352, you can first of all delete, below the damp rates notation, in - you can delete "Inhibit all jets, except" the jets that are there, and just keep the jet configuration you got right now. [Long pause.]	afj:23c-day11_uv-photos-p23:2470459	247:04:59	journal_afj		deleted	rule
+upd:journal_afj_link:afj:23c-day11_uv-photos-p23:2470459:0	3-352		[link] page 3-352	afj:23c-day11_uv-photos-p23:2470459	247:04:59	journal_afj_link		reference	journal link
+upd:transcript_tec:AS15_TEC-p1372-r09:0	3-352		Roger. We overlooked the fact that you are taking these photos in the midst of SIM bay operation, so a couple of little things change. Going back to page 3-352, you can first of all delete, below the damp rates notation, in - you can delete "Inhibit all Jets," except the jets that are there, and Just keep the Jet configuration you got right now.	AS15_TEC-p1372-r09	247:04:59	transcript_tec		deleted	rule
+upd:journal_afj:afj:23c-day11_uv-photos-p23:2473600+2:0	3-352		In the meantime, Endeavour begins manoeuvring to the attitude for the ultraviolet photography. This is carried out according to the procedures listed on page 3-352 of the Flight Plan.	afj:23c-day11_uv-photos-p23:2473600+2	247:36:00	journal_afj		unknown	rule
+upd:journal_afj_link:afj:23c-day11_uv-photos-p23:2473600+2:0	3-352		[link] page 3-352	afj:23c-day11_uv-photos-p23:2473600+2	247:36:00	journal_afj_link		reference	journal link
+upd:journal_afj:afj:23c-day11_uv-photos-p23:2474320+17:0	3-362		Flight Plan page 3-362.	afj:23c-day11_uv-photos-p23:2474320+17	247:43:20	journal_afj		unknown	rule
+upd:journal_afj_link:afj:23c-day11_uv-photos-p23:2474320+17:0	3-362		[link] page 3-362	afj:23c-day11_uv-photos-p23:2474320+17	247:43:20	journal_afj_link		reference	journal link
+upd:journal_afj:afj:23c-day11_uv-photos-p23:2484104+3:0	3-363		Flight Plan page 3-363.	afj:23c-day11_uv-photos-p23:2484104+3	248:41:04	journal_afj		unknown	rule
+upd:journal_afj_link:afj:23c-day11_uv-photos-p23:2484104+3:0	3-363		[link] page 3-363	afj:23c-day11_uv-photos-p23:2484104+3	248:41:04	journal_afj_link		reference	journal link
+upd:journal_afj:afj:23c-day11_uv-photos-p23:2495744+2:0	3-364		Flight Plan page 3-364.	afj:23c-day11_uv-photos-p23:2495744+2	249:57:44	journal_afj		unknown	rule
+upd:journal_afj_link:afj:23c-day11_uv-photos-p23:2495744+2:0	3-364		[link] page 3-364	afj:23c-day11_uv-photos-p23:2495744+2	249:57:44	journal_afj_link		reference	journal link
+upd:journal_afj:afj:23c-day11_uv-photos-p23:2505942+1:0	3-365		Flight Plan page 3-365.	afj:23c-day11_uv-photos-p23:2505942+1	250:59:42	journal_afj		unknown	rule
+upd:journal_afj_link:afj:23c-day11_uv-photos-p23:2505942+1:0	3-365		[link] page 3-365	afj:23c-day11_uv-photos-p23:2505942+1	250:59:42	journal_afj_link		reference	journal link
+upd:journal_afj:afj:23c-day11_uv-photos-p23:2515738+2:0	3-366		Flight Plan page 3-366.	afj:23c-day11_uv-photos-p23:2515738+2	251:57:38	journal_afj		unknown	rule
+upd:journal_afj_link:afj:23c-day11_uv-photos-p23:2515738+2:0	3-366		[link] page 3-366	afj:23c-day11_uv-photos-p23:2515738+2	251:57:38	journal_afj_link		reference	journal link
+upd:journal_afj:afj:24a-day12_p23-uv-photos:2615646:0	3-378		That's correct, Jim. Now looking at page 3-378, the "UV photos - Trans-Earth Coast," A couple of changes there. About halfway down the page where it reads "two frames, filter 2, exposure time 20 seconds,". [Pause.] Delete that line, and add the line - the two lines, "one frame, filter	afj:24a-day12_p23-uv-photos:2615646	261:56:46	journal_afj		deleted	rule
+upd:journal_afj_link:afj:24a-day12_p23-uv-photos:2615646:0	3-378		[link] page 3-378	afj:24a-day12_p23-uv-photos:2615646	261:56:46	journal_afj_link		reference	journal link
+upd:transcript_tec:AS15_TEC-p1387-r09:0	3-378		That's correct, Jim. Now looking at page 3-378, the "lTV Photos - Transearth Coast," a couple of changes there. About halfway down the page where it reads "two frames, filter 2, exposure time 20 seconds," delete that line, and add the line - the t_o lines, "one frame, filter 2, exposur	AS15_TEC-p1387-r09	261:56:46	transcript_tec		deleted	rule
+upd:journal_afj:afj:24a-day12_p23-uv-photos:2615917+3:0	3-382		ronically indicate to Mission Control when a camera was being operated for the purposes of accurate data collection. Joe is referring to procedures detailed on page 3-382 of the Flight Plan for the Sextant Photography Test	afj:24a-day12_p23-uv-photos:2615917+3	261:59:17	journal_afj		unknown	rule
+upd:journal_afj:afj:24a-day12_p23-uv-photos:2615917+4:0	3-372		Flight Plan page 3-372.	afj:24a-day12_p23-uv-photos:2615917+4	261:59:17	journal_afj		unknown	rule
+upd:journal_afj_link:afj:24a-day12_p23-uv-photos:2615917+3:0	3-382		[link] page 3-382	afj:24a-day12_p23-uv-photos:2615917+3	261:59:17	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:24a-day12_p23-uv-photos:2615917+4:0	3-372		[link] page 3-372	afj:24a-day12_p23-uv-photos:2615917+4	261:59:17	journal_afj_link		reference	journal link
+upd:journal_afj:afj:24a-day12_p23-uv-photos:2625658+2:0	3-373		Flight Plan page 3-373.	afj:24a-day12_p23-uv-photos:2625658+2	262:56:58	journal_afj		unknown	rule
+upd:journal_afj_link:afj:24a-day12_p23-uv-photos:2625658+2:0	3-373		[link] page 3-373	afj:24a-day12_p23-uv-photos:2625658+2	262:56:58	journal_afj_link		reference	journal link
+upd:journal_afj:afj:24a-day12_p23-uv-photos:2640001+2:0	3-374		Flight Plan page 3-374.	afj:24a-day12_p23-uv-photos:2640001+2	264:00:01	journal_afj		unknown	rule
+upd:journal_afj_link:afj:24a-day12_p23-uv-photos:2640001+2:0	3-374		[link] page 3-374	afj:24a-day12_p23-uv-photos:2640001+2	264:00:01	journal_afj_link		reference	journal link
+upd:journal_afj:afj:24a-day12_p23-uv-photos:2645257+1:0	3-375		Flight Plan page 3-375.	afj:24a-day12_p23-uv-photos:2645257+1	264:52:57	journal_afj		unknown	rule
+upd:journal_afj_link:afj:24a-day12_p23-uv-photos:2645257+1:0	3-375		[link] page 3-375	afj:24a-day12_p23-uv-photos:2645257+1	264:52:57	journal_afj_link		reference	journal link
+upd:journal_afj:afj:24a-day12_p23-uv-photos:2655548+3:0	3-376		Flight Plan page 3-376.	afj:24a-day12_p23-uv-photos:2655548+3	265:55:48	journal_afj		unknown	rule
+upd:journal_afj_link:afj:24a-day12_p23-uv-photos:2655548+3:0	3-376		[link] page 3-376	afj:24a-day12_p23-uv-photos:2655548+3	265:55:48	journal_afj_link		reference	journal link
+upd:journal_afj:afj:24a-day12_p23-uv-photos:2660451+11:0	3-377		Flight Plan page 3-377.	afj:24a-day12_p23-uv-photos:2660451+11	266:04:51	journal_afj		unknown	rule
+upd:journal_afj_link:afj:24a-day12_p23-uv-photos:2660451+11:0	3-377		[link] page 3-377	afj:24a-day12_p23-uv-photos:2660451+11	266:04:51	journal_afj_link		reference	journal link
+upd:journal_afj:afj:24a-day12_p23-uv-photos:2673554+8:0	3-377		These two images are reproduced from the Flight Plan at around this time (page 3-377 and 3-379). The crescent Earth is displayed along with the nearly full Moon. Al must take his P23 marks on the outside edge of Earth's crescent, finding the point within it's hazy atmosphere where he believes the solid edge of the planet b	afj:24a-day12_p23-uv-photos:2673554+8	267:35:54	journal_afj		unknown	rule
+upd:journal_afj:afj:24a-day12_p23-uv-photos:2675403+2:0	3-379		Flight Plan page 3-379.	afj:24a-day12_p23-uv-photos:2675403+2	267:54:03	journal_afj		unknown	rule
+upd:journal_afj:afj:24a-day12_p23-uv-photos:2675403+3:0	3-378		Once the P23s are out of the way, the UV photos of Earth are their next task. The procedures detailed on page 3-378 of the Flight Plan call for omni-directional antenna D for this. The instructions for subsequent tasks do give HGA angles relevant to the attitudes used for those tasks so it is unclear at the time of writing why the HGA is being folded aw	afj:24a-day12_p23-uv-photos:2675403+3	267:54:03	journal_afj		unknown	rule
+upd:journal_afj_link:afj:24a-day12_p23-uv-photos:2675403+2:0	3-379		[link] page 3-379	afj:24a-day12_p23-uv-photos:2675403+2	267:54:03	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:24a-day12_p23-uv-photos:2675403+3:0	3-378		[link] page 3-378	afj:24a-day12_p23-uv-photos:2675403+3	267:54:03	journal_afj_link		reference	journal link
+upd:journal_afj:afj:24a-day12_p23-uv-photos:2684700+2:0	3-378		As detailed in page 3-378 of the Flight Plan, the crew are busy taking photographs of Earth using film and equipment which can work in ultraviolet light. Then at the top of the hour, they will continue with photography of the lunar eclipse, procedures for which are	afj:24a-day12_p23-uv-photos:2684700+2	268:47:00	journal_afj		unknown	rule
+upd:journal_afj:afj:24a-day12_p23-uv-photos:2684700+2:1	3-380		hich can work in ultraviolet light. Then at the top of the hour, they will continue with photography of the lunar eclipse, procedures for which are detailed in page 3-380.	afj:24a-day12_p23-uv-photos:2684700+2	268:47:00	journal_afj		unknown	rule
+upd:journal_afj_link:afj:24a-day12_p23-uv-photos:2684700+2:0	3-378		[link] page 3-378	afj:24a-day12_p23-uv-photos:2684700+2	268:47:00	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:24a-day12_p23-uv-photos:2684700+2:0	3-380		[link] page 3-380	afj:24a-day12_p23-uv-photos:2684700+2	268:47:00	journal_afj_link		reference	journal link
+upd:journal_afj:afj:24b-day12_eclipse-presser:2694834:0	3-384		15, Houston. [I] have a lunar eclipse photo PAD [as required] on your Flight Plan, page 384, when you're ready. [Pause.]	afj:24b-day12_eclipse-presser:2694834	269:48:34	journal_afj		pad	rule
+upd:transcript_tec:AS15_TEC-p1418-r08:0	3-384		15, Houston. Have a lunar eclipse photo pad on your Flight Plan, page 384, when you're ready.	AS15_TEC-p1418-r08	269:48:34	transcript_tec		pad	rule
+upd:journal_afj:afj:24b-day12_eclipse-presser:2695842+3:0	3-383		Flight Plan page 3-383.	afj:24b-day12_eclipse-presser:2695842+3	269:58:42	journal_afj		unknown	rule
+upd:journal_afj_link:afj:24b-day12_eclipse-presser:2695842+3:0	3-383		[link] page 3-383	afj:24b-day12_eclipse-presser:2695842+3	269:58:42	journal_afj_link		reference	journal link
+upd:journal_afj:afj:24b-day12_eclipse-presser:2705543+3:0	3-385		Flight Plan page 3-385.	afj:24b-day12_eclipse-presser:2705543+3	270:55:43	journal_afj		unknown	rule
+upd:journal_afj_link:afj:24b-day12_eclipse-presser:2705543+3:0	3-385		[link] page 3-385	afj:24b-day12_eclipse-presser:2705543+3	270:55:43	journal_afj_link		reference	journal link
+upd:journal_afj:afj:24b-day12_eclipse-presser:2710149+2:0	3-384		The second period of lunar eclipse photography essentially reverses the procedure used first time around. See page 3-384 of the Flight Plan for details. Coordinating the sequence with the mission timer, a series of photos are taken using the Nikon with the exposure time decreasing at 6, 7, 8, 9, 10 and 11 minutes on the timer. The second tranche of Hasselbla	afj:24b-day12_eclipse-presser:2710149+2	271:01:49	journal_afj		time_change	rule
+upd:journal_afj_link:afj:24b-day12_eclipse-presser:2710149+2:0	3-384		[link] page 3-384	afj:24b-day12_eclipse-presser:2710149+2	271:01:49	journal_afj_link		reference	journal link
+upd:journal_afj:afj:24c-day12_p23-science:2715427+2:0	3-387		Flight Plan page 3-387.	afj:24c-day12_p23-science:2715427+2	271:54:27	journal_afj		unknown	rule
+upd:journal_afj_link:afj:24c-day12_p23-science:2715427+2:0	3-387		[link] page 3-387	afj:24c-day12_p23-science:2715427+2	271:54:27	journal_afj_link		reference	journal link
+upd:journal_afj:afj:24c-day12_p23-science:2725843+3:0	3-389		Flight Plan page 3-389.	afj:24c-day12_p23-science:2725843+3	272:58:43	journal_afj		unknown	rule
+upd:journal_afj_link:afj:24c-day12_p23-science:2725843+3:0	3-389		[link] page 3-389	afj:24c-day12_p23-science:2725843+3	272:58:43	journal_afj_link		reference	journal link
+upd:journal_afj:afj:24c-day12_p23-science:2733959+2:0	3-390		Flight Plan page 3-390.	afj:24c-day12_p23-science:2733959+2	273:39:59	journal_afj		unknown	rule
+upd:journal_afj_link:afj:24c-day12_p23-science:2733959+2:0	3-390		[link] page 3-390	afj:24c-day12_p23-science:2733959+2	273:39:59	journal_afj_link		reference	journal link
+upd:journal_afj:afj:24c-day12_p23-science:2744938+2:0	3-391		Flight Plan page 3-391.	afj:24c-day12_p23-science:2744938+2	274:49:38	journal_afj		unknown	rule
+upd:journal_afj_link:afj:24c-day12_p23-science:2744938+2:0	3-391		[link] page 3-391	afj:24c-day12_p23-science:2744938+2	274:49:38	journal_afj_link		reference	journal link
+upd:journal_afj:afj:24c-day12_p23-science:2755905+2:0	3-392		Flight Plan page 3-392.	afj:24c-day12_p23-science:2755905+2	275:59:05	journal_afj		unknown	rule
+upd:journal_afj_link:afj:24c-day12_p23-science:2755905+2:0	3-392		[link] page 3-392	afj:24c-day12_p23-science:2755905+2	275:59:05	journal_afj_link		reference	journal link
+upd:journal_afj:afj:24c-day12_p23-science:2765817+2:0	3-393		Flight Plan page 3-393.	afj:24c-day12_p23-science:2765817+2	276:58:17	journal_afj		unknown	rule
+upd:journal_afj_link:afj:24c-day12_p23-science:2765817+2:0	3-393		[link] page 3-393	afj:24c-day12_p23-science:2765817+2	276:58:17	journal_afj_link		reference	journal link
+upd:journal_afj:afj:24c-day12_p23-science:2774401+1:0	3-394		Flight Plan page 3-394.	afj:24c-day12_p23-science:2774401+1	277:44:01	journal_afj		unknown	rule
+upd:journal_afj:afj:24c-day12_p23-science:2774401+8:0	3-395		Flight Plan page 3-395.	afj:24c-day12_p23-science:2774401+8	277:44:01	journal_afj		unknown	rule
+upd:journal_afj_link:afj:24c-day12_p23-science:2774401+1:0	3-394		[link] page 3-394	afj:24c-day12_p23-science:2774401+1	277:44:01	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:24c-day12_p23-science:2774401+8:0	3-395		[link] page 3-395	afj:24c-day12_p23-science:2774401+8	277:44:01	journal_afj_link		reference	journal link
+upd:journal_afj:afj:25a-day13_approach-earth:2875619+2:0	3-399		Flight Plan page 3-399.	afj:25a-day13_approach-earth:2875619+2	287:56:19	journal_afj		unknown	rule
+upd:journal_afj_link:afj:25a-day13_approach-earth:2875619+2:0	3-399		[link] page 3-399	afj:25a-day13_approach-earth:2875619+2	287:56:19	journal_afj_link		reference	journal link
+upd:journal_afj:afj:25a-day13_approach-earth:2885810+5:0	3-400		Flight Plan page 3-400.	afj:25a-day13_approach-earth:2885810+5	288:58:10	journal_afj		unknown	rule
+upd:journal_afj_link:afj:25a-day13_approach-earth:2885810+5:0	3-400		[link] page 3-400	afj:25a-day13_approach-earth:2885810+5	288:58:10	journal_afj_link		reference	journal link
+upd:journal_afj:afj:25a-day13_approach-earth:2900028+2:0	3-403		Flight Plan page 3-403.	afj:25a-day13_approach-earth:2900028+2	290:00:28	journal_afj		unknown	rule
+upd:journal_afj:afj:25a-day13_approach-earth:2900028+4:0	3-402		UV photography procedures are on page 3-402 of the Flight Plan.	afj:25a-day13_approach-earth:2900028+4	290:00:28	journal_afj		unknown	rule
+upd:journal_afj_link:afj:25a-day13_approach-earth:2900028+2:0	3-403		[link] page 3-403	afj:25a-day13_approach-earth:2900028+2	290:00:28	journal_afj_link		reference	journal link
+upd:journal_afj_link:afj:25a-day13_approach-earth:2900028+4:0	3-402		[link] page 3-402	afj:25a-day13_approach-earth:2900028+4	290:00:28	journal_afj_link		reference	journal link
+upd:journal_afj:afj:25a-day13_approach-earth:2905039+9:0	3-405		Flight Plan page 3-405.	afj:25a-day13_approach-earth:2905039+9	290:50:39	journal_afj		unknown	rule
+upd:journal_afj_link:afj:25a-day13_approach-earth:2905039+9:0	3-405		[link] page 3-405	afj:25a-day13_approach-earth:2905039+9	290:50:39	journal_afj_link		reference	journal link
+upd:journal_afj:afj:25a-day13_approach-earth:2915715+2:0	3-404		Page 3-404 of the Flight Plan has a table of constraints for the burn.	afj:25a-day13_approach-earth:2915715+2	291:57:15	journal_afj		unknown	rule
+upd:journal_afj_link:afj:25a-day13_approach-earth:2915715+2:0	3-404		[link] page 3-404	afj:25a-day13_approach-earth:2915715+2	291:57:15	journal_afj_link		reference	journal link
+upd:journal_afj:afj:25a-day13_approach-earth:2915829+3:0	3-406		Flight Plan page 3-406.	afj:25a-day13_approach-earth:2915829+3	291:58:29	journal_afj		unknown	rule
+upd:journal_afj_link:afj:25a-day13_approach-earth:2915829+3:0	3-406		[link] page 3-406	afj:25a-day13_approach-earth:2915829+3	291:58:29	journal_afj_link		reference	journal link
+upd:journal_afj:afj:25a-day13_approach-earth:2925723+2:0	3-407		Flight Plan page 3-407.	afj:25a-day13_approach-earth:2925723+2	292:57:23	journal_afj		unknown	rule
+upd:journal_afj_link:afj:25a-day13_approach-earth:2925723+2:0	3-407		[link] page 3-407	afj:25a-day13_approach-earth:2925723+2	292:57:23	journal_afj_link		reference	journal link
+upd:journal_afj:afj:25b-day13_entry-splashdown:2935957+2:0	3-408		Flight Plan page 3-408.	afj:25b-day13_entry-splashdown:2935957+2	293:59:57	journal_afj		unknown	rule
+upd:journal_afj_link:afj:25b-day13_entry-splashdown:2935957+2:0	3-408		[link] page 3-408	afj:25b-day13_entry-splashdown:2935957+2	293:59:57	journal_afj_link		reference	journal link
+upd:journal_afj:afj:25b-day13_entry-splashdown:2951153+35:0	3-002		Release of the parachutes is the first item in the post-landing section of the checklist, at the bottom of page 3-2. Then, with the craft in the upright, stable I position, the post-landing ventilation system is brought into play.	afj:25b-day13_entry-splashdown:2951153+35	295:11:53	journal_afj		unknown	rule
