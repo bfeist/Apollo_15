@@ -223,8 +223,16 @@ def add_steps(fp) -> None:
     fp.add_parser('pages', help='2: witness matching, LEP and index -> fp_pages.tsv')
     s = fp.add_parser('geometry', help='3: rules, columns, ruler fit, page type')
     s.add_argument('--pages', help='comma list of page_ids (default: all)')
-    s = fp.add_parser('ocr', help='4: OXR readings, Virtual AGC layer, combined blocks')
-    s.add_argument('--pages', help='comma list of page_ids (default: all with a witness)')
+    s = fp.add_parser('ocr', help='4: OXR readings (PAO edition, then flight plan), Virtual AGC layer, combined blocks',
+                      description='Start OXR first (from ../lsc). Beside a 06a run use the capped override:\n'
+                      '  docker compose -f compose.oxr.yaml -f ../apollo_15/scripts/flight_plan/compose.oxr-shared-gpu.yaml '
+                      'up -d --wait --wait-timeout 960\n'
+                      'Otherwise ../lsc/scripts/setup_oxr.ps1. Completed pages are reused on a rerun.',
+                      formatter_class=__import__('argparse').RawDescriptionHelpFormatter)
+    s.add_argument('--target', choices=('all', 'pao', 'flight_plan'), default='all',
+                   help='all (default): PAO-edition pages, then flight-plan pages')
+    s.add_argument('--pao-pages', help='PAO PDF pages, e.g. 1-50,401 (default: all 1238)')
+    s.add_argument('--pages', help='comma list of flight-plan page_ids (default: all with a witness)')
     s.add_argument('--witness', choices=('afj', 'alsj', 'both'), default='both')
     s.add_argument('--scale', type=float, default=2.0, help='Lanczos upscale before OXR (1 = native)')
     s.add_argument('--url', default='http://127.0.0.1:8010/v1')

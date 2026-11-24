@@ -442,12 +442,15 @@ step reads only its predecessors' outputs, and reruns on unchanged inputs are by
    - Find rules, boxes, columns and ruler ticks.
    - Classify the page type.
    - Write the ruler fit and the CDT check.
-4. **`flight_plan.py ocr`**
+4. **`flight_plan.py ocr [--target all|pao|flight_plan]`**
+   - **PAO pages first.** OXR reads the 1,238 PAO-edition pages first. They are the optional third
+     reading for `sg_transcript.py sg pao` ([ingestion guide](16_2026-11-23_mission_data_ingestion.md),
+     "Space-to-ground reels"), so rerun that afterwards.
    - Run OXR on the selected witnesses.
    - Import the Virtual AGC layer.
    - Combine the readings. Disagreements go to `review/fp_ocr.tsv`.
-   - Scheduling follows the OCR rules in the ingestion guide: one GPU model at a time, and not
-     during 06a runs.
+   - **GPU scheduling.** A run during 06a is allowed only when OXR is started with the capped
+     override `scripts/flight_plan/compose.oxr-shared-gpu.yaml` (30% of VRAM), or with `--force`.
 5. **`flight_plan.py structure [--backend hgx|strata] [--budget N]`**
    - Do the AI structuring (§3.4), with validation.
    - Write `fp_blocks`, `fp_activities`, `fp_events`, `fp_coverage`, `fp_tables` and

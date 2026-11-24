@@ -60,12 +60,6 @@ def main(argv=None) -> int:
     p.add_argument('--delay', type=float, default=1.0)
     p.add_argument('--dry-run', action='store_true')
 
-    p = sub.add_parser('ocr', help='OXR page OCR for flagged transcript pages')
-    p.add_argument('edition', choices=('tec', 'pao', 'cm', 'lm'))
-    p.add_argument('--pages', help='comma list or ranges, e.g. 787,849,870-875; default: flagged pages')
-    p.add_argument('--dpi', type=int, default=180)
-    p.add_argument('--url', default='http://127.0.0.1:8010')
-
     sub.add_parser('all', help='run every offline text step in order (3–7)')
     args = parser.parse_args(argv)
 
@@ -106,9 +100,6 @@ def main(argv=None) -> int:
     if args.command == 'media':
         import md_media
         return md_media.main(args)
-    if args.command == 'ocr':
-        import md_ocr
-        return md_ocr.main(args)
     if args.command == 'all':
         import md_commentary, md_journals, md_photos, md_reconcile, md_spans, md_speakers
         ns = argparse.Namespace(record=False, ai=False, backend='hgx', budget=0, window=40, seed=False, what='hasselblad',

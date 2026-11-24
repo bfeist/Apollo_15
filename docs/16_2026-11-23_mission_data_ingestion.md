@@ -768,8 +768,15 @@ unchanged inputs are byte-identical (checked).
     `scraped_data/transcript_pao_corrected.tsv`. 1,150 undecided slots are queued in
     `review/pao_words.tsv`. Choices are saved to `MISSION_DATA/review/pao_word_choices.tsv` and
     reused.
-  - **OXR as a third reading.** OXR waits for a GPU slot: the 30-track 06a run holds the GPU, and
-    OCR is not scheduled during 06a.
+  - **OXR as an optional third reading.** `flight_plan.py ocr` writes the readings, with the PAO
+    pages first (`.local/mission_data/ocr/pao/oxr_180/`). When they exist, `sg pao` uses them:
+    two OCR readings that agree outvote the third, before the ASR and vocabulary rules. Pages
+    without OXR use the other two readings, so the transcript pipeline runs either way and is
+    rerun after the OCR step.
+  - **OXR beside 06a (2026-11-24).** OXR runs beside 06a with vLLM capped at 30% of VRAM
+    (`scripts/flight_plan/compose.oxr-shared-gpu.yaml`). Peak use was 19.8 of 24.5 GB, at
+    about 7 s per page. The OCR step's GPU guard allows a run during 06a only with that cap or
+    `--force`.
 - **PAO separation** (`.local/mission_data/sg/sg_pao.tsv`). An ASR segment is PAO when at least
   half its tokens fall in 3-word or longer runs shared with a corrected PAO-speaker row of the
   reel's segment range (`pao_text`). It is also PAO when it opens with "This is Apollo Control"

@@ -62,6 +62,38 @@ def transcription_running() -> bool:
     return '06a_transcribe' in out
 
 
+SHARED_GPU_CAP = 0.35  # vLLM share of VRAM at or below which OXR fits beside a 06a run
+
+
+def oxr_memory_share(container: str = 'lsc-oxr-1') -> float | None:
+    """VLLM_GPU_MEMORY_UTILIZATION of the running OXR container, or None if unknown."""
+    try:
+        out = subprocess.run(['docker', 'inspect', '--format', '{{range .Config.Env}}{{println .}}{{end}}', container],
+                             capture_output=True, text=True, timeout=30).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None
+    for line in out.splitlines():
+        if line.startswith('VLLM_GPU_MEMORY_UTILIZATION='):
+            try:
+                return float(line.split('=', 1)[1])
+            except ValueError:
+                return None
+    return None
+
+
+def gpu_guard(force: bool) -> None:
+    """OCR beside 06a only with the capped OXR (compose.oxr-shared-gpu.yaml), or with --force."""
+    if force or not transcription_running():
+        return
+    share = oxr_memory_share()
+    if share is not None and share <= SHARED_GPU_CAP:
+        print(f'06a is running; OXR is capped at {share:.0%} of VRAM, so OCR runs beside it.', flush=True)
+        return
+    raise SystemExit('A stage-06a transcription run is active and OXR is not capped for a shared GPU. Restart it '
+                     'with scripts/flight_plan/compose.oxr-shared-gpu.yaml (see `flight_plan.py ocr --help`), '
+                     'or pass --force.')
+
+
 def service_up(base_url: str) -> bool:
     try:
         urllib.request.urlopen(base_url.rsplit('/v1', 1)[0] + '/docs', timeout=5)
@@ -284,6 +316,21 @@ def selected_pages(args, pages: dict) -> list[str]:
 
 
 def main(args) -> int:
+    """The OCR step: PAO-edition pages (for the transcript pipeline), then flight-plan pages."""
+    target = getattr(args, 'target', 'flight_plan')
+    incomplete = []
+    if target in ('all', 'pao'):
+        gpu_guard(args.force)
+        import md_fp_pao_ocr
+        incomplete += md_fp_pao_ocr.run(args.url, getattr(args, 'pao_pages', None))
+        if target == 'pao':
+            return 1 if incomplete else 0
+        print('PAO readings done; rerun `sg_transcript.py sg all` to use them.', flush=True)
+    code = flight_plan_main(args)
+    return code or (1 if incomplete else 0)
+
+
+def flight_plan_main(args) -> int:
     from md_fp_geometry import ruler_rows, vagc_tokens
     pages = {p['page_id']: p for p in read_tsv(FLIGHT_PLAN / 'fp_pages.tsv')}
     geometry = {g['page_id']: g for g in read_tsv(FLIGHT_PLAN / 'fp_geometry.tsv')}
@@ -295,9 +342,7 @@ def main(args) -> int:
 
     oxr: dict[tuple[str, str], list[dict]] = {}
     if not args.vagc_only:
-        if transcription_running() and not args.force:
-            raise SystemExit('A stage-06a transcription run is active; OCR waits (one GPU model at a time). '
-                             'Rerun when it finishes, or pass --force.')
+        gpu_guard(args.force)
         if not service_up(args.url):
             raise SystemExit(f'OXR is not answering at {args.url}. Start it with ../lsc/scripts/setup_oxr.ps1 '
                              '(Docker container lsc-oxr), then rerun; completed pages are kept.')

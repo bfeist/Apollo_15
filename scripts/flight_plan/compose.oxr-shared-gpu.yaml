@@ -1,0 +1,7 @@
+# Run OXR beside the 30-track 06a run: cap vLLM at 30 % of VRAM (about 7.4 GB; about 9.5 GB with
+# the layout model). With 06a, peak use measured 19.8 of 24.5 GB (2026-11-24). Use from ../lsc:
+#   docker compose -f compose.oxr.yaml -f ../apollo_15/scripts/flight_plan/compose.oxr-shared-gpu.yaml up -d --wait
+services:
+  oxr:
+    environment:
+      VLLM_GPU_MEMORY_UTILIZATION: "0.30"

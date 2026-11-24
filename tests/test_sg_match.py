@@ -82,14 +82,19 @@ class PaoReadingTests(unittest.TestCase):
     VOCAB = {'all', 'still', 'going', 'well', 'with', 'apollo', 'the', 'crater', 'falls', 'fails', 'us'}
 
     def test_page_slots_skip_ia_speaker_labels_and_find_word_readings(self):
-        rows = [pao_row('Ail still going well.'), pao_row('the bright crater.')]
-        slots = pao.page_slots(rows, 'PAO All still going well. CAPCOM the bright era te r.'.split())
-        found = [(s['row'], s['tl'], s['ia']) for s in slots]
-        self.assertEqual(found, [(0, ['ail'], ['all']), (1, ['crater'], ['era', 'te', 'r'])])
+        rows = [pao_row('Ail still going well.'), pao_row('the bright crater there.')]
+        slots = pao.page_slots(rows, {'ia': 'PAO All still going well. CAPCOM the bright era te r there.'.split(),
+                                      'oxr': 'PAO All still going well. CAPCOM the bright crater there.'.split()})
+        found = [(s['row'], s['tl'], {n: v and v[0] for n, v in s['readings'].items()}) for s in slots]
+        self.assertEqual(found, [(0, ['ail'], {'ia': ['all'], 'oxr': ['all']}),
+                                 (1, ['crater'], {'ia': ['era', 'te', 'r'], 'oxr': ['crater']})])
 
     def test_decisions(self):
-        decide = lambda tl, ia, asr=None: pao.decide({'tl': tl.split(), 'ia': ia.split()}, asr and asr.split(),
-                                                     self.VOCAB)[1:]
+        def decide(tl, ia, asr=None, oxr=None):
+            readings = {'ia': (ia.split(), ia)}
+            if oxr is not None:
+                readings['oxr'] = (oxr.split(), oxr)
+            return pao.decide({'tl': tl.split(), 'readings': readings}, asr and asr.split(), self.VOCAB)[1:]
         self.assertEqual(decide('crater', 'era te r'), ('tl', 'vocab'))        # IA split a word into unknown pieces
         self.assertEqual(decide('ye s', 'yes'), ('ia', 'joined'))
         self.assertEqual(decide('ail', 'all'), ('ia', 'vocab'))
@@ -97,10 +102,13 @@ class PaoReadingTests(unittest.TestCase):
         self.assertEqual(decide('fails', 'falls', 'falls'), ('ia', 'asr'))     # the audio sides with one reading
         self.assertEqual(decide('fails', 'falls', 'something'), ('', 'review'))  # never the ASR's own words
         self.assertEqual(decide('with a comm check do you', 'Ove r'), ('tl', 'default'))
+        self.assertEqual(decide('fails', 'falls', oxr='falls'), ('oxr', 'ocr_majority'))  # two OCRs outvote one
+        self.assertEqual(decide('falls', 'fails', oxr='falls'), ('tl', 'ocr_majority'))
+        self.assertEqual(decide('fails', 'fells', 'falls', oxr='falls'), ('oxr', 'asr'))
 
     def test_correction_keeps_the_rest_of_the_text(self):
         row = pao_row('Ail still going well, ye s.')
-        slots = [{'i0': 0, 'i1': 1, 'ia_words': 'All'}, {'i0': 4, 'i1': 6, 'ia_words': 'yes'}]
+        slots = [{'i0': 0, 'i1': 1, 'words': 'All'}, {'i0': 4, 'i1': 6, 'words': 'yes'}]
         self.assertEqual(pao.corrected_text(row, slots), 'All still going well, yes.')
 
 
