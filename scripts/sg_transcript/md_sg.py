@@ -32,7 +32,7 @@ from statistics import median
 
 from md_common import LOCAL, MISSION_DATA, RAW_MANIFEST, SCRAPED, format_get, read_tsv, sha256_file, today, \
     tokens, write_tsv
-from md_reconcile import comparable, load_journal, load_printed
+from md_reconcile import comparable, load_journal, load_printed  # noqa: F401
 
 SG_STORE = Path('F:/Apollo_15_data/processing/sg/timing_transcripts')
 SG_INDEX_PDF = Path('N:/Projects/Apollo/Mission Data/NASA-Audio-Archive_Digital-Audio-File_Metadata.pdf')
@@ -84,11 +84,25 @@ def settings_dirs() -> list[Path]:
 
 
 def reel_identity(settings: Path, reel: str) -> Path | None:
+    """The transcript of the reel's current WAV.
+
+    A reel that was replaced (553, 581 and 582-AAA were reversed in the archive and resaved
+    the right way round) keeps its old transcript under another identity. The current one is
+    the identity whose recorded size and modification time match the file on disk.
+    """
     base = settings / 'sources' / 'sg' / reel
     found = sorted(p for p in base.iterdir() if (p / 'source.json').is_file()) if base.is_dir() else []
-    if len(found) > 1:
-        raise RuntimeError(f'{reel}: several transcript identities under {base}; choose one')
-    return found[0] if found else None
+    if len(found) <= 1:
+        return found[0] if found else None
+    current = []
+    for p in found:
+        source = json.loads((p / 'source.json').read_text(encoding='utf-8'))['source']
+        wav = Path(source['path'])
+        if wav.is_file() and wav.stat().st_size == source['size'] and wav.stat().st_mtime_ns == source['mtime_ns']:
+            current.append(p)
+    if len(current) != 1:
+        raise RuntimeError(f'{reel}: {len(found)} transcript identities under {base} and {len(current)} match the WAV')
+    return current[0]
 
 
 def load_asr(identity: Path) -> list[dict]:
@@ -343,14 +357,16 @@ def offsets_at(grid: list[dict], t: float) -> list[float]:
 
 
 # ------------------------------------------------------------ PAO separation
-def load_pao_announcements() -> list[dict]:
-    rows = load_printed('pao')
-    segs = {r['event_id']: pao_segment(r['transcript_tape_ocr']) for r in read_tsv(SCRAPED / 'transcript_pao.tsv')}
+def load_pao_announcements(rows: list[dict]) -> list[dict]:
+    """PAO-speaker rows of the PAO edition, with the corrected wording (md_pao)."""
+    out = []
     for r in rows:
-        r['segment'] = segs.get(r['event_id'])
-        r['ctokens'] = comparable(r['tokens'])
-        r['grams'] = {tuple(r['ctokens'][i:i + 3]) for i in range(len(r['ctokens']) - 2)}
-    return rows
+        if r['speaker'] != 'PAO' or r['t'] is None:
+            continue
+        ctokens = comparable(r['ctokens'])
+        out.append({'event_id': r['event_id'], 't': r['t'], 'segment': r['segment'], 'ctokens': ctokens,
+                    'grams': {tuple(ctokens[i:i + 3]) for i in range(len(ctokens) - 2)}})
+    return out
 
 
 def find_pao(reel: dict, segments: list[dict], announcements: list[dict]) -> list[dict]:
@@ -532,12 +548,19 @@ def run(step: str, only: list[str] | None = None) -> int:
             return 0
     reels = [r for r in load_reels() if not only or r['reel'] in only]
     settings = SG_STORE / reels[0]['asr_settings_id']
-    announcements = load_pao_announcements()
+    cache = {}
+
+    def segments_of(reel):
+        if reel['reel'] not in cache:
+            cache[reel['reel']] = load_asr(settings / 'sources' / 'sg' / reel['reel'] / reel['asr_identity_id'])
+        return cache[reel['reel']]
+
+    import md_pao
+    announcements = load_pao_announcements(md_pao.run(load_reels(), lambda segs: segs, segments_of))
     events = load_events() if step in ('anchors', 'all') else []
     pao_rows, offset_rows, anchor_rows, summary = [], [], [], []
     for reel in reels:
-        identity = settings / 'sources' / 'sg' / reel['reel'] / reel['asr_identity_id']
-        segments = load_asr(identity)
+        segments = segments_of(reel)
         pao = find_pao(reel, segments, announcements)
         pao_rows.extend(pao)
         if step == 'pao':

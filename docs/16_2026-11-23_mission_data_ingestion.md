@@ -744,10 +744,36 @@ unchanged inputs are byte-identical (checked).
   than continuous recordings, so the offset jumps within a reel.
 - **The PAO edition transcribes these reels.** Its segment numbers are the index's number
   ranges, and it contains the CAPCOM and crew air-to-ground as well as PAO announcements.
+- **PAO readings and word correction** (`scripts/sg_transcript/md_pao.py`, run inside `sg pao`).
+  - **Readings.** Each PAO-edition row has two OCR readings: the PDF text layer and the Internet
+    Archive's own OCR of the same 1,238-page scan (`original_docs/internet_archive/AS15_PAO_djvu.xml`,
+    in `raw_manifest.tsv` as kind `ocr_reading`). The two are aligned per page. Each
+    disagreement is a slot (`scraped_data/pao_slots.tsv`).
+  - **IA speaker labels.** IA reads the speaker column into the text, so those words are
+    dropped from its reading first.
+  - **Placing rows on reels.** Every row, not only PAO announcements, is matched to the ASR of
+    its reel (3-word runs, `sg/sg_pao_rows.tsv`). This places 9,844 of the 17,092 rows, 65% of
+    the rows whose reels exist. Segments from 576 onward belong to reels 584–601, which are not
+    in the archive.
+  - **Deciding a slot.**
+    - The ASR between the slot's aligned neighbours decides when it equals one reading
+      (`asr`), or is at least 0.8 similar to one and clearly closer to it (`asr_near`).
+    - Otherwise a journal vocabulary decides when exactly one reading consists of known words
+      (`vocab`).
+    - Word splits (`ye s`/`Yes`) take the joined form.
+    - A replacement whose two phrases are under 0.5 similar is an alignment slip and keeps the
+      text layer. So does an unwitnessed word that only one reading has.
+    - The ASR never supplies wording. A correction always takes one of the two printed readings.
+  - **Result.** 12,342 slots. 960 rows are corrected in
+    `scraped_data/transcript_pao_corrected.tsv`. 1,150 undecided slots are queued in
+    `review/pao_words.tsv`. Choices are saved to `MISSION_DATA/review/pao_word_choices.tsv` and
+    reused.
+  - **OXR as a third reading.** OXR waits for a GPU slot: the 30-track 06a run holds the GPU, and
+    OCR is not scheduled during 06a.
 - **PAO separation** (`.local/mission_data/sg/sg_pao.tsv`). An ASR segment is PAO when at least
-  half its tokens fall in 3-word or longer runs shared with a PAO-speaker row of the reel's
-  segment range (`pao_text`), or when it opens with "This is Apollo Control" or a similar phrase
-  (`pao_phrase`). This gives 811 intervals totalling 4.6 h. They are never anchors.
+  half its tokens fall in 3-word or longer runs shared with a corrected PAO-speaker row of the
+  reel's segment range (`pao_text`). It is also PAO when it opens with "This is Apollo Control"
+  or a similar phrase (`pao_phrase`). This gives 891 intervals. They are never anchors.
 - **Coarse offsets** (`sg_offsets.tsv`). Distinctive word 4-grams vote for a GET-minus-reel
   offset, taken from events at most two in the reel's span ±2 h. The local mode is taken on a
   60 s grid from votes within ±10 min, keeping up to two peaks for the edits. On 572-AAA the
@@ -771,22 +797,28 @@ unchanged inputs are byte-identical (checked).
 
   | Status | Anchors |
   | --- | ---: |
-  | ok | 3,014 |
-  | flagged | 2,103 |
-  | rejected | 2,216 |
-  | outlier | 337 |
-  | isolated | 52 |
+  | ok | 3,145 |
+  | flagged | 2,218 |
+  | rejected | 2,294 |
+  | outlier | 357 |
+  | isolated | 59 |
 
-  The `ok` residuals are 0.40 s at the median, 1.17 s at p90 and 2.39 s at p99, about the
+  The `ok` residuals are 0.40 s at the median, 1.17 s at p90 and 2.42 s at p99, about the
   whole-second GET quantization. On 572-AAA, 20 of the 31 hand-picked pilot onsets are usable
   anchors, at a median 0.15 s from the hand pick. Usable anchors closer than 2 min to the next
-  one span 45 h of the 132 h of audio.
+  one span 48 h of the 132 h of audio.
+- **Reversed reels.** 553-AAA, 581-AAA and 582-AAA were stored reversed in the archive. The
+  local copies were reversed back and resaved on 2026-11-24, then transcribed again. The masters
+  on `N:` are still reversed.
+  - **Choosing the transcript.** Their old transcripts stay in the store under other
+    identities. `md_sg` uses the identity whose recorded size and modification time match the
+    WAV.
+  - **Result.** They now give 87, 143 and 89 anchors, with offsets inside their PAO-header
+    spans.
 - **Reels without anchors.**
   - 567-AAA and 568-AAA are crew sleep periods with PAO only.
-  - The ASR of 553-AAA, 581-AAA and 582-AAA is unrelated text throughout. These reels need
-    listening: the audio may be damaged, at the wrong speed or reversed.
   - 541-AAA and 544-AAA have few anchors (sparse early-cruise traffic).
-- **To improve coverage:** realign the 2,216 rejected onsets, for example by CTC forced
+- **To improve coverage:** realign the 2,294 rejected onsets, for example by CTC forced
   alignment of the collapsed segments, as the pilot's `ctc_start`.
 
 ## 7. Code location

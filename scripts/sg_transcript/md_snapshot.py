@@ -32,6 +32,9 @@ RAW_DOCUMENTS = (
     ('original_docs/ap15_sim_index.pdf', 'https://apollo.im-ldi.com/SUPPORT_DATA/ap15_sim_index.pdf', 'photo_index'),
     ('original_docs/Apollo15VoiceTranscript-Geology.pdf', ALSJ_BASE + 'Apollo15VoiceTranscript-Geology.pdf',
      'transcript'),
+    # Internet Archive's own OCR of the same PAO scan (1238 pages): a second reading with word boxes.
+    ('original_docs/internet_archive/AS15_PAO_djvu.xml', 'https://archive.org/download/Apollo15/AS15_PAO_djvu.xml',
+     'ocr_reading'),
 )
 
 
@@ -121,6 +124,13 @@ def pdf_pages(path: Path) -> str:
         return ''
 
 
+def page_count(path: Path) -> str:
+    """PDF pages, or the page objects of a DjVu XML OCR reading."""
+    if path.suffix.lower() == '.xml':
+        return str(path.read_bytes().count(b'<OBJECT '))
+    return pdf_pages(path)
+
+
 def record_raw(rows: dict, relative: str, url: str, final: str, kind: str, note: str = '',
                count: str = '', fetch_date: str | None = None) -> dict:
     path = RAW_ROOT / relative
@@ -158,7 +168,7 @@ def snapshot_raw_documents(fetcher: Fetcher | None = None, refresh: bool = False
             print(f'  seeded {relative} from {seed[relative]}')
         if target.is_file() and not refresh:
             record_raw(rows, relative, url, rows.get(relative, {}).get('final_url', url), kind,
-                       count=pdf_pages(target))
+                       count=page_count(target))
             continue
         temporary = target.with_name(target.name + '.new')
         digest, size, final = fetcher.download(url, temporary)
@@ -171,7 +181,7 @@ def snapshot_raw_documents(fetcher: Fetcher | None = None, refresh: bool = False
                 rows[moved] = {**old, 'path': moved, 'note': 'superseded upstream'}
             rows.pop(relative, None)
         temporary.replace(target)
-        record_raw(rows, relative, url, final, kind, count=pdf_pages(target))
+        record_raw(rows, relative, url, final, kind, count=page_count(target))
         print(f'  {relative}: {size:,} bytes')
     save_raw_manifest(rows)
     return rows

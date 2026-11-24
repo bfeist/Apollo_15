@@ -4,6 +4,7 @@ import sys
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts' / 'sg_transcript'))
+import md_pao as pao  # noqa: E402
 import md_sg as sg  # noqa: E402
 
 
@@ -69,6 +70,38 @@ class JudgeTests(unittest.TestCase):
         rows = [anchor(0.0, 10.0), anchor(5000.0, 10.0)]
         sg.judge(rows)
         self.assertEqual({r['status'] for r in rows}, {'isolated'})
+
+
+
+def pao_row(text):
+    spans = pao.word_spans(text)
+    return {'text': text, 'spans': spans, 'tokens': [t for _, _, t in spans]}
+
+
+class PaoReadingTests(unittest.TestCase):
+    VOCAB = {'all', 'still', 'going', 'well', 'with', 'apollo', 'the', 'crater', 'falls', 'fails', 'us'}
+
+    def test_page_slots_skip_ia_speaker_labels_and_find_word_readings(self):
+        rows = [pao_row('Ail still going well.'), pao_row('the bright crater.')]
+        slots = pao.page_slots(rows, 'PAO All still going well. CAPCOM the bright era te r.'.split())
+        found = [(s['row'], s['tl'], s['ia']) for s in slots]
+        self.assertEqual(found, [(0, ['ail'], ['all']), (1, ['crater'], ['era', 'te', 'r'])])
+
+    def test_decisions(self):
+        decide = lambda tl, ia, asr=None: pao.decide({'tl': tl.split(), 'ia': ia.split()}, asr and asr.split(),
+                                                     self.VOCAB)[1:]
+        self.assertEqual(decide('crater', 'era te r'), ('tl', 'vocab'))        # IA split a word into unknown pieces
+        self.assertEqual(decide('ye s', 'yes'), ('ia', 'joined'))
+        self.assertEqual(decide('ail', 'all'), ('ia', 'vocab'))
+        self.assertEqual(decide('fails', 'falls'), ('', 'review'))
+        self.assertEqual(decide('fails', 'falls', 'falls'), ('ia', 'asr'))     # the audio sides with one reading
+        self.assertEqual(decide('fails', 'falls', 'something'), ('', 'review'))  # never the ASR's own words
+        self.assertEqual(decide('with a comm check do you', 'Ove r'), ('tl', 'default'))
+
+    def test_correction_keeps_the_rest_of_the_text(self):
+        row = pao_row('Ail still going well, ye s.')
+        slots = [{'i0': 0, 'i1': 1, 'ia_words': 'All'}, {'i0': 4, 'i1': 6, 'ia_words': 'yes'}]
+        self.assertEqual(pao.corrected_text(row, slots), 'All still going well, yes.')
 
 
 if __name__ == '__main__':
