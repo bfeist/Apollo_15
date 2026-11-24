@@ -521,23 +521,23 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-083	afj_gif	vagc_text	0	560.1	:40	283200	5.99798	279840	0.4	yes	60	2	3	labels
 3-083	afj_gif	vagc_text	0	659.8	:50	283800	5.99798	279840	2.5	yes	60	2	3	labels
 3-083	afj_gif	vagc_text	0	760.8	79:00	284400	5.99798	279840	-3	yes	60	2	3	labels
+3-084	afj_gif	vagc_text	1	111.2	79:30-	286200	2.77573	285891	0	yes	298.4	0	0	labels
 3-084	afj_gif	vagc_text	0	326.4	79:11	285060	2.49141	284247	0	yes	216.8	0	0	labels
 3-084	afj_gif	vagc_text	0	543.1	79:20-	285600	2.49141	284247	0	yes	216.8	0	0	labels
-3-084	afj_gif	vagc_text	1	111.2	79:30-	286200	2.77573	285891	0	yes	298.4	0	0	labels
 3-084	afj_gif	vagc_text	1	543.5	79:50	287400	2.77573	285891	-0	yes	298.4	0	0	labels
 3-085	afj_gif	vagc_text	0	128.1	100:30	361800								labels
 3-086	afj_gif	vagc_text	0	326	81:10	292200	2.76751	291298	0	yes		0	0	labels
-3-086	afj_gif	vagc_text	0	542.8	81:20	292800	2.76751	291298	0	yes		0	0	labels
 3-086	afj_gif	vagc_text	1	328.4	81:40	294000	2.80401	293079	-0	yes		0	0	labels
+3-086	afj_gif	vagc_text	0	542.8	81:20	292800	2.76751	291298	0	yes		0	0	labels
 3-086	afj_gif	vagc_text	1	756.4	82:00	295200	2.80401	293079	-0	yes		0	0	labels
 3-088	afj_gif	vagc_text	0	119.3	62:30	225000	336.776	184822	0	yes	32498.9	0	0	labels
 3-088	afj_gif	vagc_text	0	334.9	82:40	297600	336.776	184822	0	yes	32498.9	0	0	labels
 3-088	afj_gif	vagc_text	0	766	83:00	298800	336.776	184822	-143998	no	32498.9	0	0	labels
 3-089	afj_gif	vagc_text	0	352.5	83:10	299400	2.78898	298417	-0	yes	210.6	0	0	labels
 3-089	afj_gif	vagc_text	0	782.8	83:30--	300600	2.78898	298417	-0	yes	210.6	0	0	labels
+3-091	afj_gif	vagc_text	1	144.3	86:30	311400								labels
 3-091	afj_gif	vagc_text	0	144.6	85:00	306000	2.80056	305595	-0	yes	301.1	0	0	labels
 3-091	afj_gif	vagc_text	0	573.1	85:20	307200	2.80056	305595	-0	yes	301.1	0	0	labels
-3-091	afj_gif	vagc_text	1	144.3	86:30	311400								labels
 3-092	afj_gif	vagc_text	0	322	86:40	312000	2.76289	311110	0	yes	205.8	0	0	labels
 3-092	afj_gif	vagc_text	0	539.2	86:50	312600	2.76289	311110	0	yes	205.8	0	0	labels
 3-093	afj_gif	vagc_text	0	139	87:30	315000	2.7915	314612	0	yes	301.5	0	0	labels
@@ -551,8 +551,8 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-098	afj_gif	vagc_text	0	307.1	92:40-	333600	2.79732	332737	3.7	yes	302.1	2.6	3.7	labels
 3-098	afj_gif	vagc_text	0	737.8	93:00	334800	2.79732	332737	-1.2	yes	302.1	2.6	3.7	labels
 3-101	afj_gif	vagc_text	0	131.3	94:00	338400	2.81062	338031	0	yes	303.5	0	0	labels
-3-101	afj_gif	vagc_text	0	558.3	94:20	339600	2.81062	338031	0	yes	303.5	0	0	labels
 3-101	afj_gif	vagc_text	1	343.9	94:40	340800	2.77037	339847	0.2	yes	210.5	0.3	0.5	labels
+3-101	afj_gif	vagc_text	0	558.3	94:20	339600	2.81062	338031	0	yes	303.5	0	0	labels
 3-101	afj_gif	vagc_text	1	560.7	94:50	341400	2.77037	339847	-0.5	yes	210.5	0.3	0.5	labels
 3-101	afj_gif	vagc_text	1	777	95:00	342000	2.77037	339847	0.2	yes	210.5	0.3	0.5	labels
 3-102	afj_gif	vagc_text	0	82.8	65:00	234000	509.272	191845	0	yes		0	0	labels
@@ -568,11 +568,11 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-106	afj_gif	vagc_text	0	319.7	:20	350400	6.04616	348474	-7.6	yes	60.5	10.8	18.2	labels+footer ends
 3-106	afj_gif	vagc_text_footer	0	117	<rule end>	349200	6.04616	348474	18.2	yes	60.5	10.8	18.2	labels+footer ends
 3-106	afj_gif	vagc_text_footer	0	715	<rule end>	352800	6.04616	348474	2.6	yes	60.5	10.8	18.2	labels+footer ends
+3-107	afj_gif	vagc_text	1	132.6	92:30	333000	86.2822	321559	0	yes	9318.5	0	0	labels
 3-107	afj_gif	vagc_text	0	135.7	97:00	349200	2.78638	348822	0.3	yes	300.9	0.7	1	labels
+3-107	afj_gif	vagc_text	1	348.2	97:40	351600	86.2822	321559	-0	yes	9318.5	0	0	labels
 3-107	afj_gif	vagc_text	0	566.8	97:20	350400	2.78638	348822	-1	yes	300.9	0.7	1	labels
 3-107	afj_gif	vagc_text	0	781.6	97:30	351000	2.78638	348822	0.7	yes	300.9	0.7	1	labels
-3-107	afj_gif	vagc_text	1	132.6	92:30	333000	86.2822	321559	0	yes	9318.5	0	0	labels
-3-107	afj_gif	vagc_text	1	348.2	97:40	351600	86.2822	321559	-0	yes	9318.5	0	0	labels
 3-108	afj_gif	vagc_text	0	121.7	98:00	352800	6.00648	352069	0.3	yes	294.3	2.6	5.4	labels
 3-108	afj_gif	vagc_text	0	221.1	:10	353400	6.00648	352069	2.9	yes	294.3	2.6	5.4	labels
 3-108	afj_gif	vagc_text	0	322.4	:20	354000	6.00648	352069	-5.4	yes	294.3	2.6	5.4	labels
@@ -601,9 +601,9 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-112	afj_gif	vagc_text_footer	0	396	<rule end>	360000	3.04379	359643	-848.3	no		16.5	38.6	labels+footer ends
 3-112	afj_gif	vagc_text_footer	0	696	<rule end>	361800	3.04379	359643	38.6	yes		16.5	38.6	labels+footer ends
 3-113	afj_gif	vagc_text	0	137.4	100:00	360000	2.78871	359617	-0	yes	302.6	0	0	labels
+3-113	afj_gif	vagc_text	1	171.9	59;30	214200								labels
 3-113	afj_gif	vagc_text	0	352.5	100:10	360600	2.78871	359617	-0	yes	302.6	0	0	labels
 3-113	afj_gif	vagc_text	0	567.7	100:20	361200	2.78871	359617	-0	yes	302.6	0	0	labels
-3-113	afj_gif	vagc_text	1	171.9	59;30	214200								labels
 3-114	afj_gif	footer	0	111	<rule end>	361800	3.01021	361455	10.5	yes	30.1	5.5	10.5	labels+footer ends
 3-114	afj_gif	footer	0	711	<rule end>	363600	3.01021	361455	4.4	yes	30.1	5.5	10.5	labels+footer ends
 3-114	afj_gif	vagc_text	0	115.6	100:30	361800	3.01021	361455	-3.5	yes	30.1	5.5	10.5	labels+footer ends
@@ -666,12 +666,12 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-126	afj_gif	vagc_text	0	718.4	105:00	378000	6.01359	373679	0.6	yes	60.1	7.7	15.3	labels+footer ends
 3-126	afj_gif	vagc_text_footer	0	118	<rule end>	374400	6.01359	373679	11.4	yes	60.1	7.7	15.3	labels+footer ends
 3-126	afj_gif	vagc_text_footer	0	716	<rule end>	378000	6.01359	373679	15.3	yes	60.1	7.7	15.3	labels+footer ends
-3-127	afj_gif	vagc_text	0	140.1	104:00	374400	2.7995	374009	-1.4	yes	302.3	2.9	4.1	labels
-3-127	afj_gif	vagc_text	0	566.8	104:20	375600	2.7995	374009	4.1	yes	302.3	2.9	4.1	labels
-3-127	afj_gif	vagc_text	0	783.5	104:30	376200	2.7995	374009	-2.7	yes	302.3	2.9	4.1	labels
 3-127	afj_gif	vagc_text	1	138.1	104:30	376200	2.78058	375817	-1	yes	208.5	1.4	1.9	labels
+3-127	afj_gif	vagc_text	0	140.1	104:00	374400	2.7995	374009	-1.4	yes	302.3	2.9	4.1	labels
 3-127	afj_gif	vagc_text	1	352.8	104:40	376800	2.78058	375817	1.9	yes	208.5	1.4	1.9	labels
+3-127	afj_gif	vagc_text	0	566.8	104:20	375600	2.7995	374009	4.1	yes	302.3	2.9	4.1	labels
 3-127	afj_gif	vagc_text	1	569.6	104:50	377400	2.78058	375817	-1	yes	208.5	1.4	1.9	labels
+3-127	afj_gif	vagc_text	0	783.5	104:30	376200	2.7995	374009	-2.7	yes	302.3	2.9	4.1	labels
 3-128	afj_gif	vagc_text	0	115.4	105:00	378000	5.99757	377307	0.6	yes		2.9	5.4	labels
 3-128	afj_gif	vagc_text	0	214.7	:10	378600	5.99757	377307	4.7	yes		2.9	5.4	labels
 3-128	afj_gif	vagc_text	0	316.5	:20	379200	5.99757	377307	-5.4	yes		2.9	5.4	labels
@@ -686,10 +686,10 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-130	afj_gif	vagc_text	0	201.5	:05	381900	3.00925	381295	-1.9	yes		1.8	3.4	labels
 3-130	afj_gif	vagc_text	0	300.3	:10	382200	3.00925	381295	0.9	yes		1.8	3.4	labels
 3-130	afj_gif	vagc_text	0	399.1	106:15	382500	3.00925	381295	3.4	yes		1.8	3.4	labels
-3-130	afj_gif	vagc_text	0	600.1	:25	383100	3.00925	381295	-1.2	yes		1.8	3.4	labels
-3-130	afj_gif	vagc_text	0	699.6	106:30	383400	3.00925	381295	-0.7	yes		1.8	3.4	labels
 3-130	afj_gif	vagc_text	1	500.5	0:10	600	3.03678	-920	0	yes		0	0	labels
+3-130	afj_gif	vagc_text	0	600.1	:25	383100	3.00925	381295	-1.2	yes		1.8	3.4	labels
 3-130	afj_gif	vagc_text	1	698.1	:20	1200	3.03678	-920	0	yes		0	0	labels
+3-130	afj_gif	vagc_text	0	699.6	106:30	383400	3.00925	381295	-0.7	yes		1.8	3.4	labels
 3-131	afj_gif	vagc_text	0	137.1	106:00	381600	2.80669	381217	-1.7	yes	300.3	2.4	3.4	labels
 3-131	afj_gif	vagc_text	0	349.1	106:10	382200	2.80669	381217	3.4	yes	300.3	2.4	3.4	labels
 3-131	afj_gif	vagc_text	0	564.6	106:20	382800	2.80669	381217	-1.7	yes	300.3	2.4	3.4	labels
@@ -705,11 +705,11 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-132	afj_gif	vagc_text_footer	0	115	<rule end>	383400	2.999	383053	2.2	yes	30	1.5	2.8	labels+footer ends
 3-132	afj_gif	vagc_text_footer	0	715	<rule end>	385200	2.999	383053	2.8	yes	30	1.5	2.8	labels+footer ends
 3-133	afj_gif	vagc_text	0	144.5	106:30	383400	2.79408	382998	-1.9	yes	301.8	2.6	3.7	labels
-3-133	afj_gif	vagc_text	0	357.2	106:40	384000	2.79408	382998	3.7	yes	301.8	2.6	3.7	labels
-3-133	afj_gif	vagc_text	0	574	106:50	384600	2.79408	382998	-1.9	yes	301.8	2.6	3.7	labels
 3-133	afj_gif	vagc_text	1	212.5	0:00	0	170.441	-36210.5	0	yes	18407.6	0	0	labels
 3-133	afj_gif	vagc_text	1	299.4	4:07	14820	170.441	-36210.5	0	yes	18407.6	0	0	labels
+3-133	afj_gif	vagc_text	0	357.2	106:40	384000	2.79408	382998	3.7	yes	301.8	2.6	3.7	labels
 3-133	afj_gif	vagc_text	1	358.5	6:50	24600	170.441	-36210.5	-289.9	no	18407.6	0	0	labels
+3-133	afj_gif	vagc_text	0	574	106:50	384600	2.79408	382998	-1.9	yes	301.8	2.6	3.7	labels
 3-134	afj_gif	vagc_text	0	115.6	107:00	385200	6.05713	384498	1.5	yes		3.5	6.3	labels
 3-134	afj_gif	vagc_text	0	215.5	:10	385800	6.05713	384498	-3.4	yes		3.5	6.3	labels
 3-134	afj_gif	vagc_text	0	313.3	:20	386400	6.05713	384498	4	yes		3.5	6.3	labels
@@ -755,10 +755,10 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-140	afj_gif	vagc_text_footer	0	119	<rule end>	396000	6.0065	395284	1.1	yes	120.1	2.1	4.3	labels+footer ends
 3-140	afj_gif	vagc_text_footer	0	719	<rule end>	399600	6.0065	395284	-2.8	yes	120.1	2.1	4.3	labels+footer ends
 3-141	afj_gif	vagc_text	0	329.7	110:10	396600	2.77843	395684	0.3	yes	240.3	0.5	0.7	labels
-3-141	afj_gif	vagc_text	0	546	110:20	397200	2.77843	395684	-0.7	yes	240.3	0.5	0.7	labels
-3-141	afj_gif	vagc_text	0	761.6	110;30	397800	2.77843	395684	0.3	yes	240.3	0.5	0.7	labels
 3-141	afj_gif	vagc_text	1	333.3	110:40	398400	2.79477	397469	0	yes	92.2	0.1	0.1	labels
+3-141	afj_gif	vagc_text	0	546	110:20	397200	2.77843	395684	-0.7	yes	240.3	0.5	0.7	labels
 3-141	afj_gif	vagc_text	1	548	110:50	399000	2.79477	397469	-0.1	yes	92.2	0.1	0.1	labels
+3-141	afj_gif	vagc_text	0	761.6	110;30	397800	2.77843	395684	0.3	yes	240.3	0.5	0.7	labels
 3-141	afj_gif	vagc_text	1	762.6	111:00	399600	2.79477	397469	0	yes	92.2	0.1	0.1	labels
 3-142	afj_gif	vagc_text	0	121.5	111:00	399600	5.98938	398865	6.9	yes	59.9	3.6	6.9	labels
 3-142	afj_gif	vagc_text	0	223.6	:10	400200	5.98938	398865	-4.3	yes	59.9	3.6	6.9	labels
@@ -782,9 +782,9 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-144	afj_gif	vagc_text	0	707.9	113:00	406800	5.98127	402564	1.9	yes	116.6	2.8	4.7	labels+footer ends
 3-144	afj_gif	vagc_text_footer	0	107	<rule end>	403200	5.98127	402564	-4	yes	116.6	2.8	4.7	labels+footer ends
 3-144	afj_gif	vagc_text_footer	0	709	<rule end>	406800	5.98127	402564	-4.7	yes	116.6	2.8	4.7	labels+footer ends
+3-145	afj_gif	vagc_text	1	129.9	112:30	405000	2.78328	404638	-0	yes	300.6	0	0	labels
 3-145	afj_gif	vagc_text	0	133.1	112:00	403200	2.83621	402823	-0	yes	306.3	0	0	labels
 3-145	afj_gif	vagc_text	0	344.6	112:10	403800	2.83621	402823	-0	yes	306.3	0	0	labels
-3-145	afj_gif	vagc_text	1	129.9	112:30	405000	2.78328	404638	-0	yes	300.6	0	0	labels
 3-145	afj_gif	vagc_text	1	561	112:50	406200	2.78328	404638	-0	yes	300.6	0	0	labels
 3-146	afj_gif	footer	0	113	<rule end>	406800	6.01073	406094	26.7	yes	60.1	15.3	26.7	labels+footer ends
 3-146	afj_gif	footer	0	713	<rule end>	410400	6.01073	406094	20.3	yes	60.1	15.3	26.7	labels+footer ends
@@ -830,8 +830,8 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-152	afj_gif	vagc_text	0	531.6	:40	420000	5.98955	416825	-9	yes	65.9	11.6	20.6	labels+footer ends
 3-152	afj_gif	vagc_text_footer	0	126	<rule end>	417600	5.98955	416825	20.6	yes	65.9	11.6	20.6	labels+footer ends
 3-152	afj_gif	vagc_text_footer	0	728	<rule end>	421200	5.98955	416825	14.9	yes	65.9	11.6	20.6	labels+footer ends
-3-153	afj_gif	vagc_text	0	130.1	116:00	417600								labels
 3-153	afj_gif	vagc_text	1	123.7	116;30	419400	2.79144	419055	-0.2	yes		0.3	0.4	labels
+3-153	afj_gif	vagc_text	0	130.1	116:00	417600								labels
 3-153	afj_gif	vagc_text	1	338.4	116:40	420000	2.79144	419055	0.4	yes		0.3	0.4	labels
 3-153	afj_gif	vagc_text	1	553.6	116:50	420600	2.79144	419055	-0.2	yes		0.3	0.4	labels
 3-154	afj_gif	vagc_text	0	104.7	117:00	421200	6.00667	420570	1.7	yes	60.1	1.9	3.3	labels
@@ -841,46 +841,46 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-154	afj_gif	vagc_text	0	504.1	:40	423600	6.00667	420570	2.8	yes	60.1	1.9	3.3	labels
 3-154	afj_gif	vagc_text	0	604.3	:50	424200	6.00667	420570	0.9	yes	60.1	1.9	3.3	labels
 3-154	afj_gif	vagc_text	0	704.4	118:00	424800	6.00667	420570	-0.4	yes	60.1	1.9	3.3	labels
-3-155	afj_gif	vagc_text	0	351	117:10	421800	2.79852	420818	0	yes	302.2	0	0	labels
-3-155	afj_gif	vagc_text	0	565.4	117:20	422400	2.79852	420818	0	yes	302.2	0	0	labels
 3-155	afj_gif	vagc_text	1	345.7	117:47	424020	0.83352	423732	-0	yes	87.9	0	0	labels
+3-155	afj_gif	vagc_text	0	351	117:10	421800	2.79852	420818	0	yes	302.2	0	0	labels
 3-155	afj_gif	vagc_text	1	561.7	117:50	424200	0.83352	423732	-0	yes	87.9	0	0	labels
+3-155	afj_gif	vagc_text	0	565.4	117:20	422400	2.79852	420818	0	yes	302.2	0	0	labels
 3-156	afj_gif	footer	0	125	<rule end>	424800	5.95298	424036	19.9	yes	65.5	10.4	19.9	labels+footer ends
-3-156	afj_gif	footer	0	726	<rule end>	426600	5.95298	424036	-1757.9	no	65.5	10.4	19.9	labels+footer ends
 3-156	afj_gif	footer	1	131	<rule end>	426600	3	426207	0	yes		0	0	labels+footer ends
+3-156	afj_gif	footer	0	726	<rule end>	426600	5.95298	424036	-1757.9	no	65.5	10.4	19.9	labels+footer ends
 3-156	afj_gif	footer	1	731	<rule end>	428400	3	426207	0	yes		0	0	labels+footer ends
 3-156	afj_gif	vagc_text	0	130.3	118:00	424800	5.95298	424036	-11.8	yes	65.5	10.4	19.9	labels+footer ends
 3-156	afj_gif	vagc_text	0	230.4	:10	425400	5.95298	424036	-7.8	yes	65.5	10.4	19.9	labels+footer ends
+3-156	afj_gif	vagc_text	1	329.8	1:30	5400	3	426207	-421796	no		0	0	labels+footer ends
 3-156	afj_gif	vagc_text	0	331	:20	426000	5.95298	424036	-6.3	yes	65.5	10.4	19.9	labels+footer ends
 3-156	afj_gif	vagc_text	0	430.3	118:30	426600	5.95298	424036	2.2	yes	65.5	10.4	19.9	labels+footer ends
 3-156	afj_gif	vagc_text	0	530.9	:40	427200	5.95298	424036	3.7	yes	65.5	10.4	19.9	labels+footer ends
-3-156	afj_gif	vagc_text	1	329.8	1:30	5400	3	426207	-421796	no		0	0	labels+footer ends
 3-156	afj_gif	vagc_text_footer	0	125	<rule end>	424800	5.95298	424036	19.9	yes	65.5	10.4	19.9	labels+footer ends
-3-156	afj_gif	vagc_text_footer	0	726	<rule end>	426600	5.95298	424036	-1757.9	no	65.5	10.4	19.9	labels+footer ends
 3-156	afj_gif	vagc_text_footer	1	131	<rule end>	426600	3	426207	0	yes		0	0	labels+footer ends
+3-156	afj_gif	vagc_text_footer	0	726	<rule end>	426600	5.95298	424036	-1757.9	no	65.5	10.4	19.9	labels+footer ends
 3-156	afj_gif	vagc_text_footer	1	731	<rule end>	428400	3	426207	0	yes		0	0	labels+footer ends
+3-157	afj_gif	vagc_text	1	77.1	118:30	426600	2.77038	426386	-0	yes		0	0	labels
 3-157	afj_gif	vagc_text	0	77.9	118:00	424800	2.77573	424585	-0.9	yes		1.3	1.8	labels
 3-157	afj_gif	vagc_text	0	293.1	118:10	425400	2.77573	424585	1.8	yes		1.3	1.8	labels
 3-157	afj_gif	vagc_text	0	510.2	118:20	426000	2.77573	424585	-0.9	yes		1.3	1.8	labels
-3-157	afj_gif	vagc_text	0	722.2	178:30	642600	2.77573	424585	216011	no		1.3	1.8	labels
-3-157	afj_gif	vagc_text	1	77.1	118:30	426600	2.77038	426386	-0	yes		0	0	labels
 3-157	afj_gif	vagc_text	1	510.2	118:50	427800	2.77038	426386	-0	yes		0	0	labels
-3-158	afj_gif	footer	0	97	<rule end>	428400	6.01111	427815	1.8	yes	60.1	1.3	2.6	labels+footer ends
-3-158	afj_gif	footer	0	695	<rule end>	430200	6.01111	427815	-1792.9	no	60.1	1.3	2.6	labels+footer ends
+3-157	afj_gif	vagc_text	0	722.2	178:30	642600	2.77573	424585	216011	no		1.3	1.8	labels
 3-158	afj_gif	footer	1	96	<rule end>	430200	30.192	417614	9687.2	no		0	0	labels+footer ends
+3-158	afj_gif	footer	0	97	<rule end>	428400	6.01111	427815	1.8	yes	60.1	1.3	2.6	labels+footer ends
 3-158	afj_gif	footer	1	694	<rule end>	432000	30.192	417614	-6567.7	no		0	0	labels+footer ends
+3-158	afj_gif	footer	0	695	<rule end>	430200	6.01111	427815	-1792.9	no	60.1	1.3	2.6	labels+footer ends
 3-158	afj_gif	vagc_text	0	97.7	119:00	428400	6.01111	427815	-2.6	yes	60.1	1.3	2.6	labels+footer ends
 3-158	afj_gif	vagc_text	0	197.1	:10	429000	6.01111	427815	0.3	yes	60.1	1.3	2.6	labels+footer ends
 3-158	afj_gif	vagc_text	0	296.8	:20	429600	6.01111	427815	0.7	yes	60.1	1.3	2.6	labels+footer ends
 3-158	afj_gif	vagc_text	0	396.6	119:30	430200	6.01111	427815	0.9	yes	60.1	1.3	2.6	labels+footer ends
-3-158	afj_gif	vagc_text	0	496.7	:40	430800	6.01111	427815	-0.9	yes	60.1	1.3	2.6	labels+footer ends
-3-158	afj_gif	vagc_text	0	596.4	:50	431400	6.01111	427815	-0.2	yes	60.1	1.3	2.6	labels+footer ends
 3-158	afj_gif	vagc_text	1	397	:20	429600	30.192	417614	0	yes		0	0	labels+footer ends
 3-158	afj_gif	vagc_text	1	496.3	:10	432600	30.192	417614	-0	yes		0	0	labels+footer ends
-3-158	afj_gif	vagc_text_footer	0	97	<rule end>	428400	6.01111	427815	1.8	yes	60.1	1.3	2.6	labels+footer ends
-3-158	afj_gif	vagc_text_footer	0	695	<rule end>	430200	6.01111	427815	-1792.9	no	60.1	1.3	2.6	labels+footer ends
+3-158	afj_gif	vagc_text	0	496.7	:40	430800	6.01111	427815	-0.9	yes	60.1	1.3	2.6	labels+footer ends
+3-158	afj_gif	vagc_text	0	596.4	:50	431400	6.01111	427815	-0.2	yes	60.1	1.3	2.6	labels+footer ends
 3-158	afj_gif	vagc_text_footer	1	96	<rule end>	430200	30.192	417614	9687.2	no		0	0	labels+footer ends
+3-158	afj_gif	vagc_text_footer	0	97	<rule end>	428400	6.01111	427815	1.8	yes	60.1	1.3	2.6	labels+footer ends
 3-158	afj_gif	vagc_text_footer	1	694	<rule end>	432000	30.192	417614	-6567.7	no		0	0	labels+footer ends
+3-158	afj_gif	vagc_text_footer	0	695	<rule end>	430200	6.01111	427815	-1792.9	no	60.1	1.3	2.6	labels+footer ends
 3-159	afj_gif	vagc_text	0	133.7	119:00	428400	2.78873	428027	0	yes	269.1	0	0	labels
 3-159	afj_gif	vagc_text	0	348.8	119:10	429000	2.78873	428027	-0	yes	269.1	0	0	labels
 3-159	afj_gif	vagc_text	0	564	119:20	429600	2.78873	428027	0	yes	269.1	0	0	labels
@@ -908,13 +908,13 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-164	afj_gif	vagc_text	0	507.5	:40	441600	6.00086	438562	-7.8	yes	60	9.8	13.5	labels+footer ends
 3-164	afj_gif	vagc_text_footer	0	104	<rule end>	439200	6.00086	438562	13.5	yes	60	9.8	13.5	labels+footer ends
 3-164	afj_gif	vagc_text_footer	0	704	<rule end>	442800	6.00086	438562	13	yes	60	9.8	13.5	labels+footer ends
+3-165	afj_gif	vagc_text	1	112.4	122:30	441000	3.90131	440562	-0	yes	316	0	0	labels
 3-165	afj_gif	vagc_text	0	112.9	122:00	439200	2.77753	438889	-2.6	yes	300	2.4	3.3	labels
 3-165	afj_gif	vagc_text	0	326.8	122:10	439800	2.77753	438889	3.3	yes	300	2.4	3.3	labels
-3-165	afj_gif	vagc_text	0	543.6	122:20	440400	2.77753	438889	1.3	yes	300	2.4	3.3	labels
-3-165	afj_gif	vagc_text	0	760.7	122:30	441000	2.77753	438889	-1.9	yes	300	2.4	3.3	labels
-3-165	afj_gif	vagc_text	1	112.4	122:30	441000	3.90131	440562	-0	yes	316	0	0	labels
 3-165	afj_gif	vagc_text	1	327.7	122:44—	441840	3.90131	440562	0	yes	316	0	0	labels
+3-165	afj_gif	vagc_text	0	543.6	122:20	440400	2.77753	438889	1.3	yes	300	2.4	3.3	labels
 3-165	afj_gif	vagc_text	1	543.8	172:50	622200	3.90131	440562	179517	no	316	0	0	labels
+3-165	afj_gif	vagc_text	0	760.7	122:30	441000	2.77753	438889	-1.9	yes	300	2.4	3.3	labels
 3-166	afj_gif	footer	0	117	<rule end>	442800	6.01032	442071	25.8	yes	72.1	14.3	25.8	labels+footer ends
 3-166	afj_gif	footer	0	716	<rule end>	446400	6.01032	442071	25.6	yes	72.1	14.3	25.8	labels+footer ends
 3-166	afj_gif	vagc_text	0	124	123:00	442800	6.01032	442071	-16.4	yes	72.1	14.3	25.8	labels+footer ends
@@ -927,6 +927,7 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-166	afj_gif	vagc_text_footer	0	117	<rule end>	442800	6.01032	442071	25.8	yes	72.1	14.3	25.8	labels+footer ends
 3-166	afj_gif	vagc_text_footer	0	716	<rule end>	446400	6.01032	442071	25.6	yes	72.1	14.3	25.8	labels+footer ends
 3-167	afj_gif	vagc_text	0	134.9	123:00	442800	2.80952	442421	-0	yes	289.4	0	0	labels
+3-167	afj_gif	vagc_text	2	347.3	123:40	445200	2.80758	444225	-0	yes	301.8	0	0	labels
 3-167	afj_gif	vagc_text	0	348.5	123:10	443400	2.80952	442421	0	yes	289.4	0	0	labels
 3-167	afj_gif	vagc_text	1	473.6	0:00	0	56.3094	-7188.8	-19479.1	no	5799.9	14	26	labels
 3-167	afj_gif	vagc_text	1	543.9	5:00	18000	56.3094	-7188.8	-5436.7	no	5799.9	14	26	labels
@@ -938,7 +939,6 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-167	afj_gif	vagc_text	1	606.7	7:30	27000	56.3094	-7188.8	24.4	yes	5799.9	14	26	labels
 3-167	afj_gif	vagc_text	1	618.3	7:40	27600	56.3094	-7188.8	-26	yes	5799.9	14	26	labels
 3-167	afj_gif	vagc_text	1	628.3	7:50	28200	56.3094	-7188.8	7.8	yes	5799.9	14	26	labels
-3-167	afj_gif	vagc_text	2	347.3	123:40	445200	2.80758	444225	-0	yes	301.8	0	0	labels
 3-167	afj_gif	vagc_text	2	774.7	124:00	446400	2.80758	444225	-0	yes	301.8	0	0	labels
 3-168	afj_gif	vagc_text	0	121.8	124:00	446400	5.98359	445669	2.7	yes	65.8	2.1	3	labels
 3-168	afj_gif	vagc_text	0	323.2	:20	447600	5.98359	445669	-3	yes	65.8	2.1	3	labels
@@ -946,17 +946,17 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-168	afj_gif	vagc_text	0	523.6	:40	448800	5.98359	445669	-1.6	yes	65.8	2.1	3	labels
 3-168	afj_gif	vagc_text	0	623.7	:50	449400	5.98359	445669	-0.7	yes	65.8	2.1	3	labels
 3-168	afj_gif	vagc_text	0	723.4	125:00	450000	5.98359	445669	2.7	yes	65.8	2.1	3	labels
-3-169	afj_gif	vagc_text	0	350.7	124:10	447000	36.2527	434286	0	yes	3915.3	0	0	labels
-3-169	afj_gif	vagc_text	0	565.9	126:20	454800	36.2527	434286	0	yes	3915.3	0	0	labels
-3-169	afj_gif	vagc_text	1	353	124:40	448800	3.63168	447518	0	yes	316	0	0	labels
-3-169	afj_gif	vagc_text	1	782.6	125:06	450360	3.63168	447518	0	yes	316	0	0	labels
 3-169	afj_gif	vagc_text	2	264.6	5:00	18000	55.642	3285.8	-6.8	yes	4840.9	12.4	27.7	labels
 3-169	afj_gif	vagc_text	2	275.5	5:10	18600	55.642	3285.8	-12.9	yes	4840.9	12.4	27.7	labels
 3-169	afj_gif	vagc_text	2	285.5	5:20	19200	55.642	3285.8	27.7	yes	4840.9	12.4	27.7	labels
 3-169	afj_gif	vagc_text	2	296.7	5:30	19800	55.642	3285.8	3.1	yes	4840.9	12.4	27.7	labels
 3-169	afj_gif	vagc_text	2	307.6	5:40	20400	55.642	3285.8	-2.9	yes	4840.9	12.4	27.7	labels
 3-169	afj_gif	vagc_text	2	318.5	5:50	21000	55.642	3285.8	-9	yes	4840.9	12.4	27.7	labels
+3-169	afj_gif	vagc_text	0	350.7	124:10	447000	36.2527	434286	0	yes	3915.3	0	0	labels
 3-169	afj_gif	vagc_text	2	350.7	6:20	22800	55.642	3285.8	0.8	yes	4840.9	12.4	27.7	labels
+3-169	afj_gif	vagc_text	1	353	124:40	448800	3.63168	447518	0	yes	316	0	0	labels
+3-169	afj_gif	vagc_text	0	565.9	126:20	454800	36.2527	434286	0	yes	3915.3	0	0	labels
+3-169	afj_gif	vagc_text	1	782.6	125:06	450360	3.63168	447518	0	yes	316	0	0	labels
 3-170	afj_gif	vagc_text	0	132.2	125:00	450000	5.99865	449209	-1.8	yes		1.7	3.1	labels
 3-170	afj_gif	vagc_text	0	232	:10	450600	5.99865	449209	-0.3	yes		1.7	3.1	labels
 3-170	afj_gif	vagc_text	0	331.5	:20	451200	5.99865	449209	3.1	yes		1.7	3.1	labels
@@ -997,12 +997,12 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-176	afj_gif	vagc_text	0	523.1	:40	463200	5.99095	460074	-8.2	yes	65.9	11.3	18.9	labels+footer ends
 3-176	afj_gif	vagc_text_footer	0	118	<rule end>	460800	5.99095	460074	18.9	yes	65.9	11.3	18.9	labels+footer ends
 3-176	afj_gif	vagc_text_footer	0	720	<rule end>	464400	5.99095	460074	12.4	yes	65.9	11.3	18.9	labels+footer ends
-3-177	afj_gif	vagc_text	0	137.4	128:00	460800	2.79354	460418	-1.8	yes		2.6	3.7	labels
-3-177	afj_gif	vagc_text	0	350.2	128:10	461400	2.79354	460418	3.7	yes		2.6	3.7	labels
-3-177	afj_gif	vagc_text	0	567	128:20	462000	2.79354	460418	-1.8	yes		2.6	3.7	labels
 3-177	afj_gif	vagc_text	1	136.2	128:30	462600	2.7849	462226	-4.8	yes	271.5	4.4	6	labels
+3-177	afj_gif	vagc_text	0	137.4	128:00	460800	2.79354	460418	-1.8	yes		2.6	3.7	labels
 3-177	afj_gif	vagc_text	1	347.8	128:40	463200	2.7849	462226	6	yes	271.5	4.4	6	labels
+3-177	afj_gif	vagc_text	0	350.2	128:10	461400	2.79354	460418	3.7	yes		2.6	3.7	labels
 3-177	afj_gif	vagc_text	1	564.5	128:50	463800	2.7849	462226	2.4	yes	271.5	4.4	6	labels
+3-177	afj_gif	vagc_text	0	567	128:20	462000	2.79354	460418	-1.8	yes		2.6	3.7	labels
 3-177	afj_gif	vagc_text	1	782.1	129:00	464400	2.7849	462226	-3.6	yes	271.5	4.4	6	labels
 3-178	afj_gif	footer	0	101	<rule end>	464400	6.02062	463762	29.8	yes	60.2	17.4	29.8	labels+footer ends
 3-178	afj_gif	footer	0	700	<rule end>	468000	6.02062	463762	23.4	yes	60.2	17.4	29.8	labels+footer ends
@@ -1040,12 +1040,12 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-184	afj_gif	vagc_text	0	705.7	133:00	478800	5.98821	474568	5.9	yes	293.4	5.3	9.1	labels+footer ends
 3-184	afj_gif	vagc_text_footer	0	104	<rule end>	475200	5.98821	474568	9.1	yes	293.4	5.3	9.1	labels+footer ends
 3-184	afj_gif	vagc_text_footer	0	706	<rule end>	478800	5.98821	474568	4.2	yes	293.4	5.3	9.1	labels+footer ends
-3-185	afj_gif	vagc_text	0	132.3	132:00	475200	2.79695	474831	-1.4	yes		1.9	2.7	labels
-3-185	afj_gif	vagc_text	0	345.3	132:10	475800	2.79695	474831	2.7	yes		1.9	2.7	labels
-3-185	afj_gif	vagc_text	0	561.3	132:20	476400	2.79695	474831	-1.4	yes		1.9	2.7	labels
 3-185	afj_gif	vagc_text	1	127.3	132:30	477000	2.77036	476648	-0.9	yes		1.3	1.9	labels
+3-185	afj_gif	vagc_text	0	132.3	132:00	475200	2.79695	474831	-1.4	yes		1.9	2.7	labels
 3-185	afj_gif	vagc_text	1	342.9	132:40	477600	2.77036	476648	1.9	yes		1.3	1.9	labels
+3-185	afj_gif	vagc_text	0	345.3	132:10	475800	2.79695	474831	2.7	yes		1.9	2.7	labels
 3-185	afj_gif	vagc_text	1	560.5	132:50	478200	2.77036	476648	-0.9	yes		1.3	1.9	labels
+3-185	afj_gif	vagc_text	0	561.3	132:20	476400	2.79695	474831	-1.4	yes		1.9	2.7	labels
 3-186	afj_gif	footer	0	102	<rule end>	478800	6.0276	478161	23.8	yes	60.3	12.4	23.8	labels+footer ends
 3-186	afj_gif	footer	0	700	<rule end>	482400	6.0276	478161	19.3	yes	60.3	12.4	23.8	labels+footer ends
 3-186	afj_gif	vagc_text	0	107.9	133:00	478800	6.0276	478161	-11.5	yes	60.3	12.4	23.8	labels+footer ends
@@ -1058,11 +1058,11 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-186	afj_gif	vagc_text_footer	0	102	<rule end>	478800	6.0276	478161	23.8	yes	60.3	12.4	23.8	labels+footer ends
 3-186	afj_gif	vagc_text_footer	0	700	<rule end>	482400	6.0276	478161	19.3	yes	60.3	12.4	23.8	labels+footer ends
 3-187	afj_gif	vagc_text	0	121.8	133:00	478800	2.76419	478462	1.4	yes		2	2.9	labels
-3-187	afj_gif	vagc_text	0	340.5	133:10	479400	2.76419	478462	-2.9	yes		2	2.9	labels
-3-187	afj_gif	vagc_text	0	555.9	133:20	480000	2.76419	478462	1.5	yes		2	2.9	labels
 3-187	afj_gif	vagc_text	1	122	133:30	480600	2.79578	480258	0.3	yes		0.4	0.6	labels
 3-187	afj_gif	vagc_text	1	337	133:40	481200	2.79578	480258	-0.6	yes		0.4	0.6	labels
+3-187	afj_gif	vagc_text	0	340.5	133:10	479400	2.76419	478462	-2.9	yes		2	2.9	labels
 3-187	afj_gif	vagc_text	1	551.3	133:50	481800	2.79578	480258	0.3	yes		0.4	0.6	labels
+3-187	afj_gif	vagc_text	0	555.9	133:20	480000	2.76419	478462	1.5	yes		2	2.9	labels
 3-188	afj_gif	footer	0	106	<rule end>	482400	5.99951	481739	24.7	yes	60	12.3	24.7	labels+footer ends
 3-188	afj_gif	footer	0	707	<rule end>	486000	5.99951	481739	19	yes	60	12.3	24.7	labels+footer ends
 3-188	afj_gif	vagc_text	0	111.2	134:00	482400	5.99951	481739	-6.8	yes	60	12.3	24.7	labels+footer ends
@@ -1074,10 +1074,10 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-188	afj_gif	vagc_text	0	709.6	135:00	486000	5.99951	481739	3.2	yes	60	12.3	24.7	labels+footer ends
 3-188	afj_gif	vagc_text_footer	0	106	<rule end>	482400	5.99951	481739	24.7	yes	60	12.3	24.7	labels+footer ends
 3-188	afj_gif	vagc_text_footer	0	707	<rule end>	486000	5.99951	481739	19	yes	60	12.3	24.7	labels+footer ends
-3-189	afj_gif	vagc_text	0	110.2	134:00	482400	2.78869	482093	0	yes		0	0	labels
-3-189	afj_gif	vagc_text	0	325.3	134:10	483000	2.78869	482093	0	yes		0	0	labels
 3-189	afj_gif	vagc_text	1	108.6	134:30	484200	2.78332	483898	0	yes		0	0	labels
+3-189	afj_gif	vagc_text	0	110.2	134:00	482400	2.78869	482093	0	yes		0	0	labels
 3-189	afj_gif	vagc_text	1	324.1	134:40	484800	2.78332	483898	0	yes		0	0	labels
+3-189	afj_gif	vagc_text	0	325.3	134:10	483000	2.78869	482093	0	yes		0	0	labels
 3-190	afj_gif	vagc_text	0	116.7	135:00	486000	6.0051	485299	0.4	yes	66.1	3.8	7.1	labels
 3-190	afj_gif	vagc_text	0	216.3	:10	486600	6.0051	485299	2.2	yes	66.1	3.8	7.1	labels
 3-190	afj_gif	vagc_text	0	316.5	:20	487200	6.0051	485299	0.4	yes	66.1	3.8	7.1	labels
@@ -1085,10 +1085,10 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-190	afj_gif	vagc_text	0	516.9	:40	488400	6.0051	485299	-2.5	yes	66.1	3.8	7.1	labels
 3-190	afj_gif	vagc_text	0	617.4	:50	489000	6.0051	485299	-6.3	yes	66.1	3.8	7.1	labels
 3-190	afj_gif	vagc_text	0	715.1	136:00	489600	6.0051	485299	7.1	yes	66.1	3.8	7.1	labels
-3-191	afj_gif	vagc_text	0	335.8	135:10	486600	2.80884	485657	0	yes	303.4	0	0	labels
-3-191	afj_gif	vagc_text	0	763.1	135:30	487800	2.80884	485657	0	yes	303.4	0	0	labels
 3-191	afj_gif	vagc_text	1	118.7	135:30	487800	2.79306	487469	0	yes	301.7	0	0	labels
 3-191	afj_gif	vagc_text	1	333.5	135:40	488400	2.79306	487469	0	yes	301.7	0	0	labels
+3-191	afj_gif	vagc_text	0	335.8	135:10	486600	2.80884	485657	0	yes	303.4	0	0	labels
+3-191	afj_gif	vagc_text	0	763.1	135:30	487800	2.80884	485657	0	yes	303.4	0	0	labels
 3-192	afj_gif	vagc_text	0	103	136:00	489600	6.00772	488981	0.3	yes		4.6	7.7	labels
 3-192	afj_gif	vagc_text	0	203.1	:10	490200	6.00772	488981	-1.1	yes		4.6	7.7	labels
 3-192	afj_gif	vagc_text	0	302.1	:20	490800	6.00772	488981	4.4	yes		4.6	7.7	labels
@@ -1096,10 +1096,10 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-192	afj_gif	vagc_text	0	503.1	:40	492000	6.00772	488981	-3.7	yes		4.6	7.7	labels
 3-192	afj_gif	vagc_text	0	603.7	:50	492600	6.00772	488981	-7.7	yes		4.6	7.7	labels
 3-192	afj_gif	vagc_text	0	701	137:00	493200	6.00772	488981	7.4	yes		4.6	7.7	labels
+3-193	afj_gif	vagc_text	1	133.1	136:30	491400	3.14152	490982	0	yes	340.9	0	0	labels
 3-193	afj_gif	vagc_text	0	133.5	136:00	489600	2.7716	489231	-1.4	yes	270.2	2	2.8	labels
 3-193	afj_gif	vagc_text	0	348.5	136:10--	490200	2.7716	489231	2.8	yes	270.2	2	2.8	labels
 3-193	afj_gif	vagc_text	0	566.5	136:20	490800	2.7716	489231	-1.4	yes	270.2	2	2.8	labels
-3-193	afj_gif	vagc_text	1	133.1	136:30	491400	3.14152	490982	0	yes	340.9	0	0	labels
 3-193	afj_gif	vagc_text	1	782.5	137:04	493440	3.14152	490982	0	yes	340.9	0	0	labels
 3-194	afj_gif	footer	0	103	<rule end>	493200	6.00343	492562	19.3	yes	60	13.7	23.3	labels+footer ends
 3-194	afj_gif	footer	0	702	<rule end>	496800	6.00343	492562	23.3	yes	60	13.7	23.3	labels+footer ends
@@ -1110,10 +1110,10 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-194	afj_gif	vagc_text	0	608	:50	496200	6.00343	492562	-12.5	yes	60	13.7	23.3	labels+footer ends
 3-194	afj_gif	vagc_text_footer	0	103	<rule end>	493200	6.00343	492562	19.3	yes	60	13.7	23.3	labels+footer ends
 3-194	afj_gif	vagc_text_footer	0	702	<rule end>	496800	6.00343	492562	23.3	yes	60	13.7	23.3	labels+footer ends
-3-195	afj_gif	vagc_text	0	129.8	127:00	457200	86.9578	445914	0	yes	3565.3	0	0	labels
-3-195	afj_gif	vagc_text	0	557.6	137:20	494400	86.9578	445914	0	yes	3565.3	0	0	labels
 3-195	afj_gif	vagc_text	1	126.2	137:30	495000	2.78113	494648	0.5	yes	208.6	0.8	1.1	labels
+3-195	afj_gif	vagc_text	0	129.8	127:00	457200	86.9578	445914	0	yes	3565.3	0	0	labels
 3-195	afj_gif	vagc_text	1	342.5	137:40	495600	2.78113	494648	-1.1	yes	208.6	0.8	1.1	labels
+3-195	afj_gif	vagc_text	0	557.6	137:20	494400	86.9578	445914	0	yes	3565.3	0	0	labels
 3-195	afj_gif	vagc_text	1	557.7	137:50-	496200	2.78113	494648	0.5	yes	208.6	0.8	1.1	labels
 3-196	afj_gif	footer	0	108	<rule end>	496800	6.0042	496131	20.5	yes	60	10.7	20.5	labels+footer ends
 3-196	afj_gif	footer	0	709	<rule end>	500400	6.0042	496131	11.9	yes	60	10.7	20.5	labels+footer ends
@@ -1125,27 +1125,27 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-196	afj_gif	vagc_text	0	612.6	:50	499800	6.0042	496131	-9.5	yes	60	10.7	20.5	labels+footer ends
 3-196	afj_gif	vagc_text_footer	0	108	<rule end>	496800	6.0042	496131	20.5	yes	60	10.7	20.5	labels+footer ends
 3-196	afj_gif	vagc_text_footer	0	709	<rule end>	500400	6.0042	496131	11.9	yes	60	10.7	20.5	labels+footer ends
-3-197	afj_gif	vagc_text	0	121.5	138:00	496800	2.77574	496463	0	yes	301.2	0	0	labels
-3-197	afj_gif	vagc_text	0	553.9	138:20	498000	2.77574	496463	0	yes	301.2	0	0	labels
 3-197	afj_gif	vagc_text	1	118.4	138:3O--.	498600	2.78057	498272	-1.5	yes	300.3	2.3	3.5	labels
+3-197	afj_gif	vagc_text	0	121.5	138:00	496800	2.77574	496463	0	yes	301.2	0	0	labels
 3-197	afj_gif	vagc_text	1	332.3	138:40—	499200	2.78057	498272	3.5	yes	300.3	2.3	3.5	labels
 3-197	afj_gif	vagc_text	1	550.3	138:50—	499800	2.78057	498272	-2.4	yes	300.3	2.3	3.5	labels
+3-197	afj_gif	vagc_text	0	553.9	138:20	498000	2.77574	496463	0	yes	301.2	0	0	labels
 3-197	afj_gif	vagc_text	1	765	139:00	500400	2.78057	498272	0.5	yes	300.3	2.3	3.5	labels
 3-198	afj_gif	footer	0	115	<rule end>	500400	5.97827	499689	23.3	yes	65.8	11.9	23.3	labels+footer ends
-3-198	afj_gif	footer	0	715	<rule end>	502200	5.97827	499689	-1763.7	no	65.8	11.9	23.3	labels+footer ends
 3-198	afj_gif	footer	1	125	<rule end>	502200	12.0426	-893.1	501588	no		0	0	labels+footer ends
+3-198	afj_gif	footer	0	715	<rule end>	502200	5.97827	499689	-1763.7	no	65.8	11.9	23.3	labels+footer ends
 3-198	afj_gif	footer	1	723	<rule end>	504000	12.0426	-893.1	496186	no		0	0	labels+footer ends
 3-198	afj_gif	vagc_text	0	121.3	139:00	500400	5.97827	499689	-14.1	yes	65.8	11.9	23.3	labels+footer ends
 3-198	afj_gif	vagc_text	0	320.7	:20	501600	5.97827	499689	-6.7	yes	65.8	11.9	23.3	labels+footer ends
 3-198	afj_gif	vagc_text	0	421.3	139:30	502200	5.97827	499689	-7.7	yes	65.8	11.9	23.3	labels+footer ends
 3-198	afj_gif	vagc_text	0	520.6	:40	502800	5.97827	499689	-1.2	yes	65.8	11.9	23.3	labels+footer ends
+3-198	afj_gif	vagc_text	1	522.6	1:30	5400	12.0426	-893.1	0	yes		0	0	labels+footer ends
 3-198	afj_gif	vagc_text	0	621.5	:50	503400	5.97827	499689	-4.8	yes	65.8	11.9	23.3	labels+footer ends
 3-198	afj_gif	vagc_text	0	719.2	140:00	504000	5.97827	499689	11.2	yes	65.8	11.9	23.3	labels+footer ends
-3-198	afj_gif	vagc_text	1	522.6	1:30	5400	12.0426	-893.1	0	yes		0	0	labels+footer ends
 3-198	afj_gif	vagc_text	1	721.9	:10	7800	12.0426	-893.1	0	yes		0	0	labels+footer ends
 3-198	afj_gif	vagc_text_footer	0	115	<rule end>	500400	5.97827	499689	23.3	yes	65.8	11.9	23.3	labels+footer ends
-3-198	afj_gif	vagc_text_footer	0	715	<rule end>	502200	5.97827	499689	-1763.7	no	65.8	11.9	23.3	labels+footer ends
 3-198	afj_gif	vagc_text_footer	1	125	<rule end>	502200	12.0426	-893.1	501588	no		0	0	labels+footer ends
+3-198	afj_gif	vagc_text_footer	0	715	<rule end>	502200	5.97827	499689	-1763.7	no	65.8	11.9	23.3	labels+footer ends
 3-198	afj_gif	vagc_text_footer	1	723	<rule end>	504000	12.0426	-893.1	496186	no		0	0	labels+footer ends
 3-199	afj_gif	vagc_text	0	338.6	134:10	483000	85.8287	453938	-0	yes	5578.9	0	0	labels
 3-199	afj_gif	vagc_text	0	555.3	139:20	501600	85.8287	453938	-0	yes	5578.9	0	0	labels
@@ -1153,138 +1153,138 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-200	afj_gif	footer	0	711	<rule end>	505800	5.99333	503301	-1762	no	1204.7	10	22	labels+footer ends
 3-200	afj_gif	vagc_text	0	118	140:00	504000	5.99333	503301	-7.9	yes	1204.7	10	22	labels+footer ends
 3-200	afj_gif	vagc_text	0	218.2	:10	504600	5.99333	503301	-8.2	yes	1204.7	10	22	labels+footer ends
+3-200	afj_gif	vagc_text	1	223	1:00	3600	29.6627	-3013.8	-0	yes		0	0	labels
 3-200	afj_gif	vagc_text	0	317.7	:20	505200	5.99333	503301	-4.9	yes	1204.7	10	22	labels+footer ends
+3-200	afj_gif	vagc_text	1	324.1	:50	6600	29.6627	-3013.8	-0	yes		0	0	labels
 3-200	afj_gif	vagc_text	0	417.9	140:30	505800	5.99333	503301	-5.5	yes	1204.7	10	22	labels+footer ends
 3-200	afj_gif	vagc_text	0	517.6	:40	506400	5.99333	503301	-3	yes	1204.7	10	22	labels+footer ends
 3-200	afj_gif	vagc_text	0	617.7	:50	507000	5.99333	503301	-3.1	yes	1204.7	10	22	labels+footer ends
 3-200	afj_gif	vagc_text	0	715.6	141:00	507600	5.99333	503301	10.5	yes	1204.7	10	22	labels+footer ends
-3-200	afj_gif	vagc_text	1	223	1:00	3600	29.6627	-3013.8	-0	yes		0	0	labels
-3-200	afj_gif	vagc_text	1	324.1	:50	6600	29.6627	-3013.8	-0	yes		0	0	labels
 3-200	afj_gif	vagc_text_footer	0	113	<rule end>	504000	5.99333	503301	22	yes	1204.7	10	22	labels+footer ends
 3-200	afj_gif	vagc_text_footer	0	711	<rule end>	505800	5.99333	503301	-1762	no	1204.7	10	22	labels+footer ends
 3-201	afj_gif	vagc_text	0	132.5	140:30	505800	52.9003	498790	0	yes		0	0	labels
 3-201	afj_gif	vagc_text	0	348	143:40	517200	52.9003	498790	0	yes		0	0	labels
 3-202	afj_gif	vagc_text	0	98.5	141:00	507600	5.99771	507014	-4.2	yes	69	2.9	4.3	labels
 3-202	afj_gif	vagc_text	0	197.4	:10	508200	5.99771	507014	2.4	yes	69	2.9	4.3	labels
-3-202	afj_gif	vagc_text	0	297.1	:20	508800	5.99771	507014	4.3	yes	69	2.9	4.3	labels
-3-202	afj_gif	vagc_text	0	398.1	141:30	509400	5.99771	507014	-1.2	yes	69	2.9	4.3	labels
-3-202	afj_gif	vagc_text	0	497.8	:40	510000	5.99771	507014	0.8	yes	69	2.9	4.3	labels
-3-202	afj_gif	vagc_text	0	598.3	:50	510600	5.99771	507014	-2.2	yes	69	2.9	4.3	labels
 3-202	afj_gif	vagc_text	1	198.6	0:00	0	5.98886	-1187.8	-1.5	yes		1.2	1.5	labels
+3-202	afj_gif	vagc_text	0	297.1	:20	508800	5.99771	507014	4.3	yes	69	2.9	4.3	labels
 3-202	afj_gif	vagc_text	1	298.3	:10	600	5.98886	-1187.8	1.4	yes		1.2	1.5	labels
+3-202	afj_gif	vagc_text	0	398.1	141:30	509400	5.99771	507014	-1.2	yes	69	2.9	4.3	labels
 3-202	afj_gif	vagc_text	1	398.5	:20	1200	5.98886	-1187.8	1.3	yes		1.2	1.5	labels
+3-202	afj_gif	vagc_text	0	497.8	:40	510000	5.99771	507014	0.8	yes	69	2.9	4.3	labels
 3-202	afj_gif	vagc_text	1	499	:30	1800	5.98886	-1187.8	-0.8	yes		1.2	1.5	labels
+3-202	afj_gif	vagc_text	0	598.3	:50	510600	5.99771	507014	-2.2	yes	69	2.9	4.3	labels
 3-202	afj_gif	vagc_text	1	599.1	:40	2400	5.98886	-1187.8	-0.4	yes		1.2	1.5	labels
 3-203	afj_gif	vagc_text	0	127.3	141:30	509400	4.45331	508833	0	yes	481	0	0	labels
 3-203	afj_gif	vagc_text	0	342.9	141:46	510360	4.45331	508833	0	yes	481	0	0	labels
 3-204	afj_gif	footer	0	97	<rule end>	511200	5.94192	510596	27.8	yes	118.8	13.1	27.8	labels+footer ends
-3-204	afj_gif	footer	0	699	<rule end>	513000	5.94192	510596	-1749.2	no	118.8	13.1	27.8	labels+footer ends
 3-204	afj_gif	footer	1	106	<rule end>	513000	0.99445	514099	-1204.3	no		0	0	labels+footer ends
+3-204	afj_gif	footer	0	699	<rule end>	513000	5.94192	510596	-1749.2	no	118.8	13.1	27.8	labels+footer ends
 3-204	afj_gif	footer	1	705	<rule end>	514800	0.99445	514099	0	yes		0	0	labels+footer ends
+3-204	afj_gif	vagc_text	1	101.7	:50	514200	0.99445	514099	0	yes		0	0	labels+footer ends
 3-204	afj_gif	vagc_text	0	104.1	142:00	511200	5.94192	510596	-14.2	yes	118.8	13.1	27.8	labels+footer ends
 3-204	afj_gif	vagc_text	0	204.3	:10	511800	5.94192	510596	-9.5	yes	118.8	13.1	27.8	labels+footer ends
 3-204	afj_gif	vagc_text	0	305.2	:20	512400	5.94192	510596	-9	yes	118.8	13.1	27.8	labels+footer ends
 3-204	afj_gif	vagc_text	0	405.3	142:30	513000	5.94192	510596	-3.9	yes	118.8	13.1	27.8	labels+footer ends
 3-204	afj_gif	vagc_text	0	505.1	:40	513600	5.94192	510596	3.2	yes	118.8	13.1	27.8	labels+footer ends
 3-204	afj_gif	vagc_text	0	605.6	:50	514200	5.94192	510596	5.8	yes	118.8	13.1	27.8	labels+footer ends
-3-204	afj_gif	vagc_text	1	101.7	:50	514200	0.99445	514099	0	yes		0	0	labels+footer ends
 3-204	afj_gif	vagc_text_footer	0	97	<rule end>	511200	5.94192	510596	27.8	yes	118.8	13.1	27.8	labels+footer ends
-3-204	afj_gif	vagc_text_footer	0	699	<rule end>	513000	5.94192	510596	-1749.2	no	118.8	13.1	27.8	labels+footer ends
 3-204	afj_gif	vagc_text_footer	1	106	<rule end>	513000	0.99445	514099	-1204.3	no		0	0	labels+footer ends
+3-204	afj_gif	vagc_text_footer	0	699	<rule end>	513000	5.94192	510596	-1749.2	no	118.8	13.1	27.8	labels+footer ends
 3-204	afj_gif	vagc_text_footer	1	705	<rule end>	514800	0.99445	514099	0	yes		0	0	labels+footer ends
-3-205	afj_gif	vagc_text	0	343.6	142:10	511800	2.79415	510840	0	yes		0	0	labels
-3-205	afj_gif	vagc_text	0	558.4	142:20	512400	2.79415	510840	0	yes		0	0	labels
 3-205	afj_gif	vagc_text	1	124.9	142:30	513000	2.78329	512652	0	yes		0	0	labels
 3-205	afj_gif	vagc_text	1	340.5	142:40	513600	2.78329	512652	0	yes		0	0	labels
-3-206	afj_gif	vagc_text	0	116.1	143:00	514800	6.01847	514102	-0.2	yes	60.2	1.6	3.7	labels
-3-206	afj_gif	vagc_text	0	215.8	:10	515400	6.01847	514102	-0.6	yes	60.2	1.6	3.7	labels
-3-206	afj_gif	vagc_text	0	315.5	:20	516000	6.01847	514102	-0.8	yes	60.2	1.6	3.7	labels
-3-206	afj_gif	vagc_text	0	414.5	143:30	516600	6.01847	514102	3.7	yes	60.2	1.6	3.7	labels
-3-206	afj_gif	vagc_text	0	515	:40	517200	6.01847	514102	-1.4	yes	60.2	1.6	3.7	labels
-3-206	afj_gif	vagc_text	0	614.7	:50	517800	6.01847	514102	-1.4	yes	60.2	1.6	3.7	labels
-3-206	afj_gif	vagc_text	0	714.1	144:00	518400	6.01847	514102	0.6	yes	60.2	1.6	3.7	labels
+3-205	afj_gif	vagc_text	0	343.6	142:10	511800	2.79415	510840	0	yes		0	0	labels
+3-205	afj_gif	vagc_text	0	558.4	142:20	512400	2.79415	510840	0	yes		0	0	labels
 3-206	afj_gif	vagc_text	1	113.6	1:50	6600	6.00917	5917.1	0.2	yes		0.7	1.1	labels
+3-206	afj_gif	vagc_text	0	116.1	143:00	514800	6.01847	514102	-0.2	yes	60.2	1.6	3.7	labels
 3-206	afj_gif	vagc_text	1	213.4	2:00	7200	6.00917	5917.1	0.5	yes		0.7	1.1	labels
+3-206	afj_gif	vagc_text	0	215.8	:10	515400	6.01847	514102	-0.6	yes	60.2	1.6	3.7	labels
 3-206	afj_gif	vagc_text	1	313.5	2:10	7800	6.00917	5917.1	-1.1	yes		0.7	1.1	labels
+3-206	afj_gif	vagc_text	0	315.5	:20	516000	6.01847	514102	-0.8	yes	60.2	1.6	3.7	labels
 3-206	afj_gif	vagc_text	1	413.2	2:20	8400	6.00917	5917.1	-0.2	yes		0.7	1.1	labels
+3-206	afj_gif	vagc_text	0	414.5	143:30	516600	6.01847	514102	3.7	yes	60.2	1.6	3.7	labels
 3-206	afj_gif	vagc_text	1	513	2:30	9000	6.00917	5917.1	0.2	yes		0.7	1.1	labels
+3-206	afj_gif	vagc_text	0	515	:40	517200	6.01847	514102	-1.4	yes	60.2	1.6	3.7	labels
 3-206	afj_gif	vagc_text	1	612.7	2:40	9600	6.00917	5917.1	1	yes		0.7	1.1	labels
+3-206	afj_gif	vagc_text	0	614.7	:50	517800	6.01847	514102	-1.4	yes	60.2	1.6	3.7	labels
 3-206	afj_gif	vagc_text	1	712.8	2:50	10200	6.00917	5917.1	-0.6	yes		0.7	1.1	labels
+3-206	afj_gif	vagc_text	0	714.1	144:00	518400	6.01847	514102	0.6	yes	60.2	1.6	3.7	labels
 3-207	afj_gif	vagc_text	0	125.6	143:30	516600	2.7866	516253	-2.8	yes	301	2.6	4.2	labels
 3-207	afj_gif	vagc_text	0	338.4	143:40	517200	2.7866	516253	4.2	yes	301	2.6	4.2	labels
 3-207	afj_gif	vagc_text	0	555.2	143:50	517800	2.7866	516253	0.2	yes	301	2.6	4.2	labels
 3-207	afj_gif	vagc_text	0	771.1	144:00	518400	2.7866	516253	-1.5	yes	301	2.6	4.2	labels
 3-208	afj_gif	footer	0	120	<rule end>	518400	5.95327	517670	15.7	yes	65.5	7.8	15.7	labels+footer ends
-3-208	afj_gif	footer	0	722	<rule end>	520200	5.95327	517670	-1768.2	no	65.5	7.8	15.7	labels+footer ends
 3-208	afj_gif	footer	1	125	<rule end>	520200	7.18388	516792	2510.3	no		0	0	labels+footer ends
+3-208	afj_gif	footer	0	722	<rule end>	520200	5.95327	517670	-1768.2	no	65.5	7.8	15.7	labels+footer ends
 3-208	afj_gif	footer	1	725	<rule end>	522000	7.18388	516792	0	yes		0	0	labels+footer ends
 3-208	afj_gif	vagc_text	0	124.8	144:00	518400	5.95327	517670	-12.7	yes	65.5	7.8	15.7	labels+footer ends
 3-208	afj_gif	vagc_text	0	223.8	:10	519000	5.95327	517670	-2.5	yes	65.5	7.8	15.7	labels+footer ends
+3-208	afj_gif	vagc_text	1	223.9	:00	518400	7.18388	516792	0	yes		0	0	labels+footer ends
 3-208	afj_gif	vagc_text	0	324.2	:20	519600	5.95327	517670	0.2	yes	65.5	7.8	15.7	labels+footer ends
 3-208	afj_gif	vagc_text	0	425.6	144:30	520200	5.95327	517670	-3.4	yes	65.5	7.8	15.7	labels+footer ends
 3-208	afj_gif	vagc_text	0	525.7	:40	520800	5.95327	517670	0.6	yes	65.5	7.8	15.7	labels+footer ends
 3-208	afj_gif	vagc_text	0	626.2	:50	521400	5.95327	517670	2.1	yes	65.5	7.8	15.7	labels+footer ends
-3-208	afj_gif	vagc_text	1	223.9	:00	518400	7.18388	516792	0	yes		0	0	labels+footer ends
 3-208	afj_gif	vagc_text_footer	0	120	<rule end>	518400	5.95327	517670	15.7	yes	65.5	7.8	15.7	labels+footer ends
-3-208	afj_gif	vagc_text_footer	0	722	<rule end>	520200	5.95327	517670	-1768.2	no	65.5	7.8	15.7	labels+footer ends
 3-208	afj_gif	vagc_text_footer	1	125	<rule end>	520200	7.18388	516792	2510.3	no		0	0	labels+footer ends
+3-208	afj_gif	vagc_text_footer	0	722	<rule end>	520200	5.95327	517670	-1768.2	no	65.5	7.8	15.7	labels+footer ends
 3-208	afj_gif	vagc_text_footer	1	725	<rule end>	522000	7.18388	516792	0	yes		0	0	labels+footer ends
+3-209	afj_gif	vagc_text	2	128.2	144:30	520200	2.77248	519844	0.7	yes	299.4	1.6	2.3	labels
 3-209	afj_gif	vagc_text	0	131.3	144:00	518400	2.7942	518033	-0	yes	303.2	0	0	labels
-3-209	afj_gif	vagc_text	0	560.8	144:20—	519600	2.7942	518033	0	yes	303.2	0	0	labels
-3-209	afj_gif	vagc_text	0	775.5	144:30--	520200	2.7942	518033	-0	yes	303.2	0	0	labels
 3-209	afj_gif	vagc_text	1	330.7	0:00	0	188.459	-62330	0	yes	20447.8	0	0	labels
 3-209	afj_gif	vagc_text	1	407.1	04:00	14400	188.459	-62330	0	yes	20447.8	0	0	labels
 3-209	afj_gif	vagc_text	1	450.6	06:00	21600	188.459	-62330	-995.1	no	20447.8	0	0	labels
 3-209	afj_gif	vagc_text	1	510.5	08:00	28800	188.459	-62330	-5084.5	no	20447.8	0	0	labels
-3-209	afj_gif	vagc_text	2	128.2	144:30	520200	2.77248	519844	0.7	yes	299.4	1.6	2.3	labels
+3-209	afj_gif	vagc_text	0	560.8	144:20—	519600	2.7942	518033	0	yes	303.2	0	0	labels
 3-209	afj_gif	vagc_text	2	562.1	144:50	521400	2.77248	519844	-2.3	yes	299.4	1.6	2.3	labels
+3-209	afj_gif	vagc_text	0	775.5	144:30--	520200	2.7942	518033	-0	yes	303.2	0	0	labels
 3-209	afj_gif	vagc_text	2	777.1	145:00	522000	2.77248	519844	1.5	yes	299.4	1.6	2.3	labels
-3-210	afj_gif	vagc_text	0	706.4	146:00	525600								labels
 3-210	afj_gif	vagc_text	1	206.2	4:00	14400	5.99983	13162.2	0.7	yes		1.4	2	labels
 3-210	afj_gif	vagc_text	1	406.4	4:20	15600	5.99983	13162.2	-0.6	yes		1.4	2	labels
 3-210	afj_gif	vagc_text	1	606.6	4:40	16800	5.99983	13162.2	-2	yes		1.4	2	labels
 3-210	afj_gif	vagc_text	1	706	4:50	17400	5.99983	13162.2	1.8	yes		1.4	2	labels
+3-210	afj_gif	vagc_text	0	706.4	146:00	525600								labels
 3-211	afj_gif	vagc_text	0	130.1	115:30	415800	504.489	350141	0	yes	54232.6	0	0	labels
 3-211	afj_gif	vagc_text	0	345.4	145;40	524400	504.489	350141	0	yes	54232.6	0	0	labels
 3-211	afj_gif	vagc_text	0	561.4	145:50	525000	504.489	350141	-108365	no	54232.6	0	0	labels
-3-212	afj_gif	footer	0	110	<rule end>	525600	6.04012	524941	-5	yes	60.4	3.4	5	labels+footer ends
-3-212	afj_gif	footer	0	710	<rule end>	527400	6.04012	524941	-1829.1	no	60.4	3.4	5	labels+footer ends
 3-212	afj_gif	footer	1	105	<rule end>	527400	5.99714	16749.5	510021	no		2.1	3.3	labels+footer ends
+3-212	afj_gif	footer	0	110	<rule end>	525600	6.04012	524941	-5	yes	60.4	3.4	5	labels+footer ends
 3-212	afj_gif	footer	1	704	<rule end>	529200	5.99714	16749.5	508228	no		2.1	3.3	labels+footer ends
+3-212	afj_gif	footer	0	710	<rule end>	527400	6.04012	524941	-1829.1	no	60.4	3.4	5	labels+footer ends
+3-212	afj_gif	vagc_text	1	108.1	4:50	17400	5.99714	16749.5	2.2	yes		2.1	3.3	labels+footer ends
 3-212	afj_gif	vagc_text	0	108.9	146:00	525600	6.04012	524941	1.4	yes	60.4	3.4	5	labels+footer ends
 3-212	afj_gif	vagc_text	0	207.8	:10	526200	6.04012	524941	4.3	yes	60.4	3.4	5	labels+footer ends
-3-212	afj_gif	vagc_text	0	508.2	:40	171600	6.04012	524941	-356410	no	60.4	3.4	5	labels+footer ends
-3-212	afj_gif	vagc_text	0	608.8	:50	172200	6.04012	524941	-356418	no	60.4	3.4	5	labels+footer ends
-3-212	afj_gif	vagc_text	0	705.3	147:00	529200	6.04012	524941	-0.7	yes	60.4	3.4	5	labels+footer ends
-3-212	afj_gif	vagc_text	1	108.1	4:50	17400	5.99714	16749.5	2.2	yes		2.1	3.3	labels+footer ends
 3-212	afj_gif	vagc_text	1	209.1	5:00	18000	5.99714	16749.5	-3.3	yes		2.1	3.3	labels+footer ends
 3-212	afj_gif	vagc_text	1	308.3	5:10	18600	5.99714	16749.5	1.3	yes		2.1	3.3	labels+footer ends
 3-212	afj_gif	vagc_text	1	408.5	5:20	19200	5.99714	16749.5	0.3	yes		2.1	3.3	labels+footer ends
+3-212	afj_gif	vagc_text	0	508.2	:40	171600	6.04012	524941	-356410	no	60.4	3.4	5	labels+footer ends
 3-212	afj_gif	vagc_text	1	509.1	5:30	19800	5.99714	16749.5	-2.6	yes		2.1	3.3	labels+footer ends
 3-212	afj_gif	vagc_text	1	608.4	5:40	20400	5.99714	16749.5	2	yes		2.1	3.3	labels+footer ends
-3-212	afj_gif	vagc_text_footer	0	110	<rule end>	525600	6.04012	524941	-5	yes	60.4	3.4	5	labels+footer ends
-3-212	afj_gif	vagc_text_footer	0	710	<rule end>	527400	6.04012	524941	-1829.1	no	60.4	3.4	5	labels+footer ends
+3-212	afj_gif	vagc_text	0	608.8	:50	172200	6.04012	524941	-356418	no	60.4	3.4	5	labels+footer ends
+3-212	afj_gif	vagc_text	0	705.3	147:00	529200	6.04012	524941	-0.7	yes	60.4	3.4	5	labels+footer ends
 3-212	afj_gif	vagc_text_footer	1	105	<rule end>	527400	5.99714	16749.5	510021	no		2.1	3.3	labels+footer ends
+3-212	afj_gif	vagc_text_footer	0	110	<rule end>	525600	6.04012	524941	-5	yes	60.4	3.4	5	labels+footer ends
 3-212	afj_gif	vagc_text_footer	1	704	<rule end>	529200	5.99714	16749.5	508228	no		2.1	3.3	labels+footer ends
-3-213	afj_gif	vagc_text	0	118.9	146:00	525600	2.77898	525270	0	yes		0	0	labels
-3-213	afj_gif	vagc_text	0	334.8	146:10	526200	2.77898	525270	0	yes		0	0	labels
+3-212	afj_gif	vagc_text_footer	0	710	<rule end>	527400	6.04012	524941	-1829.1	no	60.4	3.4	5	labels+footer ends
 3-213	afj_gif	vagc_text	1	117.3	146:30	527400	2.78872	527073	0	yes		0	0	labels
+3-213	afj_gif	vagc_text	0	118.9	146:00	525600	2.77898	525270	0	yes		0	0	labels
 3-213	afj_gif	vagc_text	1	332.4	146:40	528000	2.78872	527073	0	yes		0	0	labels
+3-213	afj_gif	vagc_text	0	334.8	146:10	526200	2.77898	525270	0	yes		0	0	labels
 3-213	afj_gif	vagc_text	1	766.4	:10	529800	2.78872	527073	589.8	no		0	0	labels
 3-214	afj_gif	footer	1	139	<rule end>	531000	6.01442	20335.1	509829	no		1.7	2.4	labels+footer ends
 3-214	afj_gif	footer	1	541	<rule end>	532800	6.01442	20335.1	509211	no		1.7	2.4	labels+footer ends
 3-214	afj_gif	vagc_text	0	112.3	147:00	529200	6.0375	528530	-7.5	yes		4	7.5	labels
 3-214	afj_gif	vagc_text	0	210	:10	529800	6.0375	528530	2.7	yes		4	7.5	labels
-3-214	afj_gif	vagc_text	0	308.9	:20	530400	6.0375	528530	5.3	yes		4	7.5	labels
-3-214	afj_gif	vagc_text	0	408.7	147:30	531000	6.0375	528530	2.9	yes		4	7.5	labels
-3-214	afj_gif	vagc_text	0	508.4	:40	531600	6.0375	528530	0.9	yes		4	7.5	labels
-3-214	afj_gif	vagc_text	0	608.1	:50	532200	6.0375	528530	-1	yes		4	7.5	labels
-3-214	afj_gif	vagc_text	0	707.9	148:00	532800	6.0375	528530	-3.4	yes		4	7.5	labels
 3-214	afj_gif	vagc_text	1	210.6	6:00	21600	6.01442	20335.1	-1.9	yes		1.7	2.4	labels+footer ends
+3-214	afj_gif	vagc_text	0	308.9	:20	530400	6.0375	528530	5.3	yes		4	7.5	labels
 3-214	afj_gif	vagc_text	1	309.8	6:10	22200	6.01442	20335.1	1.9	yes		1.7	2.4	labels+footer ends
+3-214	afj_gif	vagc_text	0	408.7	147:30	531000	6.0375	528530	2.9	yes		4	7.5	labels
 3-214	afj_gif	vagc_text	1	409.9	6:20	22800	6.01442	20335.1	-0.3	yes		1.7	2.4	labels+footer ends
+3-214	afj_gif	vagc_text	0	508.4	:40	531600	6.0375	528530	0.9	yes		4	7.5	labels
 3-214	afj_gif	vagc_text	1	509.6	6:30	23400	6.01442	20335.1	0.1	yes		1.7	2.4	labels+footer ends
+3-214	afj_gif	vagc_text	0	608.1	:50	532200	6.0375	528530	-1	yes		4	7.5	labels
 3-214	afj_gif	vagc_text	1	608.9	6:40	24000	6.01442	20335.1	2.4	yes		1.7	2.4	labels+footer ends
+3-214	afj_gif	vagc_text	0	707.9	148:00	532800	6.0375	528530	-3.4	yes		4	7.5	labels
 3-214	afj_gif	vagc_text	1	709.5	6:50	24600	6.01442	20335.1	-2.2	yes		1.7	2.4	labels+footer ends
 3-214	afj_gif	vagc_text_footer	1	139	<rule end>	531000	6.01442	20335.1	509829	no		1.7	2.4	labels+footer ends
 3-214	afj_gif	vagc_text_footer	1	541	<rule end>	532800	6.01442	20335.1	509211	no		1.7	2.4	labels+footer ends
@@ -1292,22 +1292,22 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-215	afj_gif	vagc_text	0	349	147:lo	529800	2.78865	528823	3.3	yes	301.2	2.3	3.3	labels
 3-215	afj_gif	vagc_text	0	565.9	147:20	530400	2.78865	528823	-1.6	yes	301.2	2.3	3.3	labels
 3-216	afj_gif	vagc_text	0	98.9	148:00	532800	5.97524	532207	1.9	yes		1.9	2.4	labels
+3-216	afj_gif	vagc_text	1	101.9	6:50	24600	5.95688	23993.1	0	yes		0	0	labels
+3-216	afj_gif	vagc_text	1	202.6	7:00	25200	5.95688	23993.1	0	yes		0	0	labels
 3-216	afj_gif	vagc_text	0	300.4	:20	534000	5.97524	532207	-2.1	yes		1.9	2.4	labels
 3-216	afj_gif	vagc_text	0	400.5	148:30	534600	5.97524	532207	-0.3	yes		1.9	2.4	labels
 3-216	afj_gif	vagc_text	0	601.6	:50	535800	5.97524	532207	-1.8	yes		1.9	2.4	labels
 3-216	afj_gif	vagc_text	0	701.3	149:00	536400	5.97524	532207	2.4	yes		1.9	2.4	labels
-3-216	afj_gif	vagc_text	1	101.9	6:50	24600	5.95688	23993.1	0	yes		0	0	labels
-3-216	afj_gif	vagc_text	1	202.6	7:00	25200	5.95688	23993.1	0	yes		0	0	labels
 3-217	afj_gif	vagc_text	0	133.4	148:00	532800	2.77306	532430	-0.3	yes		0.5	0.7	labels
-3-217	afj_gif	vagc_text	0	349.4	148:10	533400	2.77306	532430	0.7	yes		0.5	0.7	labels
-3-217	afj_gif	vagc_text	0	566.1	148:20	534000	2.77306	532430	-0.3	yes		0.5	0.7	labels
-3-217	afj_gif	vagc_text	1	563.3	148:50	535800	2.80512	534220	0	yes		0	0	labels
-3-217	afj_gif	vagc_text	1	777.2	149:00--	536400	2.80512	534220	0	yes		0	0	labels
 3-217	afj_gif	vagc_text	2	222.3	0:00	0	184.095	-40919	-0	yes		0	0	labels
 3-217	afj_gif	vagc_text	2	320	5:00	18000	184.095	-40919	0	yes		0	0	labels
+3-217	afj_gif	vagc_text	0	349.4	148:10	533400	2.77306	532430	0.7	yes		0.5	0.7	labels
 3-217	afj_gif	vagc_text	2	461.1	11:40	42000	184.095	-40919	-1969.4	no		0	0	labels
+3-217	afj_gif	vagc_text	1	563.3	148:50	535800	2.80512	534220	0	yes		0	0	labels
+3-217	afj_gif	vagc_text	0	566.1	148:20	534000	2.77306	532430	-0.3	yes		0.5	0.7	labels
 3-217	afj_gif	vagc_text	2	671.9	21:40	78000	184.095	-40919	-4776.2	no		0	0	labels
 3-217	afj_gif	vagc_text	2	748.3	25:00	90000	184.095	-40919	-6846.7	no		0	0	labels
+3-217	afj_gif	vagc_text	1	777.2	149:00--	536400	2.80512	534220	0	yes		0	0	labels
 3-218	afj_gif	vagc_text	0	112.7	149:00	536400	6.02457	535729	-7.8	yes		4.5	7.8	labels
 3-218	afj_gif	vagc_text	0	209.7	:10	537000	6.02457	535729	7.8	yes		4.5	7.8	labels
 3-218	afj_gif	vagc_text	0	310.4	:20	537600	6.02457	535729	1	yes		4.5	7.8	labels
@@ -1315,16 +1315,16 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-218	afj_gif	vagc_text	0	509.3	:40	538800	6.02457	535729	2.3	yes		4.5	7.8	labels
 3-218	afj_gif	vagc_text	0	609.2	:50	539400	6.02457	535729	0.7	yes		4.5	7.8	labels
 3-218	afj_gif	vagc_text	0	709.5	150:00	540000	6.02457	535729	-3.4	yes		4.5	7.8	labels
+3-219	afj_gif	vagc_text	2	121.3	149:30	538200	2.80217	537860	0.4	yes	302.6	3.3	5.4	labels
 3-219	afj_gif	vagc_text	0	122.9	149:00	536400	2.79925	536056	-0	yes	302.3	0	0	labels
-3-219	afj_gif	vagc_text	0	765.9	149:30	538200	2.79925	536056	0	yes	302.3	0	0	labels
 3-219	afj_gif	vagc_text	1	182.4	29:00	104400	83.0257	89266.4	-6.7	yes	8966.8	14	19.5	labels
 3-219	afj_gif	vagc_text	1	194	29:15	105300	83.0257	89266.4	-73.7	no	8966.8	14	19.5	labels
 3-219	afj_gif	vagc_text	1	203.7	29:30	106200	83.0257	89266.4	19.5	yes	8966.8	14	19.5	labels
 3-219	afj_gif	vagc_text	1	215	29:45	107100	83.0257	89266.4	-12.8	yes	8966.8	14	19.5	labels
-3-219	afj_gif	vagc_text	2	121.3	149:30	538200	2.80217	537860	0.4	yes	302.6	3.3	5.4	labels
 3-219	afj_gif	vagc_text	2	334.8	149:40	538800	2.80217	537860	2.2	yes	302.6	3.3	5.4	labels
 3-219	afj_gif	vagc_text	2	551.6	149:50	539400	2.80217	537860	-5.4	yes	302.6	3.3	5.4	labels
 3-219	afj_gif	vagc_text	2	762.7	150:00	540000	2.80217	537860	2.9	yes	302.6	3.3	5.4	labels
+3-219	afj_gif	vagc_text	0	765.9	149:30	538200	2.79925	536056	0	yes	302.3	0	0	labels
 3-220	afj_gif	vagc_text	0	113.4	150:00	540000	5.99317	539323	-2.1	yes		1.8	2.8	labels
 3-220	afj_gif	vagc_text	0	212.8	:10	540600	5.99317	539323	1.8	yes		1.8	2.8	labels
 3-220	afj_gif	vagc_text	0	313.2	:20	541200	5.99317	539323	0.3	yes		1.8	2.8	labels
@@ -1332,9 +1332,9 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-220	afj_gif	vagc_text	0	513.1	:40	542400	5.99317	539323	2.4	yes		1.8	2.8	labels
 3-220	afj_gif	vagc_text	0	614.1	:50	543000	5.99317	539323	-2.8	yes		1.8	2.8	labels
 3-220	afj_gif	vagc_text	0	713.7	151:00	543600	5.99317	539323	0.2	yes		1.8	2.8	labels
-3-221	afj_gif	vagc_text	0	334.1	152:10	547800								labels
 3-221	afj_gif	vagc_text	1	113.7	150:30	541800	45.4869	536627	0	yes	4912.6	0	0	labels
 3-221	afj_gif	vagc_text	1	167.8	;11	544260	45.4869	536627	0	yes	4912.6	0	0	labels
+3-221	afj_gif	vagc_text	0	334.1	152:10	547800								labels
 3-222	afj_gif	footer	0	102	<rule end>	543600	5.99436	542959	29.3	yes	59.9	18	32.7	labels+footer ends
 3-222	afj_gif	footer	0	702	<rule end>	547200	5.99436	542959	32.7	yes	59.9	18	32.7	labels+footer ends
 3-222	afj_gif	vagc_text	0	108.9	151:00	543600	5.99436	542959	-12.3	yes	59.9	18	32.7	labels+footer ends
@@ -1370,11 +1370,11 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-226	afj_gif	vagc_text	0	696.4	154:00	554400	6.02444	550202	2.4	yes	60.2	5.2	9.1	labels+footer ends
 3-226	afj_gif	vagc_text_footer	0	372	<rule end>	550800	6.02444	550202	-1643.1	no	60.2	5.2	9.1	labels+footer ends
 3-226	afj_gif	vagc_text_footer	0	684	<rule end>	554400	6.02444	550202	77.3	no	60.2	5.2	9.1	labels+footer ends
-3-227	afj_gif	vagc_text	0	559.3	153:20	552000	2.7769	550447	0	yes	61.1	0	0	labels
-3-227	afj_gif	vagc_text	0	775.4	153:30	552600	2.7769	550447	0	yes	61.1	0	0	labels
 3-227	afj_gif	vagc_text	1	128.6	153:30	552600	2.78111	552243	-0.9	yes	300.4	1.3	1.9	labels
 3-227	afj_gif	vagc_text	1	343.3	153:40	553200	2.78111	552243	1.9	yes	300.4	1.3	1.9	labels
+3-227	afj_gif	vagc_text	0	559.3	153:20	552000	2.7769	550447	0	yes	61.1	0	0	labels
 3-227	afj_gif	vagc_text	1	560.1	153:50	553800	2.78111	552243	-0.9	yes	300.4	1.3	1.9	labels
+3-227	afj_gif	vagc_text	0	775.4	153:30	552600	2.7769	550447	0	yes	61.1	0	0	labels
 3-228	afj_gif	footer	0	111	<rule end>	554400	6.0201	553698	34.1	yes	72.2	18.4	34.1	labels+footer ends
 3-228	afj_gif	footer	0	711	<rule end>	558000	6.0201	553698	22	yes	72.2	18.4	34.1	labels+footer ends
 3-228	afj_gif	vagc_text	0	118.5	154:00	554400	6.0201	553698	-11.4	yes	72.2	18.4	34.1	labels+footer ends
@@ -1413,13 +1413,13 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-232	afj_gif	vagc_text_footer	0	101	<rule end>	561600	5.99612	560973	21.7	yes	60	11.1	21.7	labels+footer ends
 3-232	afj_gif	vagc_text_footer	0	702	<rule end>	565200	5.99612	560973	18	yes	60	11.1	21.7	labels+footer ends
 3-233	afj_gif	vagc_text	0	126.5	156;00	561600	2.77807	561248	1.1	yes	300	1.6	2.2	labels
-3-233	afj_gif	vagc_text	0	343.6	156:10	562200	2.77807	561248	-2.2	yes	300	1.6	2.2	labels
-3-233	afj_gif	vagc_text	0	558.4	156:20	562800	2.77807	561248	1.1	yes	300	1.6	2.2	labels
-3-233	afj_gif	vagc_text	0	775.5	156;36	563760	2.77807	561248	358	no	300	1.6	2.2	labels
 3-233	afj_gif	vagc_text	1	127.3	156:39	563940	2.76769	563057	530.5	no	300.3	0.4	0.6	labels
 3-233	afj_gif	vagc_text	1	340.8	156:40	564000	2.76769	563057	-0.3	yes	300.3	0.4	0.6	labels
+3-233	afj_gif	vagc_text	0	343.6	156:10	562200	2.77807	561248	-2.2	yes	300	1.6	2.2	labels
 3-233	afj_gif	vagc_text	1	557.3	156;50	564600	2.76769	563057	0.6	yes	300.3	0.4	0.6	labels
+3-233	afj_gif	vagc_text	0	558.4	156:20	562800	2.77807	561248	1.1	yes	300	1.6	2.2	labels
 3-233	afj_gif	vagc_text	1	774.4	157:00	565200	2.76769	563057	-0.3	yes	300.3	0.4	0.6	labels
+3-233	afj_gif	vagc_text	0	775.5	156;36	563760	2.77807	561248	358	no	300	1.6	2.2	labels
 3-234	afj_gif	vagc_text	0	115	157:00	565200	6.00734	564508	1.4	yes	60.1	2.5	5.5	labels
 3-234	afj_gif	vagc_text	0	214.7	:10	565800	6.00734	564508	2.5	yes	60.1	2.5	5.5	labels
 3-234	afj_gif	vagc_text	0	315.2	:20	566400	6.00734	564508	-1.5	yes	60.1	2.5	5.5	labels
@@ -1427,11 +1427,11 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-234	afj_gif	vagc_text	0	514.7	:40	567600	6.00734	564508	0.1	yes	60.1	2.5	5.5	labels
 3-234	afj_gif	vagc_text	0	614.4	:50	568200	6.00734	564508	1.2	yes	60.1	2.5	5.5	labels
 3-234	afj_gif	vagc_text	0	714.2	158:00	568800	6.00734	564508	1.8	yes	60.1	2.5	5.5	labels
-3-235	afj_gif	vagc_text	0	124.1	157:00	565200	2.78601	564854	0	yes	300.9	0	0	labels
-3-235	afj_gif	vagc_text	0	554.9	157:20	566400	2.78601	564854	0	yes	300.9	0	0	labels
 3-235	afj_gif	vagc_text	1	121.7	152:30	549000	86.9234	538421	0	yes	9387.7	0	0	labels
+3-235	afj_gif	vagc_text	0	124.1	157:00	565200	2.78601	564854	0	yes	300.9	0	0	labels
 3-235	afj_gif	vagc_text	1	335.7	157:40	567600	86.9234	538421	0	yes	9387.7	0	0	labels
 3-235	afj_gif	vagc_text	1	551.6	157:50—,	568200	86.9234	538421	-18167.4	no	9387.7	0	0	labels
+3-235	afj_gif	vagc_text	0	554.9	157:20	566400	2.78601	564854	0	yes	300.9	0	0	labels
 3-236	afj_gif	footer	0	118	<rule end>	568800	6.0069	568096	-4.9	yes	294.3	6.1	9	labels+footer ends
 3-236	afj_gif	footer	0	718	<rule end>	572400	6.0069	568096	-9	yes	294.3	6.1	9	labels+footer ends
 3-236	afj_gif	vagc_text	0	117.6	158:00	568800	6.0069	568096	-2.3	yes	294.3	6.1	9	labels+footer ends
@@ -1441,8 +1441,8 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-236	afj_gif	vagc_text_footer	0	118	<rule end>	568800	6.0069	568096	-4.9	yes	294.3	6.1	9	labels+footer ends
 3-236	afj_gif	vagc_text_footer	0	718	<rule end>	572400	6.0069	568096	-9	yes	294.3	6.1	9	labels+footer ends
 3-237	afj_gif	vagc_text	0	114	158:00	568800	2.79634	568481	0	yes		0	0	labels
-3-237	afj_gif	vagc_text	0	543.1	158:20	570000	2.79634	568481	0	yes		0	0	labels
 3-237	afj_gif	vagc_text	1	326.4	155:10	558600	60.7836	538761	-0	yes		0	0	labels
+3-237	afj_gif	vagc_text	0	543.1	158:20	570000	2.79634	568481	0	yes		0	0	labels
 3-237	afj_gif	vagc_text	1	543.5	158:50	571800	60.7836	538761	-0	yes		0	0	labels
 3-238	afj_gif	vagc_text	0	131.7	159:00	572400	6.02982	571604	1.9	yes		5.1	8.3	labels
 3-238	afj_gif	vagc_text	0	231.2	:10	573000	6.02982	571604	1.8	yes		5.1	8.3	labels
@@ -1455,138 +1455,138 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-239	afj_gif	vagc_text	0	337.4	159:10—	573000	2.8306	572045	-0	yes	302.9	0	0	labels
 3-239	afj_gif	vagc_text	1	342.2	159:40	574800	2.77252	573851	0	yes	299.4	0	0	labels
 3-239	afj_gif	vagc_text	1	558.6	159:50	575400	2.77252	573851	0	yes	299.4	0	0	labels
-3-240	afj_gif	footer	0	122	<rule end>	576000	6.00441	575267	0.3	yes	90.1	0.9	1.7	labels+footer ends
-3-240	afj_gif	footer	0	722	<rule end>	577800	6.00441	575267	-1802.3	no	90.1	0.9	1.7	labels+footer ends
 3-240	afj_gif	footer	1	121	<rule end>	577800	3.00271	4432.9	573004	no		0	0	labels+footer ends
+3-240	afj_gif	footer	0	122	<rule end>	576000	6.00441	575267	0.3	yes	90.1	0.9	1.7	labels+footer ends
 3-240	afj_gif	footer	1	719	<rule end>	579600	3.00271	4432.9	573008	no		0	0	labels+footer ends
+3-240	afj_gif	footer	0	722	<rule end>	577800	6.00441	575267	-1802.3	no	90.1	0.9	1.7	labels+footer ends
 3-240	afj_gif	vagc_text	0	122.2	160:00	576000	6.00441	575267	-0.7	yes	90.1	0.9	1.7	labels+footer ends
 3-240	afj_gif	vagc_text	0	322	:20	577200	6.00441	575267	-0.5	yes	90.1	0.9	1.7	labels+footer ends
+3-240	afj_gif	vagc_text	1	322.1	1:30	5400	3.00271	4432.9	0	yes		0	0	labels+footer ends
 3-240	afj_gif	vagc_text	0	421.8	160:30	577800	6.00441	575267	0.3	yes	90.1	0.9	1.7	labels+footer ends
 3-240	afj_gif	vagc_text	0	521.5	:40	578400	6.00441	575267	1.7	yes	90.1	0.9	1.7	labels+footer ends
-3-240	afj_gif	vagc_text	0	721.8	161:00	579600	6.00441	575267	-1.1	yes	90.1	0.9	1.7	labels+footer ends
-3-240	afj_gif	vagc_text	1	322.1	1:30	5400	3.00271	4432.9	0	yes		0	0	labels+footer ends
 3-240	afj_gif	vagc_text	1	721.7	:50	6600	3.00271	4432.9	0	yes		0	0	labels+footer ends
-3-240	afj_gif	vagc_text_footer	0	122	<rule end>	576000	6.00441	575267	0.3	yes	90.1	0.9	1.7	labels+footer ends
-3-240	afj_gif	vagc_text_footer	0	722	<rule end>	577800	6.00441	575267	-1802.3	no	90.1	0.9	1.7	labels+footer ends
+3-240	afj_gif	vagc_text	0	721.8	161:00	579600	6.00441	575267	-1.1	yes	90.1	0.9	1.7	labels+footer ends
 3-240	afj_gif	vagc_text_footer	1	121	<rule end>	577800	3.00271	4432.9	573004	no		0	0	labels+footer ends
+3-240	afj_gif	vagc_text_footer	0	122	<rule end>	576000	6.00441	575267	0.3	yes	90.1	0.9	1.7	labels+footer ends
 3-240	afj_gif	vagc_text_footer	1	719	<rule end>	579600	3.00271	4432.9	573008	no		0	0	labels+footer ends
+3-240	afj_gif	vagc_text_footer	0	722	<rule end>	577800	6.00441	575267	-1802.3	no	90.1	0.9	1.7	labels+footer ends
 3-241	afj_gif	vagc_text	0	134.9	160:30-	577800	2.79417	577423	0	yes	121.5	0	0	labels
 3-241	afj_gif	vagc_text	0	564.4	160:50	579000	2.79417	577423	0	yes	121.5	0	0	labels
 3-242	afj_gif	vagc_text	0	106.9	161:00	579600	6.01068	578960	-2.8	yes		2.3	3.4	labels
 3-242	afj_gif	vagc_text	0	206	:10	580200	6.01068	578960	2.1	yes		2.3	3.4	labels
 3-242	afj_gif	vagc_text	0	306.4	:20	580800	6.01068	578960	-1.8	yes		2.3	3.4	labels
+3-242	afj_gif	vagc_text	1	307.6	:30	581400	30.5565	572001	0	yes		0	0	labels
 3-242	afj_gif	vagc_text	0	405.4	161:30	581400	6.01068	578960	3.4	yes		2.3	3.4	labels
+3-242	afj_gif	vagc_text	1	405.8	:20	584400	30.5565	572001	0	yes		0	0	labels
 3-242	afj_gif	vagc_text	0	505.5	:40	582000	6.01068	578960	1.6	yes		2.3	3.4	labels
+3-242	afj_gif	vagc_text	1	507.5	:10	587400	30.5565	572001	-108.3	no		0	0	labels
 3-242	afj_gif	vagc_text	0	605.6	:50	582600	6.01068	578960	-0.1	yes		2.3	3.4	labels
 3-242	afj_gif	vagc_text	0	705.8	162:00	583200	6.01068	578960	-2.4	yes		2.3	3.4	labels
-3-242	afj_gif	vagc_text	1	307.6	:30	581400	30.5565	572001	0	yes		0	0	labels
-3-242	afj_gif	vagc_text	1	405.8	:20	584400	30.5565	572001	0	yes		0	0	labels
-3-242	afj_gif	vagc_text	1	507.5	:10	587400	30.5565	572001	-108.3	no		0	0	labels
 3-243	afj_gif	vagc_text	0	133.3	161:30	581400								labels
-3-244	afj_gif	vagc_text	0	105.6	162:00	583200	5.98091	582570	-1.3	yes	59.8	3.6	6	labels
-3-244	afj_gif	vagc_text	0	204.7	:10	583800	5.98091	582570	6	yes	59.8	3.6	6	labels
-3-244	afj_gif	vagc_text	0	306.7	:20	584400	5.98091	582570	-4	yes	59.8	3.6	6	labels
-3-244	afj_gif	vagc_text	0	406.8	162:30	585000	5.98091	582570	-2.8	yes	59.8	3.6	6	labels
-3-244	afj_gif	vagc_text	0	606.6	:50	586200	5.98091	582570	2.1	yes	59.8	3.6	6	labels
 3-244	afj_gif	vagc_text	1	104.8	0:10	600	5.96314	-21.5	-3.6	yes		3.2	4.6	labels
+3-244	afj_gif	vagc_text	0	105.6	162:00	583200	5.98091	582570	-1.3	yes	59.8	3.6	6	labels
 3-244	afj_gif	vagc_text	1	204.1	0:20	1200	5.96314	-21.5	4.6	yes		3.2	4.6	labels
+3-244	afj_gif	vagc_text	0	204.7	:10	583800	5.98091	582570	6	yes	59.8	3.6	6	labels
 3-244	afj_gif	vagc_text	1	305.6	0:30	1800	5.96314	-21.5	-1.1	yes		3.2	4.6	labels
+3-244	afj_gif	vagc_text	0	306.7	:20	584400	5.98091	582570	-4	yes	59.8	3.6	6	labels
 3-244	afj_gif	vagc_text	1	405.5	0:40	2400	5.96314	-21.5	3.3	yes		3.2	4.6	labels
+3-244	afj_gif	vagc_text	0	406.8	162:30	585000	5.98091	582570	-2.8	yes	59.8	3.6	6	labels
 3-244	afj_gif	vagc_text	1	507.4	0:50	3000	5.96314	-21.5	-4	yes		3.2	4.6	labels
+3-244	afj_gif	vagc_text	0	606.6	:50	586200	5.98091	582570	2.1	yes	59.8	3.6	6	labels
 3-244	afj_gif	vagc_text	1	607.2	1:00	3600	5.96314	-21.5	0.8	yes		3.2	4.6	labels
 3-245	afj_gif	vagc_text	0	109.3	162:00	583200	8.30143	582293	-0	yes	896.6	0	0	labels
-3-245	afj_gif	vagc_text	0	326.1	162:30	585000	8.30143	582293	0	yes	896.6	0	0	labels
 3-245	afj_gif	vagc_text	1	323.2	162:40	585600	2.80917	584692	0	yes	303.4	0	0	labels
+3-245	afj_gif	vagc_text	0	326.1	162:30	585000	8.30143	582293	0	yes	896.6	0	0	labels
 3-245	afj_gif	vagc_text	1	750.4	163:00	586800	2.80917	584692	0	yes	303.4	0	0	labels
+3-246	afj_gif	vagc_text	1	114.9	1:10	4200	5.99736	3509.4	1.5	yes		1.6	1.8	labels
 3-246	afj_gif	vagc_text	0	119.3	163:00	586800	6.01501	586097	-15.2	yes	66.2	11.7	20.3	labels
 3-246	afj_gif	vagc_text	0	213.2	:10	587400	6.01501	586097	20.3	yes	66.2	11.7	20.3	labels
-3-246	afj_gif	vagc_text	0	316	:20	588000	6.01501	586097	2.1	yes	66.2	11.7	20.3	labels
-3-246	afj_gif	vagc_text	0	416.9	163:30	588600	6.01501	586097	-5.3	yes	66.2	11.7	20.3	labels
-3-246	afj_gif	vagc_text	0	516.1	:40	589200	6.01501	586097	-1.9	yes	66.2	11.7	20.3	labels
-3-246	afj_gif	vagc_text	1	114.9	1:10	4200	5.99736	3509.4	1.5	yes		1.6	1.8	labels
 3-246	afj_gif	vagc_text	1	215.4	1:20	4800	5.99736	3509.4	-1.3	yes		1.6	1.8	labels
 3-246	afj_gif	vagc_text	1	315.5	1:30	5400	5.99736	3509.4	-1.8	yes		1.6	1.8	labels
+3-246	afj_gif	vagc_text	0	316	:20	588000	6.01501	586097	2.1	yes	66.2	11.7	20.3	labels
 3-246	afj_gif	vagc_text	1	415	1:40	6000	5.99736	3509.4	1.6	yes		1.6	1.8	labels
+3-246	afj_gif	vagc_text	0	416.9	163:30	588600	6.01501	586097	-5.3	yes	66.2	11.7	20.3	labels
+3-246	afj_gif	vagc_text	0	516.1	:40	589200	6.01501	586097	-1.9	yes	66.2	11.7	20.3	labels
+3-247	afj_gif	vagc_text	1	337.2	163:40	589200	2.75177	588272	-0	yes		0	0	labels
 3-247	afj_gif	vagc_text	0	338.9	163:10	587400	2.78425	586456	0	yes	297.9	0	0	labels
 3-247	afj_gif	vagc_text	0	554.4	163:20	588000	2.78425	586456	-0	yes	297.9	0	0	labels
-3-247	afj_gif	vagc_text	1	337.2	163:40	589200	2.75177	588272	-0	yes		0	0	labels
 3-247	afj_gif	vagc_text	1	555.2	163:50	589800	2.75177	588272	-0	yes		0	0	labels
+3-248	afj_gif	vagc_text	1	116.9	2:10	7800	2.99875	7448.2	1.3	yes		1.2	1.5	labels
 3-248	afj_gif	vagc_text	0	118	164:00	590400	3.00532	590044	1.4	yes		3.1	5.3	labels
 3-248	afj_gif	vagc_text	0	218.5	:05	590700	3.00532	590044	-0.7	yes		3.1	5.3	labels
 3-248	afj_gif	vagc_text	0	317.2	:10	591000	3.00532	590044	2.7	yes		3.1	5.3	labels
+3-248	afj_gif	vagc_text	1	317.9	2:20	8400	2.99875	7448.2	-1.5	yes		1.2	1.5	labels
 3-248	afj_gif	vagc_text	0	418.4	164:15	591300	3.00532	590044	-1.6	yes		3.1	5.3	labels
+3-248	afj_gif	vagc_text	1	517.8	2:30	9000	2.99875	7448.2	-0.9	yes		1.2	1.5	labels
 3-248	afj_gif	vagc_text	0	519	:20	591600	3.00532	590044	-3.7	yes		3.1	5.3	labels
 3-248	afj_gif	vagc_text	0	618.7	:25	591900	3.00532	590044	-3.4	yes		3.1	5.3	labels
 3-248	afj_gif	vagc_text	0	715.6	164:30	592200	3.00532	590044	5.3	yes		3.1	5.3	labels
-3-248	afj_gif	vagc_text	1	116.9	2:10	7800	2.99875	7448.2	1.3	yes		1.2	1.5	labels
-3-248	afj_gif	vagc_text	1	317.9	2:20	8400	2.99875	7448.2	-1.5	yes		1.2	1.5	labels
-3-248	afj_gif	vagc_text	1	517.8	2:30	9000	2.99875	7448.2	-0.9	yes		1.2	1.5	labels
 3-248	afj_gif	vagc_text	1	717.2	2:40	9600	2.99875	7448.2	1.1	yes		1.2	1.5	labels
 3-249	afj_gif	vagc_text	0	141.1	164:00	590400	2.79413	590006	0	yes	301.8	0	0	labels
 3-249	afj_gif	vagc_text	0	355.8	164:10	591000	2.79413	590006	0	yes	301.8	0	0	labels
 3-250	afj_gif	footer	1	341	<rule end>	593100	3.00621	9283.1	582792	no		1.5	1.7	labels+footer ends
 3-250	afj_gif	footer	1	675	<rule end>	594000	3.00621	9283.1	582688	no		1.5	1.7	labels+footer ends
 3-250	afj_gif	vagc_text	0	102.5	164:30	592200	3.00511	591891	1	yes		1.1	1.6	labels
+3-250	afj_gif	vagc_text	1	104.9	2:40	9600	3.00621	9283.1	1.6	yes		1.5	1.7	labels+footer ends
 3-250	afj_gif	vagc_text	0	203	:35	592500	3.00511	591891	-1.1	yes		1.1	1.6	labels
 3-250	afj_gif	vagc_text	0	302.4	:40	592800	3.00511	591891	0.3	yes		1.1	1.6	labels
+3-250	afj_gif	vagc_text	1	305.6	2:50	10200	3.00621	9283.1	-1.7	yes		1.5	1.7	labels+footer ends
 3-250	afj_gif	vagc_text	0	402.1	164:45	593100	3.00511	591891	0.7	yes		1.1	1.6	labels
 3-250	afj_gif	vagc_text	0	502.6	:50	593400	3.00511	591891	-1.4	yes		1.1	1.6	labels
+3-250	afj_gif	vagc_text	1	505.1	3:00	10800	3.00621	9283.1	-1.4	yes		1.5	1.7	labels+footer ends
 3-250	afj_gif	vagc_text	0	602.3	:55	593700	3.00511	591891	-1.1	yes		1.1	1.6	labels
 3-250	afj_gif	vagc_text	0	701.3	165:00	594000	3.00511	591891	1.6	yes		1.1	1.6	labels
-3-250	afj_gif	vagc_text	1	104.9	2:40	9600	3.00621	9283.1	1.6	yes		1.5	1.7	labels+footer ends
-3-250	afj_gif	vagc_text	1	305.6	2:50	10200	3.00621	9283.1	-1.7	yes		1.5	1.7	labels+footer ends
-3-250	afj_gif	vagc_text	1	505.1	3:00	10800	3.00621	9283.1	-1.4	yes		1.5	1.7	labels+footer ends
 3-250	afj_gif	vagc_text	1	703.7	3:10	11400	3.00621	9283.1	1.5	yes		1.5	1.7	labels+footer ends
 3-250	afj_gif	vagc_text_footer	1	341	<rule end>	593100	3.00621	9283.1	582792	no		1.5	1.7	labels+footer ends
 3-250	afj_gif	vagc_text_footer	1	675	<rule end>	594000	3.00621	9283.1	582688	no		1.5	1.7	labels+footer ends
 3-252	afj_gif	vagc_text	0	115.6	165:00	594000	5.99874	593307	-0.5	yes	60	1.4	2.1	labels
-3-252	afj_gif	vagc_text	0	215.4	:10	594600	5.99874	593307	1	yes	60	1.4	2.1	labels
-3-252	afj_gif	vagc_text	0	316	:20	595200	5.99874	593307	-2.1	yes	60	1.4	2.1	labels
-3-252	afj_gif	vagc_text	0	415.5	165:30	595800	5.99874	593307	0.6	yes	60	1.4	2.1	labels
-3-252	afj_gif	vagc_text	0	515.3	;40	596400	5.99874	593307	1.8	yes	60	1.4	2.1	labels
-3-252	afj_gif	vagc_text	0	615.5	:50	597000	5.99874	593307	1.2	yes	60	1.4	2.1	labels
-3-252	afj_gif	vagc_text	0	716	166:00	597600	5.99874	593307	-1.9	yes	60	1.4	2.1	labels
 3-252	afj_gif	vagc_text	1	116.5	3:10	11400	5.99524	10700.6	1.1	yes		1.7	2.7	labels
+3-252	afj_gif	vagc_text	0	215.4	:10	594600	5.99874	593307	1	yes	60	1.4	2.1	labels
 3-252	afj_gif	vagc_text	1	217	3:20	12000	5.99524	10700.6	-1.6	yes		1.7	2.7	labels
+3-252	afj_gif	vagc_text	0	316	:20	595200	5.99874	593307	-2.1	yes	60	1.4	2.1	labels
 3-252	afj_gif	vagc_text	1	316.4	3:30	12600	5.99524	10700.6	2.7	yes		1.7	2.7	labels
+3-252	afj_gif	vagc_text	0	415.5	165:30	595800	5.99874	593307	0.6	yes	60	1.4	2.1	labels
 3-252	afj_gif	vagc_text	1	417.2	3:40	13200	5.99524	10700.6	-1.5	yes		1.7	2.7	labels
+3-252	afj_gif	vagc_text	0	515.3	;40	596400	5.99874	593307	1.8	yes	60	1.4	2.1	labels
 3-252	afj_gif	vagc_text	1	517.4	3:50	13800	5.99524	10700.6	-2.3	yes		1.7	2.7	labels
+3-252	afj_gif	vagc_text	0	615.5	:50	597000	5.99874	593307	1.2	yes	60	1.4	2.1	labels
 3-252	afj_gif	vagc_text	1	617.1	4:00	14400	5.99524	10700.6	-0	yes		1.7	2.7	labels
+3-252	afj_gif	vagc_text	0	716	166:00	597600	5.99874	593307	-1.9	yes	60	1.4	2.1	labels
 3-252	afj_gif	vagc_text	1	716.9	4:10	15000	5.99524	10700.6	1.7	yes		1.7	2.7	labels
 3-253	afj_gif	vagc_text	0	330.8	165:10	594600	19.4491	588166	-0	yes	2100.5	0	0	labels
 3-253	afj_gif	vagc_text	0	546.8	166:20	598800	19.4491	588166	-0	yes	2100.5	0	0	labels
+3-254	afj_gif	vagc_text	1	126.1	4:10	15000	5.98421	14243.6	1.7	yes		2.1	3.9	labels
 3-254	afj_gif	vagc_text	0	127.7	166:00	597600	5.99622	596835	-0.3	yes		1.5	2.9	labels
+3-254	afj_gif	vagc_text	1	227.1	4:20	15600	5.98421	14243.6	-2.4	yes		2.1	3.9	labels
 3-254	afj_gif	vagc_text	0	227.5	:10	598200	5.99622	596835	1.4	yes		1.5	2.9	labels
+3-254	afj_gif	vagc_text	1	326.8	4:30	16200	5.98421	14243.6	0.9	yes		2.1	3.9	labels
 3-254	afj_gif	vagc_text	0	328	:20	598800	5.99622	596835	-1.5	yes		1.5	2.9	labels
+3-254	afj_gif	vagc_text	1	426.9	4:40	16800	5.98421	14243.6	1.8	yes		2.1	3.9	labels
 3-254	afj_gif	vagc_text	0	428.1	166:30	599400	5.99622	596835	-1.8	yes		1.5	2.9	labels
 3-254	afj_gif	vagc_text	0	527.4	:40	600000	5.99622	596835	2.9	yes		1.5	2.9	labels
-3-254	afj_gif	vagc_text	0	628	:50	600600	5.99622	596835	0	yes		1.5	2.9	labels
-3-254	afj_gif	vagc_text	0	728.2	167:00	601200	5.99622	596835	-0.8	yes		1.5	2.9	labels
-3-254	afj_gif	vagc_text	1	126.1	4:10	15000	5.98421	14243.6	1.7	yes		2.1	3.9	labels
-3-254	afj_gif	vagc_text	1	227.1	4:20	15600	5.98421	14243.6	-2.4	yes		2.1	3.9	labels
-3-254	afj_gif	vagc_text	1	326.8	4:30	16200	5.98421	14243.6	0.9	yes		2.1	3.9	labels
-3-254	afj_gif	vagc_text	1	426.9	4:40	16800	5.98421	14243.6	1.8	yes		2.1	3.9	labels
 3-254	afj_gif	vagc_text	1	528.1	4:50	17400	5.98421	14243.6	-3.9	yes		2.1	3.9	labels
 3-254	afj_gif	vagc_text	1	627.6	5:00	18000	5.98421	14243.6	0.5	yes		2.1	3.9	labels
+3-254	afj_gif	vagc_text	0	628	:50	600600	5.99622	596835	0	yes		1.5	2.9	labels
 3-254	afj_gif	vagc_text	1	727.7	5:10	18600	5.98421	14243.6	1.4	yes		2.1	3.9	labels
+3-254	afj_gif	vagc_text	0	728.2	167:00	601200	5.99622	596835	-0.8	yes		1.5	2.9	labels
+3-256	afj_gif	vagc_text	1	122.2	5:10	18600	5.97353	17867.3	2.5	yes		2.1	3.2	labels
 3-256	afj_gif	vagc_text	0	123.4	167:00	601200	6.02926	600454	1.4	yes		3.4	5.8	labels
 3-256	afj_gif	vagc_text	0	223.2	:10	601800	6.02926	600454	-0.1	yes		3.4	5.8	labels
-3-256	afj_gif	vagc_text	0	322.8	:20	602400	6.02926	600454	-0.8	yes		3.4	5.8	labels
-3-256	afj_gif	vagc_text	0	421.8	167:30	603000	6.02926	600454	2.6	yes		3.4	5.8	labels
-3-256	afj_gif	vagc_text	0	522.3	:40	603600	6.02926	600454	-3.6	yes		3.4	5.8	labels
-3-256	afj_gif	vagc_text	0	622.1	:50	604200	6.02926	600454	-5.2	yes		3.4	5.8	labels
-3-256	afj_gif	vagc_text	0	719.8	168:00	604800	6.02926	600454	5.8	yes		3.4	5.8	labels
-3-256	afj_gif	vagc_text	1	122.2	5:10	18600	5.97353	17867.3	2.5	yes		2.1	3.2	labels
 3-256	afj_gif	vagc_text	1	223.2	5:20	19200	5.97353	17867.3	-0.6	yes		2.1	3.2	labels
+3-256	afj_gif	vagc_text	0	322.8	:20	602400	6.02926	600454	-0.8	yes		3.4	5.8	labels
 3-256	afj_gif	vagc_text	1	324.1	5:30	19800	5.97353	17867.3	-3.2	yes		2.1	3.2	labels
+3-256	afj_gif	vagc_text	0	421.8	167:30	603000	6.02926	600454	2.6	yes		3.4	5.8	labels
 3-256	afj_gif	vagc_text	1	423.9	5:40	20400	5.97353	17867.3	0.8	yes		2.1	3.2	labels
+3-256	afj_gif	vagc_text	0	522.3	:40	603600	6.02926	600454	-3.6	yes		3.4	5.8	labels
 3-256	afj_gif	vagc_text	1	524.8	5:50	21000	5.97353	17867.3	-1.9	yes		2.1	3.2	labels
+3-256	afj_gif	vagc_text	0	622.1	:50	604200	6.02926	600454	-5.2	yes		3.4	5.8	labels
 3-256	afj_gif	vagc_text	1	624.5	6:00	21600	5.97353	17867.3	2.5	yes		2.1	3.2	labels
+3-256	afj_gif	vagc_text	0	719.8	168:00	604800	6.02926	600454	5.8	yes		3.4	5.8	labels
 3-257	afj_gif	vagc_text	0	136	167:00	601200	2.78221	600822	-0.5	yes	208.7	0.7	0.9	labels
-3-257	afj_gif	vagc_text	0	351.2	167:10—	601800	2.78221	600822	0.9	yes	208.7	0.7	0.9	labels
-3-257	afj_gif	vagc_text	0	567.3	167:20	602400	2.78221	600822	-0.5	yes	208.7	0.7	0.9	labels
 3-257	afj_gif	vagc_text	1	137.6	167:30	603000	2.78087	602615	2	yes	300.3	2.8	4.2	labels
+3-257	afj_gif	vagc_text	0	351.2	167:10—	601800	2.78221	600822	0.9	yes	208.7	0.7	0.9	labels
 3-257	afj_gif	vagc_text	1	354.5	167:40	603600	2.78087	602615	-1	yes	300.3	2.8	4.2	labels
+3-257	afj_gif	vagc_text	0	567.3	167:20	602400	2.78221	600822	-0.5	yes	208.7	0.7	0.9	labels
 3-257	afj_gif	vagc_text	1	571.4	167:50	604200	2.78087	602615	-4.2	yes	300.3	2.8	4.2	labels
 3-257	afj_gif	vagc_text	1	784.5	168:00	604800	2.78087	602615	3.1	yes	300.3	2.8	4.2	labels
 3-258	afj_gif	footer	0	106	<rule end>	604800	6.02362	604140	21	yes	60.2	10.3	21	labels+footer ends
@@ -1620,10 +1620,10 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-262	afj_gif	vagc_text	0	613.9	:55	611700	3.00935	609854	-0.9	yes		1.5	2.7	labels
 3-262	afj_gif	vagc_text	0	713.2	170:00	612000	3.00935	609854	0.1	yes		1.5	2.7	labels
 3-263	afj_gif	vagc_text	0	114.1	169:30	610200	2.7833	609882	0	yes	126.6	0	0	labels
-3-263	afj_gif	vagc_text	0	329.7	169:40	610800	2.7833	609882	0	yes	126.6	0	0	labels
 3-263	afj_gif	vagc_text	1	199.4	0:00	0	158.228	-31550.8	0	yes	7199.4	0	0	labels
 3-263	afj_gif	vagc_text	1	286.6	3:50	13800	158.228	-31550.8	0	yes	7199.4	0	0	labels
 3-263	afj_gif	vagc_text	1	307.1	4:50	17400	158.228	-31550.8	352.1	no	7199.4	0	0	labels
+3-263	afj_gif	vagc_text	0	329.7	169:40	610800	2.7833	609882	0	yes	126.6	0	0	labels
 3-263	afj_gif	vagc_text	1	340.2	6:30	23400	158.228	-31550.8	1128.7	no	7199.4	0	0	labels
 3-263	afj_gif	vagc_text	1	351	7:18	26280	158.228	-31550.8	2298.8	no	7199.4	0	0	labels
 3-264	afj_gif	footer	0	147	<rule end>	612000	2.98538	611646	-84.5	no	89.6	1.7	2.9	labels+footer ends
@@ -1647,22 +1647,22 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-266	afj_gif	vagc_text	0	500.3	:50	615000	3.00081	613500	-1.6	yes	30	2.8	4.6	labels
 3-266	afj_gif	vagc_text	0	600.5	:55	615300	3.00081	613500	-2.3	yes	30	2.8	4.6	labels
 3-266	afj_gif	vagc_text	0	698.2	171:00	615600	3.00081	613500	4.6	yes	30	2.8	4.6	labels
-3-268	afj_gif	footer	0	108	<rule end>	615600	2.99541	615271	5.6	yes	30	3.4	5.6	labels+footer ends
-3-268	afj_gif	footer	0	709	<rule end>	616500	2.99541	615271	-894.6	no	30	3.4	5.6	labels+footer ends
 3-268	afj_gif	footer	1	107	<rule end>	616500	1340.84	-330575	803605	no		0	0	labels+footer ends
+3-268	afj_gif	footer	0	108	<rule end>	615600	2.99541	615271	5.6	yes	30	3.4	5.6	labels+footer ends
 3-268	afj_gif	footer	1	707	<rule end>	617400	1340.84	-330575	0	yes		0	0	labels+footer ends
+3-268	afj_gif	footer	0	709	<rule end>	616500	2.99541	615271	-894.6	no	30	3.4	5.6	labels+footer ends
 3-268	afj_gif	vagc_text	0	109.9	171:00	615600	2.99541	615271	-0.2	yes	30	3.4	5.6	labels+footer ends
 3-268	afj_gif	vagc_text	0	210.9	:05	615900	2.99541	615271	-2.6	yes	30	3.4	5.6	labels+footer ends
+3-268	afj_gif	vagc_text	1	247.9	0:30	1800	1340.84	-330575	0	yes		0	0	labels+footer ends
 3-268	afj_gif	vagc_text	0	310.3	:10	616200	2.99541	615271	-0.4	yes	30	3.4	5.6	labels+footer ends
 3-268	afj_gif	vagc_text	0	411.6	171:15	616500	2.99541	615271	-3.7	yes	30	3.4	5.6	labels+footer ends
 3-268	afj_gif	vagc_text	0	511.8	:20	616800	2.99541	615271	-3.8	yes	30	3.4	5.6	labels+footer ends
 3-268	afj_gif	vagc_text	0	610.6	:25	617100	2.99541	615271	0.1	yes	30	3.4	5.6	labels+footer ends
 3-268	afj_gif	vagc_text	0	709.2	171:30	617400	2.99541	615271	4.9	yes	30	3.4	5.6	labels+footer ends
-3-268	afj_gif	vagc_text	1	247.9	0:30	1800	1340.84	-330575	0	yes		0	0	labels+footer ends
-3-268	afj_gif	vagc_text_footer	0	108	<rule end>	615600	2.99541	615271	5.6	yes	30	3.4	5.6	labels+footer ends
-3-268	afj_gif	vagc_text_footer	0	709	<rule end>	616500	2.99541	615271	-894.6	no	30	3.4	5.6	labels+footer ends
 3-268	afj_gif	vagc_text_footer	1	107	<rule end>	616500	1340.84	-330575	803605	no		0	0	labels+footer ends
+3-268	afj_gif	vagc_text_footer	0	108	<rule end>	615600	2.99541	615271	5.6	yes	30	3.4	5.6	labels+footer ends
 3-268	afj_gif	vagc_text_footer	1	707	<rule end>	617400	1340.84	-330575	0	yes		0	0	labels+footer ends
+3-268	afj_gif	vagc_text_footer	0	709	<rule end>	616500	2.99541	615271	-894.6	no	30	3.4	5.6	labels+footer ends
 3-270	afj_gif	vagc_text	0	140.5	171:30	617400	3.01267	616974	2.3	yes		1.9	3.2	labels
 3-270	afj_gif	vagc_text	0	241.1	:35	617700	3.01267	616974	-0.6	yes		1.9	3.2	labels
 3-270	afj_gif	vagc_text	0	340.8	:40	618000	3.01267	616974	-1.2	yes		1.9	3.2	labels
@@ -1730,33 +1730,33 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-284	afj_gif	vagc_text	0	715.6	176:00	633600	6.00688	629305	-3.5	yes	60.1	11.9	22.3	labels+footer ends
 3-284	afj_gif	vagc_text_footer	0	112	<rule end>	630000	6.00688	629305	22.3	yes	60.1	11.9	22.3	labels+footer ends
 3-284	afj_gif	vagc_text_footer	0	712	<rule end>	633600	6.00688	629305	18.2	yes	60.1	11.9	22.3	labels+footer ends
+3-285	afj_gif	vagc_text	1	91.9	175:30	631800	10089.3	-295126	0	yes	877766	0	0	labels
 3-285	afj_gif	vagc_text	0	92	175:00	630000	2.76484	629746	-0.3	yes	298.6	0.3	0.4	labels
+3-285	afj_gif	vagc_text	1	306	775:43	2792580	10089.3	-295126	-0	yes	877766	0	0	labels
 3-285	afj_gif	vagc_text	0	308.7	175:10	630600	2.76484	629746	0.4	yes	298.6	0.3	0.4	labels
 3-285	afj_gif	vagc_text	0	525	175:29--	631740	2.76484	629746	542.4	no	298.6	0.3	0.4	labels
 3-285	afj_gif	vagc_text	0	742.9	175:30	631800	2.76484	629746	-0.1	yes	298.6	0.3	0.4	labels
-3-285	afj_gif	vagc_text	1	91.9	175:30	631800	10089.3	-295126	0	yes	877766	0	0	labels
-3-285	afj_gif	vagc_text	1	306	775:43	2792580	10089.3	-295126	-0	yes	877766	0	0	labels
 3-286	afj_gif	footer	0	104	<rule end>	633600	6.00981	632961	13.8	yes	60.1	6.4	13.8	labels+footer ends
-3-286	afj_gif	footer	0	702	<rule end>	635400	6.00981	632961	-1780.1	no	60.1	6.4	13.8	labels+footer ends
 3-286	afj_gif	footer	1	110	<rule end>	635400	6.03318	8064.3	626672	no		0	0	labels+footer ends
+3-286	afj_gif	footer	0	702	<rule end>	635400	6.00981	632961	-1780.1	no	60.1	6.4	13.8	labels+footer ends
 3-286	afj_gif	footer	1	704	<rule end>	637200	6.03318	8064.3	624888	no		0	0	labels+footer ends
 3-286	afj_gif	vagc_text	0	107.6	176:00	633600	6.00981	632961	-7.8	yes	60.1	6.4	13.8	labels+footer ends
+3-286	afj_gif	vagc_text	1	155.1	2:30	9000	6.03318	8064.3	0	yes		0	0	labels+footer ends
 3-286	afj_gif	vagc_text	0	207	:10	634200	6.00981	632961	-5.4	yes	60.1	6.4	13.8	labels+footer ends
 3-286	afj_gif	vagc_text	0	306.2	:20	634800	6.00981	632961	-1.7	yes	60.1	6.4	13.8	labels+footer ends
 3-286	afj_gif	vagc_text	0	406.4	176:30	635400	6.00981	632961	-3.8	yes	60.1	6.4	13.8	labels+footer ends
+3-286	afj_gif	vagc_text	1	453.4	3:00	10800	6.03318	8064.3	0	yes		0	0	labels+footer ends
 3-286	afj_gif	vagc_text	0	505.3	:40	636000	6.00981	632961	2	yes	60.1	6.4	13.8	labels+footer ends
 3-286	afj_gif	vagc_text	0	604.7	:50	636600	6.00981	632961	4.8	yes	60.1	6.4	13.8	labels+footer ends
 3-286	afj_gif	vagc_text	0	705.6	177:00	637200	6.00981	632961	-1.9	yes	60.1	6.4	13.8	labels+footer ends
-3-286	afj_gif	vagc_text	1	155.1	2:30	9000	6.03318	8064.3	0	yes		0	0	labels+footer ends
-3-286	afj_gif	vagc_text	1	453.4	3:00	10800	6.03318	8064.3	0	yes		0	0	labels+footer ends
 3-286	afj_gif	vagc_text_footer	0	104	<rule end>	633600	6.00981	632961	13.8	yes	60.1	6.4	13.8	labels+footer ends
-3-286	afj_gif	vagc_text_footer	0	702	<rule end>	635400	6.00981	632961	-1780.1	no	60.1	6.4	13.8	labels+footer ends
 3-286	afj_gif	vagc_text_footer	1	110	<rule end>	635400	6.03318	8064.3	626672	no		0	0	labels+footer ends
+3-286	afj_gif	vagc_text_footer	0	702	<rule end>	635400	6.00981	632961	-1780.1	no	60.1	6.4	13.8	labels+footer ends
 3-286	afj_gif	vagc_text_footer	1	704	<rule end>	637200	6.03318	8064.3	624888	no		0	0	labels+footer ends
-3-287	afj_gif	vagc_text	0	92	176:00	633600	2.78328	633344	0	yes		0	0	labels
-3-287	afj_gif	vagc_text	0	523.1	176;20	634800	2.78328	633344	0	yes		0	0	labels
 3-287	afj_gif	vagc_text	1	90	176:30	635400	2.77359	635150	0	yes	299.5	0	0	labels
+3-287	afj_gif	vagc_text	0	92	176:00	633600	2.78328	633344	0	yes		0	0	labels
 3-287	afj_gif	vagc_text	1	306.3	176:40	636000	2.77359	635150	0	yes	299.5	0	0	labels
+3-287	afj_gif	vagc_text	0	523.1	176;20	634800	2.78328	633344	0	yes		0	0	labels
 3-288	afj_gif	vagc_text	0	79.1	177:00-,	637200	2.71728	636985	0	yes	293.5	0	0	labels
 3-288	afj_gif	vagc_text	0	520.7	177:20—	638400	2.71728	636985	0	yes	293.5	0	0	labels
 3-289	afj_gif	vagc_text	0	113.6	177:30	639000	2.78356	638685	-1.3	yes	300.6	2.9	4	labels
@@ -1764,32 +1764,32 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-289	afj_gif	vagc_text	0	760.7	178:00	640800	2.78356	638685	-2.6	yes	300.6	2.9	4	labels
 3-290	afj_gif	vagc_text	0	489.3	170:54	615240	135.643	548876	0	yes	14649.5	0	0	labels
 3-290	afj_gif	vagc_text	0	706	179:04	644640	135.643	548876	0	yes	14649.5	0	0	labels
+3-291	afj_gif	vagc_text	1	109.3	179:30	646200	2.78374	645898	-1.7	yes		1.9	2.6	labels
 3-291	afj_gif	vagc_text	0	320.8	179:10	645000	2.78056	644107	0.9	yes		1.3	1.8	labels
+3-291	afj_gif	vagc_text	1	323.2	179:40	646800	2.78374	645898	2.6	yes		1.9	2.6	labels
 3-291	afj_gif	vagc_text	0	537.6	179:20	645600	2.78056	644107	-1.8	yes		1.3	1.8	labels
 3-291	afj_gif	vagc_text	0	752.4	179:30	646200	2.78056	644107	0.9	yes		1.3	1.8	labels
-3-291	afj_gif	vagc_text	1	109.3	179:30	646200	2.78374	645898	-1.7	yes		1.9	2.6	labels
-3-291	afj_gif	vagc_text	1	323.2	179:40	646800	2.78374	645898	2.6	yes		1.9	2.6	labels
 3-291	afj_gif	vagc_text	1	755.6	180:00	648000	2.78374	645898	-0.9	yes		1.9	2.6	labels
 3-292	afj_gif	vagc_text	0	53.8	100:30	361800	670.753	325722	0	yes	72441.3	0	0	labels
 3-292	afj_gif	vagc_text	0	484.9	180:50	651000	670.753	325722	0	yes	72441.3	0	0	labels
+3-294	afj_gif	vagc_text	1	95.5	182:30	657000	2.7778	656733	1.8	yes	297.2	1.9	2.6	labels
 3-294	afj_gif	vagc_text	0	99.2	182:00	655200	2.77371	654925	-0.1	yes	299.6	0.4	0.7	labels
+3-294	afj_gif	vagc_text	1	313.1	182:40	657600	2.7778	656733	-2.6	yes	297.2	1.9	2.6	labels
 3-294	afj_gif	vagc_text	0	315.5	182:10	655800	2.77371	654925	-0.2	yes	299.6	0.4	0.7	labels
 3-294	afj_gif	vagc_text	0	531.5	182:20	656400	2.77371	654925	0.7	yes	299.6	0.4	0.7	labels
-3-294	afj_gif	vagc_text	0	748.2	182:30—	657000	2.77371	654925	-0.4	yes	299.6	0.4	0.7	labels
-3-294	afj_gif	vagc_text	1	95.5	182:30	657000	2.7778	656733	1.8	yes	297.2	1.9	2.6	labels
-3-294	afj_gif	vagc_text	1	313.1	182:40	657600	2.7778	656733	-2.6	yes	297.2	1.9	2.6	labels
 3-294	afj_gif	vagc_text	1	743.8	183:00	658800	2.7778	656733	0.9	yes	297.2	1.9	2.6	labels
+3-294	afj_gif	vagc_text	0	748.2	182:30—	657000	2.77371	654925	-0.4	yes	299.6	0.4	0.7	labels
+3-295	afj_gif	vagc_text	1	131.4	183:30	660600	2.76716	660236	0	yes	300.2	0	0	labels
 3-295	afj_gif	vagc_text	0	134.2	183:00	658800	2.77713	658428	-0.4	yes	299.9	0.9	1.3	labels
+3-295	afj_gif	vagc_text	1	348.2	183;40	661200	2.76716	660236	0	yes	300.2	0	0	labels
 3-295	afj_gif	vagc_text	0	565.7	183:20	660000	2.77713	658428	1.3	yes	299.9	0.9	1.3	labels
 3-295	afj_gif	vagc_text	0	782.5	183:30	660600	2.77713	658428	-0.9	yes	299.9	0.9	1.3	labels
-3-295	afj_gif	vagc_text	1	131.4	183:30	660600	2.76716	660236	0	yes	300.2	0	0	labels
-3-295	afj_gif	vagc_text	1	348.2	183;40	661200	2.76716	660236	0	yes	300.2	0	0	labels
 3-296	afj_gif	vagc_text	0	311.4	184:10	663000	2.76758	662138	-0	yes	298.9	0	0	labels
 3-296	afj_gif	vagc_text	0	745	184:30	664200	2.76758	662138	-0	yes	298.9	0	0	labels
+3-298	afj_gif	vagc_text	1	89.1	194:10	699000								labels
 3-298	afj_gif	vagc_text	0	90.4	186:00.	669600	3.60845	669274	-0	yes	386.1	0	0	labels
 3-298	afj_gif	vagc_text	0	522.7	186:26	671160	3.60845	669274	-0	yes	386.1	0	0	labels
 3-298	afj_gif	vagc_text	0	738.6	186:30	671400	3.60845	669274	-539.1	no	386.1	0	0	labels
-3-298	afj_gif	vagc_text	1	89.1	194:10	699000								labels
 3-299	afj_gif	vagc_text	0	136.2	187:00	673200	2.76823	672823	0	yes	299	0	0	labels
 3-299	afj_gif	vagc_text	0	353	187:10	673800	2.76823	672823	0	yes	299	0	0	labels
 3-300	afj_gif	vagc_text	0	317.9	188:40	679200	87.14	651499	-0	yes	9411.1	0	0	labels
@@ -1798,11 +1798,11 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-302	afj_gif	vagc_text	0	83.8	194:00	698400								labels
 3-303	afj_gif	vagc_text	0	326.4	191:10	688200	2.77305	687295	0	yes	299.5	0	0	labels
 3-303	afj_gif	vagc_text	0	542.8	191:20	688800	2.77305	687295	0	yes	299.5	0	0	labels
+3-304	afj_gif	vagc_text	1	79.5	192:30	693000	2.77582	692779	-0	yes	299.8	0	0	labels
 3-304	afj_gif	vagc_text	0	79.8	192:00	691200	2.7819	690978	0.3	yes	300.4	0.4	0.5	labels
 3-304	afj_gif	vagc_text	0	295.8	192:10	691800	2.7819	690978	-0.5	yes	300.4	0.4	0.5	labels
-3-304	afj_gif	vagc_text	0	726.9	192;30--	693000	2.7819	690978	0.2	yes	300.4	0.4	0.5	labels
-3-304	afj_gif	vagc_text	1	79.5	192:30	693000	2.77582	692779	-0	yes	299.8	0	0	labels
 3-304	afj_gif	vagc_text	1	511.8	192:50	694200	2.77582	692779	-0	yes	299.8	0	0	labels
+3-304	afj_gif	vagc_text	0	726.9	192;30--	693000	2.7819	690978	0.2	yes	300.4	0.4	0.5	labels
 3-305	afj_gif	vagc_text	0	121.8	193:30	696600	2.77124	696263	-0.7	yes	299.3	0.7	1	labels
 3-305	afj_gif	vagc_text	0	337.7	193;40	697200	2.77124	696263	1	yes	299.3	0.7	1	labels
 3-305	afj_gif	vagc_text	0	771.2	194:00	698400	2.77124	696263	-0.3	yes	299.3	0.7	1	labels
@@ -1811,24 +1811,24 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-306	afj_gif	vagc_text	0	515	194:20--	699600	2.78606	698165	-0.1	yes	242.4	1.5	2.5	labels
 3-306	afj_gif	vagc_text	0	730.5	194:30	700200	2.78606	698165	-0.7	yes	242.4	1.5	2.5	labels
 3-308	afj_gif	vagc_text	0	97.9	196:00	705600	2.77574	705329	-0.5	yes		0.8	1.1	labels
-3-308	afj_gif	vagc_text	0	313.5	196:10	706200	2.77574	705329	1.1	yes		0.8	1.1	labels
-3-308	afj_gif	vagc_text	0	530.2	196:20	706800	2.77574	705329	-0.5	yes		0.8	1.1	labels
-3-308	afj_gif	vagc_text	0	746.3	196:39	707940	2.77574	705329	539.7	no		0.8	1.1	labels
 3-308	afj_gif	vagc_text	1	311.5	196:40	708000	2.77036	707137	0.2	yes		0.2	0.3	labels
+3-308	afj_gif	vagc_text	0	313.5	196:10	706200	2.77574	705329	1.1	yes		0.8	1.1	labels
 3-308	afj_gif	vagc_text	1	528.2	196:50	708600	2.77036	707137	-0.3	yes		0.2	0.3	labels
+3-308	afj_gif	vagc_text	0	530.2	196:20	706800	2.77574	705329	-0.5	yes		0.8	1.1	labels
 3-308	afj_gif	vagc_text	1	744.6	197:00	709200	2.77036	707137	0.2	yes		0.2	0.3	labels
-3-309	afj_gif	footer	0	105	<rule end>	711000	2.76788	708903	1806.2	no	298.9	0	0	labels+footer ends
-3-309	afj_gif	footer	0	757	<rule end>	712020	2.76788	708903	1021.6	no	298.9	0	0	labels+footer ends
+3-308	afj_gif	vagc_text	0	746.3	196:39	707940	2.77574	705329	539.7	no		0.8	1.1	labels
 3-309	afj_gif	footer	1	103	<rule end>	712020	1.56596	711859	-0	yes	169.1	0.5	0.6	labels+footer ends
+3-309	afj_gif	footer	0	105	<rule end>	711000	2.76788	708903	1806.2	no	298.9	0	0	labels+footer ends
 3-309	afj_gif	footer	1	754	<rule end>	713040	1.56596	711859	0.6	yes	169.1	0.5	0.6	labels+footer ends
+3-309	afj_gif	footer	0	757	<rule end>	712020	2.76788	708903	1021.6	no	298.9	0	0	labels+footer ends
 3-309	afj_gif	vagc_text	0	107.2	197:00	709200	2.76788	708903	-0	yes	298.9	0	0	labels+footer ends
-3-309	afj_gif	vagc_text	0	757.6	197:30	711000	2.76788	708903	-0	yes	298.9	0	0	labels+footer ends
 3-309	afj_gif	vagc_text	1	540	147:50	532200	1.56596	711859	-180504	no	169.1	0.5	0.6	labels+footer ends
 3-309	afj_gif	vagc_text	1	754.7	198:04—	713040	1.56596	711859	-0.6	yes	169.1	0.5	0.6	labels+footer ends
-3-309	afj_gif	vagc_text_footer	0	105	<rule end>	711000	2.76788	708903	1806.2	no	298.9	0	0	labels+footer ends
-3-309	afj_gif	vagc_text_footer	0	757	<rule end>	712020	2.76788	708903	1021.6	no	298.9	0	0	labels+footer ends
+3-309	afj_gif	vagc_text	0	757.6	197:30	711000	2.76788	708903	-0	yes	298.9	0	0	labels+footer ends
 3-309	afj_gif	vagc_text_footer	1	103	<rule end>	712020	1.56596	711859	-0	yes	169.1	0.5	0.6	labels+footer ends
+3-309	afj_gif	vagc_text_footer	0	105	<rule end>	711000	2.76788	708903	1806.2	no	298.9	0	0	labels+footer ends
 3-309	afj_gif	vagc_text_footer	1	754	<rule end>	713040	1.56596	711859	0.6	yes	169.1	0.5	0.6	labels+footer ends
+3-309	afj_gif	vagc_text_footer	0	757	<rule end>	712020	2.76788	708903	1021.6	no	298.9	0	0	labels+footer ends
 3-310	afj_gif	vagc_text	0	314	198:10	713400	2.77895	712527	0	yes		0	0	labels
 3-310	afj_gif	vagc_text	0	529.9	198:20	714000	2.77895	712527	0	yes		0	0	labels
 3-311	afj_gif	vagc_text	0	126.2	199:30	718200	3.88363	717710	-0	yes	417.5	0	0	labels
@@ -1837,76 +1837,75 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-312	afj_gif	vagc_text	0	736.6	201:00	723600	2.79889	721538	-0	yes	239.3	0	0	labels
 3-313	afj_gif	vagc_text	0	127.8	201:00	723600	2.78047	723247	-2.5	yes	300.3	3.5	4.9	labels
 3-313	afj_gif	vagc_text	0	340.9	201:10	724200	2.78047	723247	4.9	yes	300.3	3.5	4.9	labels
-3-313	afj_gif	vagc_text	0	559.3	201:20	724800	2.78047	723247	-2.4	yes	300.3	3.5	4.9	labels
 3-313	afj_gif	vagc_text	1	342.9	201:40	726000	2.79416	725042	-0	yes	301.8	0	0	labels
 3-313	afj_gif	vagc_text	1	557.7	201;50	726600	2.79416	725042	-0	yes	301.8	0	0	labels
+3-313	afj_gif	vagc_text	0	559.3	201:20	724800	2.78047	723247	-2.4	yes	300.3	3.5	4.9	labels
 3-314	afj_gif	vagc_text	0	85.1	202:00	727200	2.7736	726964	-0	yes	91.5	0	0	labels
-3-314	afj_gif	vagc_text	0	517.7	202:20	728400	2.7736	726964	0	yes	91.5	0	0	labels
 3-314	afj_gif	vagc_text	1	85.1	202:30	729000	2.76824	728765	-0.4	yes	60.9	0.5	0.8	labels
 3-314	afj_gif	vagc_text	1	301.4	202:40	729600	2.76824	728765	0.8	yes	60.9	0.5	0.8	labels
+3-314	afj_gif	vagc_text	0	517.7	202:20	728400	2.7736	726964	0	yes	91.5	0	0	labels
 3-314	afj_gif	vagc_text	1	518.6	202:50	730200	2.76824	728765	-0.4	yes	60.9	0.5	0.8	labels
 3-315	afj_gif	vagc_text	0	351.3	203;10	731400	2.7779	730424	-0	yes	297.2	0	0	labels
 3-315	afj_gif	vagc_text	0	567.3	203:20	732000	2.7779	730424	-0	yes	297.2	0	0	labels
 3-316	afj_gif	vagc_text	0	87.4	204:30	736200	2.76289	735959	-0.3	yes	270.8	0.4	0.6	labels
 3-316	afj_gif	vagc_text	0	304.3	204:40	736800	2.76289	735959	0.6	yes	270.8	0.4	0.6	labels
 3-316	afj_gif	vagc_text	0	521.8	204:50	737400	2.76289	735959	-0.3	yes	270.8	0.4	0.6	labels
-3-317	afj_gif	vagc_text	0	107.5	205:00	738000	2.78547	737698	2.4	yes	300.8	2.6	3.6	labels
-3-317	afj_gif	vagc_text	0	325.1	205:10	738600	2.78547	737698	-3.6	yes	300.8	2.6	3.6	labels
-3-317	afj_gif	vagc_text	0	754.2	205:30	739800	2.78547	737698	1.2	yes	300.8	2.6	3.6	labels
 3-317	afj_gif	vagc_text	1	104.8	205:30	739800	2.7762	739508	1.3	yes	297.1	1.9	2.7	labels
+3-317	afj_gif	vagc_text	0	107.5	205:00	738000	2.78547	737698	2.4	yes	300.8	2.6	3.6	labels
 3-317	afj_gif	vagc_text	1	322.4	205:40	740400	2.7762	739508	-2.7	yes	297.1	1.9	2.7	labels
+3-317	afj_gif	vagc_text	0	325.1	205:10	738600	2.78547	737698	-3.6	yes	300.8	2.6	3.6	labels
 3-317	afj_gif	vagc_text	1	537	205:50	741000	2.7762	739508	1.4	yes	297.1	1.9	2.7	labels
+3-317	afj_gif	vagc_text	0	754.2	205:30	739800	2.78547	737698	1.2	yes	300.8	2.6	3.6	labels
 3-318	afj_gif	vagc_text	0	108.1	206:30	743400	2.78639	743100	-0.7	yes		0.7	1	labels
 3-318	afj_gif	vagc_text	0	322.8	206:40	744000	2.78639	743100	1	yes		0.7	1	labels
 3-318	afj_gif	vagc_text	0	753.9	207:00	745200	2.78639	743100	-0.3	yes		0.7	1	labels
-3-319	afj_gif	vagc_text	0	119.4	207;00	745200	2.7968	744866	0	yes	302.1	0	0	labels
-3-319	afj_gif	vagc_text	0	548.5	207:20	746400	2.7968	744866	-0	yes	302.1	0	0	labels
 3-319	afj_gif	vagc_text	1	115.8	207:30	747000	2.78917	746677	-0.4	yes	299.8	0.6	0.8	labels
+3-319	afj_gif	vagc_text	0	119.4	207;00	745200	2.7968	744866	0	yes	302.1	0	0	labels
 3-319	afj_gif	vagc_text	1	330.5	207:40	747600	2.78917	746677	0.8	yes	299.8	0.6	0.8	labels
 3-319	afj_gif	vagc_text	1	546	207:50	748200	2.78917	746677	-0.4	yes	299.8	0.6	0.8	labels
-3-320	afj_gif	vagc_text	0	84.3	208:00	748800	2.77281	748567	-0.9	yes	271.7	1.9	2.7	labels
-3-320	afj_gif	vagc_text	0	515.7	208:20	750000	2.77281	748567	2.7	yes	271.7	1.9	2.7	labels
-3-320	afj_gif	vagc_text	0	733.7	208:30	750600	2.77281	748567	-1.8	yes	271.7	1.9	2.7	labels
+3-319	afj_gif	vagc_text	0	548.5	207:20	746400	2.7968	744866	-0	yes	302.1	0	0	labels
 3-320	afj_gif	vagc_text	1	80.2	208:30	750600	2.77498	750378	-0.5	yes	301.1	2.2	3.4	labels
+3-320	afj_gif	vagc_text	0	84.3	208:00	748800	2.77281	748567	-0.9	yes	271.7	1.9	2.7	labels
 3-320	afj_gif	vagc_text	1	295.4	208:40	751200	2.77498	750378	2.4	yes	301.1	2.2	3.4	labels
 3-320	afj_gif	vagc_text	1	513.7	208:50	751800	2.77498	750378	-3.4	yes	301.1	2.2	3.4	labels
+3-320	afj_gif	vagc_text	0	515.7	208:20	750000	2.77281	748567	2.7	yes	271.7	1.9	2.7	labels
 3-320	afj_gif	vagc_text	1	728.2	209:o0	752400	2.77498	750378	1.5	yes	301.1	2.2	3.4	labels
+3-320	afj_gif	vagc_text	0	733.7	208:30	750600	2.77281	748567	-1.8	yes	271.7	1.9	2.7	labels
 3-321	afj_gif	vagc_text	0	125.7	209:30	754200	2.77259	753852	-0.3	yes	300.8	0.4	0.6	labels
 3-321	afj_gif	vagc_text	0	341.8	209:40	754800	2.77259	753852	0.6	yes	300.8	0.4	0.6	labels
 3-321	afj_gif	vagc_text	0	558.5	209:50	755400	2.77259	753852	-0.3	yes	300.8	0.4	0.6	labels
+3-322	afj_gif	vagc_text	1	106.5	210:30	757800	2.77485	757503	1.3	yes	122.1	2.4	3.9	labels
 3-322	afj_gif	vagc_text	0	108.5	210:00	756000	2.77574	755700	-0.5	yes	299.8	0.8	1.1	labels
+3-322	afj_gif	vagc_text	1	323.2	210:40	758400	2.77485	757503	-0.1	yes	122.1	2.4	3.9	labels
 3-322	afj_gif	vagc_text	0	324	210:10	756600	2.77574	755700	1.1	yes	299.8	0.8	1.1	labels
 3-322	afj_gif	vagc_text	0	540.8	210:20	757200	2.77574	755700	-0.5	yes	299.8	0.8	1.1	labels
-3-322	afj_gif	vagc_text	1	106.5	210:30	757800	2.77485	757503	1.3	yes	122.1	2.4	3.9	labels
-3-322	afj_gif	vagc_text	1	323.2	210:40	758400	2.77485	757503	-0.1	yes	122.1	2.4	3.9	labels
 3-322	afj_gif	vagc_text	1	540.8	210:50	759000	2.77485	757503	-3.9	yes	122.1	2.4	3.9	labels
 3-322	afj_gif	vagc_text	1	754.7	211:00	759600	2.77485	757503	2.6	yes	122.1	2.4	3.9	labels
+3-323	afj_gif	vagc_text	1	126.1	211:30	761400	2.78871	761048	0	yes	301.2	0	0	labels
 3-323	afj_gif	vagc_text	0	129.4	211:00	759600	2.78599	759240	-0	yes	300.9	0	0	labels
 3-323	afj_gif	vagc_text	0	560.1	211:20	760800	2.78599	759240	-0	yes	300.9	0	0	labels
-3-323	afj_gif	vagc_text	1	126.1	211:30	761400	2.78871	761048	0	yes	301.2	0	0	labels
 3-323	afj_gif	vagc_text	1	771.6	212:00	763200	2.78871	761048	0	yes	301.2	0	0	labels
+3-324	afj_gif	vagc_text	1	80.3	212:30	765000	2.77506	764774	3	yes		6.5	9.1	labels
 3-324	afj_gif	vagc_text	0	83.9	212:00	763200	2.7629	762968	0.4	yes		0.5	0.8	labels
 3-324	afj_gif	vagc_text	0	301.5	212:10	763800	2.7629	762968	-0.8	yes		0.5	0.8	labels
-3-324	afj_gif	vagc_text	0	518.3	212:20	764400	2.7629	762968	0.4	yes		0.5	0.8	labels
-3-324	afj_gif	vagc_text	1	80.3	212:30	765000	2.77506	764774	3	yes		6.5	9.1	labels
 3-324	afj_gif	vagc_text	1	517.1	212:50	766200	2.77506	764774	-9.1	yes		6.5	9.1	labels
+3-324	afj_gif	vagc_text	0	518.3	212:20	764400	2.7629	762968	0.4	yes		0.5	0.8	labels
 3-324	afj_gif	vagc_text	1	727.8	:00	766800	2.77506	764774	6.1	yes		6.5	9.1	labels
 3-325	afj_gif	vagc_text	0	121.6	213:00	766800	2.76823	766464	-0	yes	299	0	0	labels
-3-325	afj_gif	vagc_text	0	555.1	213:20	768000	2.76823	766464	-0	yes	299	0	0	labels
 3-325	afj_gif	vagc_text	1	336.3	213:40	769200	2.76826	768269	-0	yes	119	0	0	labels
 3-325	afj_gif	vagc_text	1	553.1	213:50	769800	2.76826	768269	-0	yes	119	0	0	labels
+3-325	afj_gif	vagc_text	0	555.1	213:20	768000	2.76823	766464	-0	yes	299	0	0	labels
 3-326	afj_gif	vagc_text	0	91.5	214:00	770400	2.79081	770143	1.7	yes	152.1	2.4	3.4	labels
 3-326	afj_gif	vagc_text	0	308.3	214:10	771000	2.79081	770143	-3.4	yes	152.1	2.4	3.4	labels
 3-326	afj_gif	vagc_text	0	521.4	214:20	771600	2.79081	770143	1.7	yes	152.1	2.4	3.4	labels
-3-328	afj_gif	footer	0	104	<rule end>	779400	2.76989	777314	1797.8	no	299.1	2.1	3	labels+footer ends
-3-328	afj_gif	footer	0	748	<rule end>	780000	2.76989	777314	614	no	299.1	2.1	3	labels+footer ends
-3-328	afj_gif	footer	1	104	<rule end>	780000	55.1613	11504.9	762758	no	5957.4	9.8	16.7	labels+footer ends
-3-328	afj_gif	footer	1	748	<rule end>	780600	55.1613	11504.9	727834	no	5957.4	9.8	16.7	labels+footer ends
 3-328	afj_gif	footer	2	101	<rule end>	780600	2.7801	779109	1210.2	no	300.3	2.6	4.5	labels+footer ends
+3-328	afj_gif	footer	0	104	<rule end>	779400	2.76989	777314	1797.8	no	299.1	2.1	3	labels+footer ends
+3-328	afj_gif	footer	1	104	<rule end>	780000	55.1613	11504.9	762758	no	5957.4	9.8	16.7	labels+footer ends
+3-328	afj_gif	footer	0	748	<rule end>	780000	2.76989	777314	614	no	299.1	2.1	3	labels+footer ends
+3-328	afj_gif	footer	1	748	<rule end>	780600	55.1613	11504.9	727834	no	5957.4	9.8	16.7	labels+footer ends
 3-328	afj_gif	footer	2	751	<rule end>	781200	2.7801	779109	3.2	yes	300.3	2.6	4.5	labels+footer ends
 3-328	afj_gif	vagc_text	0	102.9	216:00	777600	2.76989	777314	1	yes	299.1	2.1	3	labels+footer ends
-3-328	afj_gif	vagc_text	0	537.5	216:20	778800	2.76989	777314	-3	yes	299.1	2.1	3	labels+footer ends
-3-328	afj_gif	vagc_text	0	752.3	216:30	779400	2.76989	777314	2	yes	299.1	2.1	3	labels+footer ends
+3-328	afj_gif	vagc_text	2	104.5	216:30	779400	2.7801	779109	0.6	yes	300.3	2.6	4.5	labels+footer ends
 3-328	afj_gif	vagc_text	1	144.7	0:00	0	55.1613	11504.9	-19484.9	no	5957.4	9.8	16.7	labels+footer ends
 3-328	afj_gif	vagc_text	1	215.5	5:00	18000	55.1613	11504.9	-5390.1	no	5957.4	9.8	16.7	labels+footer ends
 3-328	afj_gif	vagc_text	1	226.7	6:40	24000	55.1613	11504.9	-9.3	yes	5957.4	9.8	16.7	labels+footer ends
@@ -1917,24 +1916,25 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-328	afj_gif	vagc_text	1	281	7:30	27000	55.1613	11504.9	-4.1	yes	5957.4	9.8	16.7	labels+footer ends
 3-328	afj_gif	vagc_text	1	291.9	7:40	27600	55.1613	11504.9	-4.9	yes	5957.4	9.8	16.7	labels+footer ends
 3-328	afj_gif	vagc_text	1	302.7	7:50	28200	55.1613	11504.9	-1	yes	5957.4	9.8	16.7	labels+footer ends
-3-328	afj_gif	vagc_text	2	104.5	216:30	779400	2.7801	779109	0.6	yes	300.3	2.6	4.5	labels+footer ends
 3-328	afj_gif	vagc_text	2	320	216:40	780000	2.7801	779109	1.3	yes	300.3	2.6	4.5	labels+footer ends
+3-328	afj_gif	vagc_text	0	537.5	216:20	778800	2.76989	777314	-3	yes	299.1	2.1	3	labels+footer ends
 3-328	afj_gif	vagc_text	2	537.9	216:50	780600	2.7801	779109	-4.5	yes	300.3	2.6	4.5	labels+footer ends
+3-328	afj_gif	vagc_text	0	752.3	216:30	779400	2.76989	777314	2	yes	299.1	2.1	3	labels+footer ends
 3-328	afj_gif	vagc_text	2	752.3	217:00	781200	2.7801	779109	-0.6	yes	300.3	2.6	4.5	labels+footer ends
-3-328	afj_gif	vagc_text_footer	0	104	<rule end>	779400	2.76989	777314	1797.8	no	299.1	2.1	3	labels+footer ends
-3-328	afj_gif	vagc_text_footer	0	748	<rule end>	780000	2.76989	777314	614	no	299.1	2.1	3	labels+footer ends
-3-328	afj_gif	vagc_text_footer	1	104	<rule end>	780000	55.1613	11504.9	762758	no	5957.4	9.8	16.7	labels+footer ends
-3-328	afj_gif	vagc_text_footer	1	748	<rule end>	780600	55.1613	11504.9	727834	no	5957.4	9.8	16.7	labels+footer ends
 3-328	afj_gif	vagc_text_footer	2	101	<rule end>	780600	2.7801	779109	1210.2	no	300.3	2.6	4.5	labels+footer ends
+3-328	afj_gif	vagc_text_footer	0	104	<rule end>	779400	2.76989	777314	1797.8	no	299.1	2.1	3	labels+footer ends
+3-328	afj_gif	vagc_text_footer	1	104	<rule end>	780000	55.1613	11504.9	762758	no	5957.4	9.8	16.7	labels+footer ends
+3-328	afj_gif	vagc_text_footer	0	748	<rule end>	780000	2.76989	777314	614	no	299.1	2.1	3	labels+footer ends
+3-328	afj_gif	vagc_text_footer	1	748	<rule end>	780600	55.1613	11504.9	727834	no	5957.4	9.8	16.7	labels+footer ends
 3-328	afj_gif	vagc_text_footer	2	751	<rule end>	781200	2.7801	779109	3.2	yes	300.3	2.6	4.5	labels+footer ends
 3-329	afj_gif	vagc_text	0	119.3	217:00	781200	2.77993	780867	1.4	yes	300.2	1.5	1.6	labels
 3-329	afj_gif	vagc_text	0	336.1	217:10	781800	2.77993	780867	-1.4	yes	300.2	1.5	1.6	labels
 3-329	afj_gif	vagc_text	0	552	217:20	782400	2.77993	780867	-1.6	yes	300.2	1.5	1.6	labels
 3-329	afj_gif	vagc_text	0	766.8	217:30	783000	2.77993	780867	1.5	yes	300.2	1.5	1.6	labels
-3-330	afj_gif	vagc_text	0	302.2	218:10	785400	2.78871	784557	-0	yes	298.4	0	0	labels
-3-330	afj_gif	vagc_text	0	517.4	218:20	786000	2.78871	784557	-0	yes	298.4	0	0	labels
 3-330	afj_gif	vagc_text	1	83.8	218:30	786600	2.78083	786367	-0	yes	64	0	0	labels
 3-330	afj_gif	vagc_text	1	299.5	218:40	787200	2.78083	786367	-0	yes	64	0	0	labels
+3-330	afj_gif	vagc_text	0	302.2	218:10	785400	2.78871	784557	-0	yes	298.4	0	0	labels
+3-330	afj_gif	vagc_text	0	517.4	218:20	786000	2.78871	784557	-0	yes	298.4	0	0	labels
 3-331	afj_gif	vagc_text	0	61.8	219:00	788400	2.79031	788228	0	yes	284.6	0.9	1.5	labels
 3-331	afj_gif	vagc_text	0	276.6	219:10	789000	2.79031	788228	0.7	yes	284.6	0.9	1.5	labels
 3-331	afj_gif	vagc_text	0	492.4	219:20	789600	2.79031	788228	-1.5	yes	284.6	0.9	1.5	labels
@@ -2233,9 +2233,6 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-377	afj_gif	vagc_text	0	145.5	267:00	961200	5.95543	960333	0.4	yes	59.6	0.6	0.8	labels
 3-377	afj_gif	vagc_text	0	246.5	:10	961800	5.95543	960333	-0.8	yes	59.6	0.6	0.8	labels
 3-377	afj_gif	vagc_text	0	347	:20	962400	5.95543	960333	0.4	yes	59.6	0.6	0.8	labels
-3-380	afj_gif	vagc_text	0	387.9	00:00	0	215.278	-83511.5	-0	yes		0	0	labels
-3-380	afj_gif	vagc_text	0	471.5	05:00	18000	215.278	-83511.5	-0	yes		0	0	labels
-3-380	afj_gif	vagc_text	0	505	08:00	28800	215.278	-83511.5	3603.5	no		0	0	labels
 3-380	afj_gif	vagc_text	1	153.4	11:00	39600	214.73	14089.6	-7432.7	no		19.5	35.8	labels
 3-380	afj_gif	vagc_text	1	186.8	14:00	50400	214.73	14089.6	-3811.3	no		19.5	35.8	labels
 3-380	afj_gif	vagc_text	1	203.4	17:00	61200	214.73	14089.6	3444.6	no		19.5	35.8	labels
@@ -2245,6 +2242,9 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-380	afj_gif	vagc_text	1	303.1	22:00	79200	214.73	14089.6	35.8	yes		19.5	35.8	labels
 3-380	afj_gif	vagc_text	1	320	23:00	82800	214.73	14089.6	2.1	yes		19.5	35.8	labels
 3-380	afj_gif	vagc_text	1	336.8	24:00	86400	214.73	14089.6	-14.4	yes		19.5	35.8	labels
+3-380	afj_gif	vagc_text	0	387.9	00:00	0	215.278	-83511.5	-0	yes		0	0	labels
+3-380	afj_gif	vagc_text	0	471.5	05:00	18000	215.278	-83511.5	-0	yes		0	0	labels
+3-380	afj_gif	vagc_text	0	505	08:00	28800	215.278	-83511.5	3603.5	no		0	0	labels
 3-381	afj_gif	footer	0	141	<rule end>	968400	5.99794	967530	24.6	yes	60	12.4	24.6	labels+footer ends
 3-381	afj_gif	footer	0	742	<rule end>	972000	5.99794	967530	19.8	yes	60	12.4	24.6	labels+footer ends
 3-381	afj_gif	vagc_text	0	147	269:00	968400	5.99794	967530	-11.3	yes	60	12.4	24.6	labels+footer ends
@@ -2265,18 +2265,18 @@ page_id	witness	source	strip	y_px	label	get_seconds	slope_s_per_px	intercept_s	r
 3-383	afj_gif	vagc_text	0	636.3	:50	975000	6.01561	971163	9.3	yes	60.2	8.6	14.7	labels+footer ends
 3-383	afj_gif	vagc_text_footer	0	141	<rule end>	972000	6.01561	971163	-11.4	yes	60.2	8.6	14.7	labels+footer ends
 3-383	afj_gif	vagc_text_footer	0	740	<rule end>	975600	6.01561	971163	-14.7	yes	60.2	8.6	14.7	labels+footer ends
-3-384	afj_gif	vagc_text	0	435.4	00:00	0	218.38	-88275.3	-6816.2	no		15.1	20.9	labels
-3-384	afj_gif	vagc_text	0	502.3	06:00	21600	218.38	-88275.3	189.6	no		15.1	20.9	labels
-3-384	afj_gif	vagc_text	0	519.6	07:00	25200	218.38	-88275.3	13.9	yes		15.1	20.9	labels
-3-384	afj_gif	vagc_text	0	536.2	08:00	28800	218.38	-88275.3	-20.9	yes		15.1	20.9	labels
-3-384	afj_gif	vagc_text	0	552.1	09:00	32400	218.38	-88275.3	103.3	no		15.1	20.9	labels
-3-384	afj_gif	vagc_text	0	569	10:00	36000	218.38	-88275.3	7	yes		15.1	20.9	labels
 3-384	afj_gif	vagc_text	1	203	11:00	39600	325.093	-30045.1	3641.9	no		4.5	6.1	labels
 3-384	afj_gif	vagc_text	1	236.4	13:00	46800	325.093	-30045.1	1.5	yes		4.5	6.1	labels
 3-384	afj_gif	vagc_text	1	253.3	16:00	57600	325.093	-30045.1	5299.7	no		4.5	6.1	labels
 3-384	afj_gif	vagc_text	1	286.6	19:00	68400	325.093	-30045.1	5259.3	no		4.5	6.1	labels
 3-384	afj_gif	vagc_text	1	336.1	22:00	79200	325.093	-30045.1	-6.1	yes		4.5	6.1	labels
 3-384	afj_gif	vagc_text	1	369.3	25:00	90000	325.093	-30045.1	4.6	yes		4.5	6.1	labels
+3-384	afj_gif	vagc_text	0	435.4	00:00	0	218.38	-88275.3	-6816.2	no		15.1	20.9	labels
+3-384	afj_gif	vagc_text	0	502.3	06:00	21600	218.38	-88275.3	189.6	no		15.1	20.9	labels
+3-384	afj_gif	vagc_text	0	519.6	07:00	25200	218.38	-88275.3	13.9	yes		15.1	20.9	labels
+3-384	afj_gif	vagc_text	0	536.2	08:00	28800	218.38	-88275.3	-20.9	yes		15.1	20.9	labels
+3-384	afj_gif	vagc_text	0	552.1	09:00	32400	218.38	-88275.3	103.3	no		15.1	20.9	labels
+3-384	afj_gif	vagc_text	0	569	10:00	36000	218.38	-88275.3	7	yes		15.1	20.9	labels
 3-385	afj_gif	footer	0	154	<rule end>	975600	5.99335	974693	-16	yes	59.9	9.6	18	labels+footer ends
 3-385	afj_gif	footer	0	755	<rule end>	979200	5.99335	974693	-18	yes	59.9	9.6	18	labels+footer ends
 3-385	afj_gif	vagc_text	0	150.2	271:00	975600	5.99335	974693	6.5	yes	59.9	9.6	18	labels+footer ends

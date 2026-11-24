@@ -1,0 +1,459 @@
+page_id	printed_page	printed_title	edition	page_date	get_start	get_end	flight_day	rev	cdt_top	source
+cover										oxr_afj
+sigpage										oxr_afj
+acknow										oxr_afj
+i										oxr_afj
+ii										oxr_afj
+iii										oxr_afj
+iv										oxr_afj
+v										oxr_afj
+vii										oxr_afj
+viii										oxr_afj
+ix										oxr_afj
+xi										oxr_afj
+xii										oxr_afj
+xiii										oxr_afj
+xiv										oxr_afj
+xv										oxr_afj
+xvi										oxr_afj
+xvii										oxr_afj
+xviii										oxr_afj
+xix										oxr_afj
+xx										oxr_afj
+xxi										oxr_afj
+xxii										oxr_afj
+xxiii										oxr_afj
+xxiv										oxr_afj
+xxv										oxr_afj
+1-001	1-001									oxr_afj
+1-002	1-002									oxr_afj
+1-003	1-003									oxr_afj
+1-004	1-004									oxr_afj
+1-005	1-005									oxr_afj
+1-006	1-006									oxr_afj
+1-007	1-007									oxr_afj
+1-008	1-008									oxr_afj
+1-009	1-009									oxr_afj
+2-001	2-001									oxr_afj
+2-002										oxr_afj
+2-003										oxr_afj
+2-004										oxr_afj
+2-005										oxr_afj
+2-006										oxr_afj
+2-007										oxr_afj
+2-008	2-008									oxr_afj
+2-009	2-009									oxr_afj
+2-010	2-010									oxr_afj
+2-011										oxr_afj
+2-012	2-012									oxr_afj
+2-013										oxr_afj
+2-014	2-014									oxr_afj
+2-015	2-015									oxr_afj
+2-016	2-016									oxr_afj
+2-017	2-017									oxr_afj
+2-018	2-018									oxr_afj
+2-019	2-019									oxr_afj
+2-020	2-020									oxr_afj
+2-021	2-027									oxr_afj
+2-022	2-022									oxr_afj
+2-023										oxr_afj
+3-001										oxr_afj
+3-002			FINAL (7/26)	6/21/71	001:00	002:00				oxr_afj
+3-005										oxr_afj
+3-006										oxr_afj
+3-008	3-008	FLIGHT PLAN								oxr_afj
+3-009									1234	oxr_afj
+3-010										oxr_afj
+3-011										oxr_afj
+3-012										oxr_afj
+3-013		FLIGHT PLAN <table><tr><td>1634 CDT</td><td colspan="5">NOTES</td></tr><tr><td>08:00</td><td></td><td></td><td></td><td>EARTH DISTANCE</td><td></td></tr><tr><td>(21101)</td><td></td><td>V49 MNVR TO OPTICS CALIBRATION ATTITUDE (08:06)</td><td></td><td>~ 37,581 NM</td><td></td></tr><tr><td>(X1111)</td><td></td><td>(210,339,330)</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>P23 CISLUNAR NAVIGATION</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>OPTICS CALIBRATION STAR N70 (00001)</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>P00</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>V49 MNVR TO SIGHTING ATTITUDE (08:20)</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>(221,327,330)</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>V67 (+80000) (+00070) (+00003)</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>P23 CISLUNAR NAVIGATION</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>5 MARKS ON EACH STAR, UPDATE STATE VECTOR</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>1. N70 (00001) (00000) (00110)</td><td></td><td></td><td></td></tr><tr><td>08:30</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>2. N70 (00045) (00000) (00120)</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>045 FOMALHAUT</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>(EFH)</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>09:00</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>3. N70 (00000) (00000) (00110)</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>N88 (+82401)(+44316)(+35301)</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>131 BETA ARIETIS</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>(ENH)</td><td></td><td></td><td></td></tr><tr><td>09:00</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>MISSION</td><td>EDITION</td><td>DATE</td><td>TIME</td></tr><tr><td></td><td></td><td>DAY/REV</td><td>PAGE</td><td></td><td></td></tr><tr><td>APOLLO 15</td><td></td><td>FINAL (7/26)</td><td>6/21/71</td><td>08:00 - 09:00</td><td>1/TLC</td></tr><tr><td colspan="6">3-13</td></tr><tr><td colspan="6">FLIGHT PLANNING</td></tr></table>							1634	oxr_afj
+3-014										oxr_afj
+3-015	3-015	FLIGHT PLAN	FINAL (7/26)	6/21/71						oxr_afj
+3-017										oxr_afj
+3-018	3-018	FLIGHT PLAN								oxr_afj
+3-019										oxr_afj
+3-020										oxr_afj
+3-021										oxr_afj
+3-022										oxr_afj
+3-023										oxr_afj
+3-024										oxr_afj
+3-025										oxr_afj
+3-026										oxr_afj
+3-027										oxr_afj
+3-028		FLIGHT PLAN								oxr_afj
+3-029										oxr_afj
+3-030										oxr_afj
+3-031										oxr_afj
+3-032										oxr_afj
+3-034	3-034	FLIGHT PLAN								oxr_afj
+3-035										oxr_afj
+3-036		FLIGHT PLAN	FINAL (7/26)	6/21/71	031:00	032:00	2	TLC		oxr_afj
+3-038		FLIGHT PLAN FLIGHT PLAN								oxr_afj
+3-039		FLIGHT PLAN								oxr_afj
+3-040		FLIGHT PLAN							1734	oxr_afj
+3-041			FINAL (7/26)	6/21/71	034:00	035:00	2	TLC	1834	oxr_afj
+3-042									1934	oxr_afj
+3-043										oxr_afj
+3-044		FLIGHT PLAN								oxr_afj
+3-045										oxr_afj
+3-046										oxr_afj
+3-047										oxr_afj
+3-048										oxr_afj
+3-049										oxr_afj
+3-050										oxr_afj
+3-051			FINAL (7/26)	6/21/71	050:00	051:00	3	TLC		oxr_afj
+3-052										oxr_afj
+3-053			FINAL (7/26)	6/21/71	052:00	053:00	3	TLC		oxr_afj
+3-054			FINAL (7/26)	6/21/71						oxr_afj
+3-055										oxr_afj
+3-056										oxr_afj
+3-057	3-057		FINAL (7/26)	6/21/71						oxr_afj
+3-058										oxr_afj
+3-059										oxr_afj
+3-060		FLIGHT PLAN								oxr_afj
+3-061										oxr_afj
+3-062										oxr_afj
+3-063										oxr_afj
+3-064										oxr_afj
+3-065			FINAL (7/26)	6/21/71	060:00	061:00	3	TLC		oxr_afj
+3-066										oxr_afj
+3-067										oxr_afj
+3-068										oxr_afj
+3-069										oxr_afj
+3-070										oxr_afj
+3-071										oxr_afj
+3-072										oxr_afj
+3-074		FLIGHT PLAN								oxr_afj
+3-075										oxr_afj
+3-076		FLIGHT PLAN								oxr_afj
+3-077										oxr_afj
+3-078										oxr_afj
+3-079										oxr_afj
+3-080										oxr_afj
+3-081	3-081									oxr_afj
+3-082	3-082									oxr_afj
+3-083										oxr_afj
+3-084										oxr_afj
+3-085										oxr_afj
+3-086										oxr_afj
+3-087			FINAL (7/26)	6/21/74						oxr_afj
+3-088										oxr_afj
+3-089										oxr_afj
+3-090										oxr_afj
+3-091										oxr_afj
+3-092										oxr_afj
+3-093										oxr_afj
+3-094										oxr_afj
+3-095										oxr_afj
+3-096										oxr_afj
+3-097										oxr_afj
+3-098										oxr_afj
+3-099										oxr_afj
+3-100										oxr_afj
+3-101										oxr_afj
+3-102		CSM FLIGHT PLAN							0734	oxr_afj
+3-103			FINAL (7/26)	6/21/71						oxr_afj
+3-104										oxr_afj
+3-105			FINAL (7/26)	6/21/71						oxr_afj
+3-106										oxr_afj
+3-107										oxr_afj
+3-108										oxr_afj
+3-109			FINAL (7/26)	6/21/71						oxr_afj
+3-110										oxr_afj
+3-111										oxr_afj
+3-112										oxr_afj
+3-113			FINAL (7/26)	6/21/71						oxr_afj
+3-114										oxr_afj
+3-115			FINAL (7/26)	6/21/71						oxr_afj
+3-116										oxr_afj
+3-117			FINAL (7/26)	6/21/71						oxr_afj
+3-118										oxr_afj
+3-119										oxr_afj
+3-120										oxr_afj
+3-121										oxr_afj
+3-122										oxr_afj
+3-123			FINAL (7/26)	6/21/71						oxr_afj
+3-124		<table><tr><td colspan="6">LM FLIGHT PLAN</td></tr><tr><td>MCC-H</td><td>1534 CDT</td><td>CDR</td><td>LMP</td><td>NOTES</td><td></td></tr><tr><td>UPLINK TO LM GYRO DRIFT COMP (IF REQD)</td><td>103:00 (21012) :10 (22112) :20 103:30 REV 14 :40 :50 104:00</td><td>COAS CALIBRATION P63 IGNITION ALGORITHM TEST MNVR TO PDI ATT (103:35) (000,111,310) V48 (22112) COAS TO OVHD WINDOW DON HELMET &amp; GLOVES PDI SWITCH CHECK</td><td>ALIGN AGS TO PGNS OMNI-FWD, PCM-LO VHF B-DATA VERIFY LOOSE GEAR STOWED AND RESTRAINTS ATTACHED ECS CHECKOUT DON HELMET &amp; GLOVES INVERTER-1</td><td></td><td></td></tr><tr><td>MISSION</td><td>EDITION</td><td>DATE</td><td>TIME</td><td>DAY/REV</td><td>PAGE</td></tr><tr><td>APOLLO 15</td><td>FINAL (7/26)</td><td>6/21/71</td><td>103:00 - 104:00</td><td>5/13-14</td><td>3-124</td></tr><tr><td colspan="6">FLIGHT P-D INING BRANCH</td></tr></table>							1534	oxr_afj
+3-125										oxr_afj
+3-126									1634	oxr_afj
+3-127										oxr_afj
+3-128										oxr_afj
+3-129										oxr_afj
+3-130										oxr_afj
+3-131			FINAL (7/26)	6/21/71						oxr_afj
+3-132										oxr_afj
+3-133			FINAL (7/26)	6/21/71						oxr_afj
+3-134										oxr_afj
+3-135										oxr_afj
+3-136										oxr_afj
+3-137										oxr_afj
+3-138										oxr_afj
+3-139										oxr_afj
+3-140										oxr_afj
+3-141										oxr_afj
+3-142										oxr_afj
+3-143										oxr_afj
+3-144										oxr_afj
+3-145										oxr_afj
+3-146										oxr_afj
+3-147										oxr_afj
+3-148										oxr_afj
+3-149										oxr_afj
+3-150										oxr_afj
+3-151										oxr_afj
+3-152										oxr_afj
+3-153										oxr_afj
+3-154										oxr_afj
+3-155										oxr_afj
+3-156										oxr_afj
+3-157										oxr_afj
+3-158										oxr_afj
+3-159										oxr_afj
+3-160										oxr_afj
+3-161										oxr_afj
+3-162										oxr_afj
+3-163										oxr_afj
+3-164										oxr_afj
+3-165										oxr_afj
+3-166										oxr_afj
+3-167			FINAL (7/26)	6/21/71						oxr_afj
+3-168										oxr_afj
+3-169			FINAL (7/26)	6/21/71						oxr_afj
+3-170										oxr_afj
+3-171										oxr_afj
+3-172										oxr_afj
+3-173										oxr_afj
+3-174										oxr_afj
+3-175										oxr_afj
+3-176			FINAL (7/26)	6/21/71	128:00	129:00	6	26		oxr_afj
+3-177										oxr_afj
+3-178										oxr_afj
+3-179										oxr_afj
+3-180										oxr_afj
+3-181										oxr_afj
+3-182										oxr_afj
+3-183										oxr_afj
+3-184										oxr_afj
+3-185										oxr_afj
+3-186										oxr_afj
+3-187										oxr_afj
+3-188										oxr_afj
+3-189										oxr_afj
+3-190										oxr_afj
+3-191										oxr_afj
+3-192										oxr_afj
+3-193										oxr_afj
+3-194										oxr_afj
+3-195										oxr_afj
+3-196										oxr_afj
+3-197										oxr_afj
+3-198										oxr_afj
+3-199										oxr_afj
+3-200										oxr_afj
+3-201										oxr_afj
+3-202										oxr_afj
+3-203										oxr_afj
+3-204										oxr_afj
+3-205										oxr_afj
+3-206										oxr_afj
+3-207										oxr_afj
+3-208			FINAL (7/26)	6/21/71	144:00	145:00	7	34		oxr_afj
+3-209										oxr_afj
+3-210										oxr_afj
+3-211										oxr_afj
+3-212										oxr_afj
+3-213										oxr_afj
+3-214										oxr_afj
+3-215										oxr_afj
+3-216										oxr_afj
+3-217										oxr_afj
+3-218										oxr_afj
+3-219										oxr_afj
+3-220										oxr_afj
+3-221										oxr_afj
+3-222										oxr_afj
+3-223										oxr_afj
+3-224										oxr_afj
+3-225										oxr_afj
+3-226										oxr_afj
+3-227										oxr_afj
+3-228										oxr_afj
+3-229										oxr_afj
+3-230										oxr_afj
+3-231										oxr_afj
+3-232										oxr_afj
+3-233										oxr_afj
+3-234										oxr_afj
+3-235										oxr_afj
+3-236										oxr_afj
+3-237										oxr_afj
+3-238										oxr_afj
+3-239										oxr_afj
+3-240										oxr_afj
+3-241										oxr_afj
+3-242		LM FLIGHT PLAN								oxr_afj
+3-243										oxr_afj
+3-244										oxr_afj
+3-245										oxr_afj
+3-246										oxr_afj
+3-247										oxr_afj
+3-248										oxr_afj
+3-249			FINAL (7/26)	6/21/71						oxr_afj
+3-250										oxr_afj
+3-251										oxr_afj
+3-252										oxr_afj
+3-253										oxr_afj
+3-254										oxr_afj
+3-255										oxr_afj
+3-256										oxr_afj
+3-257										oxr_afj
+3-258										oxr_afj
+3-259										oxr_afj
+3-260										oxr_afj
+3-261										oxr_afj
+3-262										oxr_afj
+3-263										oxr_afj
+3-264										oxr_afj
+3-265			FINAL (7/26)	6/21/71						oxr_afj
+3-266										oxr_afj
+3-267										oxr_afj
+3-268										oxr_afj
+3-269			FINAL (7/26)	6/21/71						oxr_afj
+3-270										oxr_afj
+3-271			FINAL (7/26)	6/21/71						oxr_afj
+3-272			FINAL (7/26)	6/21/71	172:00	172:30	8	48		oxr_afj
+3-273			FINAL (7/26)	6/21/71						oxr_afj
+3-274		<table><tr><td colspan="4">LM FLIGHT PLAN</td></tr><tr><td>MCC-H</td><td>1304 CDT</td><td>CDR</td><td>LMP</td></tr><tr><td></td><td>172:30</td><td>P35 TARGET MCC-1</td><td></td></tr><tr><td></td><td>(12012)</td><td>RENDEZVOUS RADAR TRACKING</td><td></td></tr><tr><td></td><td>:35</td><td></td><td></td></tr><tr><td></td><td>REV 49</td><td></td><td></td></tr><tr><td></td><td>:40</td><td></td><td></td></tr><tr><td></td><td>172:45</td><td>FINAL MCC-1 COMPUTATION</td><td></td></tr><tr><td></td><td></td><td>P41 RCS THRUSTING</td><td>LOAD AGS MCC-1 EXTERNAL ΔV</td></tr><tr><td></td><td></td><td>MCC-1</td><td></td></tr><tr><td></td><td></td><td>NULL RESIDUALS</td><td></td></tr><tr><td></td><td></td><td>P35 TARGET MCC-2</td><td>EXTERIOR LTG - OFF</td></tr><tr><td></td><td></td><td>RENDEZVOUS RADAR TRACKING</td><td></td></tr><tr><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>FINAL MCC-2 COMPUTATION</td><td></td></tr><tr><td></td><td></td><td>P41 RCS THRUSTING</td><td></td></tr><tr><td></td><td></td><td>MCC-2</td><td>LOAD AGS MCC-2 EXTERNAL ΔV</td></tr><tr><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>NULL RESIDUALS</td><td></td></tr><tr><td></td><td></td><td></td><td></td></tr></table>							1304	oxr_afj
+3-275			FINAL (7/26)	6/21/71						oxr_afj
+3-276										oxr_afj
+3-277			FINAL (7/26)	6/21/71						oxr_afj
+3-278										oxr_afj
+3-279			FINAL (7/26)	6/21/71						oxr_afj
+3-280										oxr_afj
+3-281										oxr_afj
+3-282			FINAL (7/26)	6/21/71	174:30	175:00	8	49-50		oxr_afj
+3-283										oxr_afj
+3-284										oxr_afj
+3-285										oxr_afj
+3-286										oxr_afj
+3-287										oxr_afj
+3-288										oxr_afj
+3-289										oxr_afj
+3-290										oxr_afj
+3-291										oxr_afj
+3-292										oxr_afj
+3-293										oxr_afj
+3-294										oxr_afj
+3-295										oxr_afj
+3-296										oxr_afj
+3-297										oxr_afj
+3-298										oxr_afj
+3-299										oxr_afj
+3-300										oxr_afj
+3-301										oxr_afj
+3-302										oxr_afj
+3-303										oxr_afj
+3-304										oxr_afj
+3-305										oxr_afj
+3-306										oxr_afj
+3-307										oxr_afj
+3-308										oxr_afj
+3-309										oxr_afj
+3-310										oxr_afj
+3-311										oxr_afj
+3-312		Revised Flight Plan (Cancer, Laser Altimetry, Pan Camera, UV and Terminator Photos Rev 63 - Mapping								oxr_afj
+3-313										oxr_afj
+3-314										oxr_afj
+3-315										oxr_afj
+3-316										oxr_afj
+3-317										oxr_afj
+3-318										oxr_afj
+3-319										oxr_afj
+3-320		CSM FLIGHT PLAN								oxr_afj
+3-321										oxr_afj
+3-322										oxr_afj
+3-323										oxr_afj
+3-324										oxr_afj
+3-325										oxr_afj
+3-326										oxr_afj
+3-327										oxr_afj
+3-328										oxr_afj
+3-329										oxr_afj
+3-330										oxr_afj
+3-331										oxr_afj
+3-332			FINAL (7/26)	6/21/71						oxr_afj
+3-333										oxr_afj
+3-334										oxr_afj
+3-335			FINAL (7/26)	6/21/71						oxr_afj
+3-336		CSM FLIGHT PLAN								oxr_afj
+3-337		CSM FLIGHT PLAN	FINAL (7/26)	6/21/71						oxr_afj
+3-338		CSM FLIGHT PLAN								oxr_afj
+3-339										oxr_afj
+3-340	3-340									oxr_afj
+3-341			FINAL (7/26)	6/21/71	225:00	226:00	10	TEC		oxr_afj
+3-342										oxr_afj
+3-343										oxr_afj
+3-344										oxr_afj
+3-345										oxr_afj
+3-346		FLIGHT PLAN								oxr_afj
+3-347										oxr_afj
+3-348										oxr_afj
+3-349										oxr_afj
+3-350	3-350	FLIGHT PLAN	FINAL (7/26)	6/21/71						oxr_afj
+3-351										oxr_afj
+3-352	3-352		FINAL (7/26)	6/21/71						oxr_afj
+3-353										oxr_afj
+3-354										oxr_afj
+3-355			FINAL (7/26)	6/21/71	241:00	242:00	11	TEC		oxr_afj
+3-356										oxr_afj
+3-357			FINAL (7/26)	6/21/71	243:00	244:00	11	TEC		oxr_afj
+3-358										oxr_afj
+3-359										oxr_afj
+3-360										oxr_afj
+3-361										oxr_afj
+3-362										oxr_afj
+3-363										oxr_afj
+3-364										oxr_afj
+3-365		<table><tr><td>MCC-H</td><td>1934 CDT</td><td>FLIGHT PLAN</td><td>NOTES</td></tr><tr><td></td><td>251:00</td><td>L10H CANISTER CHANGE (21 INTO B, STOW 19 IN A4) V40 (11101)(X1111) EXIT G&amp;N PTC</td><td>DAP LOAD STATUS (11111)(X1111) MS GRAT O FT</td></tr><tr><td></td><td>(11101)(X1111):10</td><td>V49 MNVR TO OPTICS CALIBRATION ATT (066,152,350) HGA P -69, Y 301 P23 CALIBRATION STAR N70 (00020) P00</td><td>EARTH DISTANCE ~ 154,731 NM</td></tr><tr><td></td><td>:20</td><td>V49 MNVR TO SIGHTING ATT (084,141,330) HGA P -59, Y 001 P23 CISLUNAR NAVIGATION 3 MARKS ON EACH STAR</td><td>50 POLLUX (ENH)</td></tr><tr><td></td><td>MSF N</td><td>1. N70 (00000) (00000) (00110) N88 (-38535)(+79355)(+47094)</td><td>11 ALDEBARAN (EFH)</td></tr><tr><td></td><td>:40</td><td>2. N70 (00011) (00000) (00120)</td><td>13 CAPELLA (EFH)</td></tr><tr><td></td><td>(11111)(X1111):50</td><td>3. N70 (00013) (00000) (00120) Del @ 236:01:38 V40 (11111)(X1111) CSM G&amp;C CHECKLIST</td><td>QUADS C&amp;D WILL BE USED FOR PTC RATE DAMPING, B2 &amp; D2 FOR PTC SPINUP</td></tr><tr><td></td><td>252:00</td><td>PASSIVE THERMAL CONTROL (G&amp;N) PAGE G/8-2 COMM HGA REACQ MODE P -40, Y 90 V49 MNVR TO PTC ATTITUDE (N20,090,000)</td><td>DAY/REV PAGE</td></tr><tr><td>MISSION</td><td>EDITION</td><td>DATE</td><td>TIME</td></tr><tr><td>APOLLO 15</td><td>FINAL (7/26)</td><td>6/21/71</td><td>251:00 - 252:00</td></tr><tr><td colspan="5">FLIGHT PLANING BRANCH</td></tr></table>	FINAL (7/26)	6/21/71	251:00	252:00	11	TEC	1934	oxr_afj
+3-366										oxr_afj
+3-367										oxr_afj
+3-368										oxr_afj
+3-369										oxr_afj
+3-370										oxr_afj
+3-371										oxr_afj
+3-372										oxr_afj
+3-373			FINAL (7/26)	6/21/71	263:00	264:00	12	TEC	0734	oxr_afj
+3-374										oxr_afj
+3-375										oxr_afj
+3-376										oxr_afj
+3-377										oxr_afj
+3-378		FLIGHT PLAN	FINAL (7/26)	6/21/71						oxr_afj
+3-379										oxr_afj
+3-380										oxr_afj
+3-381										oxr_afj
+3-382	3-382			6/21/71						oxr_afj
+3-383										oxr_afj
+3-384										oxr_afj
+3-385			FINAL (7/26)	6/21/71	271:00	272:00	12	TEC		oxr_afj
+3-386	3-384	FLIGHT PLAN					7	26		oxr_afj
+3-387										oxr_afj
+3-388										oxr_afj
+3-389										oxr_afj
+3-390										oxr_afj
+3-391										oxr_afj
+3-392		FLIGHT PLAN								oxr_afj
+3-393										oxr_afj
+3-394		FLIGHT PLAN								oxr_afj
+3-395										oxr_afj
+3-396										oxr_afj
+3-397										oxr_afj
+3-398										oxr_afj
+3-399										oxr_afj
+3-400		FLIGHT PLAN								oxr_afj
+3-402	3-402	FLIGHT PLAN	FINAL (7/26)	6/21/71						oxr_afj
+3-403										oxr_afj
+3-404	3-404	FLIGHT PLAN	FINAL (7/26)	6/21/71						oxr_afj
+3-405										oxr_afj
+3-406										oxr_afj
+3-407										oxr_afj
+3-408										oxr_afj
