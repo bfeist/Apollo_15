@@ -103,6 +103,7 @@
   "md_commentary.py": "sg_transcript/md_commentary.py",
   "md_sg.py": "sg_transcript/md_sg.py",
   "md_pao.py": "sg_transcript/md_pao.py",
+  "md_review_ui.py": "sg_transcript/md_review_ui.py",
   "md_fp_pao_ocr.py": "flight_plan/md_fp_pao_ocr.py",
   "md_flightplan.py": "flight_plan/md_flightplan.py",
   "md_fp_pages.py": "flight_plan/md_fp_pages.py",
@@ -121,5 +122,12 @@
   "sg_sources.py": "sg-audio/sg_sources.py",
   "sg_transcribe.py": "sg-audio/sg_transcribe.py",
   "dvd_sources.py": "video/dvds/dvd_sources.py",
-  "dvd_transcribe.py": "video/dvds/dvd_transcribe.py"
+  "dvd_transcribe.py": "video/dvds/dvd_transcribe.py",
+  "audio_inventory.py": "audio_inventory/audio_inventory.py",
+  "inventory_common.py": "audio_inventory/inventory_common.py",
+  "jsc_index.py": "audio_inventory/jsc_index.py",
+  "nara_catalog.py": "audio_inventory/nara_catalog.py",
+  "ia_catalog.py": "audio_inventory/ia_catalog.py",
+  "a15_nara.py": "audio_inventory/a15_nara.py",
+  "a15_timeline.py": "audio_inventory/a15_timeline.py"
 }
