@@ -12,7 +12,8 @@ Provisional thresholds (until the calibration corpus in
 tests/test_mission_editorial.py measures them per class): pause, garble,
 non-speech, unit and literal rule labels apply without an AI label when the
 transcript alignment does not report a restoration. Every other class needs
-the AI to agree.
+the AI to agree. Square brackets are the editors' additions and never in the
+audio (``square_bracket``): they are decided without review.
 """
 from __future__ import annotations
 
@@ -92,6 +93,23 @@ def combine(rule: dict, pdf: str, ai: dict | None, ai_other: dict | None) -> tup
     return r_cls, r_act, 'review', agreed, 'needs_ai' if r_act else 'no_rule'
 
 
+def square_bracket(cls: str, action: str, agreed: list[str]) -> tuple[str, str, str, list[str], str]:
+    """A ``[...]`` span is an editor's addition, never in the audio: decided without review.
+
+    The SG-reel ASR confirms it (research/mission_timing/journal_bracket_audio_check.py: 0.7% of
+    AFJ brackets heard against 85% of short spoken spans). Garble stays a garble marker, a
+    non-speech marker such as [Laughter] becomes the approved marker, a stage direction, pause or
+    note keeps its annotation; anything else, including words the PDF also prints, is removed.
+    """
+    if cls == 'garble':
+        action = 'garble'
+    elif (cls, action) == ('nonspeech', 'keep') or (cls in ('pause', 'direction', 'note') and action in REMOVING):
+        pass
+    else:
+        cls, action = ('inserted' if cls in ('', 'other', 'restoration', 'literal') else cls), 'remove'
+    return cls, action, 'auto', sorted(set(agreed) | {'square_bracket'}), ''
+
+
 def load_context():
     blocks, spans = {}, defaultdict(list)
     order = []
@@ -106,7 +124,10 @@ def load_context():
     for edition in ('tec', 'cm', 'lm', 'pao'):
         for r in read_tsv(SCRAPED / f'transcript_{edition}.tsv'):
             printed_text[r['event_id']] = r['text_ocr']
-    links = {l['block_key']: l['event_id'] for l in read_tsv(SCRAPED / 'journal_links.tsv')}
+    links = {}
+    for l in read_tsv(SCRAPED / 'journal_links.tsv'):  # a group link adds rows; keep each block's own link
+        if l['method'] in ('order_text_time', 'group_journal'):
+            links.setdefault(l['block_key'], l['event_id'])
     return blocks, spans, order, printed_text, links
 
 
@@ -154,6 +175,8 @@ def main(args=None) -> int:
         ai = hgx.get(item['span_key']) or strata.get(item['span_key'])
         other = strata.get(item['span_key']) if item['span_key'] in hgx else None
         cls, action, status, agreed, reason = combine(rule, pdf, ai, other)
+        if item['spans'][item['index']]['bracket'].startswith('['):
+            cls, action, status, agreed, reason = square_bracket(cls, action, agreed)
         prior = previous.get(item['span_key'])
         reviewer, date, note = '', '', rule.get('note', '')
         if prior and prior.get('reviewer'):

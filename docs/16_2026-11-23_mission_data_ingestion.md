@@ -324,6 +324,16 @@ parenthesized spans within utterances, with 633 distinct texts. The classes, wit
 Square brackets in the AFJ and parentheses in the ALSJ are editorial by default. The literal
 notation is the exception and must be matched before the removal rules run.
 
+**A square bracket is never in the audio** (2026-11-24). Every `[...]` span is an editor's
+addition and is decided without review (`md_spans.square_bracket`): garble becomes `...`, a
+non-speech marker becomes the approved marker, a pause, direction or note keeps its annotation,
+and everything else is removed, even where the PDF prints the same words (mostly `[sic]`). The
+SG-reel ASR confirms it (`research/mission_timing/journal_bracket_audio_check.py`, closed gaps
+around 8,000 timing anchors): 0.7% of 678 AFJ `[...]` spans are heard, against 85% of short
+spoken spans judged the same way. The few hits are function words (`[the]`, `[Do]`) that
+Whisper tends to supply. ALSJ parentheses test the same way (1.1% of 1,067 heard) but stay with
+the rules and the review queue.
+
 **Garble and non-speech follow Apollo 11, 13 and 17.** Garble is published as `...`. Audible
 non-speech stays inline, in parentheses and capitalized, at the point where it occurs:
 `That's okay (Laughter).` or `(Laughter) I know it.` The published Apollo 17 master shows the
@@ -440,9 +450,9 @@ introduce words that are not in a source.
 
 5. **Combine the judgements.** When the rules, the alignment and the AI agree, the action is
    applied automatically. Any disagreement, any low AI confidence and any flagged restoration
-   goes to the review queue. Once stage 06a has run, the ASR words are a fourth witness. A span
-   that all text methods would remove but the audio clearly contains is kept, because the
-   audio decides.
+   goes to the review queue. Once stage 06a has run, the ASR words are a fourth witness, but
+   never the authority (§6 step 6). A span that all text methods would remove but the ASR
+   contains goes to the review queue, where a reviewer decides by listening.
 6. **Record each decision once.** Store decisions in `MISSION_DATA/review/editorial_spans.tsv`,
    keyed by the stable span key. Columns: class, action (`remove`, `garble`, `annotate`,
    `to_commentary`, `keep`), reviewer and date, and a note. On a re-scrape, unchanged spans reuse
@@ -509,10 +519,49 @@ review:`) to the crew member, with the review as the source.
    a tolerance and by ordered text similarity, using only the spoken spans. An event with an
    existing `event_id` in the timing catalog keeps it. Rows left unmatched or ambiguous go to
    the AI matching pass in §4 step 4. Its proposals are checked for order and time tolerance
-   before they are used. For each event, align the printed tokens,
+   before they are used.
+   - **Utterance breaks differ.** The journals, the PDFs and the ASR segment speech differently.
+     A journal row often joins two printed rows of one speaker or splits one in two. After the
+     one-to-one chain, a link grows over unlinked neighbouring rows of the same speaker (within
+     90 s, skipping at most two interleaved rows of another conversation) while the joined text
+     is at least 0.05 more similar and 60% of the added row's words occur in order on the other
+     side (`group_printed`, `group_journal`). Two neighbouring links whose words cross the break
+     join when the joined text is 0.1 more similar (`group_shifted`). Linked rows sharing a
+     journal row form a group (`group_id`, its first printed event). The wording review compares
+     whole groups (`group_events`), and only the group's own one-to-one link sets a journal GET.
+     Onboard (CM/LM data-storage) and air-to-ground rows never join: the onboard audio is not in
+     the TEC or on the SG reels, so the AFJ's onboard rows stay onboard. The review UI shows each
+     group's texts combined and says how many rows it joins (`joined`). It offers no SG excerpt
+     or ASR words for an onboard row.
+   - **Non-speech and editors' marks in the PDF.** Printed `(laughter)`, `(Cough)` and `[sic]`
+     are not compared as words, as the journals' bracketed ones are not. Spoken literal notation
+     such as `CB(16)` is compared whole on both sides.
+   - **PAO announcements span tape segments.** A PAO row may continue on the next segment, which
+     repeats the last words of the one before. PAO links grow like the others (900 s, as PAO
+     times are segment headers), and the repeat is dropped once when the rows are joined. Line-end
+     hyphens in the PDFs (`measure- ment`) are joined before comparison.
+   - **Misread stamps.** A printed row whose stamp is out of order with both print neighbours
+     (within 120 s; `00 00 01 0B` read as :08 for :03) sorts at its predecessor for linking, so
+     the misread does not swap two rows and break the chain.
+   - **Rows at the top of a page.** Many TEC, CM and LM pages print their first row above the
+     old y 109 body line (changed 2026-11-24). Such a line is a row when its stamp is readable
+     (`r00`, `r00b`, so the pilot IDs below keep their numbers); its wrapped lines follow it. A
+     lower-case text-column line from y 80 down, before the first row, continues the previous page.
+   - **The journal readings shown for review drop every square bracket** (§4; `[garble]` shows
+     as `...`) and unit conversions in any bracket (`(psi, 276 kPa)`). Other parentheses stay.
+   For each event or group, align the printed tokens,
    the journal's spoken tokens and, later, the ASR words. Agreement becomes the proposed wording.
-   Disagreements become rows in `review/wording.tsv` with every reading and an audio locator.
-   The reviewer's choice, made by listening, is recorded there and reused on later builds. The
+   Where they disagree, the journal reading is proposed (`proposed` column): the AFJ and ALSJ are
+   curated retypings of the 1971 PDFs. Where the two journals differ, the one agreeing with the
+   printed row is proposed, otherwise none. The ASR is never a wording source. A journal reading
+   whose only differences supply words where the PDF has garble is accepted without review
+   (`garble_filled`). Garble is `...` in the TEC, CM and LM (their legends; `***` is VOX clipping)
+   and `(garble)` in the PAO edition. Other disagreements become rows in `review/wording.tsv` with every reading and an audio locator.
+   The reviewer's choice, made by listening, is recorded there and reused on later builds.
+   The review UI (`sg_transcript.py review-ui`, `md_review_ui.py`) serves this queue, the
+   editorial queue and the PAO word queue on 127.0.0.1 with the SG-reel excerpt of each row.
+   It places a row by its own timing anchor, by the nearest anchor on a reel, or for PAO slots by
+   the slot's context in the reel words. Saves go through each stage's recorder. The
    journal often recovers words the 1971 transcript marked `(garble)`. The printed transcript
    often has whole exchanges the journals omit. Both directions fill gaps.
 6. **Merge the commentary.** Sort AFJ comments, ALSJ commentary, editorial notes moved out of
@@ -722,10 +771,13 @@ minute-resolution PAO header times are never fitted.
 
 6. **Use the words as a witness.** Through an accepted map, each ASR word gets a GET, and the ASR
    becomes the audio witness in §4 step 5 and §5 step 5.
-   - **The typed transcripts win on wording.** Whisper output is never published. An ASR token
-     that disagrees with both human readings is treated as a recognition error and ignored. The
-     ASR counts only when it does one of these:
-     - sides with one human reading against the other
+   - **The human transcripts win on wording.** The journals (curated retypings of the PDFs)
+     and the 1971 PDFs are the authority, the journal first. Whisper output is never published,
+     and the ASR never overrules a human reading. An ASR token that disagrees with them is treated
+     as a recognition error. Spelling corrections are kept. The ASR counts only when it does one
+     of these:
+     - confirms a human reading, or picks between OCR readings of the same typed page where
+       the text layer is not a real word (an OCR misread such as `ail`/`All`)
      - shows that a bracketed span was or was not spoken (restorations)
      - shows that a printed-only or journal-only row exists in the audio
    - **PAO announcements gain a measured time.** A mapped ASR onset gives a PAO announcement a
@@ -760,10 +812,19 @@ unchanged inputs are byte-identical (checked).
     the rows whose reels exist. Segments from 576 onward belong to reels 584–601, which are not
     in the archive.
   - **Deciding a slot.**
-    - The ASR between the slot's aligned neighbours decides when it equals one reading
-      (`asr`), or is at least 0.8 similar to one and clearly closer to it (`asr_near`).
+    - The typed page is the authority. The ASR between the slot's aligned neighbours confirms
+      the text layer when it equals it (`asr`) or is at least 0.8 similar to it and clearly
+      closer (`asr_near`). It may pick the IA or OXR reading the same way only when the text
+      layer is not made of known words (an OCR misread such as `a1`/`Al`). Between two
+      plausible typed words it never decides (changed 2026-11-24).
+    - A reading that equals the text layer confirms it (`agree`). This covers a garbled IA
+      phrase that is dropped as an alignment slip while OXR matches the text layer.
     - Otherwise a journal vocabulary decides when exactly one reading consists of known words
-      (`vocab`).
+      (`vocab`). OCR readings that differ only in spacing count as one.
+    - When nothing else decides, the text layer is kept if it is made of known words (`typed`)
+      or if no other reading is (`no_better`). Only an unknown text layer against known,
+      unresolved alternatives goes to review (changed 2026-11-25; this cut the queue from
+      1,048 slots to 25).
     - Word splits (`ye s`/`Yes`) take the joined form.
     - A replacement whose two phrases are under 0.5 similar is an alignment slip and keeps the
       text layer. So does an unwitnessed word that only one reading has.

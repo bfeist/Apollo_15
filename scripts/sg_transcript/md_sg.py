@@ -285,14 +285,16 @@ def load_events() -> list[dict]:
         key = ev['afj_key'] or ev['alsj_key']
         block = journal.get(key) if key else None
         prow = printed.get(ev['event_id'])
-        toks = comparable(block['tokens']) if block and block['tokens'] else (comparable(prow['tokens']) if prow else [])
+        # Where the journal breaks this utterance differently (a group), match the printed row's own words.
+        words = block if block and not (ev.get('group_id') and prow) else None
+        toks = comparable(words['tokens']) if words and words['tokens'] else (comparable(prow['tokens']) if prow else [])
         if not toks:
             continue
         journal_get = block['get'] if block and block['get_basis'] in ('anchor', 'stamp') else ''
         out.append({'event_id': ev['event_id'], 't': int(ev['get_seconds']), 'get': ev['get'],
                     'get_basis': ev['get_basis'], 'printed_get': ev['printed_get'], 'journal_get': journal_get,
                     'journal_basis': block['get_basis'] if block else '', 'who': ev['who'], 'tokens': toks,
-                    'text': (block['text'] if block else ev['printed_text'])})
+                    'text': (words['text'] if words else ev['printed_text'])})
     out.sort(key=lambda e: (e['t'], e['event_id']))
     return out
 

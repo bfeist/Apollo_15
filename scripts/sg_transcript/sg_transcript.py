@@ -48,6 +48,9 @@ def main(argv=None) -> int:
     p.add_argument('step', choices=('reels', 'pao', 'anchors', 'all'))
     p.add_argument('--reel', nargs='+', help='only these reels (writes *_partial.tsv)')
 
+    p = sub.add_parser('review-ui', help='local web UI to review the queues and listen to the SG-reel audio')
+    p.add_argument('--port', type=int, default=8765)
+
     p = sub.add_parser('photos', help='step 7: photo indexes')
     p.add_argument('what', choices=('hasselblad', 'imldi', 'sim', 'all'))
     p.add_argument('--delay', type=float, default=1.0)
@@ -94,6 +97,9 @@ def main(argv=None) -> int:
     if args.command == 'sg':
         import md_sg
         return md_sg.main(args)
+    if args.command == 'review-ui':
+        import md_review_ui
+        return md_review_ui.main(args)
     if args.command == 'photos':
         import md_photos
         return md_photos.main(args)

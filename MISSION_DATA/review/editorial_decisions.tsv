@@ -1,0 +1,275 @@
+span_key	class	action	marker	reviewer	date	note	span	get
+afj:01launch_to_earth_orbit:0000054#1:3a6c825d	nonspeech	keep		ben	2026-11-24		(Laughter)	000:00:54
+afj:02earth_orbit_tli:0010130#0:3a6c825d	nonspeech	keep		ben	2026-11-24		(Laughter)	001:01:30
+afj:02earth_orbit_tli:0010311#1:3a6c825d	nonspeech	keep		ben	2026-11-24		(Laughter)	001:03:11
+afj:02earth_orbit_tli:0011119#1:b5b0b4b0	nonspeech	remove		ben	2026-11-24		(Cleared throat)	001:11:19
+afj:02earth_orbit_tli:0012505#1:11d819b7	nonspeech	keep		ben	2026-11-24		(laughter)	001:25:05
+afj:02earth_orbit_tli:0015813#0:3a6c825d	nonspeech	keep		ben	2026-11-24		(Laughter)	001:58:13
+afj:02earth_orbit_tli:0015817#0:3a6c825d	nonspeech	keep		ben	2026-11-24		(Laughter)	001:58:17
+afj:02earth_orbit_tli:0021343#3:11d819b7	nonspeech	keep		ben	2026-11-24		(laughter)	002:13:43
+afj:02earth_orbit_tli:0021722#0:3a6c825d	nonspeech	keep		ben	2026-11-24		(Laughter)	002:17:22
+afj:04troubleshoot_ptc:0094307#1:25c4df8e	nonspeech	remove		ben	2026-11-24		(yawn)	009:43:07
+afj:06day2_enter_lm:0320829#1:b0f46e44	nonspeech	remove		ben	2026-11-24		(Sigh)	032:08:29
+afj:06day2_enter_lm:0322118#1:3a6c825d	nonspeech	keep		ben	2026-11-24		(Laughter)	032:21:18
+afj:06day2_enter_lm:0322953#1:ca2f0ac4	nonspeech	keep		ben	2026-11-24		(Sneeze)	032:29:53
+afj:08day3_leak_hilltop:0554013#1:75a288c0	literal	remove		ben	2026-11-24		(up)	055:40:13
+afj:09day4_lunar_encounter:0783931#1:11d819b7	nonspeech	keep		ben	2026-11-24		(laughter)	078:39:31
+afj:10b-day4_doi-rest:0824337#1:b0a8ea4d	nonspeech	remove		ben	2026-11-24		(cleared throat)	082:43:37
+afj:10b-day4_doi-rest:0842046#1:b5b0b4b0	nonspeech	remove		ben	2026-11-24		(Cleared throat)	084:20:46
+afj:12a-day5_doi_trim:0955433#1:11d819b7	nonspeech	keep		ben	2026-11-24		(laughter)	095:54:33
+afj:12a-day5_doi_trim:0960713#1:3c921017	nonspeech	keep		ben	2026-11-24		(Clanking)	096:07:13
+afj:12a-day5_doi_trim:0960735#1:3c921017	nonspeech	keep		ben	2026-11-24		(Clanking)	096:07:35
+afj:12a-day5_doi_trim:0960810#1:3c921017	nonspeech	keep		ben	2026-11-24		(Clanking)	096:08:10
+afj:12a-day5_doi_trim:0960905#0:3c921017	nonspeech	keep		ben	2026-11-24		(Clanking)	096:09:05
+afj:12a-day5_doi_trim:0960935#1:3a6c825d	nonspeech	keep		ben	2026-11-24		(Laughter)	096:09:35
+afj:12a-day5_doi_trim:0960935#3:11d819b7	nonspeech	keep		ben	2026-11-24		(laughter)	096:09:35
+afj:12e-day5_landing_prep:1041220#0:3a6c825d	nonspeech	keep		ben	2026-11-24		(Laughter)	104:12:20
+afj:19a-day9_orbital_science:1974845#1:11d819b7	nonspeech	keep		ben	2026-11-24		(laughter)	197:48:45
+afj:19b-day9_orbital_science:1975301#1:11d819b7	nonspeech	keep		ben	2026-11-24		(laughter)	197:53:01
+afj:19b-day9_orbital_science:2015526#0:3a6c825d	nonspeech	keep		ben	2026-11-24		(Laughter)	201:55:26
+afj:20a-day10_science-68-69:2115554#1:059d4967	gloss	remove		ben	2026-11-24		(onboard)	211:55:54
+afj:20c-day10_science-71:2153722#0:a322903f	nonspeech	remove		ben	2026-11-24		(Yawn)	215:37:22
+afj:20c-day10_science-71:2154421#1:b5b0b4b0	nonspeech	remove		ben	2026-11-24		(Cleared throat)	215:44:21
+afj:20c-day10_science-71:2161611#1:e1188694	nonspeech	remove		ben	2026-11-24		(grunt)	216:16:11
+afj:21a-day10_subsat:2194627#1:11d819b7	nonspeech	keep		ben	2026-11-24		(laughter)	219:46:27
+afj:21a-day10_subsat:2194756#0:3a6c825d	nonspeech	keep		ben	2026-11-24		(Laughter)	219:47:56
+afj:21a-day10_subsat:2204459#1:4a44dc15	literal	keep		ben	2026-11-24		(10)	220:44:59
+afj:21b-day10_tei:2242633#3:a64ac6f2	other	to_commentary		ben	2026-11-24		(And they're quite distinct flows, you can see where they've lapped up against the sides, and you can also see where they've come - where they've spilled down over the sides, sort of reminiscent of the Coso Hills flow)	224:26:33
+afj:23b-day11_worden_eva:2422957#0:3a6c825d	nonspeech	keep		ben	2026-11-24		(Laughter)	242:29:57
+afj:24a-day12_p23-uv-photos:2652024#0:a322903f	nonspeech	remove		ben	2026-11-24		(Yawn)	265:20:24
+afj:24b-day12_eclipse-presser:2693618#1:e1bbf8c9	restoration	remove		ben	2026-11-24		(damp rates)	269:36:18
+afj:24b-day12_eclipse-presser:2693700#1:e1bbf8c9	restoration	remove		ben	2026-11-24		(damp rates)	269:37:00
+afj:24c-day12_p23-science:2751157#1:d8da1d11	note	remove		ben	2026-11-24		(onboard transcript gives Worden)	275:11:57
+afj:24c-day12_p23-science:2751223#1:d8da1d11	note	remove		ben	2026-11-24		(onboard transcript gives Worden)	275:12:23
+afj:24c-day12_p23-science:2754149#0:ef3ba9ac	nonspeech	remove		ben	2026-11-24		(Clears throat)	275:41:49
+afj:25b-day13_entry-splashdown:2950413#1:3a6c825d	nonspeech	keep		ben	2026-11-24		(Laughter)	295:04:13
+alsj:a15.alsepdep:1243116#1:fbf8e35f	note	remove		ben	2026-11-24		(As per CDR-19)	124:31:16
+alsj:a15.alsepdep:1243123#1:e8546883	note	remove		ben	2026-11-24		(As per Proc. p.73)	124:31:23
+alsj:a15.alsepdep:1243123#3:16ebc35c	gloss	remove		ben	2026-11-24		(to the Central Station)	124:31:23
+alsj:a15.alsepdep:1243230#1:fbf8e35f	note	remove		ben	2026-11-24		(As per CDR-19)	124:32:30
+alsj:a15.alsepdep:1243653#1:96cf1eb2	note	remove		ben	2026-11-24		(As per LMP-19)	124:36:53
+alsj:a15.alsepdep:1244236#0:fbf8e35f	note	remove		ben	2026-11-24		(As per CDR-19)	124:42:36
+alsj:a15.alsepdep:1244506#1:e363c070	note	remove		ben	2026-11-24		(As per LMP-20)	124:45:06
+alsj:a15.alsepdep:1244712#1:143ec409	note	remove		ben	2026-11-24		(As per CDR-20)	124:47:12
+alsj:a15.alsepdep:1251300#3:f6e17d7b	inserted	remove		ben	2026-11-24		(to get the dust off)	125:13:00
+alsj:a15.alsepdep:1251634#1:fb6af79e	other	remove		ben	2026-11-24		(aligned?)	125:16:34
+alsj:a15.alsepdep:1253333#1:19b15651	gloss	remove		ben	2026-11-24		(with the UHT)	125:33:33
+alsj:a15.alsepdep:1253653#1:0b376cc6	gloss	remove		ben	2026-11-24		(to the LM)	125:36:53
+alsj:a15.alsepoff:1240409#1:0bdc2e1b	note	remove		ben	2026-11-24		(as per CDR-15 and LMP-15, we'd like for you to put the spare core tube, core tube cap, and SESC (Special Environmental Sample Container) in bag 2 as you put bag 2 on the handtool carrier.	124:04:09
+alsj:a15.alsepoff:1240440~2#1:3ebd36a7	gloss	remove		ben	2026-11-24		(as per checklist)	124:04:40
+alsj:a15.alsepoff:1241913#1:ba45ead7	note	remove		ben	2026-11-24		(As per CDR-16)	124:19:13
+alsj:a15.alsepoff:1242822#3:db406e0d	gloss	remove		ben	2026-11-24		(to orient the high-gain antenna)	124:28:22
+alsj:a15.clsout1:1254450#1:caf22378	inserted	remove		ben	2026-11-24		(go to)	125:44:50
+alsj:a15.clsout1:1254630#1:109ae238	note	remove		ben	2026-11-24		(As per CDR-28)	125:46:30
+alsj:a15.clsout1:1260325#1:fda8309a	gloss	remove		ben	2026-11-24		(to get it out of the way)	126:03:25
+alsj:a15.clsout1:1260734#0:9a42a991	inserted	remove		ben	2026-11-24		(I'll)	126:07:34
+alsj:a15.clsout1:1260928#1:acc4f02d	gloss	remove		ben	2026-11-24		(to close the dump valve)	126:09:28
+alsj:a15.clsout1:1261052#1:b17ef6d1	literal	keep		ben	2026-11-24		(16)	126:10:52
+alsj:a15.clsout1:1261252#1:b17ef6d1	literal	keep		ben	2026-11-24		(16)	126:12:52
+alsj:a15.clsout2:1484356#1:f37ffd23	gloss	remove		ben	2026-11-24		(with use of the sighting scope)	148:43:56
+alsj:a15.clsout2:1484757~2#1:3f5694c3	gloss	remove		ben	2026-11-24		(CDR)	148:47:57
+alsj:a15.clsout2:1485218#1:da813f6d	inserted	remove		ben	2026-11-24		(to the deployment spot)	148:52:18
+alsj:a15.clsout2:1491010#1:55f1dd62	note	remove		ben	2026-11-24		(sic)	149:10:10
+alsj:a15.clsout2:1491150~2#3:4563b366	inserted	remove		ben	2026-11-24		(It's a)	149:11:50
+alsj:a15.clsout2:1492600#1:b17ef6d1	literal	keep		ben	2026-11-24		(16)	149:26:00
+alsj:a15.clsout2:1492842#3:b17ef6d1	literal	keep		ben	2026-11-24		(16)	149:28:42
+alsj:a15.clsout3:1671618#1:b1921825	direction	remove		ben	2026-11-24		(that is, the disappearance of the TV picture on the monitor in the Control Room)	167:16:18
+alsj:a15.clsout3:1671649#1:b219c579	gloss	remove		ben	2026-11-24		(U.S. Govt.)	167:16:49
+alsj:a15.clsout3:1672748#1:a2de8b8a	gloss	remove		ben	2026-11-24		(probably Great Scott)	167:27:48
+alsj:a15.clsout3:1672838#1:884b806e	pause	remove		ben	2026-11-24		(brief static; TV off)	167:28:38
+alsj:a15.clsout3:1673658#1:aecef3d3	gloss	remove		ben	2026-11-24		(with the drive motors and TV off)	167:36:58
+alsj:a15.clsout3:1673721#1:48900832	gloss	to_commentary		ben	2026-11-24		(as per CDR-40)	167:37:21
+alsj:a15.clsout3:1673833#1:e08588b7	gloss	to_commentary		ben	2026-11-24		(as per CDR-41)	167:38:33
+alsj:a15.clsout3:1675120#1:b739ded9	note	to_commentary		ben	2026-11-24		(the blind poet in Robert Heinlein's The Green Hills of Earth)	167:51:20
+alsj:a15.clsout3:1680704#2:b17ef6d1	literal	keep		ben	2026-11-24		(16)	168:07:04
+alsj:a15.coreextract:1640823#1:55f1dd62	note	remove		ben	2026-11-24		(sic)	164:08:23
+alsj:a15.coreextract:1641205#1:3268f44e	inserted	remove		ben	2026-11-24		(as anybody)	164:12:05
+alsj:a15.coreextract:1643433#5:eb86436f	gloss	remove		ben	2026-11-24		(SCB-2)	164:34:33
+alsj:a15.coreextract:1643443#1:bbae78b4	inserted	remove		ben	2026-11-24		(Like you)	164:34:43
+alsj:a15.coreextract:1643508#0:c89c6372	inserted	remove		ben	2026-11-24		(Under Joe)	164:35:08
+alsj:a15.coreextract:1643606#1:17f3417b	inserted	remove		ben	2026-11-24		(to Earth)	164:36:06
+alsj:a15.coreextract:1643625#1:17f3417b	inserted	remove		ben	2026-11-24		(to Earth)	164:36:25
+alsj:a15.elbow:1221452~2#3:c6ab0119	pause	remove		ben	2026-11-24		(Pause, probably as Dave is trying to set the gnomon down next to a sample)	122:14:52
+alsj:a15.elbow:1221556#0:2a07f061	direction	remove		ben	2026-11-24		(Reading the bag number for future identification of the sample at the Lunar Receiving Lab in Houston)	122:15:56
+alsj:a15.elbow:1221636#9:ad0bd71a	gloss	remove		ben	2026-11-24		(to fit in an individual sample bag)	122:16:36
+alsj:a15.elbow:1221816#1:8fa92335	note	remove		ben	2026-11-24		(possibly the first sample bag, 156)	122:18:16
+alsj:a15.elbow:1221858#1:a853af06	note	remove		ben	2026-11-24		(probably sample 15076)	122:18:58
+alsj:a15.elbow:1222435#0:94d70b6e	direction	remove		ben	2026-11-24		(Also having a lot of fun on the way back to the Rover, unfortunately off-camera)	122:24:35
+alsj:a15.elbowtrv:1214445#0:c0796f08	inserted	remove		ben	2026-11-24		(To get to)	121:44:45
+alsj:a15.elbowtrv:1215202#1:ed20cb18	gloss	remove		ben	2026-11-24		(to downSun)	121:52:02
+alsj:a15.elbowtrv:1220751#0:3a6c825d	nonspeech	keep		ben	2026-11-24		(Laughter)	122:07:51
+alsj:a15.elbowtrv:1221021#1:f99b763d	gloss	remove		ben	2026-11-24		(to the Elbow rim)	122:10:21
+alsj:a15.eva1post:1273105#1:c6a183f8	gloss	remove		ben	2026-11-24		(as per checklist page 5-3)	127:31:05
+alsj:a15.eva1post:1275512#3:117d3fff	gloss	remove		ben	2026-11-24		(at St. George Crater)	127:55:12
+alsj:a15.eva1post:1285905#1:1bf1ae32	note	to_commentary		ben	2026-11-24		(as shown in Figure 14-52 from the Mission Report)	128:59:05
+alsj:a15.eva1post:1291442#1:a9fa52ee	gloss	to_commentary		ben	2026-11-24		(which are planned EVA-2 stops on the flank of Mt. Hadley Delta)	129:14:42
+alsj:a15.eva1prep:1190744#4:b17ef6d1	literal	keep		ben	2026-11-24		(16)	119:07:44
+alsj:a15.eva1prep:1190844#1:b17ef6d1	literal	keep		ben	2026-11-24		(16)	119:08:44
+alsj:a15.eva1prep:1191348#1:b17ef6d1	literal	keep		ben	2026-11-24		(16)	119:13:48
+alsj:a15.eva1prep:1191412#1:b17ef6d1	literal	keep		ben	2026-11-24		(16)	119:14:12
+alsj:a15.eva1prep:1191503#1:99290a2a	gloss	remove		ben	2026-11-24		(as per Surface 3-9)	119:15:03
+alsj:a15.eva1prep:1191618#3:1b955e08	note	remove		ben	2026-11-24		(before disconnecting from LM water)	119:16:18
+alsj:a15.eva1prep:1192559#3:b17ef6d1	literal	keep		ben	2026-11-24		(16)	119:25:59
+alsj:a15.eva1prep:1192845#1:4a1e522c	direction	remove		ben	2026-11-24		(Long Pause as Dave turns and checks the circuit breaker panel ( CB(11) ) on his side of the cabin)	119:28:45
+alsj:a15.eva1prep:1193321#1:93f3fc20	gloss	remove		ben	2026-11-24		(as per Surface 3-10)	119:33:21
+alsj:a15.eva1prep:1193350#3:bb65c1ba	gloss	remove		ben	2026-11-24		(as expected)	119:33:50
+alsj:a15.eva1prep:1193718#1:b17ef6d1	literal	keep		ben	2026-11-24		(16)	119:37:18
+alsj:a15.eva1prep:1193724#1:b17ef6d1	literal	keep		ben	2026-11-24		(16)	119:37:24
+alsj:a15.eva1prep:1193755#1:66330933	gloss	remove		ben	2026-11-24		(probably the right rear)	119:37:55
+alsj:a15.eva1prep:1193813#1:560e4983	gloss	remove		ben	2026-11-24		(to get the dump valve)	119:38:13
+alsj:a15.eva1prep:1194120#4:3a6c825d	nonspeech	keep		ben	2026-11-24		(Laughter)	119:41:20
+alsj:a15.eva1prep:1194724#1:289853b1	inserted	remove		ben	2026-11-24		(getting into)	119:47:24
+alsj:a15.eva1wake:1153128+3#1:36521b4f	inserted	remove		ben	2026-11-24		(Are)	115:35:53
+alsj:a15.eva1wake:1160242#1:085d35a2	inserted	remove		ben	2026-11-24		(before the scheduled wake-up)	116:02:42
+alsj:a15.eva1wake:1162955#1:61cd9d2e	inserted	remove		ben	2026-11-24		(after the SEVA at 108:30:36, and, perhaps, it)	116:29:55
+alsj:a15.eva1wake:1163153#1:b9776d7d	inserted	remove		ben	2026-11-24		(the)	116:31:53
+alsj:a15.eva1wake:1183641#1:cdf4e124	gloss	remove		ben	2026-11-24		(7:10 a.m. Central Daylight Time)	118:36:41
+alsj:a15.eva2plan:1394348#1:bbeb9945	gloss	remove		ben	2026-11-24		(with oxygen usage)	139:43:48
+alsj:a15.eva2plan:1394454#0:2f7469b7	direction	remove		ben	2026-11-24		(Along the Front)	139:44:54
+alsj:a15.eva2plan:1394724#5:f3fe997b	restoration	remove		ben	2026-11-24		(We)	139:47:24
+alsj:a15.eva2post:1511335#1:579055f8	gloss	remove		ben	2026-11-24		(LMP)	151:13:35
+alsj:a15.eva2post:1511515#1:4a5f830b	gloss	to_commentary		ben	2026-11-24		(as per Surface 8-7)	151:15:15
+alsj:a15.eva2post:1515816#1:de0d871d	other	remove		ben	2026-11-24		(too faint)	151:58:16
+alsj:a15.eva2post:1515828#1:de0d871d	other	garble		ben	2026-11-24		(too faint)	151:58:28
+alsj:a15.eva2post:1515828#3:de0d871d	other	garble		ben	2026-11-24		(too faint)	151:58:28
+alsj:a15.eva2post:1515842#1:de0d871d	other	garble		ben	2026-11-24		(too faint)	151:58:42
+alsj:a15.eva2prelim:1424443#3:91c844b6	gloss	remove		ben	2026-11-24		(as seen from the back of the Rover)	142:44:43
+alsj:a15.eva2prelim:1424553#1:3ebd36a7	gloss	remove		ben	2026-11-24		(as per checklist)	142:45:53
+alsj:a15.eva2prelim:1424724#1:6975435f	gloss	remove		ben	2026-11-24		(as per LMP-4)	142:47:24
+alsj:a15.eva2prelim:1424937#1:24addc62	gloss	remove		ben	2026-11-24		(as per CDR-5)	142:49:37
+alsj:a15.eva2prelim:1424937#3:3b6fccb8	gloss	remove		ben	2026-11-24		(as per CDR-4)	142:49:37
+alsj:a15.eva2prelim:1425400#3:23a05066	gloss	remove		ben	2026-11-24		(as per LMP-5)	142:54:00
+alsj:a15.eva2prelim:1425412#1:24addc62	gloss	remove		ben	2026-11-24		(as per CDR-5)	142:54:12
+alsj:a15.eva2prelim:1425905#2:8accd647	inserted	remove		ben	2026-11-24		(standing)	142:59:05
+alsj:a15.eva2prep:1403808#1:dacbc48f	restoration	remove		ben	2026-11-24		(they're)	140:38:08
+alsj:a15.eva2prep:1403847#1:7ced3f78	note	to_commentary		ben	2026-11-24		(as per the discussion at 139:06:56)	140:38:47
+alsj:a15.eva2prep:1405507#1:8008f1db	note	to_commentary		ben	2026-11-24		(as per checklist page 6-2)	140:55:07
+alsj:a15.eva2prep:1413101#1:a4c292a2	note	to_commentary		ben	2026-11-24		(as per checklist page 6-3)	141:31:01
+alsj:a15.eva2prep:1413224#2:00dae64b	note	to_commentary		ben	2026-11-24		(Now on checklist page 6-4)	141:32:24
+alsj:a15.eva2prep:1413224#8:b17ef6d1	literal	keep		ben	2026-11-24		(16)	141:32:24
+alsj:a15.eva2prep:1413951#1:14e24183	note	to_commentary		ben	2026-11-24		(as per the note at the middle of the left-hand column on 6-4)	141:39:51
+alsj:a15.eva2prep:1415230#1:b17ef6d1	literal	keep		ben	2026-11-24		(16)	141:52:30
+alsj:a15.eva2prep:1415238#1:b17ef6d1	literal	keep		ben	2026-11-24		(16)	141:52:38
+alsj:a15.eva2prep:1415446#1:8ea254c1	nonspeech	remove		ben	2026-11-24		(Yawns; Long Pause)	141:54:46
+alsj:a15.eva2prep:1415530#7:6201111b	inserted	remove		ben	2026-11-24		(and)	141:55:30
+alsj:a15.eva2prep:1420239#1:b17ef6d1	literal	keep		ben	2026-11-24		(16)	142:02:39
+alsj:a15.eva2prep:1421325#1:b17ef6d1	literal	keep		ben	2026-11-24		(16)	142:13:25
+alsj:a15.eva3post:1681025#1:b17ef6d1	literal	keep		ben	2026-11-24		(16)	168:10:25
+alsj:a15.eva3prelim:1632521#1:34872d27	inserted	remove		ben	2026-11-24		(to be checked)	163:25:21
+alsj:a15.eva3prelim:1633448#3:6e867829	gloss	to_commentary		ben	2026-11-24		(as per LMP-23)	163:34:48
+alsj:a15.eva3prelim:1633858#1:fce3d79c	gloss	to_commentary		ben	2026-11-24		(as per LMP-24)	163:38:58
+alsj:a15.eva3prep:1601246#1:0ce6a069	note	to_commentary		ben	2026-11-24		(As per Surface 8-9)	160:12:46
+alsj:a15.eva3prep:1620045#1:e842fd2d	note	to_commentary		ben	2026-11-24		(as per Surface 8-8)	162:00:45
+alsj:a15.eva3prep:1620822#1:83ca758c	other	keep		ben	2026-11-24		(:15)	162:08:22
+alsj:a15.eva3prep:1625122#4:b17ef6d1	literal	keep		ben	2026-11-24		(16)	162:51:22
+alsj:a15.eva3prep:1625122#6:55f1dd62	other	remove		ben	2026-11-24		(sic)	162:51:22
+alsj:a15.eva3prep:1625154#1:b17ef6d1	literal	keep		ben	2026-11-24		(16)	162:51:54
+alsj:a15.eva3prep:1625453#1:b17ef6d1	literal	keep		ben	2026-11-24		(16)	162:54:53
+alsj:a15.eva3prep:1625453#3:b17ef6d1	literal	keep		ben	2026-11-24		(16)	162:54:53
+alsj:a15.eva3prep:1630427#1:b17ef6d1	literal	keep		ben	2026-11-24		(16)	163:04:27
+alsj:a15.eva3prep:1631644#1:b17ef6d1	literal	keep		ben	2026-11-24		(16)	163:16:44
+alsj:a15.heatflow2:1473730#1:f80265ed	gloss	remove		ben	2026-11-24		(to get the heat flow photos)	147:37:30
+alsj:a15.landing:1042751#0:b06effd1	inserted	remove		ben	2026-11-24		(The readings)	104:27:51
+alsj:a15.landing:1042802#2:a051786e	literal	remove		ben	2026-11-24		(cuit breaker)	104:28:02
+alsj:a15.landing:1042947#0:e4b35726	restoration	remove		ben	2026-11-24		(Standing)	104:29:47
+alsj:a15.launch:1704011#1:d9655e16	inserted	remove		ben	2026-11-24		(I'd)	170:40:11
+alsj:a15.launch:1710102#3:cdfd6a8f	note	to_commentary		ben	2026-11-24		(as had been planned on Surface 12-13)	171:01:02
+alsj:a15.launch:1710859#1:b9776d7d	inserted	remove		ben	2026-11-24		(the)	171:08:59
+alsj:a15.launch:1712849#1:68118648	pause	remove		ben	2026-11-24		(Heavy Static; Long Pause)	171:28:49
+alsj:a15.launch:1713459#1:c108d084	pause	remove		ben	2026-11-24		(Residual static ends; Long Pause)	171:34:59
+alsj:a15.launch:1713625#5:8f4e37fe	restoration	remove		ben	2026-11-24		(ceed)	171:36:25
+alsj:a15.launch:1714226#1:7f333cac	restoration	remove		ben	2026-11-24		(PGNS and AGS are)	171:42:26
+alsj:a15.lrvdep:1195442#3:31beb1a1	direction	remove		ben	2026-11-24		(Talking to himself, probably draping the LEC over the right (south) side of the ladder)	119:54:42
+alsj:a15.lrvdep:1200920#1:cf52c9fc	direction	remove		ben	2026-11-24		(Pause, as Dave points the TV at the Rover to the right of the ladder)	120:09:20
+alsj:a15.lrvdep:1201145#1:6459d670	gloss	remove		ben	2026-11-24		(with the contingency sample)	120:11:45
+alsj:a15.lrvdep:1201333#1:860d4178	gloss	remove		ben	2026-11-24		(possibly the Rover tool)	120:13:33
+alsj:a15.lrvdep:1201605#11:2f44a28b	nonspeech	remove		ben	2026-11-24		(They both laugh)	120:16:05
+alsj:a15.lrvdep:1201911#3:88f48cb3	direction	remove		ben	2026-11-24		(Pause as Dave retrieves the left-hand tape from secondary ladder strut where he draped it earlier)	120:19:11
+alsj:a15.lrvdep:1202036#3:241fd74d	direction	remove		ben	2026-11-24		(Pause as Dave reaches over to the ETB and grabs the Rover tool with his left hand)	120:20:36
+alsj:a15.lrvdep:1202323#1:1812add8	direction	remove		ben	2026-11-24		(Pause as Dave pulls the back of the Rover three or four feet farther to the left)	120:23:23
+alsj:a15.lrvdep:1202702#5:c16c14aa	inserted	remove		ben	2026-11-24		(to your)	120:27:02
+alsj:a15.lrvdep:1202948#1:af46f2cd	direction	remove		ben	2026-11-24		(Long Pause as Jim goes back around to his side of the Rover, deploys his seatbelt and then heads for the MESA)	120:29:48
+alsj:a15.lrvload:1205818#1:bd197ea7	note	remove		ben	2026-11-24		(as per the steps at 0+56 on LMP-6)	120:58:18
+alsj:a15.postland:1054947#1:6efbc44e	note	to_commentary		ben	2026-11-24		(as per checklist page Surface 1-6)	105:49:47
+alsj:a15.postseva:1080724#1:60cf85a4	gloss	remove		ben	2026-11-24		(CMP CapCom Gordon Fullerton)	108:07:24
+alsj:a15.postseva:1082602#1:98375d0b	nonspeech	remove		ben	2026-11-24		(guffaws)	108:26:02
+alsj:a15.postseva:1082933#1:3ebd36a7	gloss	remove		ben	2026-11-24		(as per checklist)	108:29:33
+alsj:a15.postseva:1083146#1:b6975c90	inserted	remove		ben	2026-11-24		(with regard to the question on the bright crater)	108:31:46
+alsj:a15.postseva:1083206#3:3fb1ee49	gloss	remove		ben	2026-11-24		(as November has)	108:32:06
+alsj:a15.postseva:1083614#2:dbf15ddf	gloss	remove		ben	2026-11-24		(as per Surface 2-7)	108:36:14
+alsj:a15.rille:1654446#1:8accd647	inserted	remove		ben	2026-11-24		(standing)	165:44:46
+alsj:a15.rille:1655624#1:185d57a9	gloss	remove		ben	2026-11-24		(as opposed to clods)	165:56:24
+alsj:a15.rille:1660011#1:1701d11e	inserted	remove		ben	2026-11-24		(to the Rover)	166:00:11
+alsj:a15.rille:1660524#1:1c141063	inserted	remove		ben	2026-11-24		(lower section)	166:05:24
+alsj:a15.rille:1660543#1:594d853e	restoration	remove		ben	2026-11-24		(ram it)	166:05:43
+alsj:a15.rille:1660823#1:4f06958f	inserted	remove		ben	2026-11-24		(I'm taking the)	166:08:23
+alsj:a15.rille:1661046#3:18fc16c4	gloss	remove		ben	2026-11-24		(with the CDR camera)	166:10:46
+alsj:a15.rille:1661118#1:b63b99f6	inserted	remove		ben	2026-11-24		(was)	166:11:18
+alsj:a15.seva:1064133#1:b17ef6d1	literal	keep		ben	2026-11-24		(16)	106:41:33
+alsj:a15.seva:1065451#1:2ab62cfe	gloss	remove		ben	2026-11-24		(turning)	106:54:51
+alsj:a15.seva:1071517#1:0915dd54	nonspeech	remove		ben	2026-11-24		(Intermittent sound of repressurization; Long Pause)	107:15:17
+alsj:a15.spur:1452752#1:1ba28c33	gloss	remove		ben	2026-11-24		(before Dave tries to aim the high-gain)	145:27:52
+alsj:a15.spur:1460649#1:42af2387	gloss	remove		ben	2026-11-24		(with the big rocks)	146:06:49
+alsj:a15.sta10:1661604#1:350a770c	inserted	remove		ben	2026-11-24		(rock)	166:16:04
+alsj:a15.sta10:1661604#3:cffd7336	inserted	remove		ben	2026-11-24		('s wrong)	166:16:04
+alsj:a15.sta10:1662322#1:dda86804	inserted	remove		ben	2026-11-24		(rock-type)	166:23:22
+alsj:a15.sta10:1662621#1:591d727e	inserted	remove		ben	2026-11-24		(pointed)	166:26:21
+alsj:a15.sta2:1224435#3:d9760e56	note	remove		ben	2026-11-24		(possibly sample bag 180)	122:44:35
+alsj:a15.sta2:1225827#1:eb02b54e	gloss	remove		ben	2026-11-24		(a smooth, sometimes lined, surface created where rack masses in close contact slide across each other)	122:58:27
+alsj:a15.sta2:1230223#1:05126eab	gloss	remove		ben	2026-11-24		(the rille rim and wall below St. George)	123:02:23
+alsj:a15.sta2:1230312#1:3795d130	gloss	remove		ben	2026-11-24		(a pair of fresh craters at the edge of the rille near BW/64, about 4.5 km NNW of their current position)	123:03:12
+alsj:a15.sta2:1230537#4:1701d11e	gloss	remove		ben	2026-11-24		(to the Rover)	123:05:37
+alsj:a15.sta2:1231122#3:2ef4ac4c	direction	remove		ben	2026-11-24		(Pause as Dave pushes the rammer into the upper section several times with his right palm)	123:11:22
+alsj:a15.sta2:1231220#1:25dfb1ab	gloss	remove		ben	2026-11-24		(with the tongs)	123:12:20
+alsj:a15.sta2:1231827#3:8f81401d	literal	keep		ben	2026-11-24		(f/)	123:18:27
+alsj:a15.sta6abv:1435629#1:bdc19fef	nonspeech	remove		ben	2026-11-24		(Laughing)	143:56:29
+alsj:a15.sta6abv:1435756#1:2d2bf24b	nonspeech	remove		ben	2026-11-24		(Dave and Jim laugh)	143:57:56
+alsj:a15.sta6abv:1435813#1:a1a8a9c6	gloss	remove		ben	2026-11-24		(after sampling)	143:58:13
+alsj:a15.sta6abv:1440456#1:fa2fd1c8	restoration	remove		ben	2026-11-24		(But we'll collect it)	144:04:56
+alsj:a15.sta6abv:1440626#3:21074067	note	remove		ben	2026-11-24		(probably meaning the down-Sun "befores")	144:06:26
+alsj:a15.sta6abv:1441113#1:26c4f38e	inserted	remove		ben	2026-11-24		("before")	144:11:13
+alsj:a15.sta6abv:1441306#4:06fb17c8	inserted	remove		ben	2026-11-24		(with dust)	144:13:06
+alsj:a15.sta6crtr:1442013#2:9556d18f	gloss	remove		ben	2026-11-24		(to fit in individual sample bags)	144:20:13
+alsj:a15.sta6crtr:1442446#2:6201111b	inserted	remove		ben	2026-11-24		(and)	144:24:46
+alsj:a15.sta6crtr:1443022~2#1:51913922	gloss	remove		ben	2026-11-24		(as a result of Dave's tumble)	144:30:22
+alsj:a15.sta6crtr:1443048#0:02f700ef	restoration	remove		ben	2026-11-24		(Dig)	144:30:48
+alsj:a15.sta6crtr:1443213#1:fb2b2650	restoration	remove		ben	2026-11-24		(is that enough)	144:32:13
+alsj:a15.sta6crtr:1444253#0:131ca99c	direction	remove		ben	2026-11-24		(Laughing, probably as he has trouble getting the soil out of the scoop and into the bag)	144:42:53
+alsj:a15.sta6crtr:1444638#1:1230a46f	inserted	remove		ben	2026-11-24		(of Mt. Hadley)	144:46:38
+alsj:a15.sta8:1480050#1:ca2fbe68	other	remove		ben	2026-11-24		(Sun?)	148:00:50
+alsj:a15.sta8:1481735#2:053ee938	gloss	remove		ben	2026-11-24		(with the TV)	148:17:35
+alsj:a15.sta8:1482357#1:e2a64ac4	gloss	remove		ben	2026-11-24		(to the Rover tracks)	148:23:57
+alsj:a15.sta9:1650155#1:a80d3874	gloss	remove		ben	2026-11-24		(probably meaning Jim's seatbelt)	165:01:55
+alsj:a15.trv1prep:1212007#1:693c4cc0	note	remove		ben	2026-11-24		(probably means "LEC")	121:20:07
+alsj:a15.trv1prep:1212229#1:76cf52f8	direction	remove		ben	2026-11-24		(Long Pause as Dave returns to the bottom of the ladder and grabs the LEC)	121:22:29
+alsj:a15.trv1prep:1212428#1:59b881be	note	remove		ben	2026-11-24		(as per the bottom of CDR-7)	121:24:28
+alsj:a15.trv1prep:1212520#1:07fc97c7	note	remove		ben	2026-11-24		(as per LMP-7)	121:25:20
+alsj:a15.trv1prep:1213206#2:4febbce6	inserted	remove		ben	2026-11-24		(, too)	121:32:06
+alsj:a15.trv1prep:1214037#5:ed4561f6	inserted	remove		ben	2026-11-24		(reach)	121:40:37
+alsj:a15.trvlm1:1232757#1:addb7993	gloss	remove		ben	2026-11-24		(that is, angle more to the east so that they are not headed directly down the slope)	123:27:57
+alsj:a15.trvlm1:1232847#2:11d819b7	nonspeech	keep		ben	2026-11-24		(laughter)	123:28:47
+alsj:a15.trvlm1:1234458#3:08eb65cc	gloss	remove		ben	2026-11-24		(probably the piece of basalt)	123:44:58
+alsj:a15.trvlm2:1465227#1:d9c1acf1	gloss	remove		ben	2026-11-24		(driving)	146:52:27
+alsj:a15.trvlm2:1465327#1:4bd05b83	inserted	remove		ben	2026-11-24		(to listen)	146:53:27
+alsj:a15.trvlm2:1465825#0:fff7b55f	nonspeech	remove		ben	2026-11-24		(Chuckle)	146:58:25
+alsj:a15.trvlm2:1471654#1:0ea76d8f	garble	remove		ben	2026-11-24		(ple)	147:16:54
+alsj:a15.trvlm3:1663350#1:fa51fd49	inserted	remove		ben	2026-11-24		(is)	166:33:50
+alsj:a15.trvlm3:1663602#3:5feceb66	inserted	remove		ben	2026-11-24		(0)	166:36:02
+alsj:a15.trvlm3:1663922~2#1:2c72d249	inserted	remove		ben	2026-11-24		(at the)	166:39:22
+alsj:a15.trvlm3:1664146#0:49b52daa	direction	remove		ben	2026-11-24		(Hearing Joe; Laughs)	166:41:46
+alsj:a15.trvlm3:1664523#1:6201111b	inserted	remove		ben	2026-11-24		(and)	166:45:23
+alsj:a15.trvlm3:1665416#3:585d266e	other	garble		ben	2026-11-24		(garbled, possibly "Alpha")	166:54:16
+alsj:a15.trvsta2:1223246#1:0655b7b2	note	remove		ben	2026-11-24		(possibly the low gain, even though the comm does not seem to have degraded)	122:32:46
+alsj:a15.trvsta4:1462448#1:3f35a29a	gloss	remove		ben	2026-11-24		(probably sideways)	146:24:48
+alsj:a15.trvsta4:1462609#1:591e673e	gloss	remove		ben	2026-11-24		(to the planned stopping place)	146:26:09
+alsj:a15.trvsta4:1464337#5:55025982	note	remove		ben	2026-11-24		(Thinking about the missing SCB)	146:43:37
+alsj:a15.trvsta6:1431638#1:249de378	gloss	remove		ben	2026-11-24		(to shadow the gauge)	143:16:38
+alsj:a15.trvsta6:1432618#1:24bd4871	inserted	remove		ben	2026-11-24		(to or)	143:26:18
+alsj:a15.trvsta6:1434124#1:545e6b53	gloss	remove		ben	2026-11-24		(from Station 2 at St. George)	143:41:24
+alsj:a15.trvsta6:1434124#3:3250cfa0	note	to_commentary		ben	2026-11-24		(as shown in AS15-84- 11315, which Dave will take at Station 6)	143:41:24
+alsj:a15.trvsta6:1434449#1:3f901602	nonspeech	remove		ben	2026-11-24		(laughing)	143:44:49
+alsj:a15.trvsta6:1434453#0:bdc19fef	nonspeech	remove		ben	2026-11-24		(Laughing)	143:44:53
+alsj:a15.trvsta9:1644736#5:d0622b41	gloss	remove		ben	2026-11-24		(to the Nav initialization point)	164:47:36
+alsj:a15.trvsta9:1645111#1:cd1bb301	inserted	remove		ben	2026-11-24		(know)	164:51:11
+alsj:a15.trvsta9:1645125#3:74fd2e75	inserted	remove		ben	2026-11-24		(depression)	164:51:25
+alsj:a15.trvsta9:1645125#5:d349d671	inserted	remove		ben	2026-11-24		(I mean that)	164:51:25

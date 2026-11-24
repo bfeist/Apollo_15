@@ -98,13 +98,20 @@ class PaoReadingTests(unittest.TestCase):
         self.assertEqual(decide('crater', 'era te r'), ('tl', 'vocab'))        # IA split a word into unknown pieces
         self.assertEqual(decide('ye s', 'yes'), ('ia', 'joined'))
         self.assertEqual(decide('ail', 'all'), ('ia', 'vocab'))
-        self.assertEqual(decide('fails', 'falls'), ('', 'review'))
-        self.assertEqual(decide('fails', 'falls', 'falls'), ('ia', 'asr'))     # the audio sides with one reading
-        self.assertEqual(decide('fails', 'falls', 'something'), ('', 'review'))  # never the ASR's own words
+        self.assertEqual(decide('fails', 'falls'), ('tl', 'typed'))            # a known typed word stands
+        self.assertEqual(decide('fails', 'falls', 'falls'), ('tl', 'typed'))   # the audio never overrules a typed word
+        self.assertEqual(decide('fails', 'falls', 'fails'), ('tl', 'asr'))     # it may confirm the text layer
+        self.assertEqual(decide('ail', 'all', 'all'), ('ia', 'asr'))           # or side against an OCR misread
+        self.assertEqual(decide('fails', 'falls', 'something'), ('tl', 'typed'))  # never the ASR's own words
+        self.assertEqual(decide('place at this', 'Pj _f', oxr='place at this'), ('tl', 'agree'))  # garbled IA dropped
+        self.assertEqual(decide('fials', 'fells'), ('tl', 'no_better'))
+        self.assertEqual(decide('fials', 'falls'), ('ia', 'vocab'))
+        self.assertEqual(decide('fials', 'fails', oxr='falls'), ('', 'review'))     # two known alternatives
         self.assertEqual(decide('with a comm check do you', 'Ove r'), ('tl', 'default'))
         self.assertEqual(decide('fails', 'falls', oxr='falls'), ('oxr', 'ocr_majority'))  # two OCRs outvote one
-        self.assertEqual(decide('falls', 'fails', oxr='falls'), ('tl', 'ocr_majority'))
-        self.assertEqual(decide('fails', 'fells', 'falls', oxr='falls'), ('oxr', 'asr'))
+        self.assertEqual(decide('falls', 'fails', oxr='falls'), ('tl', 'agree'))
+        self.assertEqual(decide('fails', 'fells', 'falls', oxr='falls'), ('tl', 'typed'))
+        self.assertEqual(decide('fials', 'fells', 'falls', oxr='falls'), ('oxr', 'asr'))
 
     def test_correction_keeps_the_rest_of_the_text(self):
         row = pao_row('Ail still going well, ye s.')

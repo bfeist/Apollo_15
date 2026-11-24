@@ -12,8 +12,10 @@ the reels' index ranges (``sg_reels.tsv``). Each row has independent readings:
 
 Readings are aligned per page (tl against each OCR reading) and per row (tl against asr).
 Where another reading differs, a *slot* records every reading's phrase. Two agreeing OCR
-readings outvote the third. Otherwise the ASR decides when it agrees with one reading, or a
-journal vocabulary when only one reading is made of known words. Undecided slots keep the
+readings outvote the third. The typed page is the authority: the ASR may confirm the text
+layer, and may pick another OCR reading only when the text layer is not made of known words
+(an OCR misread); it never decides between two plausible typed readings. A journal
+vocabulary decides when only one reading is made of known words. Undecided slots keep the
 text layer and go to the review queue. The ASR never supplies words of its own: a correction
 always takes one of the printed readings (docs/16 §6, "the typed transcripts win on wording").
 
@@ -35,6 +37,7 @@ from collections import Counter, defaultdict
 
 from md_common import LOCAL, RAW_ROOT, REVIEW, SCRAPED, WORK, read_tsv, short_hash, today, write_tsv
 from md_reconcile import EQUIVALENT
+from md_transcripts import DEAD_AIR, drop_end_of_tape
 
 IA_XML = 'original_docs/internet_archive/AS15_PAO_djvu.xml'
 # OXR page readings, written by `flight_plan.py ocr` (an optional third reading).
@@ -96,6 +99,20 @@ def load_rows() -> list[dict]:
     return rows
 
 
+def typed_words(words: list[str]) -> list[str]:
+    """An OCR page's words without the typist's END OF TAPE and DEAD AIR notes (not communication)."""
+    words = drop_end_of_tape(words)
+    out, k = [], 0
+    while k < len(words):
+        n = next((n for n in (3, 2) if DEAD_AIR.fullmatch(' '.join(words[k:k + n]))), 0)
+        if n:
+            k += n
+        else:
+            out.append(words[k])
+            k += 1
+    return out
+
+
 def ia_pages() -> list[list[str]]:
     """Words of each page of the Internet Archive OCR, in reading order."""
     path = RAW_ROOT / IA_XML
@@ -104,7 +121,7 @@ def ia_pages() -> list[list[str]]:
     pages = []
     for _event, element in ET.iterparse(path, events=('end',)):
         if element.tag == 'OBJECT':
-            pages.append([w.text or '' for w in element.iter('WORD')])
+            pages.append(typed_words([w.text or '' for w in element.iter('WORD')]))
             element.clear()
     return pages
 
@@ -129,8 +146,8 @@ def oxr_pages() -> dict[int, list[str]]:
         for path in sorted(OXR_DIR.glob('p[0-9][0-9][0-9][0-9].json')):
             pages = json.loads(path.read_text(encoding='utf-8')).get('pages') or []
             blocks = sorted(pages[0].get('blocks') or [], key=lambda b: b.get('idx', 0)) if pages else []
-            out[int(path.stem[1:])] = [w for b in blocks if b.get('format', 'text') == 'text'
-                                       for w in str(b.get('content') or '').split()]
+            out[int(path.stem[1:])] = typed_words([w for b in blocks if b.get('format', 'text') == 'text'
+                                                   for w in str(b.get('content') or '').split()])
     return out
 
 
@@ -261,9 +278,13 @@ def similar(a, b) -> float:
 def decide(slot: dict, asr, vocab: set) -> tuple[str, str, str]:
     """(kind, choice, method). choice names a printed reading (tl, ia or oxr); '' keeps tl for review.
 
-    Order: word splits; alignment slips dropped; two agreeing OCR readings outvote the third;
-    the ASR sides with a reading it equals or clearly resembles; a journal vocabulary picks the
-    only known reading; an unwitnessed word that only one reading has keeps the text layer.
+    Order: word splits; alignment slips dropped; a surviving reading that equals the text layer
+    confirms it; two agreeing OCR readings outvote the third; the ASR confirms the text layer, or
+    picks another reading only when the text layer is not made of known words; a journal
+    vocabulary picks the only known reading (OCR readings that differ only in spacing count as
+    one). Otherwise the text layer is kept when it is made of known words (the typed page is
+    the authority) or when no other reading is. Only an unknown text layer against a known,
+    unresolved alternative goes to review.
     """
     tl = slot['tl']
     others = {n: v[0] for n, v in slot['readings'].items() if v is not None}
@@ -277,27 +298,37 @@ def decide(slot: dict, asr, vocab: set) -> tuple[str, str, str]:
         return 'misaligned', 'tl', 'default'
     reading = {'tl': tl, **others}
     value = {n: norm(t) for n, t in reading.items()}
+    if any(value[n] == value['tl'] for n in others):
+        return kind, 'tl', 'agree'
     if len(reading) == 3:
         if value['ia'] == value['oxr'] != value['tl']:
             return kind, 'oxr', 'ocr_majority'
         if value['tl'] in (value['ia'], value['oxr']):
             return kind, 'tl', 'ocr_majority'
     if asr:
+        # The typed transcript is the authority: the ASR may confirm the text layer, and may pick
+        # another OCR reading only where the text layer is not made of real words (an OCR misread).
+        # Between two plausible typed readings it never decides.
+        override = not (tl and known(tl, vocab))
         a = norm(asr)
         for n in ('tl', 'oxr', 'ia'):
-            if n in value and value[n] == a:
+            if n in value and value[n] == a and (n == 'tl' or override):
                 return kind, n, 'asr'
         close = sorted(((similar(asr, t), n) for n, t in reading.items()), reverse=True)
-        if close[0][0] >= NEAR and close[0][0] >= close[1][0] + 0.15:
+        if close[0][0] >= NEAR and close[0][0] >= close[1][0] + 0.15 and (close[0][1] == 'tl' or override):
             return kind, close[0][1], 'asr_near'
     if kind == 'replace':
         ok = {n for n, t in reading.items() if known(t, vocab)}
-        if 'tl' not in ok and ok and len({value[n] for n in ok}) == 1:
-            return kind, max(ok), 'vocab'  # 'oxr' before 'ia' when both agree
+        if 'tl' not in ok and ok and len({value[n].replace(' ', '') for n in ok}) == 1:
+            return kind, min(ok, key=lambda n: (len(reading[n]), n == 'ia')), 'vocab'  # the joined form; oxr first
         if ok == {'tl'}:
             return kind, 'tl', 'vocab'
     if kind in ('insert', 'delete') and asr is None:
         return kind, 'tl', 'default'
+    if known(tl, vocab):
+        return kind, 'tl', 'typed'
+    if not any(known(t, vocab) for t in others.values()):
+        return kind, 'tl', 'no_better'
     return kind, '', 'review'
 
 

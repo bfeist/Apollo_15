@@ -7,7 +7,8 @@ changes: the CC–LM/CC–CM link context is detected from every page's banners
 rather than seeded, the extractor runs over the whole edition, and pages
 without a readable stamp grid are recorded rather than stopping the run.
 Event IDs keep the pilot form ``AS15_TEC-p0849-r03`` so existing catalog
-entries stay valid.
+entries stay valid. A page's first row is often printed above the old body line (y 109); it is
+kept when its stamp is readable and numbered ``r00`` (``r00b``, ...) so the rows below keep their IDs.
 
 The PAO edition is mission commentary: tape segments headed by a GET or clock
 time with speaker paragraphs. Its rows get the segment's header time
@@ -18,6 +19,7 @@ Raw readings are never corrected in place. Digit substitutions (O→0, l→1,
 """
 from __future__ import annotations
 
+import difflib
 import re
 import unicodedata
 from collections import Counter
@@ -150,11 +152,16 @@ def extract_page(page, link_context: str, edition: str, scan_url: str) -> tuple[
     transcript_tape = header_value(lines, 'tape')
     page_number = page.number + 1
     rows, pending = [], []
-    row_number = 0
+    row_number, top_rows = 0, 0
 
-    def append_row(words, stamp, speaker, line):
-        nonlocal row_number
-        if stamp:
+    def append_row(words, stamp, speaker, line, top=False):
+        nonlocal row_number, top_rows
+        if stamp and top:
+            # A timed row above the old body line (y 109). Numbered r00, r00b, ... so that the
+            # pilot IDs of the rows below it keep their numbers.
+            top_rows += 1
+            marker = 'r00' + ('' if top_rows == 1 else chr(ord('a') + top_rows - 1))
+        elif stamp:
             row_number += 1
             marker = f'r{row_number:02}'
         else:
@@ -175,7 +182,7 @@ def extract_page(page, link_context: str, edition: str, scan_url: str) -> tuple[
         rows.append({
             'event_id': f'{EDITIONS[edition]}-p{page_number:04}-{marker}', 'edition': EDITIONS[edition],
             'pdf_page': page_number, 'printed_page_ocr': printed_page, 'transcript_tape_ocr': transcript_tape,
-            'timed_row': row_number if stamp else '', 'stamp_ocr': stamp,
+            'timed_row': (0 if top else row_number) if stamp else '', 'stamp_ocr': stamp,
             'get': format_get(seconds) if seconds is not None else '', 'get_seconds': seconds,
             'get_basis': 'printed' if seconds is not None else '', 'speaker_ocr': speaker,
             'speaker': speaker_read, 'flags': flags,
@@ -193,18 +200,30 @@ def extract_page(page, link_context: str, edition: str, scan_url: str) -> tuple[
             matches = [word for word in line if abs(word[0] - column) <= 7]
             stamp_words.append(min(matches, key=lambda word: abs(word[0] - column)) if matches else None)
         speaker_words = [word for word in line if 14 <= word[0] - last_stamp_x <= 36]
-        is_body = min(word[1] for word in line) >= 109
-        if is_body and speaker_words and sum(word is not None for word in stamp_words) >= 3:
+        top = min(word[1] for word in line) < 109
+        stamp = ' '.join(word[4] if word else '?' for word in stamp_words)
+        timed = bool(speaker_words) and sum(word is not None for word in stamp_words) >= 3
+        # The page header (tape, page, day; often garbled OCR) sits above y 109, but so does the first
+        # row on many pages. A line up there is a row only with a readable stamp; its wrapped lines
+        # follow it. Other lines up there are header.
+        if top and timed and get_seconds(stamp) is None:
+            timed = False
+        # A line above the first row continues the previous page's last row when it is set in the
+        # text column below the header band and is lower-case prose (not a CONFIDENTIAL stamp or
+        # a heading such as EVA-1 FINAL PREPARATION).
+        carried = (top and not rows and min(word[1] for word in line) >= 80
+                   and abs(line[0][0] - text_x) <= 12 and re.search(r'[a-z]', line_text))
+        is_body = not top or timed or carried or (rows and rows[-1]['timed_row'] == 0)
+        if is_body and timed:
             if pending:
                 append_row(pending, '', '', pending)
                 pending.clear()
-            stamp = ' '.join(word[4] if word else '?' for word in stamp_words)
             speaker = ' '.join(word[4] for word in speaker_words)
             left = [word for word in line if word[0] >= stamp_x - 7]
-            words = [word for word in left if word[0] >= text_x - 10]
-            append_row(words, stamp, speaker, left)
+            words = strip_end_of_tape([word for word in left if word[0] >= text_x - 10])
+            append_row(words, stamp, speaker, left, top)
         elif is_body:
-            words = [word for word in line if text_x - 10 <= word[0] < page.rect.width - 52]
+            words = strip_end_of_tape([word for word in line if text_x - 10 <= word[0] < page.rect.width - 52])
             if not words or re.search(r'AIR-TO-GROUND|END OF TAPE|TRANSCRIPT OF COMMUNICATIONS', line_text, re.I):
                 continue
             if rows:
@@ -233,6 +252,58 @@ PAO_HEADER = re.compile(r'APOLLO\s+15\s+MISSION\s+COMMENTARY', re.I)
 PAO_SPEAKER = re.compile(r'^(?:PAO|CAP ?COM|CAPCOM|SC|CC|CDR|CMP|LMP|FALCON|ENDEAVOUR|HOUSTON|PHOTO|RECOVERY|SWIM ?\d?|'
                          r'HORNET|OKINAWA|SPEAKER|[A-Z][A-Z-]{1,12})$')
 CDT = timezone(timedelta(hours=-5))
+
+
+DEAD_AIR = re.compile(r'\(?\s*(?:ALL\s+)?DEAD\s+AIR\s*\.?\s*\)?\s*\.?', re.I)
+
+
+def _like(text: str, target: str, ratio: float) -> bool:
+    letters = re.sub(r'[^A-Z]', '', text.upper())
+    return bool(letters) and difflib.SequenceMatcher(None, letters, target).ratio() >= ratio
+
+
+def end_of_tape_at(texts: list[str], k: int, any_case: bool = False) -> int:
+    """Number of words of a typed END OF TAPE marker starting at ``texts[k]`` (0 if none).
+
+    The marker's OCR varies (EXD OF TAPE, _ND OF TAPE, ENI, OF TAPE, END OF TA?E, END OF TAP E,
+    _1_ OF TAP1!); an upper-case OF between an END-like and a TAPE-like word identifies it.
+    ``any_case`` also accepts a lower-case of (a line that is only the marker).
+    """
+    if k < 0 or k + 2 >= len(texts):
+        return 0
+    of = texts[k + 1].strip('.,')
+    if of != 'OF' and not (any_case and of.upper() == 'OF'):
+        return 0
+    end = texts[k]
+    if not (_like(end, 'END', 0.6) or (not re.search(r'[A-Za-z]', end) and len(end) <= 4)):
+        return 0
+    if k + 3 < len(texts) and len(texts[k + 3].strip('.,!')) <= 2 \
+            and _like(texts[k + 2] + texts[k + 3], 'TAPE', 0.9):
+        return 4  # END OF TAP E
+    return 3 if _like(texts[k + 2], 'TAPE', 0.7) else 0
+
+
+def strip_end_of_tape(words: list) -> list:
+    """The line's words without a trailing typed END OF TAPE marker (never communication)."""
+    texts = [w[4] for w in words]
+    for k in (len(texts) - 3, len(texts) - 4):
+        n = end_of_tape_at(texts, k, any_case=k == 0)
+        if n and k + n == len(texts):
+            return words[:k]
+    return words
+
+
+def drop_end_of_tape(texts: list[str]) -> list[str]:
+    """A word stream (an OCR page) without its END OF TAPE markers."""
+    out, k = [], 0
+    while k < len(texts):
+        n = end_of_tape_at(texts, k)
+        if n:
+            k += n
+        else:
+            out.append(texts[k])
+            k += 1
+    return out
 
 
 def pao_header(line_text: str) -> dict:
@@ -267,8 +338,9 @@ def extract_pao_page(page, state: dict, scan_url: str) -> list[dict]:
             state.update(segment=state.get('segment', 0) + 1, tape=header['tape'], get=header['get_seconds'],
                          basis=header['basis'], row=0)
             continue
-        if re.fullmatch(r'END\s+OF\s+TAPE', text.strip(), re.I):
-            continue
+        line = strip_end_of_tape(line)
+        if not line or DEAD_AIR.fullmatch(' '.join(w[4] for w in line)):
+            continue  # typist's notes, not communication
         first = line[0]
         # Speaker column: one or two upper-case words near x≈97 followed by text at x≥170.
         speaker_words = [w for w in line if 85 <= w[0] <= 165]
