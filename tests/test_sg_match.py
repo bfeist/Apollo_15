@@ -1,0 +1,75 @@
+"""SG reel matching (scripts/sg_transcript/md_sg.py): segment parsing, offsets, anchors and judging."""
+from pathlib import Path
+import sys
+import unittest
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts' / 'sg_transcript'))
+import md_sg as sg  # noqa: E402
+
+
+def segment(index, start, words, flags=()):
+    out, t = [], start
+    for w in words.split():
+        out.append({'tok': w, 's': t, 'e': t + 0.3, 'p': 0.9, 'flags': [], 'text': w})
+        t += 0.4
+    return {'index': index, 's': start, 'e': t, 'text': words, 'flags': list(flags), 'words': out}
+
+
+def event(eid, t, words):
+    return {'event_id': eid, 't': t, 'get': '', 'get_basis': 'journal', 'printed_get': '', 'journal_get': '',
+            'journal_basis': 'anchor', 'who': 'CC', 'tokens': words.split(), 'text': words}
+
+
+def anchor(t, offset, flags=()):
+    return {'reel': 'R', 'source_s': t, 'offset_s': offset, 'event_id': f'e{t}', 'flags': list(flags)}
+
+
+class SegmentNumberTests(unittest.TestCase):
+    def test_pao_tape_labels(self):
+        self.assertEqual(sg.pao_segment('41/2'), 41)
+        self.assertEqual(sg.pao_segment('MC8/1'), 8)
+        self.assertIsNone(sg.pao_segment(''))
+
+
+class AnchorTests(unittest.TestCase):
+    def test_utterance_start_inside_a_segment_is_anchored_at_its_first_word(self):
+        seg = segment(0, 100.0, 'roger we copy and the shadow is four degrees left')
+        cands = [event('a', 500, 'roger we copy'), event('b', 503, 'and the shadow is four degrees left')]
+        found = {ev['event_id']: (i, run) for i, ev, run, _ in sg.anchors_for_segment(seg, cands)}
+        self.assertEqual(found['a'], (0, 3))
+        self.assertEqual(found['b'], (3, 7))
+
+    def test_short_or_unmatched_starts_are_not_anchors(self):
+        seg = segment(0, 0.0, 'okay houston go ahead')
+        found = sg.anchors_for_segment(seg, [event('a', 0, 'okay'), event('b', 2, 'something else entirely')])
+        self.assertEqual(found, [])
+
+    def test_coarse_offset_votes_find_the_reel_offset(self):
+        events = [event(f'e{k}', 50000 + 30 * k, f'distinct w{k} x{k} y{k} z{k} words') for k in range(20)]
+        segs = [segment(k, 1000.0 + 30 * k, f'distinct w{k} x{k} y{k} z{k} words') for k in range(20)]
+        grid = sg.coarse_offsets('R', segs, events)
+        self.assertTrue(grid)
+        self.assertTrue(all(abs(g['offset_s'] - 49000) < 1 for g in grid if g['rank'] == 1))
+
+
+class JudgeTests(unittest.TestCase):
+    def test_local_line_follows_drift_and_flags_outlier_and_collapsed(self):
+        rows = [anchor(100.0 * k, 5000 + 0.005 * 100 * k) for k in range(10)]
+        rows.append(anchor(450.0, 5012.0))                                 # 10 s off its neighbours
+        rows.append(anchor(550.0, 5002.7, flags=['collapsed_timing']))     # unusable timing
+        rows.append(anchor(650.0, 5003.3, flags=['zero_duration']))        # start still usable
+        rows.sort(key=lambda r: r['source_s'])
+        sg.judge(rows)
+        status = {r['source_s']: r['status'] for r in rows if r['source_s'] in (450.0, 550.0, 650.0)}
+        self.assertEqual(status, {450.0: 'outlier', 550.0: 'rejected', 650.0: 'flagged'})
+        self.assertTrue(all(r['status'] == 'ok' for r in rows if not r['flags'] and r['source_s'] != 450.0))
+        self.assertLess(max(abs(r['residual_s']) for r in rows if r['status'] == 'ok'), 0.01)
+
+    def test_sparse_anchor_is_isolated(self):
+        rows = [anchor(0.0, 10.0), anchor(5000.0, 10.0)]
+        sg.judge(rows)
+        self.assertEqual({r['status'] for r in rows}, {'isolated'})
+
+
+if __name__ == '__main__':
+    unittest.main()

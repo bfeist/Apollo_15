@@ -729,6 +729,66 @@ minute-resolution PAO header times are never fitted.
    - **Not an independent timing source.** The maps are fitted to TEC and journal times, so mapped
      ASR times are never pooled with them as separate timing observations.
 
+**Execution status (2026-11-24): steps 1, 3 and 4 done; awaiting review before the drift fit.**
+The matching is part of the transcript pipeline, `scripts/sg_transcript/md_sg.py`, run with
+`uv run python scripts/run.py sg_transcript.py sg {reels,pao,anchors,all}` after `reconcile`.
+Retiming the audio from the anchors (step 5) is separate work in `scripts/sg-audio/`. Reruns on
+unchanged inputs are byte-identical (checked).
+
+- **Reel catalogue** (`MISSION_DATA/sg_reels.tsv`, committed). It holds 44 reels with their
+  checksums from the transcript store and the index PDF's segment range and MET. Its GET span
+  runs from the reel's first PAO segment header to the next reel's. Misread headers are dropped
+  by keeping the longest GET-increasing chain of segment headers. The index PDF is in
+  `raw_manifest.tsv` by its external path (kind `sg_index`). Several spans are longer than their
+  reel (540-AAA covers 5.7 h of GET in 3.2 h of audio). The reels are edited commentary rather
+  than continuous recordings, so the offset jumps within a reel.
+- **The PAO edition transcribes these reels.** Its segment numbers are the index's number
+  ranges, and it contains the CAPCOM and crew air-to-ground as well as PAO announcements.
+- **PAO separation** (`.local/mission_data/sg/sg_pao.tsv`). An ASR segment is PAO when at least
+  half its tokens fall in 3-word or longer runs shared with a PAO-speaker row of the reel's
+  segment range (`pao_text`), or when it opens with "This is Apollo Control" or a similar phrase
+  (`pao_phrase`). This gives 811 intervals totalling 4.6 h. They are never anchors.
+- **Coarse offsets** (`sg_offsets.tsv`). Distinctive word 4-grams vote for a GET-minus-reel
+  offset, taken from events at most two in the reel's span ±2 h. The local mode is taken on a
+  60 s grid from votes within ±10 min, keeping up to two peaks for the edits. On 572-AAA the
+  result is 145:24:51, which is the pilot's offset.
+- **Anchors** (`sg_anchors.tsv`, summary in `sg_summary.tsv`).
+  - **Matching.** Each non-PAO ASR segment is matched (difflib, comparable tokens) against the
+    air-to-ground events in its predicted GET window ±45 s. The events are TEC rows plus
+    journal-only rows, with journal spoken tokens where linked. An anchor is an utterance whose
+    first 3 tokens (or all of a 2-token utterance) match in order. Its onset is the Whisper
+    start of the first word.
+  - **GET choice.** Each row records the printed GET, the journal GET and which was used
+    (`get_choice`).
+  - **Judging.** Each anchor is judged against a Theil–Sen line through up to 4 clean neighbours
+    on each side within ±30 min, which follows playback drift. More than 3 s off the line is an
+    `outlier`.
+  - **Rejected timing.** A word in a segment with `collapsed_timing` was a median 13 s off its
+    neighbours, and a `long` word spanning a VAD gap 6 s. These are `rejected`.
+    `zero_duration`, `clipped` and `low_word_p` words keep a good start (93–100% within 3 s, as
+    for unflagged words) and are `flagged`, not rejected.
+- **Result.**
+
+  | Status | Anchors |
+  | --- | ---: |
+  | ok | 3,014 |
+  | flagged | 2,103 |
+  | rejected | 2,216 |
+  | outlier | 337 |
+  | isolated | 52 |
+
+  The `ok` residuals are 0.40 s at the median, 1.17 s at p90 and 2.39 s at p99, about the
+  whole-second GET quantization. On 572-AAA, 20 of the 31 hand-picked pilot onsets are usable
+  anchors, at a median 0.15 s from the hand pick. Usable anchors closer than 2 min to the next
+  one span 45 h of the 132 h of audio.
+- **Reels without anchors.**
+  - 567-AAA and 568-AAA are crew sleep periods with PAO only.
+  - The ASR of 553-AAA, 581-AAA and 582-AAA is unrelated text throughout. These reels need
+    listening: the audio may be damaged, at the wrong speed or reversed.
+  - 541-AAA and 544-AAA have few anchors (sparse early-cruise traffic).
+- **To improve coverage:** realign the 2,216 rejected onsets, for example by CTC forced
+  alignment of the collapsed segments, as the pilot's `ctc_start`.
+
 ## 7. Code location
 
 Put the code in `scripts/sg_transcript/`, registered in `scripts/layout.json`, with tests in

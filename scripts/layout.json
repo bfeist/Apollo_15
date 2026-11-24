@@ -101,6 +101,7 @@
   "md_ai.py": "sg_transcript/md_ai.py",
   "md_reconcile.py": "sg_transcript/md_reconcile.py",
   "md_commentary.py": "sg_transcript/md_commentary.py",
+  "md_sg.py": "sg_transcript/md_sg.py",
   "md_flightplan.py": "flight_plan/md_flightplan.py",
   "md_fp_pages.py": "flight_plan/md_fp_pages.py",
   "md_fp_assemble.py": "flight_plan/md_fp_assemble.py",

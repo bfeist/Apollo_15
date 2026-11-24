@@ -44,6 +44,10 @@ def main(argv=None) -> int:
     p.add_argument('--record', action='store_true', help='first save wording choices to MISSION_DATA/review')
     sub.add_parser('commentary', help='step 6: merged commentary')
 
+    p = sub.add_parser('sg', help='SG reels: catalogue, PAO separation and timing anchors against the TEC and journals')
+    p.add_argument('step', choices=('reels', 'pao', 'anchors', 'all'))
+    p.add_argument('--reel', nargs='+', help='only these reels (writes *_partial.tsv)')
+
     p = sub.add_parser('photos', help='step 7: photo indexes')
     p.add_argument('what', choices=('hasselblad', 'imldi', 'sim', 'all'))
     p.add_argument('--delay', type=float, default=1.0)
@@ -93,6 +97,9 @@ def main(argv=None) -> int:
     if args.command == 'commentary':
         import md_commentary
         return md_commentary.main(args)
+    if args.command == 'sg':
+        import md_sg
+        return md_sg.main(args)
     if args.command == 'photos':
         import md_photos
         return md_photos.main(args)
