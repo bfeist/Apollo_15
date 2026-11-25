@@ -12,7 +12,7 @@ import denoise_v2 as reference
 import denoise_v2_numba as accelerated
 import fast_kernels as kernels
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts/03_denoise/runtime/research'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts/30-track/03_denoise/runtime/research'))
 from qualify_denoise_numba import synthetic_cases, decision_structure, difference, within_tolerance
 
 

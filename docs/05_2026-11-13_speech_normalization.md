@@ -13,7 +13,7 @@ There are no new dependencies, servers, or listening pages.
 Preview one completed defluttered channel without writing anything:
 
 ```powershell
-uv run python scripts/07_normalize/07_normalize.py --tape A15_T510083 --channel 7 --dry-run
+uv run python scripts/30-track/07_normalize/07_normalize.py --tape A15_T510083 --channel 7 --dry-run
 ```
 
 Remove `--dry-run` to write under
@@ -24,13 +24,13 @@ is rejected; comparisons and completed outputs are never overwritten.
 One explicit WAV (or a channel folder containing `deflutter.wav`/`retimed.wav`):
 
 ```powershell
-uv run python scripts/07_normalize/07_normalize.py --input D:/audio/deflutter.wav --output D:/audio_normalized/CH07 --dry-run
+uv run python scripts/30-track/07_normalize/07_normalize.py --input D:/audio/deflutter.wav --output D:/audio_normalized/CH07 --dry-run
 ```
 
 All available channels on a tape:
 
 ```powershell
-uv run python scripts/07_normalize/07_normalize.py --tape A15_T510083 --all-channels --dry-run
+uv run python scripts/30-track/07_normalize/07_normalize.py --tape A15_T510083 --all-channels --dry-run
 ```
 
 For retimed inputs, set `--input-root` to the retimed root. Batch mode requires

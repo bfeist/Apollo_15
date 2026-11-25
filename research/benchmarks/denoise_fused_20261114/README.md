@@ -13,7 +13,7 @@ and `preservation_after.json`.
 
 ## Backend and qualification policy
 
-The former fast prototype now lives in `scripts/03_denoise/runtime/scripts/`:
+The former fast prototype now lives in `scripts/30-track/03_denoise/runtime/scripts/`:
 `denoise_v2_fast.py`, `denoise_v2_refinement_fast.py`, `fast_kernels.py` and
 `fast_sincos.py`. The execution adapter hashes all four alongside its own code.
 The frozen reference and algorithm ID `apollo15-hum-subtraction-v2.16` are unchanged.

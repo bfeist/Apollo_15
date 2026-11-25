@@ -8,7 +8,7 @@ and resumes with the new Windows limit. A fixed Windows override is capped at
 eight and disables the schedule. Production is not left running by these tests.
 
 ```powershell
-uv run python -u scripts/03_denoise/denoise_v2_console.py --genus-workers 6 --tapes 3
+uv run python -u scripts/30-track/03_denoise/denoise_v2_console.py --genus-workers 6 --tapes 3
 ```
 
 ## Final optimized worker-count measurements

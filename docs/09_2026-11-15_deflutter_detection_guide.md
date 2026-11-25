@@ -175,7 +175,7 @@ and no dewarp):
    (speed, support), 200 Hz, `start_seconds`. Add a sha256-bound
    `evidence.json` per tape holding every window's clusters, per-channel
    leave-one-out r/gain, families, gates, controls and implementation hash.
-3. **Import** as a new candidate kind in `scripts/05_deflutter/shared_tape.py`.
+3. **Import** as a new candidate kind in `scripts/30-track/05_deflutter/shared_tape.py`.
    - Add a sibling of `continuous_candidates` that returns candidates with
      `source_kind='blind_consensus'` and `curve.format='stream'`.
    - Recommended priority: below saved regional (0), equal to or below saved v5
@@ -211,7 +211,7 @@ Wire the detector into stage 05 as follows; these are requirements to implement,
 **not commands or options that already exist**:
 
 1. Add a stage-05 detection coordinator/worker entry point under
-   `scripts/05_deflutter/`. It reads canonical originals and schedules the same
+   `scripts/30-track/05_deflutter/`. It reads canonical originals and schedules the same
    block jobs on Proprius and Genus (§5). Detection is an explicit preparation
    operation; planning and rendering never launch a hidden resurvey. Reuse saved
    survey/planning/map evidence first and schedule only missing census blocks.
@@ -417,8 +417,8 @@ Implementation rules:
 | `research/flutter_census/e3_consensus.py`, `e11_refine.py`                                   | concentration witness, autofocus refinement                                     |
 | `research/flutter_census/e8_beep_check.py`, `e9_beep_windows.py`, `e13_find_beep_windows.py` | beep audit with controls; fresh beep-window selection                           |
 | `research/flutter_census/e0_duplicate_audit.py`                                              | duplicate-channel guard (production: `flutter_detection.duplicate_audit`)       |
-| `scripts/05_deflutter/flutter_census.py`                                                     | production stages A–D numerical core                                            |
-| `scripts/05_deflutter/flutter_detection.py`, `05_detect_flutter.py`                          | production run identity, Proprius/Genus pool, publication, joined streams       |
+| `scripts/30-track/05_deflutter/flutter_census.py`                                                     | production stages A–D numerical core                                            |
+| `scripts/30-track/05_deflutter/flutter_detection.py`, `05_detect_flutter.py`                          | production run identity, Proprius/Genus pool, publication, joined streams       |
 | `research/flutter_census/p1_production_regression.py`, `p2_v5_consistency.py`                | production regression on saved windows; v5 consistency                          |
 | `research/flutter_census/w2_*.py`, `w3_*.py`                                                 | lag study; check-tone validation and amplitude calibration                      |
 | `reports/flutter_census_20261115/`                                                           | all outputs, `REPORT.md`, worker reports                                        |

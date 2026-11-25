@@ -12,7 +12,7 @@ import numpy as np
 import soundfile as sf
 from scipy import signal
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts/04_crosstalk'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts/30-track/04_crosstalk'))
 from repeat_scan import RATE, scan
 from repeat_validate import matched_level_db, validate
 from repeat_catalog import direction_for, intervals

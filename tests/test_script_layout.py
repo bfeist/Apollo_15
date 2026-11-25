@@ -19,7 +19,7 @@ class ScriptLayoutTests(unittest.TestCase):
         for name, expected in manifest.items():
             with self.subTest(source=name):
                 self.assertEqual(hashlib.sha256((layout.RUNTIME/name).read_bytes()).hexdigest(), expected)
-        self.assertEqual((layout.SCRIPTS/'05_deflutter/normalization.py').read_bytes(),
+        self.assertEqual((layout.SCRIPTS/'30-track/05_deflutter/normalization.py').read_bytes(),
                          layout.source_path('normalization.py').read_bytes())
 
 
@@ -36,6 +36,31 @@ class ScriptLayoutTests(unittest.TestCase):
         for name in ('../outside.py', 'unknown.py', '/tmp/anything.py'):
             with self.assertRaises(ValueError):
                 layout.source_path(name)
+
+    def test_30_track_move_keeps_repo_locations_and_saved_script_paths(self):
+        import flutter_detection as detection
+        import flutter_qualification as qualification
+        import repeat_qualification
+        import script_relocation
+        corpus = layout.REPO/'reports/flutter_census_20261115'
+        self.assertEqual(qualification.DEFAULT_CORPUS, corpus)
+        self.assertEqual(qualification.regression.__defaults__[0], corpus)
+        self.assertEqual(repeat_qualification.HERE.parents[1], layout.REPO)
+        session = SimpleNamespace(run_dir='r', cluster='c')
+        self.assertEqual(detection.local_command(session)[2], str(layout.SCRIPTS/'run.py'))
+        connection = dict(data='/data', repo='/repo')
+        self.assertEqual(str(detection.windows_to_posix(layout.REPO/'reports/x', connection)), '/repo/reports/x')
+        former = str(layout.SCRIPTS/'04_crosstalk/repeat_catalog.py')
+        self.assertEqual(script_relocation.current_script(former),
+                         str(layout.STAGES/'04_crosstalk/repeat_catalog.py'))
+        import crosstalk_stage
+        self.assertEqual(crosstalk_stage.json.loads(json.dumps({'path': former})),
+                         {'path': str(layout.STAGES/'04_crosstalk/repeat_catalog.py')})
+
+    def test_direct_stage_run_finds_the_shared_adapter(self):
+        result = subprocess.run([sys.executable, str(layout.STAGES/'05_deflutter/05b_deflutter.py'), '--help'],
+                                capture_output=True, text=True, timeout=45, cwd=layout.REPO)
+        self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
 
     def test_local_worker_dispatches_through_bootstrap_and_preserves_arguments(self):
         api = SimpleNamespace(Popen=Mock(return_value='worker'))

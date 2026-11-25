@@ -35,7 +35,7 @@ directory. Repeating the command resumes from verified worker receipts and
 completed tape catalogs.
 
 ```powershell
-uv run python -u scripts/04_crosstalk/repeat_release.py --run repeat-capture-aligned
+uv run python -u scripts/30-track/04_crosstalk/repeat_release.py --run repeat-capture-aligned
 ```
 
 This full discovery command is for a fresh release. To repair the November
@@ -150,7 +150,7 @@ Defaults:
 The standalone command offers an input-validating preflight without writing:
 
 ```powershell
-uv run python scripts/04_crosstalk/04_crosstalk.py --tape A15_T510083 --channel 20 --dry-run
+uv run python scripts/30-track/04_crosstalk/04_crosstalk.py --tape A15_T510083 --channel 20 --dry-run
 ```
 
 The standalone evidence argument is `--evidence-root`, and `--output` selects

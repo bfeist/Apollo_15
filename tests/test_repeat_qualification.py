@@ -9,7 +9,7 @@ import numpy as np
 from scipy import signal
 import soundfile as sf
 
-sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts/04_crosstalk'))
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts/30-track/04_crosstalk'))
 import repeat_archive
 import repeat_cluster
 import repeat_qualification

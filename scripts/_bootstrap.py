@@ -13,7 +13,8 @@ import sys
 SCRIPTS = Path(__file__).resolve().parent
 REPO = SCRIPTS.parent
 LAYOUT = json.loads((SCRIPTS/'layout.json').read_text(encoding='utf-8'))
-RUNTIME = SCRIPTS/'03_denoise/runtime'
+STAGES = SCRIPTS/'30-track'  # 30-track stage folders 01-08, moved from scripts/ on 2026-11-24
+RUNTIME = STAGES/'03_denoise/runtime'
 GENUS_SSH = 'bfeist@192.168.0.3'
 LEGACY_GENUS_SSH = {'bfeist@192.168.0.4', 'bfeist@192.168.0.240'}  # earlier genus addresses
 
@@ -61,6 +62,8 @@ class _ArtifactLoader(importlib.machinery.SourceFileLoader):
             configure(module)
             from archive_storage import configure as configure_archive
             configure_archive(module)
+            from script_relocation import configure as configure_relocation
+            configure_relocation(module)
 
 
 class _ArtifactFinder:
@@ -69,7 +72,10 @@ class _ArtifactFinder:
         if fullname not in {'denoise_v2_rollout', 'denoise_archive', 'denoise_v2_production',
                             'denoise_v2_cluster', 'shared_tape', 'flutter_analysis', 'flutter_plan_store',
                             'repeat_archive', 'repeat_render', 'repeat_retain',
-                            'recover_capture_alignment', '05b_render_archive'}:
+                            'recover_capture_alignment', '05b_render_archive',
+                            # Hash-bound sources that locate the repo from their own folder depth.
+                            'crosstalk_stage', 'repeat_qualification', 'flutter_detection',
+                            'flutter_qualification'}:
             return None
         filename = source_path(fullname+'.py')
         loader = _ArtifactLoader(fullname, str(filename))

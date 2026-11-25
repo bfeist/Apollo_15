@@ -34,7 +34,7 @@ channel. No beeps -> no correction, regardless of carriers.
 2. Therefore every tone that was recorded ON the tape is FM-smeared by ±3 %
    of its frequency (±30 Hz at 1 kHz). Narrow, sharp spectral lines are
    post-tape (digitization) and carry no flutter. The production discovery
-   (`scripts/05_deflutter/flutter_tracking.py: discover`, 0.5 Hz bins, peak
+   (`scripts/30-track/05_deflutter/flutter_tracking.py: discover`, 0.5 Hz bins, peak
    picking with ±15 Hz contrast) is biased toward exactly those useless lines.
 3. Historical (1971) mains hum IS on the tape, shifted by the tape speed
    offset (~1.2 % slow on T510077): fluttered lines near 59.3–59.8 Hz and
@@ -64,9 +64,9 @@ channel. No beeps -> no correction, regardless of carriers.
   validation. Writes `<tape>_<t0>.json` and `<tape>_<t0>.npy` (consensus
   fractional speed error at 200 Hz, pipeline sign convention: error =
   (f_inst − f0)/f0, same as `flutter_tracking.trajectory`).
-- Pipeline check-tone tools: `scripts/05_deflutter/flutter_tracking.py`
-  (`beeps`, `evaluate_events`) and `scripts/05_deflutter/flutter.py`
-  (`positions`, `resample_at`). Import by adding `scripts/05_deflutter` to
+- Pipeline check-tone tools: `scripts/30-track/05_deflutter/flutter_tracking.py`
+  (`beeps`, `evaluate_events`) and `scripts/30-track/05_deflutter/flutter.py`
+  (`positions`, `resample_at`). Import by adding `scripts/30-track/05_deflutter` to
   sys.path.
 
 ## Output expectation

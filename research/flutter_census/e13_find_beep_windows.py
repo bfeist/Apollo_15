@@ -4,7 +4,7 @@ import sys, json, os
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 import numpy as np
-sys.path.insert(0, str(Path(__file__).parent)); sys.path.insert(0, str(Path(__file__).parents[2] / 'scripts/05_deflutter'))
+sys.path.insert(0, str(Path(__file__).parent)); sys.path.insert(0, str(Path(__file__).parents[2] / 'scripts/30-track/05_deflutter'))
 from common import read, inventory, SR
 from flutter_tracking import beeps
 from sweep import v5_union, _merge

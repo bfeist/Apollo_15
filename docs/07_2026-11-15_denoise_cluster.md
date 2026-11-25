@@ -1,6 +1,6 @@
 # Windows and Genus denoising
 
-`scripts/03_denoise/denoise_v2_console.py` provides the master console, backed by
+`scripts/30-track/03_denoise/denoise_v2_console.py` provides the master console, backed by
 `denoise_v2_launcher.py` and the frozen `denoise_v2_cluster.py` coordinator.
 The default backend is now the qualified Numba execution adapter. Originals,
 v1 archive and approved listening files remain unchanged; new rendered spans use the separately identified accelerated
@@ -25,7 +25,7 @@ commands remain historical; use the console/launcher for current production.
 Run the master console on Windows from `F:\_repos\Apollo_15`:
 
 ```powershell
-uv run python -u scripts/03_denoise/denoise_v2_console.py
+uv run python -u scripts/30-track/03_denoise/denoise_v2_console.py
 ```
 
 Defaults are **6 Windows workers, 6 Genus workers, and 3 active tapes total**.
@@ -69,7 +69,7 @@ To change concurrency, press Ctrl+C, wait for both machines to finish stopping
 at checkpoints, then repeat with the desired limits:
 
 ```powershell
-uv run python -u scripts/03_denoise/denoise_v2_console.py --genus-workers 6 --tapes 3
+uv run python -u scripts/30-track/03_denoise/denoise_v2_console.py --genus-workers 6 --tapes 3
 ```
 
 The tape limit applies across **both** machines. Increasing Genus workers does

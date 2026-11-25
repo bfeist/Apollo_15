@@ -126,7 +126,7 @@ class CensusStageTests(unittest.TestCase):
         self.assertGreater(coverage['tape_time_fraction'], .9)
         # Census-only stage 05a: no v5 bundle exists for this tape.
         spec = importlib.util.spec_from_file_location(
-            'plan_cli', ROOT/'scripts/05_deflutter/05a_plan_deflutter.py')
+            'plan_cli', ROOT/'scripts/30-track/05_deflutter/05a_plan_deflutter.py')
         cli = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(cli)
         plans = self.root/'deflutter_planning_census'/self.config['run_id']/TAPE
@@ -217,7 +217,7 @@ class CensusStageTests(unittest.TestCase):
         with self.assertRaisesRegex(detection.IdentityError, 'missing or incomplete'):
             detection.load_census(self.run_dir, TAPE)
         spec = importlib.util.spec_from_file_location(
-            'plan_cli2', ROOT/'scripts/05_deflutter/05a_plan_deflutter.py')
+            'plan_cli2', ROOT/'scripts/30-track/05_deflutter/05a_plan_deflutter.py')
         cli = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(cli)
         with redirect_stdout(io.StringIO()), patch('sys.stderr', io.StringIO()), self.assertRaises(SystemExit):
@@ -261,7 +261,7 @@ class CensusStageTests(unittest.TestCase):
 
     def test_remote_worker_command_and_startup_identity_checks(self):
         spec = importlib.util.spec_from_file_location(
-            'detect_cli', ROOT/'scripts/05_deflutter/05_detect_flutter.py')
+            'detect_cli', ROOT/'scripts/30-track/05_deflutter/05_detect_flutter.py')
         cli = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(cli)
         with patch.object(cli, 'open_selected', return_value=(self.run_dir, self.config)), \

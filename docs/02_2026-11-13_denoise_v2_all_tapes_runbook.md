@@ -270,7 +270,7 @@ For current production, use the same console command to start or resume from
 the repository root. It manages both machines and the Windows day/night schedule.
 
 ```powershell
-uv run python -u scripts/03_denoise/denoise_v2_console.py
+uv run python -u scripts/30-track/03_denoise/denoise_v2_console.py
 ```
 
 Press Ctrl+C to checkpoint and stop; repeat the same command to continue.
@@ -296,7 +296,7 @@ inputs and archived findings.
 
 ```powershell
 uv run python -u scripts/run.py denoise_v2_rollout.py --version v2 --mode dry-run
-uv run python -u scripts/03_denoise/denoise_v2_background.py --version v2 --mode canary
+uv run python -u scripts/30-track/03_denoise/denoise_v2_background.py --version v2 --mode canary
 ```
 
 If a unity-gain canary for the same DSP and inventory already finished, use
@@ -317,8 +317,8 @@ rotation on Windows.
 
 ```powershell
 uv run python -u scripts/run.py denoise_v2_rollout.py --version v2 --mode approve-canary
-uv run python -u scripts/03_denoise/denoise_v2_background.py --version v2 --mode benchmark --tapes 3 --workers 6 --benchmark-seconds 256
-uv run python -u scripts/03_denoise/denoise_v2_background.py --version v2 --mode full --tapes 3 --workers 6 --readers-stopped
+uv run python -u scripts/30-track/03_denoise/denoise_v2_background.py --version v2 --mode benchmark --tapes 3 --workers 6 --benchmark-seconds 256
+uv run python -u scripts/30-track/03_denoise/denoise_v2_background.py --version v2 --mode full --tapes 3 --workers 6 --readers-stopped
 ```
 
 The background launcher runs the scheduler and its workers at below-normal
@@ -343,7 +343,7 @@ The launcher preserves the prior production tree in a separate quarantine and
 reuses the existing v1 archive. Old checkpoints stay with the stopped run.
 
 ```powershell
-uv run python -u scripts/03_denoise/denoise_v2_background.py --version v2 --mode resume --tapes 3 --workers 6
+uv run python -u scripts/30-track/03_denoise/denoise_v2_background.py --version v2 --mode resume --tapes 3 --workers 6
 uv run python -u scripts/run.py denoise_v2_rollout.py --version v2 --mode reconcile
 ```
 

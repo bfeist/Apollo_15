@@ -4,7 +4,7 @@ import sys, time, json
 from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parents[1]/'scripts')); from _bootstrap import install; install()
-sys.path.insert(0, str(HERE.parents[1]/'scripts/03_denoise/runtime/research'))
+sys.path.insert(0, str(HERE.parents[1]/'scripts/30-track/03_denoise/runtime/research'))
 import numpy as np
 import denoise_v2 as reference, denoise_v2_fast as fast, fast_kernels
 from qualify_denoise_numba import synthetic_cases

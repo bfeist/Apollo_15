@@ -22,7 +22,7 @@ import numpy as np
 from scipy import ndimage, signal
 
 sys.path.insert(0, str(Path(__file__).parent))
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'scripts' / '05_deflutter'))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'scripts' / '30-track' / '05_deflutter'))
 from common import RATE, SR, V5, corr, inventory, lagcorr, read  # noqa: E402
 import flutter_tracking as ft  # noqa: E402
 from flutter import positions  # noqa: E402

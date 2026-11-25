@@ -132,7 +132,7 @@ overwriting previous results.
 Compile one tape, then render one channel when ready:
 
 ```powershell
-uv run python scripts/05_deflutter/05a_plan_deflutter.py --input D:/Apollo_15_30-Track/orig_concatenated/A15_T510076
+uv run python scripts/30-track/05_deflutter/05a_plan_deflutter.py --input D:/Apollo_15_30-Track/orig_concatenated/A15_T510076
 uv run python scripts/pipeline.py run --stages 04,05b --tape A15_T510076 --channel 20 --plain
 ```
 
@@ -157,7 +157,7 @@ authorize this workflow. Previous WAVs, maps, and approval records are unchanged
 ## Listening in Audition
 
 ```powershell
-uv run python scripts/05_deflutter/render_channel_review.py --tape A15_T510076 --channel 20 --output reports/full_channel_review
+uv run python scripts/30-track/05_deflutter/render_channel_review.py --tape A15_T510076 --channel 20 --output reports/full_channel_review
 ```
 
 This writes matched mono float WAVs: `A.wav` is the completed stage-04 source;
@@ -189,7 +189,7 @@ tones or how much is ultimately correctable.
 Trace a sighting without new signal analysis (replace example coordinates):
 
 ```powershell
-uv run python scripts/05_deflutter/inspect_tone.py --tape A15_T510076 --channel 15 --time 12345 --hz 1000 --local-time
+uv run python scripts/30-track/05_deflutter/inspect_tone.py --tape A15_T510076 --channel 15 --time 12345 --hz 1000 --local-time
 ```
 
 The lookup reports saved discovery/tracking status and, if a shared plan exists,

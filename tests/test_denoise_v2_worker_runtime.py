@@ -353,7 +353,7 @@ class WorkerRuntimeTests(unittest.TestCase):
             result = runtime.remote_worker_command(command, config)
             self.assertEqual(result[:-1], command[:-1])
             self.assertEqual(shlex.split(result[-1]), [*argv[:3],
-                '/repo with spaces/scripts/03_denoise/denoise_v2_worker_runtime.py', name, *argv[4:]])
+                '/repo with spaces/scripts/30-track/03_denoise/denoise_v2_worker_runtime.py', name, *argv[4:]])
 
     def test_reference_worker_uses_patched_module_and_restores_it(self):
         original_cleanup = runtime.cluster.release_acknowledged

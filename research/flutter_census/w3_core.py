@@ -16,7 +16,7 @@ from scipy import ndimage, signal
 
 HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(HERE.parent.parent / 'scripts' / '05_deflutter'))
+sys.path.insert(0, str(HERE.parent.parent / 'scripts' / '30-track' / '05_deflutter'))
 
 from common import RATE, SR, corr, demod, dewarp, frac_dev, read, exact_mains, remove_stationary  # noqa: E402
 from e2_sharpen import line_spectrum  # noqa: E402

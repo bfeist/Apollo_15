@@ -3,7 +3,7 @@ from pathlib import Path
 import threading
 import unittest
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts/05_deflutter'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts/30-track/05_deflutter'))
 from render_queue import run_queue
 
 

@@ -207,7 +207,7 @@ class SpeechNormalizationTests(unittest.TestCase):
         (self.source.parent/'markers.csv').write_bytes(marker)
         review = dict(status='complete', source=dict(role='timing_only'), source_offset_frames=2400)
         (self.source.parent/'review.json').write_text(json.dumps(review))
-        cmd = [sys.executable, str(ROOT/'scripts/07_normalize/07_normalize.py'),
+        cmd = [sys.executable, str(ROOT/'scripts/30-track/07_normalize/07_normalize.py'),
                '--input', str(self.source), '--output', str(self.output)]
         preview = subprocess.run([*cmd, '--dry-run'], capture_output=True, text=True)
         self.assertEqual(preview.returncode, 0, preview.stdout+preview.stderr)

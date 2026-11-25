@@ -3,7 +3,7 @@
 Read-only with respect to the archive: reads originals, stage-03/04/05b WAVs,
 the qualified maps and analysis records under D:/Apollo_15_30-Track, and
 writes PNGs to docs/images/. Detector figures call the production census code
-(scripts/05_deflutter/flutter_census.py) unchanged.
+(scripts/30-track/05_deflutter/flutter_census.py) unchanged.
 
     uv run --with matplotlib python research/readme_figures/collect_stats.py
     uv run --with matplotlib python research/readme_figures/make_figures.py [names...]

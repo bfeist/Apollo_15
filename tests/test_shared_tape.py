@@ -211,7 +211,7 @@ class SharedTapeTests(unittest.TestCase):
         unfinished.mkdir()
         write(unfinished/'plan.json', dict(schema=1, complete=False))
         spec = importlib.util.spec_from_file_location('shared_planner_cli',
-            Path(__file__).resolve().parents[1]/'scripts/05_deflutter/05a_plan_deflutter.py')
+            Path(__file__).resolve().parents[1]/'scripts/30-track/05_deflutter/05a_plan_deflutter.py')
         cli = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(cli)
         with redirect_stdout(io.StringIO()):

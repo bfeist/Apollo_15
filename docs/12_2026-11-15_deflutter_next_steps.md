@@ -50,7 +50,7 @@ that the current detector is sufficiently reliable.
 
 Done:
 
-- `scripts/05_deflutter/05_detect_flutter.py` (stage 05) with the numerical
+- `scripts/30-track/05_deflutter/05_detect_flutter.py` (stage 05) with the numerical
   core `flutter_census.py` and the run/cluster/publication layer
   `flutter_detection.py`. One Proprius coordinator, persistent Proprius and
   Genus workers, verified inbox publication, acknowledgements, resume and
@@ -395,8 +395,8 @@ channel must exist (or add `--skip-crosstalk` for an explicit denoised-only
 comparison):
 
 ```powershell
-uv run python scripts/05_deflutter/render_channel_review.py --tape A15_T510106 --channel 20 --start 20000 --duration 1800 --flutter-plan D:/Apollo_15_30-Track/deflutter_planning_qualified/$id/<analysis-id>/A15_T510106/plan.json --output reports/listening_census_<date>/T510106_CH20
-uv run python scripts/05_deflutter/render_channel_review.py --tape A15_T510083 --channel 20 --start 13200 --duration 1800 --flutter-plan D:/Apollo_15_30-Track/deflutter_planning_qualified/$id/<analysis-id>/A15_T510083/plan.json --output reports/listening_census_<date>/T510083_CH20
+uv run python scripts/30-track/05_deflutter/render_channel_review.py --tape A15_T510106 --channel 20 --start 20000 --duration 1800 --flutter-plan D:/Apollo_15_30-Track/deflutter_planning_qualified/$id/<analysis-id>/A15_T510106/plan.json --output reports/listening_census_<date>/T510106_CH20
+uv run python scripts/30-track/05_deflutter/render_channel_review.py --tape A15_T510083 --channel 20 --start 13200 --duration 1800 --flutter-plan D:/Apollo_15_30-Track/deflutter_planning_qualified/$id/<analysis-id>/A15_T510083/plan.json --output reports/listening_census_<date>/T510083_CH20
 ```
 
 T510106 (0.6 % saved v5 coverage) tests new coverage; the T510083 passage

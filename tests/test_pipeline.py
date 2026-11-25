@@ -204,7 +204,7 @@ class BatchDenoiseTests(CanonicalTapeTests):
         self.assertEqual(len(jobs), 5)
         self.assertTrue(all(j['status'] == 'pending' for j in jobs))
         # Exercise the same inventory path used by the stage-03 subprocess.
-        command = [sys.executable, str(ROOT/'scripts/03_denoise'/'03_denoise.py'),
+        command = [sys.executable, str(ROOT/'scripts/30-track/03_denoise'/'03_denoise.py'),
                    '--input', str(folder), '--output', str(self.cache/'CH02'),
                    '--channel', '2', '--workers', '1']
         result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
@@ -508,7 +508,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(states['03'], 'failed')
 
     def test_standalone_denoise_excerpts(self):
-        result = subprocess.run([sys.executable, str(ROOT/'scripts/03_denoise/03_denoise.py'),
+        result = subprocess.run([sys.executable, str(ROOT/'scripts/30-track/03_denoise/03_denoise.py'),
                                  '--input', str(self.source), '--output', str(self.output)],
                                 capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -533,7 +533,7 @@ class PipelineTests(unittest.TestCase):
         t = np.arange(60*8000)/8000
         voice = .1*np.sin(2*np.pi*2500*t)*((t % 4) < .25)+np.random.default_rng(150).normal(0., .0001, len(t))
         sf.write(original/'A15_T001_HR1U_CH2_VOICE_207-00-00-00_207-00-01-00.wav', voice, 8000, subtype='FLOAT')
-        command = [sys.executable, str(ROOT/'scripts/03_denoise/03_denoise.py'), '--input', str(original),
+        command = [sys.executable, str(ROOT/'scripts/30-track/03_denoise/03_denoise.py'), '--input', str(original),
                    '--channel', str(channel), '--denoised-root', str(self.output)]
         result = subprocess.run(command, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

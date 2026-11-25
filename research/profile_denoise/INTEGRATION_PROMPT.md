@@ -8,9 +8,9 @@ anything under `D:/Apollo_15_30-Track/denoised`.
 
 ## Background
 
-Stage 03 (`scripts/03_denoise/`) denoises 1,169 mono 8 kHz channels with the
+Stage 03 (`scripts/30-track/03_denoise/`) denoises 1,169 mono 8 kHz channels with the
 frozen hum model `denoise_v2.py` + `denoise_v2_refinement.py` in
-`scripts/03_denoise/runtime/scripts/`. 365 channels are complete, 12 have
+`scripts/30-track/03_denoise/runtime/scripts/`. 365 channels are complete, 12 have
 resumable checkpoints, ~12,900 channel-hours remain. Workers run one thread
 each on two machines: Windows (Ryzen 9 9950X3D, keep **6 workers** for developer
 headroom) and Genus (Ryzen 9 5900XT, 16C/32T, Ubuntu, dedicated; use whatever
@@ -54,10 +54,10 @@ the *accelerated execution identity* (`denoise_v2_numba.py` +
 per-span provenance in checkpoints). Use that path so the run ID, the 365
 completed channels and the 12 checkpoints remain valid:
 
-1. Move the four prototype modules into `scripts/03_denoise/runtime/scripts/`
+1. Move the four prototype modules into `scripts/30-track/03_denoise/runtime/scripts/`
    (keep names: `fast_kernels.py`, `fast_sincos.py`, `denoise_v2_fast.py`,
    `denoise_v2_refinement_fast.py`). Register them in `scripts/layout.json`
-   and add their hashes to `scripts/03_denoise/runtime/source_manifest.json`.
+   and add their hashes to `scripts/30-track/03_denoise/runtime/source_manifest.json`.
    Fix the imports so they resolve from that folder (the `_bootstrap.install()`
    path setup puts `runtime/scripts` on `sys.path`).
 2. Rewrite `denoise_v2_numba.py`: load `denoise_v2_fast` instead of the
@@ -71,7 +71,7 @@ completed channels and the 12 checkpoints remain valid:
 3. `denoise_v2_accelerated.py`: extend `CODE_FILES` with the four new files and
    `validate_report`'s `expected_keys` accordingly. Keep everything else
    (provenance spans, backups, remote command rewriting) unchanged.
-4. `scripts/03_denoise/runtime/research/qualify_denoise_numba.py`: the current
+4. `scripts/30-track/03_denoise/runtime/research/qualify_denoise_numba.py`: the current
    pass criteria require bit-exact float64 models and identical records, which
    the port cannot meet by design. Replace with a tolerance qualification:
    - float32 corrected output peak difference ≤ 2⁻²² and RMS ≤ 2⁻²⁵ (the

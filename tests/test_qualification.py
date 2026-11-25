@@ -52,7 +52,7 @@ def make_tape(root, seconds=150, tape=TAPE, invert_after=INVERT_AFTER):
 
 
 def plan_cli():
-    spec = importlib.util.spec_from_file_location('plan_cli_q', ROOT/'scripts/05_deflutter/05a_plan_deflutter.py')
+    spec = importlib.util.spec_from_file_location('plan_cli_q', ROOT/'scripts/30-track/05_deflutter/05a_plan_deflutter.py')
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

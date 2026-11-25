@@ -52,7 +52,7 @@ inverse map as before. `--raw-census-root` imports this raw stream for
 research only. Stage 05b
 applies it unchanged to stage-04 audio of every channel, preserving offsets.
 
-Code: `scripts/05_deflutter/flutter_census.py` (numerical core),
+Code: `scripts/30-track/05_deflutter/flutter_census.py` (numerical core),
 `flutter_detection.py` (run identity, jobs, cluster, publication, joining),
 `census_source_stage.py` (sequential SSD staging) and `05_detect_flutter.py` (CLI). Research references remain in
 `research/flutter_census/`.
@@ -138,7 +138,7 @@ Research-only planning from the raw census candidates (never labelled
 qualified; production plans use `--qualification-root`):
 
 ```powershell
-uv run python scripts/05_deflutter/05a_plan_deflutter.py --input D:/Apollo_15_30-Track/orig_concatenated/A15_T510083 --raw-census-root $run --output D:/Apollo_15_30-Track/deflutter_planning_census_raw/<run-id>/A15_T510083
+uv run python scripts/30-track/05_deflutter/05a_plan_deflutter.py --input D:/Apollo_15_30-Track/orig_concatenated/A15_T510083 --raw-census-root $run --output D:/Apollo_15_30-Track/deflutter_planning_census_raw/<run-id>/A15_T510083
 ```
 
 The plan's `census` block records `kind = raw_candidates`, the run ID,

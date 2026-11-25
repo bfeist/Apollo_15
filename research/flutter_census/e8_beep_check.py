@@ -3,7 +3,7 @@ the blind detector never uses 2150-2850 Hz)."""
 import sys, json
 from pathlib import Path
 import numpy as np
-sys.path.insert(0, str(Path(__file__).parent)); sys.path.insert(0, str(Path(__file__).parents[2] / 'scripts/05_deflutter'))
+sys.path.insert(0, str(Path(__file__).parent)); sys.path.insert(0, str(Path(__file__).parents[2] / 'scripts/30-track/05_deflutter'))
 from common import read, inventory, RATE, SR
 from flutter_tracking import beeps, evaluate_events, bound
 

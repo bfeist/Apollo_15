@@ -145,7 +145,7 @@ Compile qualified maps into fresh roots that name both IDs:
 ```powershell
 $plans = Join-Path 'D:/Apollo_15_30-Track/deflutter_planning_qualified' "$(Split-Path $census -Leaf)/$($run.analysis_id)"
 uv run python scripts/pipeline.py run --stages 05a --all-tapes --exclude-tape A15_T510096 --flutter-qualification-root $a --flutter-planning-root $plans --plain
-uv run python scripts/05_deflutter/deflutter_readiness.py --planning-root $plans --qualification-root $a
+uv run python scripts/30-track/05_deflutter/deflutter_readiness.py --planning-root $plans --qualification-root $a
 ```
 
 The plan's `census` block has `kind = qualified`, the analysis ID, policy and

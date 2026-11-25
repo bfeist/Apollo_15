@@ -124,7 +124,7 @@ class LauncherTests(unittest.TestCase):
                 command = launcher.cluster.remote_command(config, 'worker', '--key', key)
                 self.assertEqual(command[1], 'bfeist@192.168.0.3')
                 self.assertEqual(shlex.split(command[-1])[:4], ['exec', 'taskset', '-c', launcher.GENUS_CPUS])
-                self.assertIn('/repo with spaces/scripts/03_denoise/denoise_v2_worker_runtime.py', shlex.split(command[-1]))
+                self.assertIn('/repo with spaces/scripts/30-track/03_denoise/denoise_v2_worker_runtime.py', shlex.split(command[-1]))
             self.assertEqual(launcher.cluster.remote_command(config, 'qualify'),
                              original(dict(config, ssh='bfeist@192.168.0.3'), 'qualify'))
             self.assertEqual(launcher.cluster.digest_json(config), config_digest)

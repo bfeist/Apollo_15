@@ -20,7 +20,7 @@ hint = Path(f'D:/Apollo_15_30-Track/denoised_v1/{tape}/CH{int(ch):02d}/cleanup.j
 frames = sf.info(src).frames
 rows = saved_seeds(hint, 0, frames)
 fast_kernels.warmup()
-sys.path.insert(0, str(HERE.parents[1]/'scripts/03_denoise/runtime/research'))
+sys.path.insert(0, str(HERE.parents[1]/'scripts/30-track/03_denoise/runtime/research'))
 from qualify_denoise_numba import decision_structure, difference, within_tolerance, render_with_models
 STEP = 64*8000
 with sf.SoundFile(src) as stream:

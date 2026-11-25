@@ -1,20 +1,23 @@
 # Numbered pipeline folders
 
 The `scripts/` root contains only the pipeline entry point, the command
-dispatcher, its shared path adapter and the script index. Processing code is
-grouped by step:
+dispatcher, its shared path adapter and the script index. The 30-track tape
+stages 01-08 are in `scripts/30-track/`. Other sources have their own folders:
 
 | Folder                           | Contents                                                                                                                                                                    |
 | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `scripts/00_common/`             | Shared process I/O utilities, and the shared transcription engine (`audio_sources`, `mission_asr`, `mission_store`, `transcribe_run`, `transcribe_watch`, `transcribe_cli`) |
-| `scripts/01_ingest/`             | Concatenation and original-tape archiving                                                                                                                                   |
-| `scripts/03_denoise/`            | Denoise commands, Windows/Genus coordination and housekeeping                                                                                                               |
-| `scripts/04_crosstalk/`          | Evidence-bounded two-path repeat subtraction before shared de-flutter                                                                                                       |
-| `scripts/05_deflutter/`          | Stage 05 detection census, 05a planning, 05b application, shared audio processing and review evidence                                                                       |
-| `scripts/06_retime/`             | 30-track only: 06a timing transcript of 05b channels, Quindar surveys and shared tape-speed retiming                                                                        |
-| `scripts/07_normalize/`          | Conservative speech-level measurement, constant gain to target and separate listening WAVs                                                                                  |
-| `scripts/08_irig/`               | Standalone IRIG search; its pipeline integration remains undecided                                                                                                          |
+| `scripts/30-track/01_ingest/`    | Concatenation and original-tape archiving                                                                                                                                   |
+| `scripts/30-track/02_alignment/` | Capture alignment: where each original WAV starts on the shared tape clock                                                                                                  |
+| `scripts/30-track/03_denoise/`   | Denoise commands, Windows/Genus coordination and housekeeping                                                                                                               |
+| `scripts/30-track/04_crosstalk/` | Evidence-bounded two-path repeat subtraction before shared de-flutter                                                                                                       |
+| `scripts/30-track/05_deflutter/` | Stage 05 detection census, 05a planning, 05b application, shared audio processing and review evidence                                                                       |
+| `scripts/30-track/06_retime/`    | 06a timing transcript of 05b channels, Quindar surveys and shared tape-speed retiming                                                                                       |
+| `scripts/30-track/07_normalize/` | Conservative speech-level measurement, constant gain to target and separate listening WAVs                                                                                  |
+| `scripts/30-track/08_irig/`      | Standalone IRIG search; its pipeline integration remains undecided                                                                                                          |
 | `scripts/sg-audio/`              | Space-to-ground reels: timing transcript (`sg_transcribe.py`) and, next, the reel drift fit                                                                                 |
+| `scripts/sg_nara/`               | NARA flight tapes: IRIG-B respeed and transcription                                                                                                                         |
+| `scripts/audio_inventory/`       | Audio source inventories and catalogs                                                                                                                                       |
 | `scripts/video/dvds/`            | DVD audio streams: timing transcript (`dvd_transcribe.py`)                                                                                                                  |
 | `scripts/sg_transcript/`         | Mission transcripts, commentary and photos; runs first ([guide](16_2026-11-23_mission_data_ingestion.md))                                                                   |
 | `scripts/flight_plan/`           | Flight plan, as-flown timeline, TOC and their checks; runs after `sg_transcript` ([guide](17_2026-11-23_flight_plan_ingestion.md))                                          |
@@ -23,7 +26,7 @@ grouped by step:
 Run the current denoise console from the repository root:
 
 ```powershell
-uv run python -u scripts/03_denoise/denoise_v2_console.py
+uv run python -u scripts/30-track/03_denoise/denoise_v2_console.py
 ```
 
 The general pipeline keeps its existing entry point:
@@ -46,9 +49,21 @@ uv run python scripts/run.py quindar_survey.py --help
 uv run python scripts/run.py irig_search.py --help
 ```
 
+## The 30-track folder move
+
+On 2026-11-24 the stage folders 01-08 moved from `scripts/` to
+`scripts/30-track/` with no byte changes. Saved implementation hashes still
+match. `scripts/pipeline.py`, `scripts/run.py` and command names are unchanged.
+`scripts/30-track/_bootstrap.py` forwards direct stage runs to the shared
+adapter. `scripts/script_relocation.py` corrects the few hash-bound sources that
+found the repository from their own folder depth (`repeat_qualification`,
+`flutter_qualification`, `flutter_detection`). It also maps the former script
+paths in saved stage-04 bindings to their current location. Saved evidence
+is not rewritten. Genus checkouts need the same commit before they run workers.
+
 ## Frozen denoise runtime
 
-`scripts/03_denoise/runtime/` preserves the reviewed reference source files
+`scripts/30-track/03_denoise/runtime/` preserves the reviewed reference source files
 byte-for-byte. Its internal `scripts/` and `research/` paths retain the structure
 expected by qualification descriptors. The separate accelerated modules and
 qualification script may be promoted through a new qualified execution ID;

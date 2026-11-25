@@ -297,7 +297,7 @@ common tape clock. The audio itself is never shifted.
 The recordings carry two families of mains interference (§6.1). Stage 03 removes
 stationary and slowly varying line components by subtracting a fitted model. It does
 not filter or spectrally gate broadband noise, so comm hiss and the original timing
-are preserved. The model (`scripts/03_denoise/runtime/scripts/denoise_v2.py`, frozen by
+are preserved. The model (`scripts/30-track/03_denoise/runtime/scripts/denoise_v2.py`, frozen by
 hash) is estimated at anchors every 64 s. Each anchor fits ±68 s of original audio, and
 adjacent anchor models are cross-faded with a raised cosine. Within each anchor:
 
@@ -653,8 +653,8 @@ uv sync --locked
 uv run python scripts/pipeline.py plan --stages 04,05b --tape A15_T510083 --channel 20 --plain   # preview, no writes
 uv run python scripts/run.py 05_detect_flutter.py run --tape A15_T510106                          # census (resumable)
 uv run python scripts/run.py 05_analyze_flutter.py run --census-dir <census-run> --exclude-tape A15_T510096
-uv run python scripts/05_deflutter/05a_plan_deflutter.py --input D:/Apollo_15_30-Track/orig_concatenated/A15_T510076
-uv run python scripts/05_deflutter/render_channel_review.py --tape A15_T510076 --channel 20 --output reports/full_channel_review
+uv run python scripts/30-track/05_deflutter/05a_plan_deflutter.py --input D:/Apollo_15_30-Track/orig_concatenated/A15_T510076
+uv run python scripts/30-track/05_deflutter/render_channel_review.py --tape A15_T510076 --channel 20 --output reports/full_channel_review
 ```
 
 `render_channel_review.py` writes matched mono float `A.wav` (stage 04) and `B.wav`

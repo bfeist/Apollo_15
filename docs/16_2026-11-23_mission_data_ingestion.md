@@ -979,7 +979,7 @@ unchanged inputs are byte-identical (checked).
 
 Put the code in `scripts/sg_transcript/`, registered in `scripts/layout.json`, with tests in
 `tests/`. Run it with `uv run python …`. The existing numbered audio stages (`scripts/00_common/`
-through `scripts/08_irig/`) are planned to move to `scripts/30track/`. That move is separate
+through `scripts/30-track/08_irig/`) are planned to move to `scripts/30track/`. That move is separate
 work: update `layout.json`, `pipeline.py`, `run.py` and the frozen-runtime path adapter
 together, and keep the frozen denoise runtime's internal layout unchanged.
 
