@@ -129,5 +129,12 @@
   "nara_catalog.py": "audio_inventory/nara_catalog.py",
   "ia_catalog.py": "audio_inventory/ia_catalog.py",
   "a15_nara.py": "audio_inventory/a15_nara.py",
-  "a15_timeline.py": "audio_inventory/a15_timeline.py"
+  "a15_timeline.py": "audio_inventory/a15_timeline.py",
+  "nara_sources.py": "sg_nara/nara_sources.py",
+  "nara_irig.py": "sg_nara/nara_irig.py",
+  "nara_irig_survey.py": "sg_nara/nara_irig_survey.py",
+  "nara_tape_map.py": "sg_nara/nara_tape_map.py",
+  "nara_align.py": "sg_nara/nara_align.py",
+  "nara_respeed.py": "sg_nara/nara_respeed.py",
+  "nara_retimed_transcribe.py": "sg_nara/nara_retimed_transcribe.py"
 }
