@@ -122,6 +122,8 @@
   "sg_sources.py": "sg-audio/sg_sources.py",
   "sg_transcribe.py": "sg-audio/sg_transcribe.py",
   "dvd_sources.py": "video/dvds/dvd_sources.py",
+  "sg_drift_fit.py": "sg-audio/sg_drift_fit.py",
+  "sg_respeed.py": "sg-audio/sg_respeed.py",
   "dvd_transcribe.py": "video/dvds/dvd_transcribe.py",
   "audio_inventory.py": "audio_inventory/audio_inventory.py",
   "inventory_common.py": "audio_inventory/inventory_common.py",

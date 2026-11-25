@@ -1,0 +1,2259 @@
+{
+ "version": "sg-drift-v1",
+ "anchors_file": ".local/mission_data/sg/sg_anchors.tsv",
+ "anchors_sha256": "439e3d5665c5178ef5e7a2d359367444009835e221dd6f5982ca7b780ab27279",
+ "reels_sha256": "ab00b0099b7503767dbdb624debea2ae3acd6b0fe43d7a496efc76c53333d295",
+ "known_edits_sha256": "a66e47e635679053b0279be10f859006d0d8240e7d1a9c55d333daaaa0b3dc8c",
+ "mission_rate_ppm": 5225.4,
+ "model": "GET(t) = t + D(t) + constant[segment]; D(t) = sum_d coef[d-1] * (t / drift_scale_s)^d; respeed applies D only (rate 1 + dD/dt)",
+ "reels": [
+  {
+   "reel": "540-AAA",
+   "file": "540-AAA.wav",
+   "sha256": "ffb036e6126227b8a5b863f123230e13277ea66a3b18d91104c20e7725f17c3d",
+   "duration_s": 11365.0,
+   "known_edits_s": [],
+   "anchors": 60,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 1,
+   "drift_coefficients_s": [
+    34.243239
+   ],
+   "drift_scale_s": 11365.0,
+   "slope_se_ppm": 238.2,
+   "rate_start_ppm": 3013.0,
+   "rate_end_ppm": 3013.0,
+   "fit_mad_s": 0.821,
+   "fit_p95_s": 2.184,
+   "cv_mae_s": 1.458,
+   "cv_p95_s": 5.619,
+   "cv_mae_by_degree_s": {
+    "1": 1.458
+   },
+   "residual_steps_s": [
+    8846.5
+   ],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 3047.505,
+     "first_anchor_s": 1870.08,
+     "last_anchor_s": 2758.76,
+     "anchors": 14,
+     "constant_s": -1861.89,
+     "get_at_start": "-000:31:02",
+     "boundary": "file_start"
+    },
+    {
+     "segment": 1,
+     "source_start_s": 3047.505,
+     "source_end_s": 3596.385,
+     "first_anchor_s": 3336.25,
+     "last_anchor_s": 3370.39,
+     "anchors": 3,
+     "constant_s": -193.675,
+     "get_at_start": "000:47:43",
+     "boundary": "recorder_gap"
+    },
+    {
+     "segment": 2,
+     "source_start_s": 3596.385,
+     "source_end_s": 5029.775,
+     "first_anchor_s": 3822.38,
+     "last_anchor_s": 4835.51,
+     "anchors": 23,
+     "constant_s": 1588.525,
+     "get_at_start": "001:26:36",
+     "boundary": "recorder_gap"
+    },
+    {
+     "segment": 3,
+     "source_start_s": 5029.775,
+     "source_end_s": 11365.0,
+     "first_anchor_s": 5224.04,
+     "last_anchor_s": 8970.88,
+     "anchors": 20,
+     "constant_s": 3538.957,
+     "get_at_start": "002:23:04",
+     "boundary": "recorder_gap"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "541-AAA",
+   "file": "541-AAA.wav",
+   "sha256": "1f346d67bc1f6f80fd86697086c6840737550acb5c032d2bfdf4df3ea570d929",
+   "duration_s": 10678.9,
+   "known_edits_s": [],
+   "anchors": 6,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 1,
+   "drift_coefficients_s": [
+    54.263786
+   ],
+   "drift_scale_s": 10678.9,
+   "slope_se_ppm": 128.1,
+   "rate_start_ppm": 5081.4,
+   "rate_end_ppm": 5081.4,
+   "fit_mad_s": 0.256,
+   "fit_p95_s": 0.407,
+   "cv_mae_s": 0.578,
+   "cv_p95_s": 1.098,
+   "cv_mae_by_degree_s": {
+    "1": 0.578,
+    "2": 3.519
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 10678.9,
+     "first_anchor_s": 4815.69,
+     "last_anchor_s": 7787.5,
+     "anchors": 6,
+     "constant_s": 14912.506,
+     "get_at_start": "004:08:33",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "542-AAA",
+   "file": "542-AAA.wav",
+   "sha256": "815b5fe9c0b928fc408fcfd64e963213504a3bed03020aa5286b9c37e8846751",
+   "duration_s": 11397.6,
+   "known_edits_s": [],
+   "anchors": 60,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    42.953485,
+    23.864065
+   ],
+   "drift_scale_s": 11397.6,
+   "slope_se_ppm": 50.1,
+   "rate_start_ppm": 3768.6,
+   "rate_end_ppm": 7956.2,
+   "fit_mad_s": 0.263,
+   "fit_p95_s": 1.143,
+   "cv_mae_s": 0.416,
+   "cv_p95_s": 1.262,
+   "cv_mae_by_degree_s": {
+    "1": 0.682,
+    "2": 0.416
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 11397.6,
+     "first_anchor_s": 5636.6,
+     "last_anchor_s": 11353.2,
+     "anchors": 60,
+     "constant_s": 27335.021,
+     "get_at_start": "007:35:35",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "543-AAA",
+   "file": "543-AAA.wav",
+   "sha256": "ac8e62b31ddb79d046b7c8bd1fe7bd86888f741dec147f333f6822e20fec5b1e",
+   "duration_s": 11278.2,
+   "known_edits_s": [],
+   "anchors": 31,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    47.814624,
+    9.332212
+   ],
+   "drift_scale_s": 11278.2,
+   "slope_se_ppm": 38.2,
+   "rate_start_ppm": 4239.6,
+   "rate_end_ppm": 5894.5,
+   "fit_mad_s": 0.265,
+   "fit_p95_s": 0.941,
+   "cv_mae_s": 0.467,
+   "cv_p95_s": 1.068,
+   "cv_mae_by_degree_s": {
+    "1": 0.63,
+    "2": 0.467
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 11278.2,
+     "first_anchor_s": 1758.2,
+     "last_anchor_s": 9566.12,
+     "anchors": 31,
+     "constant_s": 38790.821,
+     "get_at_start": "010:46:31",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "544-AAA",
+   "file": "544-AAA.wav",
+   "sha256": "33f8465fe8b572410a68f904f3dce05500d44abb0211d6cc0e3b6432d02e69d9",
+   "duration_s": 11397.6,
+   "known_edits_s": [],
+   "anchors": 21,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    41.999209,
+    22.021564
+   ],
+   "drift_scale_s": 11397.6,
+   "slope_se_ppm": 154.1,
+   "rate_start_ppm": 3684.9,
+   "rate_end_ppm": 7549.2,
+   "fit_mad_s": 0.273,
+   "fit_p95_s": 0.84,
+   "cv_mae_s": 0.835,
+   "cv_p95_s": 3.551,
+   "cv_mae_by_degree_s": {
+    "1": 1.115,
+    "2": 0.835
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 2955.575,
+     "first_anchor_s": 597.562,
+     "last_anchor_s": 1208.91,
+     "anchors": 2,
+     "constant_s": 50120.268,
+     "get_at_start": "013:55:20",
+     "boundary": "file_start"
+    },
+    {
+     "segment": 1,
+     "source_start_s": 2955.575,
+     "source_end_s": 11397.6,
+     "first_anchor_s": 4702.24,
+     "last_anchor_s": 10797.8,
+     "anchors": 19,
+     "constant_s": 87113.602,
+     "get_at_start": "025:01:22",
+     "boundary": "recorder_gap"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "545-AAA",
+   "file": "545-AAA.wav",
+   "sha256": "b3394a62ad3b4d884a1bfaa84705afccd8a818fdf465ddeea113258fa53ee56f",
+   "duration_s": 10849.4,
+   "known_edits_s": [],
+   "anchors": 99,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    49.156983,
+    10.372609
+   ],
+   "drift_scale_s": 10849.4,
+   "slope_se_ppm": 32.1,
+   "rate_start_ppm": 4530.8,
+   "rate_end_ppm": 6443.0,
+   "fit_mad_s": 0.295,
+   "fit_p95_s": 0.901,
+   "cv_mae_s": 0.426,
+   "cv_p95_s": 1.12,
+   "cv_mae_by_degree_s": {
+    "1": 1.063,
+    "2": 0.426
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 10849.4,
+     "first_anchor_s": 149.928,
+     "last_anchor_s": 10027.8,
+     "anchors": 99,
+     "constant_s": 98564.038,
+     "get_at_start": "027:22:44",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "546-AAA",
+   "file": "546-AAA.wav",
+   "sha256": "b3fb584933407a2b902b39bf3a5afaaa4bb08516ef5728436b4335271163c281",
+   "duration_s": 11654.9,
+   "known_edits_s": [],
+   "anchors": 45,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    44.913704,
+    17.201901
+   ],
+   "drift_scale_s": 11654.9,
+   "slope_se_ppm": 53.9,
+   "rate_start_ppm": 3853.6,
+   "rate_end_ppm": 6805.5,
+   "fit_mad_s": 0.301,
+   "fit_p95_s": 1.236,
+   "cv_mae_s": 0.534,
+   "cv_p95_s": 1.372,
+   "cv_mae_by_degree_s": {
+    "1": 0.837,
+    "2": 0.534
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 11654.9,
+     "first_anchor_s": 4911.8,
+     "last_anchor_s": 11032.0,
+     "anchors": 45,
+     "constant_s": 111568.007,
+     "get_at_start": "030:59:28",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "547-AAA",
+   "file": "547-AAA.wav",
+   "sha256": "f8b5acc250df708a19e37cb9969d8135e7cab13b136798a864d52d6828f2792b",
+   "duration_s": 11654.9,
+   "known_edits_s": [],
+   "anchors": 78,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    55.749966,
+    6.319848
+   ],
+   "drift_scale_s": 11654.9,
+   "slope_se_ppm": 84.6,
+   "rate_start_ppm": 4783.4,
+   "rate_end_ppm": 5867.9,
+   "fit_mad_s": 0.313,
+   "fit_p95_s": 1.196,
+   "cv_mae_s": 0.743,
+   "cv_p95_s": 3.201,
+   "cv_mae_by_degree_s": {
+    "1": 0.889,
+    "2": 0.743
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 6091.865,
+     "first_anchor_s": 39.696,
+     "last_anchor_s": 3762.59,
+     "anchors": 48,
+     "constant_s": 122920.42,
+     "get_at_start": "034:08:40",
+     "boundary": "file_start"
+    },
+    {
+     "segment": 1,
+     "source_start_s": 6091.865,
+     "source_end_s": 11654.9,
+     "first_anchor_s": 8421.14,
+     "last_anchor_s": 10924.5,
+     "anchors": 30,
+     "constant_s": 122925.707,
+     "get_at_start": "035:50:48",
+     "boundary": "recorder_gap"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "548-AAA",
+   "file": "548-AAA.wav",
+   "sha256": "5fccf7c29b6a33b4b13d5e8a0d53a03ebbaf46643d1256efb265e76ab179549f",
+   "duration_s": 11654.9,
+   "known_edits_s": [],
+   "anchors": 33,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    52.503471,
+    15.530475
+   ],
+   "drift_scale_s": 11654.9,
+   "slope_se_ppm": 50.9,
+   "rate_start_ppm": 4504.8,
+   "rate_end_ppm": 7169.9,
+   "fit_mad_s": 0.293,
+   "fit_p95_s": 0.923,
+   "cv_mae_s": 0.637,
+   "cv_p95_s": 1.588,
+   "cv_mae_by_degree_s": {
+    "1": 0.739,
+    "2": 0.637
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 11654.9,
+     "first_anchor_s": 68.792,
+     "last_anchor_s": 7487.32,
+     "anchors": 33,
+     "constant_s": 134337.36,
+     "get_at_start": "037:18:57",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "549-AAA",
+   "file": "549-AAA.wav",
+   "sha256": "fb65a72aa1ac36ec86930764ef584f36a6b716c63738e4fb758eab169e1872eb",
+   "duration_s": 11563.9,
+   "known_edits_s": [],
+   "anchors": 97,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    47.04807,
+    17.632173
+   ],
+   "drift_scale_s": 11563.9,
+   "slope_se_ppm": 96.2,
+   "rate_start_ppm": 4068.5,
+   "rate_end_ppm": 7118.0,
+   "fit_mad_s": 0.362,
+   "fit_p95_s": 1.042,
+   "cv_mae_s": 0.663,
+   "cv_p95_s": 1.563,
+   "cv_mae_by_degree_s": {
+    "1": 1.056,
+    "2": 0.663
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 6397.96,
+     "first_anchor_s": 226.64,
+     "last_anchor_s": 4281.41,
+     "anchors": 69,
+     "constant_s": 176423.192,
+     "get_at_start": "049:00:23",
+     "boundary": "file_start"
+    },
+    {
+     "segment": 1,
+     "source_start_s": 6397.96,
+     "source_end_s": 11563.9,
+     "first_anchor_s": 8514.51,
+     "last_anchor_s": 10330.9,
+     "anchors": 28,
+     "constant_s": 176423.501,
+     "get_at_start": "050:47:33",
+     "boundary": "recorder_gap"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "550-AAA",
+   "file": "550-AAA.wav",
+   "sha256": "d0f640addc8f9671deb9ecffad3853a95e184f1085b0cd5fce75cdb0b231cffe",
+   "duration_s": 10380.2,
+   "known_edits_s": [],
+   "anchors": 59,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 1,
+   "drift_coefficients_s": [
+    55.625776
+   ],
+   "drift_scale_s": 10380.2,
+   "slope_se_ppm": 31.8,
+   "rate_start_ppm": 5358.8,
+   "rate_end_ppm": 5358.8,
+   "fit_mad_s": 0.333,
+   "fit_p95_s": 0.928,
+   "cv_mae_s": 0.469,
+   "cv_p95_s": 1.069,
+   "cv_mae_by_degree_s": {
+    "1": 0.469,
+    "2": 0.492
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 10380.2,
+     "first_anchor_s": 199.532,
+     "last_anchor_s": 8287.89,
+     "anchors": 59,
+     "constant_s": 187877.154,
+     "get_at_start": "052:11:17",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "551-AAA",
+   "file": "551-AAA.wav",
+   "sha256": "2c5da2d7a87ba9881e202ca0e910b2e88c6acee3212f4101beca3a1cc7c5ab8f",
+   "duration_s": 11750.0,
+   "known_edits_s": [],
+   "anchors": 61,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    48.055731,
+    16.305291
+   ],
+   "drift_scale_s": 11750.0,
+   "slope_se_ppm": 90.8,
+   "rate_start_ppm": 4089.8,
+   "rate_end_ppm": 6865.2,
+   "fit_mad_s": 0.326,
+   "fit_p95_s": 1.165,
+   "cv_mae_s": 0.507,
+   "cv_p95_s": 1.008,
+   "cv_mae_by_degree_s": {
+    "1": 1.064,
+    "2": 0.507
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 2525.38,
+     "first_anchor_s": 151.32,
+     "last_anchor_s": 2310.54,
+     "anchors": 29,
+     "constant_s": 198027.927,
+     "get_at_start": "055:00:28",
+     "boundary": "file_start"
+    },
+    {
+     "segment": 1,
+     "source_start_s": 2525.38,
+     "source_end_s": 2981.86,
+     "first_anchor_s": 2740.22,
+     "last_anchor_s": 2771.78,
+     "anchors": 2,
+     "constant_s": 198109.271,
+     "get_at_start": "055:44:06",
+     "boundary": "recorder_gap"
+    },
+    {
+     "segment": 2,
+     "source_start_s": 2981.86,
+     "source_end_s": 11750.0,
+     "first_anchor_s": 3191.94,
+     "last_anchor_s": 9500.81,
+     "anchors": 30,
+     "constant_s": 200007.568,
+     "get_at_start": "056:23:23",
+     "boundary": "recorder_gap"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "552-AAA",
+   "file": "552-AAA.wav",
+   "sha256": "72334e5dfcfd5a3304de64ad526c197b321ee607d337d4bcc64a156028f1c63b",
+   "duration_s": 11563.9,
+   "known_edits_s": [],
+   "anchors": 137,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    51.151824,
+    12.028768
+   ],
+   "drift_scale_s": 11563.9,
+   "slope_se_ppm": 26.9,
+   "rate_start_ppm": 4423.4,
+   "rate_end_ppm": 6503.8,
+   "fit_mad_s": 0.428,
+   "fit_p95_s": 1.283,
+   "cv_mae_s": 0.526,
+   "cv_p95_s": 1.264,
+   "cv_mae_by_degree_s": {
+    "1": 1.107,
+    "2": 0.526
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 11563.9,
+     "first_anchor_s": 660.43,
+     "last_anchor_s": 11088.4,
+     "anchors": 137,
+     "constant_s": 211356.613,
+     "get_at_start": "058:42:37",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "553-AAA",
+   "file": "553-AAA.wav",
+   "sha256": "d6c9ebe9e57ef31df3cb4e2886725f25dd8c4c92aecb99817cec3d567214b5a0",
+   "duration_s": 11563.9,
+   "known_edits_s": [],
+   "anchors": 52,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 1,
+   "drift_coefficients_s": [
+    67.24276
+   ],
+   "drift_scale_s": 11563.9,
+   "slope_se_ppm": 118.2,
+   "rate_start_ppm": 5814.9,
+   "rate_end_ppm": 5814.9,
+   "fit_mad_s": 0.341,
+   "fit_p95_s": 1.164,
+   "cv_mae_s": 0.468,
+   "cv_p95_s": 1.155,
+   "cv_mae_by_degree_s": {
+    "1": 0.468,
+    "2": 0.482
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 3070.19,
+     "first_anchor_s": 1814.83,
+     "last_anchor_s": 2222.81,
+     "anchors": 13,
+     "constant_s": 222248.573,
+     "get_at_start": "061:44:09",
+     "boundary": "file_start"
+    },
+    {
+     "segment": 1,
+     "source_start_s": 3070.19,
+     "source_end_s": 7809.935,
+     "first_anchor_s": 3917.57,
+     "last_anchor_s": 6777.79,
+     "anchors": 34,
+     "constant_s": 248119.544,
+     "get_at_start": "069:46:48",
+     "boundary": "recorder_gap"
+    },
+    {
+     "segment": 2,
+     "source_start_s": 7809.935,
+     "source_end_s": 11563.9,
+     "first_anchor_s": 8842.08,
+     "last_anchor_s": 10445.0,
+     "anchors": 5,
+     "constant_s": 249057.915,
+     "get_at_start": "071:21:53",
+     "boundary": "recorder_gap"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "554-AAA",
+   "file": "554-AAA.wav",
+   "sha256": "9f6e1e878d8f9d800dde52247fed9e33934e9e30c26384f6e7e2a8dd0afd64ae",
+   "duration_s": 11636.7,
+   "known_edits_s": [],
+   "anchors": 38,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 1,
+   "drift_coefficients_s": [
+    55.872609
+   ],
+   "drift_scale_s": 11636.7,
+   "slope_se_ppm": 81.8,
+   "rate_start_ppm": 4801.4,
+   "rate_end_ppm": 4801.4,
+   "fit_mad_s": 0.4,
+   "fit_p95_s": 0.944,
+   "cv_mae_s": 0.471,
+   "cv_p95_s": 1.161,
+   "cv_mae_by_degree_s": {
+    "1": 0.471,
+    "2": 0.508
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 11636.7,
+     "first_anchor_s": 5295.99,
+     "last_anchor_s": 9105.52,
+     "anchors": 38,
+     "constant_s": 260661.829,
+     "get_at_start": "072:24:22",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "555-AAA",
+   "file": "555-AAA.wav",
+   "sha256": "61ab7eebc4351585fe2ddc9fe2acd2536a09f57726b8870c3ec9d34e7f216fa5",
+   "duration_s": 11636.7,
+   "known_edits_s": [],
+   "anchors": 29,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    53.27473,
+    18.187379
+   ],
+   "drift_scale_s": 11636.7,
+   "slope_se_ppm": 134.5,
+   "rate_start_ppm": 4578.2,
+   "rate_end_ppm": 7704.0,
+   "fit_mad_s": 0.243,
+   "fit_p95_s": 0.846,
+   "cv_mae_s": 0.521,
+   "cv_p95_s": 1.365,
+   "cv_mae_by_degree_s": {
+    "1": 0.641,
+    "2": 0.521
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 2863.77,
+     "first_anchor_s": 2214.94,
+     "last_anchor_s": 2214.94,
+     "anchors": 1,
+     "constant_s": 271930.201,
+     "get_at_start": "075:32:10",
+     "boundary": "file_start"
+    },
+    {
+     "segment": 1,
+     "source_start_s": 2863.77,
+     "source_end_s": 9150.055,
+     "first_anchor_s": 3512.6,
+     "last_anchor_s": 8190.21,
+     "anchors": 16,
+     "constant_s": 272821.716,
+     "get_at_start": "076:35:00",
+     "boundary": "recorder_gap"
+    },
+    {
+     "segment": 2,
+     "source_start_s": 9150.055,
+     "source_end_s": 11636.7,
+     "first_anchor_s": 10109.9,
+     "last_anchor_s": 11159.6,
+     "anchors": 12,
+     "constant_s": 274008.975,
+     "get_at_start": "078:40:12",
+     "boundary": "recorder_gap"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "556-AAA",
+   "file": "556-AAA.wav",
+   "sha256": "5c9be49e6d452e43820275e09fee6e2cf1b1d34e227619030f626ef53e5808a2",
+   "duration_s": 11636.7,
+   "known_edits_s": [],
+   "anchors": 126,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    45.471979,
+    12.658222
+   ],
+   "drift_scale_s": 11636.7,
+   "slope_se_ppm": 77.3,
+   "rate_start_ppm": 3907.6,
+   "rate_end_ppm": 6083.2,
+   "fit_mad_s": 0.401,
+   "fit_p95_s": 0.997,
+   "cv_mae_s": 0.551,
+   "cv_p95_s": 1.175,
+   "cv_mae_by_degree_s": {
+    "1": 0.942,
+    "2": 0.551
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 3888.875,
+     "first_anchor_s": 10.944,
+     "last_anchor_s": 2801.8,
+     "anchors": 43,
+     "constant_s": 285278.621,
+     "get_at_start": "079:14:39",
+     "boundary": "file_start"
+    },
+    {
+     "segment": 1,
+     "source_start_s": 3888.875,
+     "source_end_s": 9229.52,
+     "first_anchor_s": 4975.95,
+     "last_anchor_s": 8687.5,
+     "anchors": 53,
+     "constant_s": 287543.791,
+     "get_at_start": "080:57:29",
+     "boundary": "recorder_gap"
+    },
+    {
+     "segment": 2,
+     "source_start_s": 9229.52,
+     "source_end_s": 11636.7,
+     "first_anchor_s": 9771.54,
+     "last_anchor_s": 11474.0,
+     "anchors": 30,
+     "constant_s": 289933.903,
+     "get_at_start": "083:06:47",
+     "boundary": "recorder_gap"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "557-AAA",
+   "file": "557-AAA.wav",
+   "sha256": "b62cbbf13ff6c60c2090106fa1fb77a5e116fffcc0bfb29b9f11ede2663cccfb",
+   "duration_s": 10726.2,
+   "known_edits_s": [],
+   "anchors": 93,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 1,
+   "drift_coefficients_s": [
+    48.057103
+   ],
+   "drift_scale_s": 10726.2,
+   "slope_se_ppm": 138.0,
+   "rate_start_ppm": 4480.3,
+   "rate_end_ppm": 4480.3,
+   "fit_mad_s": 0.681,
+   "fit_p95_s": 1.903,
+   "cv_mae_s": 1.83,
+   "cv_p95_s": 3.205,
+   "cv_mae_by_degree_s": {
+    "1": 1.83,
+    "2": 2.016
+   },
+   "residual_steps_s": [
+    9010.7
+   ],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 2303.59,
+     "first_anchor_s": 14.308,
+     "last_anchor_s": 2041.15,
+     "anchors": 12,
+     "constant_s": 301469.517,
+     "get_at_start": "083:44:30",
+     "boundary": "file_start"
+    },
+    {
+     "segment": 1,
+     "source_start_s": 2303.59,
+     "source_end_s": 6351.435,
+     "first_anchor_s": 2566.03,
+     "last_anchor_s": 6000.75,
+     "anchors": 42,
+     "constant_s": 304248.91,
+     "get_at_start": "085:09:23",
+     "boundary": "recorder_gap"
+    },
+    {
+     "segment": 2,
+     "source_start_s": 6351.435,
+     "source_end_s": 7403.25,
+     "first_anchor_s": 6702.12,
+     "last_anchor_s": 6702.12,
+     "anchors": 1,
+     "constant_s": 330035.972,
+     "get_at_start": "093:26:56",
+     "boundary": "recorder_gap"
+    },
+    {
+     "segment": 3,
+     "source_start_s": 7403.25,
+     "source_end_s": 10726.2,
+     "first_anchor_s": 8104.38,
+     "last_anchor_s": 10365.0,
+     "anchors": 38,
+     "constant_s": 332588.728,
+     "get_at_start": "094:27:05",
+     "boundary": "recorder_gap"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "558-AAA",
+   "file": "558-AAA.wav",
+   "sha256": "2314070d856ac7536ddfe0c516698075daa7f204be91acd5a0bd0d7f64d80f98",
+   "duration_s": 8886.89,
+   "known_edits_s": [],
+   "anchors": 71,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    35.88438,
+    15.545269
+   ],
+   "drift_scale_s": 8886.89,
+   "slope_se_ppm": 73.1,
+   "rate_start_ppm": 4037.9,
+   "rate_end_ppm": 7536.4,
+   "fit_mad_s": 0.383,
+   "fit_p95_s": 1.09,
+   "cv_mae_s": 0.549,
+   "cv_p95_s": 1.172,
+   "cv_mae_by_degree_s": {
+    "1": 0.653,
+    "2": 0.549
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 2314.02,
+     "first_anchor_s": 1788.56,
+     "last_anchor_s": 1960.04,
+     "anchors": 5,
+     "constant_s": 345610.456,
+     "get_at_start": "096:00:10",
+     "boundary": "file_start"
+    },
+    {
+     "segment": 1,
+     "source_start_s": 2314.02,
+     "source_end_s": 3148.495,
+     "first_anchor_s": 2668.0,
+     "last_anchor_s": 2700.75,
+     "anchors": 2,
+     "constant_s": 345845.742,
+     "get_at_start": "096:42:50",
+     "boundary": "recorder_gap"
+    },
+    {
+     "segment": 2,
+     "source_start_s": 3148.495,
+     "source_end_s": 4461.465,
+     "first_anchor_s": 3596.24,
+     "last_anchor_s": 4096.01,
+     "anchors": 7,
+     "constant_s": 347017.526,
+     "get_at_start": "097:16:21",
+     "boundary": "recorder_gap"
+    },
+    {
+     "segment": 3,
+     "source_start_s": 4461.465,
+     "source_end_s": 8886.89,
+     "first_anchor_s": 4826.92,
+     "last_anchor_s": 8481.18,
+     "anchors": 57,
+     "constant_s": 349650.962,
+     "get_at_start": "098:22:14",
+     "boundary": "recorder_gap"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "559-AAA",
+   "file": "559-AAA.wav",
+   "sha256": "6fd8da31f21924f85ffb267d471d854b93f9a335a3cd55249083ab32563277b0",
+   "duration_s": 8886.89,
+   "known_edits_s": [],
+   "anchors": 99,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    38.15498,
+    3.676852
+   ],
+   "drift_scale_s": 8886.89,
+   "slope_se_ppm": 43.7,
+   "rate_start_ppm": 4293.4,
+   "rate_end_ppm": 5120.9,
+   "fit_mad_s": 0.305,
+   "fit_p95_s": 0.888,
+   "cv_mae_s": 0.466,
+   "cv_p95_s": 1.228,
+   "cv_mae_by_degree_s": {
+    "1": 0.551,
+    "2": 0.466
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 3868.815,
+     "first_anchor_s": 165.186,
+     "last_anchor_s": 3199.92,
+     "anchors": 49,
+     "constant_s": 360935.354,
+     "get_at_start": "100:15:35",
+     "boundary": "file_start"
+    },
+    {
+     "segment": 1,
+     "source_start_s": 3868.815,
+     "source_end_s": 8886.89,
+     "first_anchor_s": 4537.71,
+     "last_anchor_s": 8649.6,
+     "anchors": 50,
+     "constant_s": 363421.289,
+     "get_at_start": "102:01:47",
+     "boundary": "recorder_gap"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "560-AAA",
+   "file": "560-AAA.wav",
+   "sha256": "d8dd5e1581e8b3202fdd7b70ab743a36093aad909b23e449541bf049c70701b6",
+   "duration_s": 11727.8,
+   "known_edits_s": [],
+   "anchors": 186,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    46.502045,
+    14.597208
+   ],
+   "drift_scale_s": 11727.8,
+   "slope_se_ppm": 33.4,
+   "rate_start_ppm": 3965.1,
+   "rate_end_ppm": 6454.4,
+   "fit_mad_s": 0.33,
+   "fit_p95_s": 1.459,
+   "cv_mae_s": 0.591,
+   "cv_p95_s": 1.795,
+   "cv_mae_by_degree_s": {
+    "1": 1.652,
+    "2": 0.591
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 11727.8,
+     "first_anchor_s": 296.286,
+     "last_anchor_s": 11345.1,
+     "anchors": 186,
+     "constant_s": 374444.48,
+     "get_at_start": "104:00:44",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "561-AAA",
+   "file": "561-AAA.wav",
+   "sha256": "eaace6569f5c3ebe0c45f6216502aeb20955ef3a37c7cbdb1a5926b10fc4fd4d",
+   "duration_s": 11727.8,
+   "known_edits_s": [],
+   "anchors": 149,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 1,
+   "drift_coefficients_s": [
+    59.045782
+   ],
+   "drift_scale_s": 11727.8,
+   "slope_se_ppm": 39.8,
+   "rate_start_ppm": 5034.7,
+   "rate_end_ppm": 5034.7,
+   "fit_mad_s": 0.418,
+   "fit_p95_s": 1.205,
+   "cv_mae_s": 0.518,
+   "cv_p95_s": 1.368,
+   "cv_mae_by_degree_s": {
+    "1": 0.518,
+    "2": 0.517
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 1488.665,
+     "first_anchor_s": 0.868,
+     "last_anchor_s": 1116.5,
+     "anchors": 27,
+     "constant_s": 385847.159,
+     "get_at_start": "107:10:47",
+     "boundary": "file_start"
+    },
+    {
+     "segment": 1,
+     "source_start_s": 1488.665,
+     "source_end_s": 8337.58,
+     "first_anchor_s": 1860.83,
+     "last_anchor_s": 7395.49,
+     "anchors": 87,
+     "constant_s": 387740.414,
+     "get_at_start": "108:07:17",
+     "boundary": "recorder_gap"
+    },
+    {
+     "segment": 2,
+     "source_start_s": 8337.58,
+     "source_end_s": 11727.8,
+     "first_anchor_s": 9279.67,
+     "last_anchor_s": 10919.9,
+     "anchors": 35,
+     "constant_s": 406881.927,
+     "get_at_start": "115:21:01",
+     "boundary": "recorder_gap"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "562-AAA",
+   "file": "562-AAA.wav",
+   "sha256": "b7b17e818b2a952ad66744aa0d544eaf7d398b6011ea57ea511e916f1e13a428",
+   "duration_s": 11727.8,
+   "known_edits_s": [],
+   "anchors": 58,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    52.003091,
+    19.872702
+   ],
+   "drift_scale_s": 11727.8,
+   "slope_se_ppm": 48.5,
+   "rate_start_ppm": 4434.2,
+   "rate_end_ppm": 7823.2,
+   "fit_mad_s": 0.426,
+   "fit_p95_s": 1.526,
+   "cv_mae_s": 0.596,
+   "cv_p95_s": 1.605,
+   "cv_mae_by_degree_s": {
+    "1": 0.774,
+    "2": 0.596
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 11727.8,
+     "first_anchor_s": 245.392,
+     "last_anchor_s": 7005.33,
+     "anchors": 58,
+     "constant_s": 418033.743,
+     "get_at_start": "116:07:14",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "563-AAA",
+   "file": "563-AAA.wav",
+   "sha256": "e3cea2110456c7a390c5daa6dd502b75e3cd72f9406fea5f74f2990509a7d6b0",
+   "duration_s": 11400.0,
+   "known_edits_s": [],
+   "anchors": 209,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 1,
+   "drift_coefficients_s": [
+    49.394192
+   ],
+   "drift_scale_s": 11400.0,
+   "slope_se_ppm": 65.2,
+   "rate_start_ppm": 4332.8,
+   "rate_end_ppm": 4332.8,
+   "fit_mad_s": 1.745,
+   "fit_p95_s": 3.731,
+   "cv_mae_s": 2.664,
+   "cv_p95_s": 5.832,
+   "cv_mae_by_degree_s": {
+    "1": 2.664,
+    "2": 3.087
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 11400.0,
+     "first_anchor_s": 88.79,
+     "last_anchor_s": 10763.3,
+     "anchors": 209,
+     "constant_s": 426863.148,
+     "get_at_start": "118:34:23",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "564-AAA",
+   "file": "564-AAA.wav",
+   "sha256": "a9020716c5294d5586bc43e4f0fe1288caa8cb2e7cad2028d924f07079e63157",
+   "duration_s": 11400.0,
+   "known_edits_s": [],
+   "anchors": 434,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    44.184817,
+    26.009594
+   ],
+   "drift_scale_s": 11400.0,
+   "slope_se_ppm": 29.0,
+   "rate_start_ppm": 3875.9,
+   "rate_end_ppm": 8438.9,
+   "fit_mad_s": 1.135,
+   "fit_p95_s": 2.796,
+   "cv_mae_s": 2.3,
+   "cv_p95_s": 4.866,
+   "cv_mae_by_degree_s": {
+    "1": 2.935,
+    "2": 2.3
+   },
+   "residual_steps_s": [
+    2475.7,
+    3023.9,
+    3877.3,
+    6463.8,
+    10381.0
+   ],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 11400.0,
+     "first_anchor_s": 143.114,
+     "last_anchor_s": 10995.1,
+     "anchors": 434,
+     "constant_s": 437804.044,
+     "get_at_start": "121:36:44",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "565-AAA",
+   "file": "565-AAA.wav",
+   "sha256": "9afe63384b85f379c6368aa02366354b46edd358442883120a2dd85e8590182d",
+   "duration_s": 11400.0,
+   "known_edits_s": [],
+   "anchors": 214,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 1,
+   "drift_coefficients_s": [
+    58.834188
+   ],
+   "drift_scale_s": 11400.0,
+   "slope_se_ppm": 49.0,
+   "rate_start_ppm": 5160.9,
+   "rate_end_ppm": 5160.9,
+   "fit_mad_s": 1.05,
+   "fit_p95_s": 2.493,
+   "cv_mae_s": 1.75,
+   "cv_p95_s": 3.74,
+   "cv_mae_by_degree_s": {
+    "1": 1.75,
+    "2": 4.219
+   },
+   "residual_steps_s": [
+    3185.0
+   ],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 11400.0,
+     "first_anchor_s": 33.104,
+     "last_anchor_s": 11128.2,
+     "anchors": 214,
+     "constant_s": 449070.923,
+     "get_at_start": "124:44:31",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "566-AAA",
+   "file": "566-AAA.wav",
+   "sha256": "59c97020c6da6a27d3e11c399ea7077bab881d6563f5ba006a1a11bba54d9c80",
+   "duration_s": 11691.4,
+   "known_edits_s": [],
+   "anchors": 109,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 1,
+   "drift_coefficients_s": [
+    56.96159
+   ],
+   "drift_scale_s": 11691.4,
+   "slope_se_ppm": 37.6,
+   "rate_start_ppm": 4872.1,
+   "rate_end_ppm": 4872.1,
+   "fit_mad_s": 0.331,
+   "fit_p95_s": 0.932,
+   "cv_mae_s": 0.448,
+   "cv_p95_s": 1.024,
+   "cv_mae_by_degree_s": {
+    "1": 0.448,
+    "2": 0.528
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 7204.195,
+     "first_anchor_s": 29.008,
+     "last_anchor_s": 6012.71,
+     "anchors": 95,
+     "constant_s": 460327.539,
+     "get_at_start": "127:52:08",
+     "boundary": "file_start"
+    },
+    {
+     "segment": 1,
+     "source_start_s": 7204.195,
+     "source_end_s": 11691.4,
+     "first_anchor_s": 8395.68,
+     "last_anchor_s": 8558.71,
+     "anchors": 14,
+     "constant_s": 462800.281,
+     "get_at_start": "130:34:00",
+     "boundary": "recorder_gap"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "567-AAA",
+   "file": "567-AAA.wav",
+   "sha256": "1aed3f41b92e0a07dd0e8635a082085999e1daa0a7a856939915057e7de3ab49",
+   "duration_s": 11691.4,
+   "known_edits_s": [],
+   "anchors": 0,
+   "status": "rate_only",
+   "rate_from": "mission_median",
+   "degree": 1,
+   "drift_coefficients_s": [
+    61.09165699
+   ],
+   "segments": [],
+   "note": "0 usable anchors: rate only, no GET placement"
+  },
+  {
+   "reel": "568-AAA",
+   "file": "568-AAA.wav",
+   "sha256": "7ab18064efa670ea2ec00ada13ee870fca6ea47ec80e63f4b09db92be070680c",
+   "duration_s": 11691.4,
+   "known_edits_s": [],
+   "anchors": 0,
+   "status": "rate_only",
+   "rate_from": "mission_median",
+   "degree": 1,
+   "drift_coefficients_s": [
+    61.09165699
+   ],
+   "segments": [],
+   "note": "0 usable anchors: rate only, no GET placement"
+  },
+  {
+   "reel": "569-AAA",
+   "file": "569-AAA.wav",
+   "sha256": "52af41ac76eb56e133cf51ab2598a8d2e04f50d3aae4b7caea87f389e5fc6020",
+   "duration_s": 11950.3,
+   "known_edits_s": [],
+   "anchors": 105,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    41.84927,
+    8.808566
+   ],
+   "drift_scale_s": 11950.3,
+   "slope_se_ppm": 22.6,
+   "rate_start_ppm": 3501.9,
+   "rate_end_ppm": 4976.1,
+   "fit_mad_s": 0.343,
+   "fit_p95_s": 1.256,
+   "cv_mae_s": 0.697,
+   "cv_p95_s": 1.939,
+   "cv_mae_by_degree_s": {
+    "1": 0.897,
+    "2": 0.697
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 11950.3,
+     "first_anchor_s": 553.162,
+     "last_anchor_s": 11472.4,
+     "anchors": 105,
+     "constant_s": 496467.793,
+     "get_at_start": "137:54:28",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "570-AAA",
+   "file": "570-AAA.wav",
+   "sha256": "b8c413ff226f84f5f87ed43ebe80393541d22ac2585fe264d6788b04322ed3bc",
+   "duration_s": 4607.34,
+   "known_edits_s": [],
+   "anchors": 69,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 1,
+   "drift_coefficients_s": [
+    23.871178
+   ],
+   "drift_scale_s": 4607.34,
+   "slope_se_ppm": 81.1,
+   "rate_start_ppm": 5181.1,
+   "rate_end_ppm": 5181.1,
+   "fit_mad_s": 0.397,
+   "fit_p95_s": 1.884,
+   "cv_mae_s": 0.606,
+   "cv_p95_s": 1.848,
+   "cv_mae_by_degree_s": {
+    "1": 0.606,
+    "2": 0.685
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 4607.34,
+     "first_anchor_s": 63.888,
+     "last_anchor_s": 4393.37,
+     "anchors": 69,
+     "constant_s": 507924.109,
+     "get_at_start": "141:05:24",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "571-AAA",
+   "file": "571-AAA.wav",
+   "sha256": "240961fed218aca581af6a1384ebf1e1202e3b4bd713a21134374308718a623c",
+   "duration_s": 11418.2,
+   "known_edits_s": [],
+   "anchors": 548,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 1,
+   "drift_coefficients_s": [
+    50.792617
+   ],
+   "drift_scale_s": 11418.2,
+   "slope_se_ppm": 35.0,
+   "rate_start_ppm": 4448.4,
+   "rate_end_ppm": 4448.4,
+   "fit_mad_s": 1.607,
+   "fit_p95_s": 3.483,
+   "cv_mae_s": 2.785,
+   "cv_p95_s": 6.358,
+   "cv_mae_by_degree_s": {
+    "1": 2.785,
+    "2": 4.174
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 11418.2,
+     "first_anchor_s": 134.232,
+     "last_anchor_s": 11249.5,
+     "anchors": 548,
+     "constant_s": 512204.173,
+     "get_at_start": "142:16:44",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "572-AAA",
+   "file": "572-AAA.wav",
+   "sha256": "b26f411aa78d7edd38eb8072c15e368751b77d8220ebfd2fc4a34022f093ed95",
+   "duration_s": 11699.3,
+   "known_edits_s": [
+    730.0
+   ],
+   "anchors": 573,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 1,
+   "drift_coefficients_s": [
+    66.267958
+   ],
+   "drift_scale_s": 11699.3,
+   "slope_se_ppm": 36.3,
+   "rate_start_ppm": 5664.3,
+   "rate_end_ppm": 5664.3,
+   "fit_mad_s": 1.545,
+   "fit_p95_s": 3.116,
+   "cv_mae_s": 2.092,
+   "cv_p95_s": 3.326,
+   "cv_mae_by_degree_s": {
+    "1": 2.092,
+    "2": 2.365
+   },
+   "residual_steps_s": [
+    2794.4
+   ],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 726.894,
+     "first_anchor_s": 15.828,
+     "last_anchor_s": 686.136,
+     "anchors": 32,
+     "constant_s": 523491.128,
+     "get_at_start": "145:24:51",
+     "boundary": "file_start"
+    },
+    {
+     "segment": 1,
+     "source_start_s": 726.894,
+     "source_end_s": 11699.3,
+     "first_anchor_s": 767.652,
+     "last_anchor_s": 11426.4,
+     "anchors": 541,
+     "constant_s": 523486.869,
+     "get_at_start": "145:36:58",
+     "boundary": "known_edit"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "573-AAA",
+   "file": "573-AAA.wav",
+   "sha256": "2dfb9d3fc46b252763e79e0ad0934f1e559cc3e19c3f5099dcd11a43841f767e",
+   "duration_s": 3077.63,
+   "known_edits_s": [],
+   "anchors": 125,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 1,
+   "drift_coefficients_s": [
+    9.72087
+   ],
+   "drift_scale_s": 3077.63,
+   "slope_se_ppm": 184.5,
+   "rate_start_ppm": 3158.6,
+   "rate_end_ppm": 3158.6,
+   "fit_mad_s": 1.237,
+   "fit_p95_s": 4.766,
+   "cv_mae_s": 2.865,
+   "cv_p95_s": 7.057,
+   "cv_mae_by_degree_s": {
+    "1": 2.865
+   },
+   "residual_steps_s": [
+    464.9,
+    2442.7
+   ],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 3077.63,
+     "first_anchor_s": 11.07,
+     "last_anchor_s": 2893.67,
+     "anchors": 125,
+     "constant_s": 534995.039,
+     "get_at_start": "148:36:35",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "574-AAA",
+   "file": "574-AAA.wav",
+   "sha256": "25c1f52d20ac01951366f9cf95d72d0b27a4d713dafa3e0dd6537519bec1e9be",
+   "duration_s": 11691.9,
+   "known_edits_s": [],
+   "anchors": 48,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 1,
+   "drift_coefficients_s": [
+    69.653144
+   ],
+   "drift_scale_s": 11691.9,
+   "slope_se_ppm": 78.0,
+   "rate_start_ppm": 5957.4,
+   "rate_end_ppm": 5957.4,
+   "fit_mad_s": 0.402,
+   "fit_p95_s": 1.808,
+   "cv_mae_s": 0.712,
+   "cv_p95_s": 2.217,
+   "cv_mae_by_degree_s": {
+    "1": 0.712,
+    "2": 0.756
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 2587.588,
+     "first_anchor_s": 11.808,
+     "last_anchor_s": 771.126,
+     "anchors": 5,
+     "constant_s": 537933.69,
+     "get_at_start": "149:25:34",
+     "boundary": "file_start"
+    },
+    {
+     "segment": 1,
+     "source_start_s": 2587.588,
+     "source_end_s": 11691.9,
+     "first_anchor_s": 4404.05,
+     "last_anchor_s": 9252.44,
+     "anchors": 43,
+     "constant_s": 539971.71,
+     "get_at_start": "150:42:55",
+     "boundary": "recorder_gap"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "575-AAA",
+   "file": "575-AAA.wav",
+   "sha256": "44d8d505a220245b61d6fa479619176e505f2d0fd56b9f562446ed422497e318",
+   "duration_s": 11290.7,
+   "known_edits_s": [],
+   "anchors": 40,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 1,
+   "drift_coefficients_s": [
+    56.067979
+   ],
+   "drift_scale_s": 11290.7,
+   "slope_se_ppm": 82.1,
+   "rate_start_ppm": 4965.9,
+   "rate_end_ppm": 4965.9,
+   "fit_mad_s": 0.309,
+   "fit_p95_s": 1.043,
+   "cv_mae_s": 0.553,
+   "cv_p95_s": 1.425,
+   "cv_mae_by_degree_s": {
+    "1": 0.553,
+    "2": 0.699
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 3927.08,
+     "first_anchor_s": 157.6,
+     "last_anchor_s": 2519.62,
+     "anchors": 22,
+     "constant_s": 551544.142,
+     "get_at_start": "153:12:24",
+     "boundary": "file_start"
+    },
+    {
+     "segment": 1,
+     "source_start_s": 3927.08,
+     "source_end_s": 11290.7,
+     "first_anchor_s": 5334.54,
+     "last_anchor_s": 9387.08,
+     "anchors": 18,
+     "constant_s": 571346.894,
+     "get_at_start": "159:48:13",
+     "boundary": "recorder_gap"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "576-AAA",
+   "file": "576-AAA.wav",
+   "sha256": "a7f9f6c76b5e3cc3930a0b9c148acadc80bd20e82cc43a5de8fa04ec0cb8737f",
+   "duration_s": 6264.53,
+   "known_edits_s": [],
+   "anchors": 56,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 1,
+   "drift_coefficients_s": [
+    36.753024
+   ],
+   "drift_scale_s": 6264.53,
+   "slope_se_ppm": 65.6,
+   "rate_start_ppm": 5866.8,
+   "rate_end_ppm": 5866.8,
+   "fit_mad_s": 0.382,
+   "fit_p95_s": 1.421,
+   "cv_mae_s": 0.62,
+   "cv_p95_s": 1.685,
+   "cv_mae_by_degree_s": {
+    "1": 0.62,
+    "2": 0.675
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 6264.53,
+     "first_anchor_s": 932.59,
+     "last_anchor_s": 5781.29,
+     "anchors": 56,
+     "constant_s": 582293.141,
+     "get_at_start": "161:44:53",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "577-AAA",
+   "file": "577-AAA.wav",
+   "sha256": "285a83b433a309c62e57aeb32e156dadf611653bdaab55c68c03b8266e5b5c77",
+   "duration_s": 11290.7,
+   "known_edits_s": [],
+   "anchors": 450,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 1,
+   "drift_coefficients_s": [
+    52.249794
+   ],
+   "drift_scale_s": 11290.7,
+   "slope_se_ppm": 33.1,
+   "rate_start_ppm": 4627.7,
+   "rate_end_ppm": 4627.7,
+   "fit_mad_s": 1.865,
+   "fit_p95_s": 3.832,
+   "cv_mae_s": 2.209,
+   "cv_p95_s": 4.475,
+   "cv_mae_by_degree_s": {
+    "1": 2.209,
+    "2": 2.59
+   },
+   "residual_steps_s": [
+    1139.6,
+    2377.4,
+    2948.8,
+    4466.6,
+    6088.7,
+    6682.2,
+    7104.9,
+    10104.8,
+    10525.0
+   ],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 11290.7,
+     "first_anchor_s": 212.65,
+     "last_anchor_s": 10845.1,
+     "anchors": 450,
+     "constant_s": 588129.662,
+     "get_at_start": "163:22:10",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "578-AAA",
+   "file": "578-AAA.wav",
+   "sha256": "3a2982a34c59bdb49c43ab6b22edb67ad25c4a940571c0252ec2c7da60e20d9c",
+   "duration_s": 6373.79,
+   "known_edits_s": [],
+   "anchors": 206,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    9.779464,
+    18.323272
+   ],
+   "drift_scale_s": 6373.79,
+   "slope_se_ppm": 132.7,
+   "rate_start_ppm": 1534.3,
+   "rate_end_ppm": 7283.9,
+   "fit_mad_s": 1.422,
+   "fit_p95_s": 3.562,
+   "cv_mae_s": 2.271,
+   "cv_p95_s": 4.307,
+   "cv_mae_by_degree_s": {
+    "1": 2.794,
+    "2": 2.271
+   },
+   "residual_steps_s": [
+    1698.2,
+    3800.2,
+    4996.1
+   ],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 6373.79,
+     "first_anchor_s": 220.752,
+     "last_anchor_s": 5864.9,
+     "anchors": 206,
+     "constant_s": 599041.771,
+     "get_at_start": "166:24:02",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "579-AAA",
+   "file": "579-AAA.wav",
+   "sha256": "685c8614f37cf69e57e08ffaf489537817c4f6f6af50ce887173aa5de53b0356",
+   "duration_s": 11764.2,
+   "known_edits_s": [],
+   "anchors": 99,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    49.567347,
+    10.432032
+   ],
+   "drift_scale_s": 11764.2,
+   "slope_se_ppm": 46.8,
+   "rate_start_ppm": 4213.4,
+   "rate_end_ppm": 5986.9,
+   "fit_mad_s": 0.47,
+   "fit_p95_s": 1.487,
+   "cv_mae_s": 0.767,
+   "cv_p95_s": 1.737,
+   "cv_mae_by_degree_s": {
+    "1": 0.956,
+    "2": 0.767
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 2936.875,
+     "first_anchor_s": 10.652,
+     "last_anchor_s": 2137.77,
+     "anchors": 16,
+     "constant_s": 605200.254,
+     "get_at_start": "168:06:40",
+     "boundary": "file_start"
+    },
+    {
+     "segment": 1,
+     "source_start_s": 2936.875,
+     "source_end_s": 4356.265,
+     "first_anchor_s": 3735.98,
+     "last_anchor_s": 3735.98,
+     "anchors": 1,
+     "constant_s": 608468.207,
+     "get_at_start": "169:50:18",
+     "boundary": "recorder_gap"
+    },
+    {
+     "segment": 2,
+     "source_start_s": 4356.265,
+     "source_end_s": 11764.2,
+     "first_anchor_s": 4976.55,
+     "last_anchor_s": 11381.3,
+     "anchors": 82,
+     "constant_s": 608665.003,
+     "get_at_start": "170:17:21",
+     "boundary": "recorder_gap"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "580-AAA",
+   "file": "580-AAA.wav",
+   "sha256": "4250b1ea45b729893a65c557b2a6dc2d2feee5a43bbc4643eeecf42d56c2a57e",
+   "duration_s": 11764.2,
+   "known_edits_s": [],
+   "anchors": 140,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 1,
+   "drift_coefficients_s": [
+    64.544226
+   ],
+   "drift_scale_s": 11764.2,
+   "slope_se_ppm": 63.2,
+   "rate_start_ppm": 5486.5,
+   "rate_end_ppm": 5486.5,
+   "fit_mad_s": 0.506,
+   "fit_p95_s": 3.57,
+   "cv_mae_s": 1.085,
+   "cv_p95_s": 3.659,
+   "cv_mae_by_degree_s": {
+    "1": 1.085,
+    "2": 1.039
+   },
+   "residual_steps_s": [
+    1557.5,
+    2452.9
+   ],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 4547.53,
+     "first_anchor_s": 703.138,
+     "last_anchor_s": 4291.04,
+     "anchors": 79,
+     "constant_s": 622761.024,
+     "get_at_start": "172:59:21",
+     "boundary": "file_start"
+    },
+    {
+     "segment": 1,
+     "source_start_s": 4547.53,
+     "source_end_s": 9541.395,
+     "first_anchor_s": 4804.02,
+     "last_anchor_s": 9006.69,
+     "anchors": 39,
+     "constant_s": 625250.629,
+     "get_at_start": "174:57:03",
+     "boundary": "recorder_gap"
+    },
+    {
+     "segment": 2,
+     "source_start_s": 9541.395,
+     "source_end_s": 11764.2,
+     "first_anchor_s": 10076.1,
+     "last_anchor_s": 11319.4,
+     "anchors": 22,
+     "constant_s": 627671.623,
+     "get_at_start": "177:01:05",
+     "boundary": "recorder_gap"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "581-AAA",
+   "file": "581-AAA.wav",
+   "sha256": "f57944d8ba120d38d57342836952c65f5d3385c7d61445796062ea215fe2977f",
+   "duration_s": 11491.0,
+   "known_edits_s": [],
+   "anchors": 113,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    37.211793,
+    17.219011
+   ],
+   "drift_scale_s": 11491.0,
+   "slope_se_ppm": 51.2,
+   "rate_start_ppm": 3238.3,
+   "rate_end_ppm": 6235.3,
+   "fit_mad_s": 0.333,
+   "fit_p95_s": 1.138,
+   "cv_mae_s": 0.589,
+   "cv_p95_s": 1.468,
+   "cv_mae_by_degree_s": {
+    "1": 0.704,
+    "2": 0.589
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 2903.185,
+     "first_anchor_s": 327.696,
+     "last_anchor_s": 2450.93,
+     "anchors": 29,
+     "constant_s": 638762.888,
+     "get_at_start": "177:26:03",
+     "boundary": "file_start"
+    },
+    {
+     "segment": 1,
+     "source_start_s": 2903.185,
+     "source_end_s": 7913.555,
+     "first_anchor_s": 3355.44,
+     "last_anchor_s": 7395.72,
+     "anchors": 67,
+     "constant_s": 641028.606,
+     "get_at_start": "178:52:22",
+     "boundary": "recorder_gap"
+    },
+    {
+     "segment": 2,
+     "source_start_s": 7913.555,
+     "source_end_s": 11491.0,
+     "first_anchor_s": 8431.39,
+     "last_anchor_s": 9450.84,
+     "anchors": 17,
+     "constant_s": 643358.746,
+     "get_at_start": "180:55:06",
+     "boundary": "recorder_gap"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "582-AAA",
+   "file": "582-AAA.wav",
+   "sha256": "66925e7ae456abae5a7fcdbe8e4ccfdfb92584c09f0d7a0cc97b94fcafe6dc26",
+   "duration_s": 11491.0,
+   "known_edits_s": [],
+   "anchors": 55,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 2,
+   "drift_coefficients_s": [
+    31.990091,
+    30.411651
+   ],
+   "drift_scale_s": 11491.0,
+   "slope_se_ppm": 172.1,
+   "rate_start_ppm": 2783.9,
+   "rate_end_ppm": 8077.1,
+   "fit_mad_s": 0.271,
+   "fit_p95_s": 1.312,
+   "cv_mae_s": 0.466,
+   "cv_p95_s": 1.417,
+   "cv_mae_by_degree_s": {
+    "1": 0.931,
+    "2": 0.466
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 3429.405,
+     "first_anchor_s": 1125.64,
+     "last_anchor_s": 1424.8,
+     "anchors": 17,
+     "constant_s": 657375.825,
+     "get_at_start": "182:36:16",
+     "boundary": "file_start"
+    },
+    {
+     "segment": 1,
+     "source_start_s": 3429.405,
+     "source_end_s": 6483.505,
+     "first_anchor_s": 5434.01,
+     "last_anchor_s": 5581.67,
+     "anchors": 11,
+     "constant_s": 688484.968,
+     "get_at_start": "192:12:07",
+     "boundary": "recorder_gap"
+    },
+    {
+     "segment": 2,
+     "source_start_s": 6483.505,
+     "source_end_s": 8563.38,
+     "first_anchor_s": 7385.34,
+     "last_anchor_s": 8318.14,
+     "anchors": 8,
+     "constant_s": 689676.692,
+     "get_at_start": "193:23:08",
+     "boundary": "recorder_gap"
+    },
+    {
+     "segment": 3,
+     "source_start_s": 8563.38,
+     "source_end_s": 11491.0,
+     "first_anchor_s": 8808.62,
+     "last_anchor_s": 10916.6,
+     "anchors": 19,
+     "constant_s": 692244.387,
+     "get_at_start": "194:40:48",
+     "boundary": "recorder_gap"
+    }
+   ],
+   "note": ""
+  },
+  {
+   "reel": "583-AAA",
+   "file": "583-AAA.wav",
+   "sha256": "38103da192640e1e766d01a373cf8b060ed9e90079ce5fcc2cebae9f0924491e",
+   "duration_s": 11491.0,
+   "known_edits_s": [],
+   "anchors": 29,
+   "status": "fitted",
+   "rate_from": "reel",
+   "degree": 1,
+   "drift_coefficients_s": [
+    52.184255
+   ],
+   "drift_scale_s": 11491.0,
+   "slope_se_ppm": 44.2,
+   "rate_start_ppm": 4541.3,
+   "rate_end_ppm": 4541.3,
+   "fit_mad_s": 0.248,
+   "fit_p95_s": 1.47,
+   "cv_mae_s": 0.883,
+   "cv_p95_s": 3.747,
+   "cv_mae_by_degree_s": {
+    "1": 0.883,
+    "2": 3.423
+   },
+   "residual_steps_s": [],
+   "residual_steps_applied": false,
+   "segments": [
+    {
+     "segment": 0,
+     "source_start_s": 0.0,
+     "source_end_s": 11491.0,
+     "first_anchor_s": 111.558,
+     "last_anchor_s": 7637.59,
+     "anchors": 29,
+     "constant_s": 703801.141,
+     "get_at_start": "195:30:01",
+     "boundary": "file_start"
+    }
+   ],
+   "note": ""
+  }
+ ]
+}

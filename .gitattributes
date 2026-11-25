@@ -3,3 +3,5 @@
 /scripts/*.py -text whitespace=cr-at-eol,-blank-at-eof
 # Qualification descriptors bind the exact report bytes too.
 /research/benchmarks/denoise_fused_20261114/** -text whitespace=cr-at-eol,-blank-at-eof
+# The SG drift maps are bound by checksum in sg_respeed provenance.
+/catalog/sg_drift/** -text

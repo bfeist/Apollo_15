@@ -760,16 +760,62 @@ minute-resolution PAO header times are never fitted.
      collapsed or uncertain words.
    - For an event, the printed TEC GET and the journal GET are not independent observations. The
      journal GET can resolve an unreadable or mistyped printed stamp, and the choice is recorded.
-5. **Fit drift per continuous segment** with its own script in `scripts/sg-audio/`, kept apart
-   from stage 06 even where the code duplicates it. This is the timing plan's long-baseline test.
-   Results are kept in `catalog/`.
-   - Fit an offset and rate per segment, with held-out error.
-   - Plot the residuals to show wow.
-   - Check for repeats and edits, like the 4.279 s repeat on 572-AAA.
+5. **Fit one slow drift curve per reel** with `scripts/sg-audio/sg_drift_fit.py`
+   (`uv run --with matplotlib python scripts/run.py sg_drift_fit.py`). It is kept apart from
+   stage 06. The transcript GETs are the reference; the Whisper onsets only measure the reel clock.
+   - **Model.** `GET(t) = t + D(t) + c_k`. `D` is one polynomial across the whole file, with
+     D(0) = 0: a line, or a parabola when blocked 5-fold cross-validation cuts the held-out error
+     by at least 10% and 0.05 s. A curve whose rate changes by more than 6,000 ppm across the
+     file is not used. The rate `1 + D'(t)` therefore changes only gradually, never from anchor
+     to anchor. A line is a constant speed factor for that file. It is kept where the anchors
+     show no change of rate, because adding a bend there predicts the held-out anchors worse.
+     The respeed applies `D` alone.
+   - **Segments.** `c_k` is one constant per continuous segment. Segments split only where the
+     offset steps by more than 20 s between neighbouring anchors (the recorder stopped) and at
+     the known edits in `catalog/sg_drift/known_edits.tsv` (the 4.279 s repeat on 572-AAA).
+     The constants place the respeeded audio on GET without bending `D`.
+   - **Anchors.** `ok` anchors have weight 1 and `flagged` ones 0.5, in a Huber fit. A reel
+     whose slope standard error exceeds 300 ppm takes the median rate of the well-measured
+     reels. A reel without anchors (567, 568-AAA) gets that rate and no GET placement.
+   - **Residual steps are reported, not fitted.** Steps of 3–4 s over runs of minutes appear in
+     the residuals of some reels. On 564-AAA and 577-AAA they begin and end at 1971 TEC page
+     boundaries (577-AAA pages 106/35–107/11 are 3.5 s late, then return), so they are steps in
+     the printed GETs, which the journals copied. They are listed per reel
+     (`residual_steps_s`) as leads for transcript timing, and split segments only with
+     `--apply-steps`.
+   - **Outputs.** `catalog/sg_drift/sg_drift_maps.json` (model, segments, errors, input
+     checksums) and `sg_drift_summary.tsv`. Every anchor's fitted and held-out residual is in
+     `.local/mission_data/sg/sg_drift_residuals.tsv`, and the plots are in `reports/sg_drift/`.
+   - **Result (2026-11-24).** The median rate error of the 42 well-measured reels is 5,225 ppm,
+     so the transfers run about 0.5% fast. 22 reels take a parabola and 20 a line. All 22
+     parabolas speed up through the reel, by 800–5,700 ppm, typically from about 4,000 to
+     7,000 ppm. A pooled curvature on the line reels predicted worse on 11 of 20, so those
+     reels keep a constant rate. The held-out mean error is 0.4–0.9 s on 31 reels, and
+     1.1–2.9 s on the lunar-surface reels with the transcript steps.
+6. **Respeed the reels** with `scripts/sg-audio/sg_respeed.py`
+   (`uv run python scripts/run.py sg_respeed.py --reel all --workers 4`).
+   - **Output.** Each output sample at time `u` takes the source at `t`, where `u = t + D(t)`.
+     The output is in `F:\Apollo_15_data\processing\sg\respeed\<reel>.wav`, in the
+     source's 24-bit PCM, 48 kHz stereo.
+   - **Kernel.** The resampler is a numba Kaiser-windowed sinc with 64 taps and a 2,048-phase
+     table, from one global inverse map.
+     - **Accuracy.** Against exact sinusoids up to 10 kHz, the error is -108 dB. The stage 06b
+       FIR with 8x oversampling and a cubic spline gives -96 dB.
+     - **Speed.** It is about 70 times faster, so a 3 h reel takes about a minute and the
+       44 reels take 16 minutes.
+   - **Provenance.** `<reel>.json` holds the source and map checksums, the curve, each
+     segment's output-time span and GET placement (GET = output seconds + constant), and the
+     clipped-sample count. Overshoot on full-scale source samples is clipped: 0–3 samples per
+     reel, and 177 on 544-AAA.
+   - **Results.** The outputs are 24–72 s longer than the sources. 567 and 568-AAA use the
+     mission rate.
+   - **Reversed reels.** 553, 581 and 582-AAA were rewritten on 2026-11-23 to play forward;
+     their earlier copies were reversed. The forward files are the originals for this
+     pipeline. The catalogue, the ASR and the maps all use their current checksums.
 
    Ingestion consumes only the accepted map revisions.
 
-6. **Use the words as a witness.** Through an accepted map, each ASR word gets a GET, and the ASR
+7. **Use the words as a witness.** Through an accepted map, each ASR word gets a GET, and the ASR
    becomes the audio witness in §4 step 5 and §5 step 5.
    - **The human transcripts win on wording.** The journals (curated retypings of the PDFs)
      and the 1971 PDFs are the authority, the journal first. Whisper output is never published,
@@ -780,12 +826,13 @@ minute-resolution PAO header times are never fitted.
        the text layer is not a real word (an OCR misread such as `ail`/`All`)
      - shows that a bracketed span was or was not spoken (restorations)
      - shows that a printed-only or journal-only row exists in the audio
-   - **PAO announcements gain a measured time.** A mapped ASR onset gives a PAO announcement a
-     `measured` GET basis instead of its header time.
+   - **PAO announcements gain a measured time (pending, after the SG audio is respeeded).** A
+     mapped ASR onset gives a PAO announcement a `measured` GET basis instead of its header time.
+     Until then, PAO rows keep their header times.
    - **Not an independent timing source.** The maps are fitted to TEC and journal times, so mapped
      ASR times are never pooled with them as separate timing observations.
 
-**Execution status (2026-11-24): steps 1, 3 and 4 done; awaiting review before the drift fit.**
+**Execution status (2026-11-24): steps 1, 3, 4, 5 and the respeed done; PAO measured times are next.**
 The matching is part of the transcript pipeline, `scripts/sg_transcript/md_sg.py`, run with
 `uv run python scripts/run.py sg_transcript.py sg {reels,pao,anchors,all}` after `reconcile`.
 Retiming the audio from the anchors (step 5) is separate work in `scripts/sg-audio/`. Reruns on
