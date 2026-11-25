@@ -103,9 +103,10 @@ def prompt_hash(prompt_template: str) -> str:
     return hashlib.sha256((PROMPT_VERSION + SYSTEM + CLASS_GUIDE).encode('utf-8')).hexdigest()[:12]
 
 
-def stream(backend: str, prompt: str, schema: dict | None, *, json_object=False, timeout=600) -> tuple[str, dict]:
+def stream(backend: str, prompt: str, schema: dict | None, *, json_object=False, timeout=600,
+           system: str = SYSTEM) -> tuple[str, dict]:
     url, key, model = settings(backend)
-    payload = {'model': model, 'messages': [{'role': 'system', 'content': SYSTEM}, {'role': 'user', 'content': prompt}],
+    payload = {'model': model, 'messages': [{'role': 'system', 'content': system}, {'role': 'user', 'content': prompt}],
                'max_tokens': 16384, 'temperature': 0.1, 'stream': True, 'reasoning_effort': 'low'}
     if json_object:
         payload['response_format'] = {'type': 'json_object'}

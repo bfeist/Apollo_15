@@ -42,6 +42,10 @@ def main(argv=None) -> int:
 
     p = sub.add_parser('reconcile', help='step 5: utterance events and wording review')
     p.add_argument('--record', action='store_true', help='first save wording choices to MISSION_DATA/review')
+    p.add_argument('--ai', action='store_true', help='also judge rows awaiting review with the AI (md_wording_ai)')
+    p.add_argument('--backend', choices=('hgx', 'strata'), default='hgx')
+    p.add_argument('--budget', type=int, default=200, help='maximum AI requests this invocation')
+    p.add_argument('--window', type=int, default=15, help='wording rows per AI request')
     sub.add_parser('commentary', help='step 6: merged commentary')
 
     p = sub.add_parser('sg', help='SG reels: catalogue, PAO separation and timing anchors against the TEC and journals')

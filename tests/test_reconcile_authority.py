@@ -144,5 +144,83 @@ class ComparedWordsTests(unittest.TestCase):
         self.assertEqual(words, printed_tokens(text))
 
 
+class PaoInlineTurnTests(unittest.TestCase):
+    """A PAO row whose speaker column was lost holds several turns with inline labels."""
+
+    def test_inline_labels_split_turns(self):
+        from md_reconcile import inline_turns
+        text = ('CAPCOM Apollo 15, Houston. Over. SC (garble) PAO This is Apollo Control. '
+                'The CAPCOM will pass up, which CAPCOM Karl Henize read.')
+        self.assertEqual(inline_turns(text), [('CAPCOM', 'Apollo 15, Houston. Over.'), ('SC', '(garble)'),
+                                              ('PAO', 'This is Apollo Control. The CAPCOM will pass up, '
+                                                      'which CAPCOM Karl Henize read.')])
+        for noun in ('Maroon team. CAPCOM for the maroon team is Karl.', 'Done. CAPCOM Gordon Fullerton is here.'):
+            self.assertEqual(inline_turns(noun), [('', noun)])
+        self.assertEqual(inline_turns('Shortly. CAPC OM Falcon, Houston.'), [('', 'Shortly.'), ('CAPCOM', 'Falcon, Houston.')])
+
+    def test_air_to_ground_does_not_join_the_announcement(self):
+        from md_reconcile import load_pao_printed
+        row = {'speaker': '', 'get_seconds': '100', 'event_id': 'E2'}
+        rows = [{**row, 'speaker': 'PAO', 'event_id': 'E1', 'text_ocr': 'Plot boards here.'},
+                {**row, 'text_ocr': 'CAPCOM Apollo 15, Houston. SC Roger. PAO This is Apollo Control. '
+                                    'CAPCOM Mark. PAO Looking at ignition.'}]
+        out = load_pao_printed(rows)
+        self.assertEqual([(r['event_id'], r['text_ocr']) for r in out],
+                         [('E1', 'Plot boards here.'), ('E2', 'This is Apollo Control.'),
+                          ('E2-k4', 'Looking at ignition.')])
+
+
+class BreakShiftTests(unittest.TestCase):
+    """Words a witness puts in the neighbouring row are not lost by taking the other reading."""
+
+    def test_words_kept_in_the_next_row_are_moved(self):
+        from md_reconcile import relocate
+        rest, moved = relocate('there you go okay houston look'.split(), 'there you go'.split(),
+                               None, 'okay houston look now'.split())
+        self.assertEqual((rest, moved), ('there you go'.split(), {'after': 'okay houston look'.split()}))
+
+    def test_words_not_in_the_neighbour_stay(self):
+        from md_reconcile import relocate
+        rest, moved = relocate('roger houston hey jim'.split(), 'hey jim'.split(), 'go ahead'.split(), None)
+        self.assertEqual((rest, moved), ('roger houston hey jim'.split(), {}))
+
+    def test_a_lone_filler_is_not_moved(self):
+        from md_reconcile import relocate
+        rest, moved = relocate('okay thats good'.split(), 'thats good'.split(), 'stand by okay'.split(), None)
+        self.assertEqual(moved, {})
+
+
+class SpellingTests(unittest.TestCase):
+    """Readings with the same spoken words are not a wording disagreement."""
+
+    def test_spelling_only_differences(self):
+        from md_reconcile import wording_kind
+        self.assertEqual(wording_kind('roger stand by 1'.split(), 'rog stand by one'.split()), 'spelling')
+        self.assertEqual(wording_kind('man alive l'.split(), 'man alive'.split()), 'spelling')
+        self.assertEqual(wording_kind('stand by 2'.split(), 'stand by one'.split()), 'substantive')
+
+
+class WordingAiTests(unittest.TestCase):
+    """The AI picks an existing reading; a pick that would lose words stays in review."""
+
+    def row(self, **kw):
+        return {'wording_key': 'k', 'get': '001:00:00', 'who': 'CC', 'printed': '', 'afj': '', 'alsj': '',
+                'context_before': '', 'context_after': '', 'status': 'review', 'proposed': 'afj', **kw}
+
+    def test_a_pick_of_an_absent_reading_is_rejected(self):
+        from md_wording_ai import parse
+        found, errors = parse('{"judgements": [{"i": 0, "choice": "alsj", "basis": "other", "confidence": 0.9, '
+                              '"reason": "x"}]}', [self.row(printed='a', afj='b')])
+        self.assertEqual((found, len(errors)), ({}, 1))
+
+    def test_dropped_words_not_in_the_neighbours_block_a_pick(self):
+        from md_wording_ai import dropped
+        row = self.row(printed='okay karl ill call you back in ten minutes', afj='okay karl')
+        self.assertTrue(dropped(row, 'afj'))
+        row['context_after'] = 'AFJ 245:19:04: I\'ll call you back in ten minutes.'
+        self.assertEqual(dropped(row, 'afj'), [])
+        self.assertEqual(dropped(row, 'printed'), [])
+
+
 if __name__ == '__main__':
     unittest.main()

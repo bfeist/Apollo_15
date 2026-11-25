@@ -367,8 +367,9 @@ Apollo 15:
 
 Three independent methods judge every span: pattern rules, alignment with the original NASA
 transcript, and an AI classifier. Each method runs on its own, and they are combined in step 5.
-The AI is used only to label and align text. It never writes the published wording, so it cannot
-introduce words that are not in a source.
+The AI labels and aligns text, and in the wording review (§5) it picks one of the existing
+readings. It never writes the published wording, so it cannot introduce words that are not in a
+source.
 
 1. **Parse each span with its class.** The journal extractor emits every utterance as an ordered
    list of `spoken` and `editorial` spans, never as cleaned text. Each editorial span carries its
@@ -451,7 +452,7 @@ introduce words that are not in a source.
 5. **Combine the judgements.** When the rules, the alignment and the AI agree, the action is
    applied automatically. Any disagreement, any low AI confidence and any flagged restoration
    goes to the review queue. Once stage 06a has run, the ASR words are a fourth witness, but
-   never the authority (§6 step 6). A span that all text methods would remove but the ASR
+   never the authority (§6 step 7). A span that all text methods would remove but the ASR
    contains goes to the review queue, where a reviewer decides by listening.
 6. **Record each decision once.** Store decisions in `MISSION_DATA/review/editorial_spans.tsv`,
    keyed by the stable span key. Columns: class, action (`remove`, `garble`, `annotate`,
@@ -538,7 +539,21 @@ review:`) to the crew member, with the review as the source.
      such as `CB(16)` is compared whole on both sides.
    - **PAO announcements span tape segments.** A PAO row may continue on the next segment, which
      repeats the last words of the one before. PAO links grow like the others (900 s, as PAO
-     times are segment headers), and the repeat is dropped once when the rows are joined. Line-end
+     times are segment headers), and the repeat is dropped once when the rows are joined.
+   - **PAO rows with inline speaker labels.** Where the text layer lost the speaker column, a row
+     holds several turns (`... Over. SC (garble) PAO This is Apollo Control ...`). A label at the
+     row start or after a sentence end splits it. Each PAO turn becomes its own row at the
+     header time (`<event_id>-k<n>`); other speakers' turns, which are in the TEC, end the
+     announcement and are not joined to it. `CAPCOM for the maroon team` and
+     `CAPCOM Karl Henize has` remain text.
+   - **Words moved across a break.** A reading may open with two or more words that the other
+     witness ends its previous row with, or close with words that it opens its next row with.
+     These words are not lost by either choice. They are compared without those words. When
+     nothing else differs, the row is `break_shift` and the journal is accepted. The queue lists
+     the moved words (`moved`) and the neighbouring printed and journal rows (`context_before`,
+     `context_after`) for every row.
+   - **Page headers read into a row** (`15 AIR-TO-GROUND VOICE TRANSCRIPTION`, `BEGIN LUNAR
+     REV 63`, `END OF TAPE`) are dropped from the last row of a TEC, CM or LM page. Line-end
      hyphens in the PDFs (`measure- ment`) are joined before comparison.
    - **Misread stamps.** A printed row whose stamp is out of order with both print neighbours
      (within 120 s; `00 00 01 0B` read as :08 for :03) sorts at its predecessor for linking, so
@@ -556,8 +571,28 @@ review:`) to the crew member, with the review as the source.
    printed row is proposed, otherwise none. The ASR is never a wording source. A journal reading
    whose only differences supply words where the PDF has garble is accepted without review
    (`garble_filled`). Garble is `...` in the TEC, CM and LM (their legends; `***` is VOX clipping)
-   and `(garble)` in the PAO edition. Other disagreements become rows in `review/wording.tsv` with every reading and an audio locator.
-   The reviewer's choice, made by listening, is recorded there and reused on later builds.
+   and `(garble)` in the PAO edition. Readings with the same spoken words (`Rog`/`Roger`,
+   `Yeah`/`Yes`, `one`/`1`, fillers, a trailing OCR `l` for `!`) are `spelling`, and the journal
+   is accepted. Other disagreements become rows in `review/wording.tsv` with every reading and an audio locator.
+   - **AI judgement** (`reconcile --ai`, `md_wording_ai.py`, HGX by default). The model reads
+     each remaining row with its neighbouring rows and the differing word runs. It picks
+     `printed`, `afj`, `alsj` or `listen`, giving a basis (`terminology`, `ocr_error`,
+     `context`, `editor_tidying`, `utterance_break`, `audible_only`), a confidence and a short
+     reason. A pick of a reading the row lacks is rejected.
+   - **When a pick decides a row.** A pick with confidence of at least 0.8 decides the row
+     (status `ai`) unless it would leave out three or more words that no neighbouring row holds.
+     Such a row stays in review with the pick shown.
+   - **Caching.** Judgements are cached by wording key, model and prompt hash in
+     `.local/mission_data/ai/wording_<backend>.jsonl`. They are never written to
+     `MISSION_DATA/review`. The UI shows every judgement and filters the AI-decided rows.
+   The reviewer's choice, made by listening, overrides the AI. It is recorded there and reused on later builds.
+   - **No row waits for review.** The wording is checked later, by listening through the whole
+     mission. Each row's `resolved` column names the reading used, in this order: a human
+     choice, a confident AI pick, or the proposed journal of an automatic kind. Any other row
+     is `provisional`. It takes the AI pick, the proposed reading or the printed row, whichever
+     comes first without losing words that no neighbouring row holds. If every reading loses
+     words, it takes the one losing the fewest. Its `verify` column names the other readings
+     and the reason, for that pass.
    The review UI (`sg_transcript.py review-ui`, `md_review_ui.py`) serves this queue, the
    editorial queue and the PAO word queue on 127.0.0.1 with the SG-reel excerpt of each row.
    It places a row by its own timing anchor, by the nearest anchor on a reel, or for PAO slots by

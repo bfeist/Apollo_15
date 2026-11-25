@@ -45,7 +45,9 @@ EVENT_FIELDS = ('event_id', 'type', 'get', 'get_seconds', 'get_basis', 'printed_
                 'flags', 'group_id')
 OFFSET_FIELDS = ('source', 'chapter', 'edition', 'links', 'median_dt', 'min_dt', 'max_dt', 'nonzero_share')
 WORDING_FIELDS = ('wording_key', 'event_id', 'group_events', 'joined', 'get', 'who', 'kind', 'status', 'proposed', 'printed',
-                  'afj', 'alsj', 'choice', 'reviewer', 'date', 'note', 'audio_locator')
+                  'afj', 'alsj', 'choice', 'reviewer', 'date', 'note', 'audio_locator', 'moved', 'context_before',
+                  'context_after', 'ai_choice', 'ai_basis', 'ai_confidence', 'ai_reason', 'ai_backend', 'resolved',
+                  'verify')
 GROW_GAP_S = 90      # a neighbouring row joins a link only within this many seconds
 GROW_GAP_PAO_S = 900  # ... PAO rows: their times are tape-segment headers, minutes apart
 GROW_GAIN = 0.05     # ... when the joined text is at least this much more similar
@@ -54,7 +56,8 @@ OVERLAP_MAX = 15     # words a PAO tape segment may repeat from the one before
 SPIKE_S = 120        # a printed stamp out of order with neighbours this close is a misread
 SHIFT_GAIN = 0.1     # two neighbouring links join when their joined readings are this much more similar
 GROW_COVER = 0.6     # ... and this share of the neighbour's words is found, in order, in the other side
-AUTO_KINDS = {'ocr_noise', 'garble_filled'}  # the proposed journal reading is accepted without review
+MOVE_MIN = 2         # words at a break, at least, to count them as moved to the neighbouring row
+AUTO_KINDS = {'ocr_noise', 'garble_filled', 'break_shift', 'spelling'}  # the proposed journal reading is accepted without review
 WINDOW = {'tec': 150, 'cm': 150, 'lm': 150, 'pao': 1800}
 EDITION_KEY = {'AS15_TEC': 'tec', 'AS15_CM': 'cm', 'AS15_LM': 'lm', 'AS15_PAO': 'pao'}
 
@@ -173,23 +176,73 @@ def printed_tokens(text: str) -> list[str]:
     return tokens(WRAP_HYPHEN.sub('', without_nonspeech(text)))
 
 
+# A speaker label typed inside a PAO-edition row's text, where the text layer lost the speaker
+# column ("... Over. SC (garble) PAO This is Apollo Control ..."). A label follows the row start
+# or a sentence end, so "the CAPCOM will pass up" or "which CAPCOM Karl Henize" stays text.
+INLINE_LABEL = re.compile(r'(?:^|(?<=[.?!)\]:;\'"-]\s)|(?<=[.?!)\]:;\'"-]\s\S\s))'
+                          r'(PAO|PAS|FAO|CAP ?C ?OM|CAPGOM|CAFCOM|GAPCOM|S ?C|SCOTT|IRWIN|WORDEN|FALCON|'
+                          r'ENDEAVOU?R|RECOVERY|SPEAKER|OKINAWA|MADRID|PHOTO|SWIM ?\d?)(?=\s)'
+                          # ... but not the CAPCOM as a noun: "CAPCOM for the maroon team", "CAPCOM Karl Henize has"
+                          r'(?!\s+(?:for|is|was|has|had|will|also)\b)(?!\s+[A-Z][a-z]+\s+[A-Z][a-z]+\s+[a-z])')
+
+
+def inline_turns(text: str) -> list[tuple[str, str]]:
+    """(label, text) turns of a PAO-edition row; the first label is '' for text before any label."""
+    turns, label, start = [], '', 0
+    for m in INLINE_LABEL.finditer(text or ''):
+        turns.append((label, text[start:m.start()].strip()))
+        label, start = re.sub(r'\s', '', m.group(1)), m.end()
+    turns.append((label, (text or '')[start:].strip()))
+    return [(l, t) for l, t in turns if t or l]
+
+
+def load_pao_printed(rows: list[dict]) -> list[dict]:
+    """PAO announcements of the PAO edition, one row per announcement.
+
+    The edition also carries the air-to-ground (in the TEC), which is skipped. A row whose text
+    layer lost the speaker column holds several turns with their labels inline; each PAO turn
+    after the first becomes its own row (``<event_id>-k<n>``) at the row's header time, and the
+    other speakers' turns end the announcement instead of joining it.
+    """
+    out, last = [], ''
+    for row in rows:
+        own = (row['speaker'] or '').upper()
+        turns = inline_turns(row['text_ocr'])
+        emitted = 0
+        for k, (label, text) in enumerate(turns):
+            speaker = own if k == 0 and not label else label.upper()
+            if not speaker:  # an untimed continuation of the row before
+                if last == 'PAO' and out and text:
+                    out[-1]['text_ocr'] += ' ' + text
+                    out[-1]['tokens'] += printed_tokens(text)
+                continue
+            last = 'PAO' if speaker in ('PAO', 'PAS', 'FAO') else speaker
+            if last != 'PAO':
+                continue
+            if row['get_seconds'] in ('', None):
+                last = 'untimed'  # not placed; its continuations must not join an earlier row
+                continue
+            event_id = f'{row["event_id"]}-k{k}' if emitted else row['event_id']
+            emitted += 1
+            out.append({**row, 'event_id': event_id, 'speaker': 'PAO', 'text_ocr': text,
+                        't': int(row['get_seconds']), 'tokens': printed_tokens(text)})
+    return out
+
+
+# A page's running header or a typist's tape note read into the last row above it.
+PAGE_HEADER = re.compile(r'\s*(?:_?(?:EN)?D OF TAPE\s*)?(?:\d+\s+)?AIR-T[O0][-,]GROUND VOICE TRANSCRIPTION'
+                         r'(?:\s+BEGIN LUNAR REV \d+)?\s*$')
+
+
+TIME_SKIP = re.compile(r'\s*\bTIME SKIP\b')  # the typist's note of a skipped tape stretch, not speech
+
+
 def load_printed(edition: str) -> list[dict]:
     rows = read_tsv(SCRAPED / f'transcript_{edition}.tsv')
-    out = []
-    last_speaker = ''
-    for row in rows:
-        if edition == 'pao':
-            speaker = (row['speaker'] or '').upper()
-            if not speaker:
-                if last_speaker == 'PAO' and out:
-                    out[-1]['text_ocr'] += ' ' + row['text_ocr']
-                    out[-1]['tokens'] += printed_tokens(row['text_ocr'])
-                continue
-            last_speaker = 'PAO' if speaker in ('PAO', 'PAS', 'FAO') else speaker
-            if last_speaker != 'PAO':
-                continue
-            row['speaker'] = 'PAO'
-        elif row['timed_row'] == '':
+    out = load_pao_printed(rows) if edition == 'pao' else []
+    for row in rows if edition != 'pao' else ():
+        row['text_ocr'] = TIME_SKIP.sub('', PAGE_HEADER.sub('', row['text_ocr']))
+        if row['timed_row'] == '':
             if out and 'untimed_continuation' in row['flags']:
                 out[-1]['text_ocr'] += ' ' + row['text_ocr']
                 out[-1]['tokens'] += printed_tokens(row['text_ocr'])
@@ -467,11 +520,23 @@ def joined_note(ids: list[str], keys: list[tuple[str, str]]) -> str:
     return ' + '.join(parts)
 
 
+NUMBER_WORDS = {w: str(i) for i, w in enumerate('zero one two three four five six seven eight nine ten'.split())}
+
+
+def spelling_form(words: list[str]) -> list[str]:
+    """Tokens as spoken, whatever the spelling: Rog/Roger, Yeah/Yes, one/1, no fillers, and no
+    trailing 'l' (an OCR misread of '!')."""
+    out = [NUMBER_WORDS.get(w, w) for w in comparable(words)]
+    return out[:-1] if out and out[-1] == 'l' else out
+
+
 def wording_kind(printed: list[str], journal: list[str]) -> str:
     if printed == journal:
         return 'agree'
     if not printed:
         return 'printed_garble_or_empty'
+    if spelling_form(printed) == spelling_form(journal):
+        return 'spelling'  # the same spoken words; the journal's spelling is accepted
     a, b = ' '.join(printed), ' '.join(journal)
     char = difflib.SequenceMatcher(None, a, b, autojunk=False).ratio()
     if char >= 0.93:
@@ -516,6 +581,42 @@ def fills_garble(printed: list[str], journal: list[str]) -> bool:
             return False
         filled = filled or any(t != GARBLE for t in b[j1:j2])
     return filled
+
+
+def edge_runs(a: list[str], b: list[str]) -> tuple[list[str], list[str]]:
+    """Words of ``a`` missing from ``b`` at ``a``'s start and at its end (comparable tokens)."""
+    ops = difflib.SequenceMatcher(None, a, b, autojunk=False).get_opcodes()
+    head = a[ops[0][1]:ops[0][2]] if ops and ops[0][0] in ('delete', 'replace') else []
+    tail = a[ops[-1][1]:ops[-1][2]] if ops and ops[-1][0] in ('delete', 'replace') and len(ops) > 1 else []
+    if ops and len(ops) == 1 and ops[0][0] in ('delete', 'replace'):
+        tail = []  # nothing in common: not a break shift
+        head = []
+    return head, tail
+
+
+def run_matches(run: list[str], words: list[str], at_end: bool) -> bool:
+    """True when ``run`` closes (``at_end``) or opens ``words``: words moved across a break."""
+    if len(run) < MOVE_MIN or len(words) < len(run):
+        return False  # a lone "Okay" or "Yes" closes too many rows to show it moved
+    part = words[-len(run):] if at_end else words[:len(run)]
+    return part == run or (len(run) >= 4 and similarity(run, part) >= 0.8)
+
+
+def relocate(a: list[str], b: list[str], before: list[str] | None, after: list[str] | None):
+    """``a`` without the words it has at a break that ``b``'s side keeps in a neighbouring row.
+
+    The witnesses break utterances differently: ``a`` may open with words the other witness ends
+    its previous row with, or close with words it opens its next row with. Those words are not
+    lost by taking ``b``; they are in the neighbour. Returns (a without them, moved words by end).
+    """
+    a, b = comparable(a), comparable(b)
+    head, tail = edge_runs(a, b)
+    moved = {}
+    if head and before is not None and run_matches(head, comparable(before), at_end=True):
+        moved['before'] = head
+    if tail and after is not None and run_matches(tail, comparable(after), at_end=False):
+        moved['after'] = tail
+    return a[len(moved.get('before', [])):len(a) - len(moved.get('after', []))], moved
 
 
 def proposed_reading(readings: dict[str, list[str]]) -> str:
@@ -665,6 +766,28 @@ def main(args=None) -> int:
     previous = {r['wording_key']: r for r in read_tsv(REVIEW / 'wording_choices.tsv')}
     decided = editorial_classes()
     wording = []
+    printed_position = {e: {r['event_id']: i for i, r in enumerate(rows)} for e, rows in printed.items()}
+
+    def neighbours(ev, ids, keys):
+        """The printed row and each journal's row just before and just after the unit under review."""
+        edition = EDITION_KEY[ev['printed_edition']]
+        rows, pos = printed[edition], printed_position[edition]
+        gap = GROW_GAP_PAO_S if edition == 'pao' else GROW_GAP_S
+        first, last = min(pos[e] for e in ids), max(pos[e] for e in ids)
+        before = rows[first - 1] if first > 0 and abs(rows[first]['t'] - rows[first - 1]['t']) <= gap else None
+        after = rows[last + 1] if last + 1 < len(rows) and abs(rows[last + 1]['t'] - rows[last]['t']) <= gap else None
+        out = {'printed': (before, after)}
+        for source in {s for s, _ in keys}:
+            blocks = journals[source][0]
+            at = sorted(journal_position[k] for s, k in keys if s == source)
+            kind = blocks[at[0]]['kind']
+            jb = blocks[at[0] - 1] if at[0] > 0 else None
+            ja = blocks[at[-1] + 1] if at[-1] + 1 < len(blocks) else None
+            jb = jb if jb and jb['kind'] == kind and blocks[at[0]]['t'] - jb['t'] <= gap else None
+            ja = ja if ja and ja['kind'] == kind and ja['t'] - blocks[at[-1]]['t'] <= gap else None
+            out[source] = (jb, ja)
+        return out
+
     for ev in ordered:
         if ev['status'] != 'linked' or (ev['group_id'] and ev['group_id'] != ev['event_id']):
             continue  # a later member of a group is reviewed with the group's first event
@@ -678,11 +801,12 @@ def main(args=None) -> int:
             readings.setdefault(source, []).extend(block_index[key]['tokens'])
             spans_of.setdefault(source, []).append(journals[source][1][key])
         kinds = {s: wording_kind(readings['printed'], t) for s, t in readings.items() if s != 'printed'}
-        if 'afj' in readings and 'alsj' in readings and readings['afj'] != readings['alsj']:
+        if 'afj' in readings and 'alsj' in readings and                 spelling_form(readings['afj']) != spelling_form(readings['alsj']):
             kinds['journals'] = 'journals_differ'
         worst = 'substantive' if 'substantive' in kinds.values() or 'journals_differ' in kinds.values() else (
             'printed_garble_or_empty' if 'printed_garble_or_empty' in kinds.values() else (
-                'ocr_noise' if 'ocr_noise' in kinds.values() else 'agree'))
+                'ocr_noise' if 'ocr_noise' in kinds.values() else (
+                    'spelling' if 'spelling' in kinds.values() else 'agree')))
         if worst == 'agree':
             continue
         key = f'{ev["event_id"]}:{short_hash("|".join(" ".join(readings.get(s, [])) for s in ("printed", "afj", "alsj")), 8)}'
@@ -692,8 +816,42 @@ def main(args=None) -> int:
             j_spans = [s for block_spans in spans_of[proposed] for s in block_spans + [{'kind': 'spoken', 'text': ' '}]]
             if fills_garble(printed_garble_tokens(printed_text), journal_garble_tokens(j_spans)):
                 worst = 'garble_filled'  # the journal's words where the PDF has garble: accepted
+        # Words at a break that the other witness keeps in the neighbouring row are not lost by
+        # either choice; compare without them, and show the neighbours to the reviewer.
+        near = neighbours(ev, ids, keys)
+        moved_note = []
+        if worst == 'substantive':
+            after_move = {}
+            for source in [s for s in readings if s != 'printed']:
+                jb, ja = near[source]
+                pb, pa = near['printed']
+                p2, moved_p = relocate(readings['printed'], readings[source],
+                                       jb and jb['tokens'], ja and ja['tokens'])
+                j2, moved_j = relocate(readings[source], p2, pb and pb['tokens'], pa and pa['tokens'])
+                after_move[source] = (p2, j2)
+                for end, words in moved_p.items():
+                    moved_note.append(f'printed {end}: "{" ".join(words)}" is in the {source.upper()} row {end} '
+                                      f'({(jb if end == "before" else ja)["get"]})')
+                for end, words in moved_j.items():
+                    moved_note.append(f'{source.upper()} {end}: "{" ".join(words)}" is in the printed row {end} '
+                                      f'({(pb if end == "before" else pa)["get"]})')
+            if moved_note and all(wording_kind(*after_move[s]) in ('agree', 'ocr_noise') for s in after_move) and \
+                    (len(after_move) == 1 or after_move['afj'][1] == after_move['alsj'][1]):
+                worst = 'break_shift'  # only the utterance break differs: the journal reading is accepted
         shown = {s: ' '.join(journal_reading(b, decided) for b in spans_of.get(s, [])) for s in ('afj', 'alsj')}
-        wording.append({'wording_key': key, 'event_id': ev['event_id'],
+
+        def context(end):
+            out = []
+            row = near['printed'][0 if end == 'before' else 1]
+            if row:
+                out.append(f'printed {format_get(row["t"])}: {row["text_ocr"]}')
+            for source in ('afj', 'alsj'):
+                b = near.get(source, (None, None))[0 if end == 'before' else 1]
+                if b:
+                    out.append(f'{source.upper()} {b["get"]}: {journal_reading(journals[source][1][b["block_key"]], decided)}')
+            return ' ‖ '.join(out)
+        wording.append({'moved': '; '.join(moved_note), 'context_before': context('before'),
+                        'context_after': context('after'),'wording_key': key, 'event_id': ev['event_id'],
                         'group_events': ';'.join(ids) if len(ids) > 1 else '',
                         'joined': joined_note(ids, keys) if ev.get('_group') else '', 'get': ev['get'], 'who': ev['who'],
                         'kind': worst,
@@ -702,6 +860,17 @@ def main(args=None) -> int:
                         'choice': row.get('choice', ''), 'reviewer': row.get('reviewer', ''),
                         'date': row.get('date', ''), 'note': row.get('note', ''),
                         'audio_locator': f'GET {ev["printed_get"] or ev["get"]}'})
+    # AI judgement between the readings (md_wording_ai): a confident pick decides a row awaiting review.
+    import md_wording_ai
+    backend = getattr(args, 'backend', 'hgx') if args is not None else 'hgx'
+    if args is not None and getattr(args, 'ai', False):
+        md_wording_ai.judge([w for w in wording if w['status'] == 'review'], backend, budget=args.budget,
+                            window=args.window)
+    print(f'  ai wording: {md_wording_ai.apply(wording, backend)} rows decided by a confident AI pick')
+    for row in wording:
+        resolve(row)
+    print(f'  provisional: {sum(w["status"] == "provisional" for w in wording)} rows to verify when listening '
+          'through the mission')
     write_tsv(WORK / 'wording.tsv', WORDING_FIELDS, wording)
     write_tsv(SCRAPED / 'utterance_events.tsv', EVENT_FIELDS, ordered)
     counts = defaultdict(int)
@@ -712,6 +881,35 @@ def main(args=None) -> int:
         kinds[w['kind']] += 1
     print(f'reconcile: {len(ordered)} events {dict(counts)}; {len(links)} links; wording rows {dict(kinds)}')
     return 0
+
+
+def resolve(row: dict) -> None:
+    """Set the reading used for the transcript (``resolved``) on every queue row.
+
+    No row waits for review: the wording is checked later by listening through the whole mission.
+    A human choice wins, then a confident AI pick, then the automatic kinds' proposed journal.
+    A row still undecided is ``provisional``: it takes the AI's pick, the proposed reading or the
+    printed row, the first that loses no words held nowhere else (else the one losing fewest),
+    and ``verify`` says what to listen for.
+    """
+    from md_wording_ai import dropped
+    if row['choice']:
+        row['resolved'], row['verify'] = row['choice'], ''
+        return
+    if row['status'] == 'ai':
+        row['resolved'], row['verify'] = row['ai_choice'], ''
+        return
+    if row['status'] == 'auto':
+        row['resolved'], row['verify'] = row['proposed'] or 'printed', ''
+        return
+    order = [row.get('ai_choice'), row['proposed'], 'printed', 'afj', 'alsj']
+    candidates = list(dict.fromkeys(c for c in order if c in ('printed', 'afj', 'alsj') and row[c]))
+    losses = {c: dropped(row, c) for c in candidates}
+    best = next((c for c in candidates if not losses[c]), None) or         min(candidates, key=lambda c: sum(len(run.split()) for run in losses[c]))
+    others = ', '.join(f'{c} "{row[c][:80]}"' for c in ('printed', 'afj', 'alsj') if c != best and row[c])
+    why = row.get('ai_reason') or row['kind']
+    row['status'], row['resolved'] = 'provisional', best
+    row['verify'] = f'took {best}; check against {others}. {why}'[:400]
 
 
 CHOICE_FIELDS = ('wording_key', 'event_id', 'get', 'choice', 'reviewer', 'date', 'note')

@@ -56,6 +56,7 @@
   <select id="filter">
     <option value="pending">Pending</option>
     <option value="decided">Decided</option>
+    <option value="ai">Decided by AI</option>
     <option value="all">All rows</option>
   </select>
   <select id="kind"></select>
@@ -98,7 +99,7 @@ async function loadRows() {
 }
 function applyFilter() {
   const f = $('#filter').value, k = $('#kind').value, s = $('#search').value.toLowerCase();
-  view = rows.filter(r => (f === 'all' || (f === 'pending') === r._pending) && (!k || kindOf(r) === k) &&
+  view = rows.filter(r => (f === 'all' || (f === 'ai' ? r.status === 'ai' : (f === 'pending') === r._pending)) && (!k || kindOf(r) === k) &&
     (!s || JSON.stringify(r).toLowerCase().includes(s)));
   sel = -1; renderList(); if (view.length) select(0);
   else $('#detail').innerHTML = '<p class="help">No rows.</p>';
@@ -163,9 +164,15 @@ async function select(i) {
   let body = '';
   if (queue === 'wording') {
     const ref = r.printed;
+    const ctx = (label, text) => text ? `<div class="reading" style="opacity:.7"><h4>${label}</h4>${
+      text.split(' ‖ ').map(t => `<div>${esc(t)}</div>`).join('')}</div>` : '';
     body = `<div class="kv">GET <b>${esc(r.get)}</b> · ${esc(r.who)} · kind <b>${esc(r.kind)}</b> · status <b>${esc(r.status)}</b> · event ${esc(r.event_id)}${r.joined ? ` · <b>joined</b> ${esc(r.joined)} (utterance breaks differ; texts shown combined)` : ''}</div>` +
+      (r.moved ? `<div class="kv" style="color:var(--accent)">Words at the break, kept in a neighbouring row (not lost by either choice): ${esc(r.moved)}</div>` : '') +
+      ctx('Row before (context, not chosen)', r.context_before) +
       readingBox('printed', r.printed, r.afj || r.alsj, 1, r) +
       readingBox('afj', r.afj, ref, 2, r) + readingBox('alsj', r.alsj, ref, 3, r) +
+      ctx('Row after (context, not chosen)', r.context_after) +
+      (r.ai_choice ? `<div class="kv" style="margin-top:6px">AI (${esc(r.ai_backend)}): <b>${esc(r.ai_choice)}</b> · ${esc(r.ai_basis)} · confidence ${esc(r.ai_confidence)}${r.status === 'ai' ? ' · <b>decided</b>' : ''} — ${esc(r.ai_reason)}</div>` : '') +
       `<p class="help">Highlighted words differ from the printed row (in the printed box: from the journal). The journal is proposed; listen to decide.</p>`;
   } else if (queue === 'editorial') {
     const marked = esc(r.utterance).replace(/⟦(.*?)⟧|\{\{(.*?)\}\}/g, (_, x, y) => `<span class="span">${x || y}</span>`);
