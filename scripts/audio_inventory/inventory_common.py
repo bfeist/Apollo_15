@@ -29,8 +29,8 @@ OUT = LOCAL / 'audio_inventory'                 # generated tables (local only, 
 CACHE = LOCAL / 'audio_inventory'               # raw API responses (not committed)
 JSC_PDF = Path(os.environ.get(
     'A15_JSC_AUDIO_INDEX', 'N:/Projects/Apollo/Mission Data/NASA-Audio-Archive_Digital-Audio-File_Metadata.pdf'))
-NARA_AUDIO_ROOT = Path(os.environ.get('A15_NARA_AUDIO_ROOT', 'F:/_repos/Apollo_15_data/raw/audio/NARA'))
-IA_AUDIO_ROOT = Path(os.environ.get('A15_SG_ROOT', 'F:/_repos/Apollo_15_data/raw/audio/Internet Archive'))
+NARA_AUDIO_ROOT = Path(os.environ.get('A15_NARA_AUDIO_ROOT', 'F:/Apollo_15_data/raw/audio/NARA'))
+IA_AUDIO_ROOT = Path(os.environ.get('A15_SG_ROOT', 'F:/Apollo_15_data/raw/audio/Internet Archive'))
 
 ROMAN = {'I': 1, 'II': 2, 'III': 3, 'IV': 4, 'V': 5, 'VI': 6, 'VII': 7, 'VIII': 8, 'IX': 9, 'X': 10,
          'XI': 11, 'XII': 12, 'XIII': 13, 'XIV': 14, 'XV': 15, 'XVI': 16, 'XVII': 17}

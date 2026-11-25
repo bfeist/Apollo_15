@@ -18,7 +18,7 @@ from audio_sources import PROCESSING_ROOT, Source, wav_layout
 
 # Master copies on the network share, and the local working copy that is transcribed.
 MASTER_ROOT = Path('N:/Projects/Apollo/Mission Data/Apollo 15/Audio/Internet Archive')
-SG_ROOT = Path(os.environ.get('A15_SG_ROOT', 'F:/_repos/Apollo_15_data/raw/audio/Internet Archive'))
+SG_ROOT = Path(os.environ.get('A15_SG_ROOT', 'F:/Apollo_15_data/raw/audio/Internet Archive'))
 DATA_ROOT = PROCESSING_ROOT / 'sg'
 TRANSCRIPT_ROOT = DATA_ROOT / 'timing_transcripts'
 EVIDENCE_ROOT = DATA_ROOT / 'evidence' / 'timing_transcription'

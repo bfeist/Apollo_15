@@ -12,7 +12,7 @@ uv run python scripts/run.py audio_inventory.py download --all   # every digitiz
 
 Tables and cached API responses are written to `.local/mission_data/audio_inventory/`. They are local
 working files and are not committed. `--refresh` fetches the responses again. Audio is saved to
-`A15_NARA_AUDIO_ROOT` (default `F:/_repos/Apollo_15_data/raw/audio/NARA/<localID>/`). Each file is checked
+`A15_NARA_AUDIO_ROOT` (default `F:/Apollo_15_data/raw/audio/NARA/<localID>/`). Each file is checked
 against the S3 `x-amz-meta-sha256` header and recorded in `a15_nara_downloads.tsv`.
 
 ## Sources and keys
