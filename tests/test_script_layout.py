@@ -49,8 +49,8 @@ class ScriptLayoutTests(unittest.TestCase):
             self.assertEqual(api.Popen.call_args.kwargs, dict(stdout='same'))
         processes.Popen(['ssh', 'host', 'uptime'])
         self.assertEqual(api.Popen.call_args.args[0], ['ssh', 'host', 'uptime'])
-        processes.Popen(['ssh', '-o', 'BatchMode=yes', 'bfeist@192.168.0.3', 'uptime'])
-        self.assertEqual(api.Popen.call_args.args[0], ['ssh', '-o', 'BatchMode=yes', 'bfeist@192.168.0.4', 'uptime'])
+        processes.Popen(['ssh', '-o', 'BatchMode=yes', 'bfeist@192.168.0.4', 'uptime'])
+        self.assertEqual(api.Popen.call_args.args[0], ['ssh', '-o', 'BatchMode=yes', 'bfeist@192.168.0.3', 'uptime'])
 
     def test_maintenance_ssh_dispatch_keeps_options_and_quoted_arguments(self):
         api = SimpleNamespace(run=Mock(return_value='checked'))
@@ -61,7 +61,7 @@ class ScriptLayoutTests(unittest.TestCase):
             command = ['ssh', '-o', 'BatchMode=yes', 'bfeist@192.168.0.240', shlex.join(words)]
             self.assertEqual(processes.run(command, check=True), 'checked')
             actual = api.run.call_args.args[0]
-            self.assertEqual(actual[:-1], ['ssh', '-o', 'BatchMode=yes', 'bfeist@192.168.0.4'])
+            self.assertEqual(actual[:-1], ['ssh', '-o', 'BatchMode=yes', 'bfeist@192.168.0.3'])
             self.assertEqual(shlex.split(actual[-1]), [*words[:5],
                 '/repo with spaces/scripts/run.py', name, *words[6:]])
 

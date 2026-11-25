@@ -14,8 +14,8 @@ SCRIPTS = Path(__file__).resolve().parent
 REPO = SCRIPTS.parent
 LAYOUT = json.loads((SCRIPTS/'layout.json').read_text(encoding='utf-8'))
 RUNTIME = SCRIPTS/'03_denoise/runtime'
-GENUS_SSH = 'bfeist@192.168.0.4'
-LEGACY_GENUS_SSH = {'bfeist@192.168.0.3', 'bfeist@192.168.0.240'}
+GENUS_SSH = 'bfeist@192.168.0.3'
+LEGACY_GENUS_SSH = {'bfeist@192.168.0.4', 'bfeist@192.168.0.240'}  # earlier genus addresses
 
 
 def genus_ssh(destination):

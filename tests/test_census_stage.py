@@ -271,7 +271,7 @@ class CensusStageTests(unittest.TestCase):
         connection = dict(detection.GENUS, **coordinate.call_args.kwargs['connection'])
         command = detection.remote_command(session, connection, '0,2,4,8,10,12')
         self.assertEqual(command[:2], ['ssh', '-o'])
-        self.assertIn('bfeist@192.168.0.4', command)
+        self.assertIn('bfeist@192.168.0.3', command)
         remote = shlex.split(command[-1])
         self.assertEqual(remote[0], 'exec')
         self.assertIn('OMP_NUM_THREADS=1', remote)

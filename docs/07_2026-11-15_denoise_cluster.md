@@ -98,7 +98,7 @@ two coordinators from owning production.
 
 ## Storage and remote environment
 
-Genus is `bfeist@192.168.0.4`, with D: at `/mnt/d` and F: at `/mnt/f`.
+Genus is `bfeist@192.168.0.3`, with D: at `/mnt/d` and F: at `/mnt/f`.
 The launchers route older saved Genus addresses here for CPU checks, workers,
 qualification and shutdown checks. Saved addresses stay part of the checkpoint
 and qualification identities.

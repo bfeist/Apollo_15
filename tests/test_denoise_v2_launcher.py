@@ -122,11 +122,11 @@ class LauncherTests(unittest.TestCase):
         def run(_):
             for key in ('first', 'replacement'):
                 command = launcher.cluster.remote_command(config, 'worker', '--key', key)
-                self.assertEqual(command[1], 'bfeist@192.168.0.4')
+                self.assertEqual(command[1], 'bfeist@192.168.0.3')
                 self.assertEqual(shlex.split(command[-1])[:4], ['exec', 'taskset', '-c', launcher.GENUS_CPUS])
                 self.assertIn('/repo with spaces/scripts/03_denoise/denoise_v2_worker_runtime.py', shlex.split(command[-1]))
             self.assertEqual(launcher.cluster.remote_command(config, 'qualify'),
-                             original(dict(config, ssh='bfeist@192.168.0.4'), 'qualify'))
+                             original(dict(config, ssh='bfeist@192.168.0.3'), 'qualify'))
             self.assertEqual(launcher.cluster.digest_json(config), config_digest)
             raise RuntimeError('coordinator stopped')
         with patch.object(launcher.cluster, 'remote_command', original), \
@@ -145,7 +145,7 @@ class LauncherTests(unittest.TestCase):
         config_digest = launcher.cluster.digest_json(config)
         with patch.object(launcher.subprocess, 'run', return_value=SimpleNamespace(stdout='CPUs OK')) as run:
             launcher.check_affinity(config, launcher.GENUS_CPUS)
-        self.assertEqual(run.call_args.args[0][-2], 'bfeist@192.168.0.4')
+        self.assertEqual(run.call_args.args[0][-2], 'bfeist@192.168.0.3')
         self.assertEqual(launcher.cluster.digest_json(config), config_digest)
 
     def test_invalid_capacity_or_failed_preflight_never_starts_coordinator(self):

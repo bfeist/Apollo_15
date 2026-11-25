@@ -156,7 +156,7 @@ extracts the tracks from that interval of each channel, then compares them
 across channels. Several workers can read different intervals of the same WAV.
 
 - Proprius workers run below normal priority with one numerical thread each.
-- Genus: `ssh bfeist@192.168.0.4`, `exec env OMP_NUM_THREADS=1 … taskset -c
+- Genus: `ssh bfeist@192.168.0.3`, `exec env OMP_NUM_THREADS=1 … taskset -c
 <mask> /home/bfeist/.local/bin/uv run --no-project --python
 /home/bfeist/.local/share/apollo15-venv/bin/python
 /mnt/f/_repos/Apollo_15/scripts/run.py 05_detect_flutter.py worker …`.

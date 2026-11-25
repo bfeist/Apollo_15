@@ -140,7 +140,6 @@ Genus uses its own venv, `~/.local/share/apollo15-nara-venv`, with this repo's l
 numba and soundfile; the denoise cluster's venv is left alone. Its ffmpeg 8.0.1 decodes the MP3s
 bit-identically to this machine's 9.0.1 (same SHA-256 for 300 s of 640 tr4 and all of AVT 03413).
 The command is in `nara_respeed.py`'s docstring.
-Note that `_bootstrap.GENUS_SSH` still routes `192.168.0.3` to `.4`, which no longer answers.
 
 ## Open items
 
