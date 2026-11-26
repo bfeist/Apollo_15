@@ -1,3 +1,7 @@
 stats.json
 __pycache__/
 inventory.json
+channel_maps.json
+irig_retime.json
+nara_640_tr4_respeed_frames.json
+t510075_ch30_retimed_frames.json

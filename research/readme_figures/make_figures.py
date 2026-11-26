@@ -698,9 +698,148 @@ def fig_crosstalk(tape='A15_T510088', ch=24, event_start=23165.75):
     save(fig, 'readme_fig05_crosstalk.png')
 
 
+# ---------------------------------------------------------------- Figures 12-13 (stage 10, retiming)
+
+def load_side(name):
+    path = Path(__file__).with_name(name)
+    if not path.is_file():
+        raise SystemExit(f'{name} missing: run research/readme_figures/{name.replace(".json", ".py")} first')
+    return json.loads(path.read_text(encoding='utf-8'))
+
+
+def fig_irig_retime():
+    d = load_side('irig_retime.json')
+    n, th, st = d['nara'], d['thirty'], d['stage07i']
+    fig, axs = plt.subplots(4, 2, figsize=(10.5, 12.4))
+    tapes = list(th)
+    colors = dict(zip(tapes, ['#1f5fa8', '#d9822b', '#2a9d5c', '#b2263a', '#7a4fa3']))
+    # NARA, before
+    ax = axs[0, 0]
+    t, o = np.array(n['before_t'])/3600, np.array(n['before_o'])
+    ax.plot(t, o, '.', ms=1, color=C_ORIG)
+    ax.set_ylabel('IRIG GMT − tape seconds (s,\nfrom first frame)')
+    ax.set_xlabel('tape hours (original MP3)')
+    ax.set_title(f'(a) NARA {n["tape"][9:]} {n["track"]} before: {o[-1]:.1f} s gained over the tape',
+                 loc='left', fontsize=8.5)
+    # NARA, after
+    ax = axs[0, 1]
+    u, e = np.array(n['after_u'])/3600, np.array(n['after_err_ms'])
+    ax.plot(u, e, '.', ms=1, color=C_MAP)
+    ax.axhline(0, color='k', lw=.5)
+    ax.set_ylim(-4, 4)
+    ax.set_ylabel('decoded label − (u + c) (ms)')
+    ax.set_xlabel('output hours (respeeded WAV)')
+    ax.set_title(f'(b) NARA after: time code decoded from the output, median {np.median(e):+.3f} ms, '
+                 f'rms {np.sqrt(np.mean(e**2)):.2f} ms', loc='left', fontsize=8.5)
+    # 30-track, before
+    ax = axs[1, 0]
+    for tp, r in th.items():
+        ax.plot(np.array(r['t'])/3600, np.array(r['before_s'])/60, lw=1.1, color=colors[tp],
+                label=f'{tp[4:]} {r["head"]}')
+    ax.set_ylabel('IRIG GMT − filename clock (min)')
+    ax.set_xlabel('file hours (stage-01 original, delivered CH30)')
+    ax.legend(frameon=False, fontsize=7)
+    ax.set_title('(c) 30-track before: the filename clock loses 15–23 min per reel', loc='left', fontsize=8.5)
+    # 30-track, 07i plans
+    ax = axs[1, 1]
+    for tp, r in st.items():
+        ax.plot(np.array(r['t'])/3600, r['res_ms'], '.', ms=1, color=colors[tp])
+    ax.axhline(0, color='k', lw=.5)
+    ax.set_ylim(-10, 10)
+    ax.set_ylabel('time code GET − 07i plan (ms)')
+    ax.set_xlabel('canonical tape hours (05b)')
+    rms = ', '.join(f'{r["plan_rms_ms"]:.1f}' for r in st.values())
+    ax.set_title(f'(d) 30-track after: 07i plans, frame residual rms {rms} ms', loc='left', fontsize=8.5)
+    # NARA speed
+    ax = axs[2, 0]
+    ax.plot(np.array(n['map_t'])/3600, n['map_rate_ppm'], color=C_DEN, lw=1)
+    ax.set_ylabel('speed correction (ppm)')
+    ax.set_xlabel('tape hours')
+    ax.set_title(f'(e) NARA {n["tape"][9:]} map: {n["rate_ppm"][0]:.0f}–{n["rate_ppm"][1]:.0f} ppm, '
+                 f'+{n["added_s"]:.1f} s', loc='left', fontsize=8.5)
+    # 30-track speed against hum
+    ax = axs[2, 1]
+    for tp, r in st.items():
+        tt, sp = np.array(r['speed_t'])/3600, np.array(r['slow_pct'])
+        ax.plot(tt, sp, lw=1, color=colors[tp])
+        ax.axhline(100*(th[tp]['hum_rate']-1), color=colors[tp], lw=.8, ls='--')
+    ax.set_ylim(1.1, 3.2)
+    ax.set_ylabel('playback slow (%)')
+    ax.set_xlabel('canonical tape hours')
+    ax.set_title('(f) 30-track speed in the 07i plans (solid) and the hum median (dashed)', loc='left', fontsize=8.5)
+    # end-to-end check
+    ch = st['A15_T510075']['check']
+    ax = axs[3, 0]
+    ax.plot(np.array(ch['u'])/3600, ch['res_ms'], '.', ms=1, color=colors['A15_T510075'])
+    ax.axhline(0, color='k', lw=.5)
+    ax.set_ylim(-5, 5)
+    ax.set_ylabel('decoded GET − (u + c) (ms)')
+    ax.set_xlabel('output hours (07b retimed.wav)')
+    ax.set_title(f'(g) T510075 CH30 after 07b: median {ch["median_ms"]:+.3f} ms, rms {ch["rms_ms"]:.2f} ms, '
+                 f'p99 {ch["p99_ms"]:.2f} ms', loc='left', fontsize=8.5)
+    ax = axs[3, 1]
+    hrs = sorted(ch['hourly_rate_ppm'], key=int)
+    ax.bar([int(h) for h in hrs], [ch['hourly_rate_ppm'][h] for h in hrs], color=C_MAP, width=.8)
+    ax.axhline(0, color='k', lw=.5)
+    ax.set_ylim(-1, 1)
+    ax.set_ylabel('rate error (ppm)')
+    ax.set_xlabel('output hour')
+    ax.set_title(f'(h) Same output, rate error per hour (input ran ~16,000 ppm slow)', loc='left', fontsize=8.5)
+    fig.tight_layout()
+    save(fig, 'readme_fig12_irig_retime.png')
+
+
+def fig_channel_inventory():
+    d = load_side('channel_maps.json')
+    order = ['HR1U', 'HR1L', 'HR2U', 'HR2L']
+    tapes = sorted(d['tapes'], key=lambda t: (order.index(d['tapes'][t]['head']), t))
+    # 0 delivered high, 1 delivered medium/low, 2 missing: head-stack gap, 3 missing: IRIG CH01,
+    # 4 IRIG delivered and decoded, 5 CH01 position read but no time code, 6 missing: other
+    cmap = matplotlib.colors.ListedColormap(['#2a9d5c', '#a6d8b8', '#b2263a', '#bdbdbd', '#1f5fa8', '#9ecae1',
+                                             '#d9822b'])
+    grid = np.zeros((len(tapes), 30))
+    for i, tp in enumerate(tapes):
+        m = d['tapes'][tp]
+        for r in m['true_channels']:
+            j = r['true_channel'] - 1
+            if r['status'] == 'delivered':
+                if r['true_channel'] == 1:
+                    grid[i, j] = 4 if m['irig_channel'] == r['delivered_channel'] else 5
+                else:
+                    grid[i, j] = 0 if r['confidence'] == 'high' else 1
+            elif r['true_channel'] == 1:
+                grid[i, j] = 3
+            elif r['true_channel'] in m['group_missing']:
+                grid[i, j] = 2
+            else:
+                grid[i, j] = 6
+    fig, ax = plt.subplots(figsize=(10.5, 8.2))
+    ax.pcolormesh(np.arange(31)+.5, np.arange(len(tapes)+1), grid, cmap=cmap, vmin=-.5, vmax=6.5,
+                  edgecolors='white', linewidth=.4)
+    for i, tp in enumerate(tapes):
+        m = d['tapes'][tp]
+        ax.text(30.9, i+.5, f'true 30 on CH{m["d0"]:02d}' + ('  review' if m['review'] else ''), va='center', fontsize=6)
+    ax.set_yticks(np.arange(len(tapes))+.5, [f'{t[4:]} {d["tapes"][t]["head"]}' for t in tapes], fontsize=6.3)
+    ax.set_xticks(range(1, 31), [str(c) for c in range(1, 31)], fontsize=7)
+    ax.set_xlim(.5, 30.5)
+    ax.invert_yaxis()
+    ax.set_xlabel('true track-sheet channel')
+    for k in range(1, 4):
+        ax.axhline(sum(d['tapes'][t]['head'] in order[:k] for t in tapes), color='k', lw=1)
+    labels = ['delivered, high confidence', 'delivered, medium', 'missing: head-stack gap',
+              'missing: CH01 (IRIG) past the last delivered channel', 'IRIG CH01 delivered (on CH30) and decoded',
+              'CH01 position on CH30, no time code', 'missing: no file delivered']
+    ax.legend(handles=[Patch(color=cmap(k), label=lab) for k, lab in enumerate(labels)], frameon=False, fontsize=7,
+              ncol=4, loc='upper left', bbox_to_anchor=(0, -.06))
+    g = d['groups']
+    ax.set_title('Stage 10 inventory: where each true track is in the delivery. Head-stack gaps: '
+                 + '; '.join(f'{h} {", ".join(map(str, g[h]["missing"]))}' for h in order), loc='left', fontsize=8.5)
+    save(fig, 'readme_fig13_channel_inventory.png')
+
+
 FIGURES = dict(recordings=fig_recordings, pipeline=fig_pipeline, offsets=fig_offsets, denoise=fig_denoise, hums=fig_two_hums,
                trace=fig_trace, beeps=fig_beeps, validation=fig_validation, coverage=fig_coverage,
-               map=fig_map, crosstalk=fig_crosstalk)
+               map=fig_map, crosstalk=fig_crosstalk, irig=fig_irig_retime, channels=fig_channel_inventory)
 
 if __name__ == '__main__':
     for name in sys.argv[1:] or FIGURES:
