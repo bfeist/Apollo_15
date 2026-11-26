@@ -238,6 +238,7 @@ stage-04 audio. Dashed boxes are in progress or planned.
 | 05a   | `05_deflutter/05a_plan_deflutter.py`   | Compile one timing map per tape                                           | Done; 38 maps in `deflutter_maps/`                               |
 | 05b   | `05_deflutter/05b_deflutter.py`        | Apply the tape map to every stage-04 track                                | Done; 1,139 tracks in `defluttered_shared/`                      |
 | 06a   | `06_retime/06a_transcribe.py`          | Interim timing transcript of 05b audio                                    | In progress ([runbook](docs/15_2026-11-22_transcription_runbook.md)) |
+| 06c   | `06_retime/06c_sg_retime.py`           | SG anchors (IA, NARA) and one joint curve per tape, as shared-layout plans | Implemented; waits for 06a word alignment ([SG retiming](docs/20_2026-11-25_sg_retime_30track.md)) |
 | 06b   | `06_retime/06b_retime.py`              | Retime each tape to the mission clock                                     | Planned ([timing plan](docs/14_2026-11-22_mission_timing_plan.md)) |
 | 07    | `07_normalize/07_normalize.py`         | Constant gain to a speech-level target                                    | Planned ([guide](docs/05_2026-11-13_speech_normalization.md))    |
 
@@ -640,7 +641,11 @@ final archive transcript will be produced after retiming. See the
 [mission timing plan](docs/14_2026-11-22_mission_timing_plan.md), the
 [transcription runbook](docs/15_2026-11-22_transcription_runbook.md), and the ingestion
 plans for [mission data](docs/16_2026-11-23_mission_data_ingestion.md) and the
-[flight plan](docs/17_2026-11-23_flight_plan_ingestion.md).
+[flight plan](docs/17_2026-11-23_flight_plan_ingestion.md). Retiming the 30-track against the
+space-to-ground set (IA and NARA, matching ASR to ASR, audio refinement and Quindar) is
+stage 06c, `06_retime/06c_sg_retime.py`. It writes one plan per tape that 06b applies
+identically to every channel ([SG retiming](docs/20_2026-11-25_sg_retime_30track.md)). Its
+archive run uses the 06a transcripts once their words are aligned.
 
 ---
 

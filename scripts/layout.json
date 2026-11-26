@@ -141,5 +141,11 @@
   "nara_tape_map.py": "sg_nara/nara_tape_map.py",
   "nara_align.py": "sg_nara/nara_align.py",
   "nara_respeed.py": "sg_nara/nara_respeed.py",
-  "nara_retimed_transcribe.py": "sg_nara/nara_retimed_transcribe.py"
+  "nara_retimed_transcribe.py": "sg_nara/nara_retimed_transcribe.py",
+  "06c_sg_retime.py": "30-track/06_retime/06c_sg_retime.py",
+  "sg_stage.py": "30-track/06_retime/sg_stage.py",
+  "sg_inputs.py": "30-track/06_retime/sg_inputs.py",
+  "sg_match.py": "30-track/06_retime/sg_match.py",
+  "sg_curve.py": "30-track/06_retime/sg_curve.py",
+  "sg_audio.py": "30-track/06_retime/sg_audio.py"
 }
