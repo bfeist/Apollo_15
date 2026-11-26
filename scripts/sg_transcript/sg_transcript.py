@@ -12,7 +12,9 @@ import argparse
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+# The nearest _bootstrap.py (scripts/ or a pipeline folder's forwarder) puts every registered folder on sys.path.
+sys.path.insert(0, str(next(p for p in Path(__file__).resolve().parents if (p / '_bootstrap.py').is_file())))
+import _bootstrap  # noqa: E402,F401
 
 
 def main(argv=None) -> int:

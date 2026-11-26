@@ -3,8 +3,8 @@ from pathlib import Path
 import sys
 import unittest
 
-for _folder in ('audio_inventory', 'sg_transcript'):
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts' / _folder))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
+import _bootstrap  # noqa: E402,F401  (every registered script folder)
 import a15_nara  # noqa: E402
 from inventory_common import ia_file_key, mission_of_code, mission_of_text, nara_key, nara_queries  # noqa: E402
 

@@ -2,7 +2,8 @@ from pathlib import Path
 import sys
 import unittest
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts' / 'sg_transcript'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
+import _bootstrap  # noqa: E402,F401  (every registered script folder)
 from md_editorial import split_spans  # noqa: E402
 from md_reconcile import (fills_garble, grow_link, journal_garble_tokens, journal_reading,  # noqa: E402
                           printed_garble_tokens, proposed_reading)

@@ -8,7 +8,7 @@ import numpy as np
 import soundfile as sf
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts' / 'sg-audio'))
+import _bootstrap  # noqa: E402,F401  (every registered script folder)
 import sg_respeed as respeed  # noqa: E402
 
 SR = 48000

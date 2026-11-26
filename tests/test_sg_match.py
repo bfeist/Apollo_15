@@ -3,7 +3,8 @@ from pathlib import Path
 import sys
 import unittest
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts' / 'sg_transcript'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
+import _bootstrap  # noqa: E402,F401  (every registered script folder)
 import md_pao as pao  # noqa: E402
 import md_sg as sg  # noqa: E402
 

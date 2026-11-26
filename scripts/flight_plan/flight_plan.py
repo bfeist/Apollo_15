@@ -10,10 +10,10 @@ import argparse
 import sys
 from pathlib import Path
 
-_HERE = Path(__file__).resolve().parent
-# md_common, md_snapshot and md_ai come from the transcript ingestion.
-for _path in (_HERE.parent / 'sg_transcript', _HERE):
-    sys.path.insert(0, str(_path))
+# md_common and md_ai are in 00_common; md_snapshot and md_pao come from the SG transcript stage.
+# The nearest _bootstrap.py puts every registered folder on sys.path.
+sys.path.insert(0, str(next(p for p in Path(__file__).resolve().parents if (p / '_bootstrap.py').is_file())))
+import _bootstrap  # noqa: E402,F401
 
 
 def main(argv=None) -> int:

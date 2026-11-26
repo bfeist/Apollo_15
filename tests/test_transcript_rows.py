@@ -3,7 +3,8 @@ from types import SimpleNamespace
 import sys
 import unittest
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts' / 'sg_transcript'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
+import _bootstrap  # noqa: E402,F401  (every registered script folder)
 from md_transcripts import DEAD_AIR, drop_end_of_tape, extract_page, strip_end_of_tape  # noqa: E402
 
 

@@ -84,8 +84,8 @@ class _ArtifactFinder:
 
 def install():
     paths = {str((SCRIPTS/relative).parent) for relative in LAYOUT.values()}
-    # One frozen normalization snapshot serves both processing branches. Its
-    # identical deflutter copy preserves that engine's historical source hashes.
+    # One frozen normalization snapshot serves both processing branches; the
+    # runtime folder comes first, so it is the copy every stage imports.
     ordered = [str(RUNTIME/'scripts'), *sorted(paths-{str(RUNTIME/'scripts')})]
     for path in reversed(ordered):
         if path not in sys.path:

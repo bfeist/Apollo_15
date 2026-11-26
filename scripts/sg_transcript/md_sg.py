@@ -25,7 +25,6 @@ import bisect
 import difflib
 import json
 import re
-import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 from statistics import median
@@ -33,9 +32,7 @@ from statistics import median
 from md_common import LOCAL, MISSION_DATA, RAW_MANIFEST, SCRAPED, format_get, read_tsv, sha256_file, today, \
     tokens, write_tsv
 from md_reconcile import comparable, load_journal, load_printed  # noqa: F401
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / '00_common'))
-from transcript_read import identity_rows  # noqa: E402
+from transcript_read import identity_rows
 
 SG_STORE = Path('F:/Apollo_15_data/processing/sg/timing_transcripts')
 SG_INDEX_PDF = Path('N:/Projects/Apollo/Mission Data/NASA-Audio-Archive_Digital-Audio-File_Metadata.pdf')

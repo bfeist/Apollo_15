@@ -5,7 +5,8 @@ import unittest
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts' / 'sg-audio'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
+import _bootstrap  # noqa: E402,F401  (every registered script folder)
 import sg_drift_fit as fit  # noqa: E402
 
 REEL = {'reel': 'T-AAA', 'file': 'T-AAA.wav', 'sha256': 'x', 'duration_s': '10000'}

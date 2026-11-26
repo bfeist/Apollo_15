@@ -19,8 +19,9 @@ class ScriptLayoutTests(unittest.TestCase):
         for name, expected in manifest.items():
             with self.subTest(source=name):
                 self.assertEqual(hashlib.sha256((layout.RUNTIME/name).read_bytes()).hexdigest(), expected)
-        self.assertEqual((layout.SCRIPTS/'30-track/05_deflutter/normalization.py').read_bytes(),
-                         layout.source_path('normalization.py').read_bytes())
+        # One normalization module: the frozen runtime copy (the shadowed 05 duplicate was removed).
+        self.assertEqual(layout.source_path('normalization.py'), layout.RUNTIME/'scripts/normalization.py')
+        self.assertEqual(len(list(layout.SCRIPTS.rglob('normalization.py'))), 1)
 
 
     def test_external_artifacts_stay_in_the_checkout(self):
