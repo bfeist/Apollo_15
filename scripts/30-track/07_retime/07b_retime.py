@@ -1,4 +1,11 @@
-"""Stage 07b: apply one frozen tape-speed plan (07a SG fit, or a Quindar plan) to every defluttered channel."""
+"""Stage 07b: apply one frozen tape-speed plan (07a SG fit, or a Quindar plan) to every defluttered channel.
+
+Inputs: the 05b defluttered channels, the stage-06 transcripts and a 07a plan (built from the
+retimed SG reels). Outputs, per channel under the retimed root (D:/Apollo_15_30-Track/retimed):
+``retimed.wav`` (32-bit float, the 05b sample rate, constant peak gain) with ``retime.json``,
+``timing_map.npz`` and ``curve.json``; and ``timed_transcript.tsv``/``.json``, the 06 transcript
+on the same output clock (timed_transcript.py).
+"""
 
 # Resolve shared modules from the stage folders.
 import sys as _sys
@@ -17,6 +24,7 @@ from quindar_retime import DEFAULT_RETIMED_ROOT, retime
 from quindar_survey import DEFAULT_ANALYSIS_ROOT
 from quindar_tape import build_shared_plan, load_shared_plan
 from sg_inputs import RETIMING_ROOT
+from timed_transcript import write_timed_transcript
 
 
 def sg_plan(tape, fit=None, root=RETIMING_ROOT):
@@ -99,7 +107,8 @@ def main():
             for source in sources:
                 destination = tape_directory(args.tape, args.retimed_root)/source.parent.name
                 try:
-                    retime(source, destination, target_dbfs=args.target_dbfs, max_boost_db=args.max_boost_db, shared_plan=plan)
+                    record = retime(source, destination, target_dbfs=args.target_dbfs, max_boost_db=args.max_boost_db, shared_plan=plan)
+                    write_timed_transcript(destination, Path(record['source']['path']))
                 except (ValueError, OSError, RuntimeError, KeyError, TypeError) as error:
                     failures.append(f'{source.parent.name}: {error}')
                     print(f'BLOCKED {failures[-1]}', flush=True)
@@ -115,7 +124,8 @@ def main():
             if args.input is None or args.output is None:
                 p.error('File mode requires --input and --output')
             source, destination = args.input, args.output
-        retime(source, destination, args.candidates, args.smoothing_seconds, args.target_dbfs, args.max_boost_db, shared_plan=plan)
+        record = retime(source, destination, args.candidates, args.smoothing_seconds, args.target_dbfs, args.max_boost_db, shared_plan=plan)
+        write_timed_transcript(destination, Path(record['source']['path']))
     except (ValueError, OSError, RuntimeError, KeyError, TypeError) as error:
         p.error(str(error))
 
