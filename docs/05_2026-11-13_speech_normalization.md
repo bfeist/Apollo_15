@@ -4,8 +4,8 @@ Order: `05b` shared deflutter, `06` transcription, `07a`/`07b` retiming, then `0
 speech normalization. IRIG research utilities now live in `09_irig/`.
 The stage writes separate `normalized.wav` and `normalization.json` files.
 It does not change deflutter, retiming, or existing listening outputs.
-Current stage-03 console/launcher workers write unity-gain audio; final speech
-gain is set here.
+Current stage-03 console/launcher workers and stage 07b write unity-gain audio;
+final speech gain is set here.
 There are no new dependencies, servers, or listening pages.
 
 ## Commands

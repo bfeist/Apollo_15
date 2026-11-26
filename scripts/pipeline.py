@@ -27,7 +27,6 @@ from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
-from normalization import DEFAULT_TARGET_DBFS, DEFAULT_MAX_BOOST_DB, validate_settings
 from audio_processing import DEFAULT_BROADBAND_CAP_DB
 from denoise_archive import CANONICAL, ORIGINALS, root_marker
 from flutter_plan_store import DEFAULT_DENOISED_ROOT, planning_directory, tape_directory
@@ -128,8 +127,6 @@ def parse_args(argv=None):
     parser.add_argument('--flutter-plan-start', type=float, default=0, help='Stage 05a bounded audit start; default whole tape')
     parser.add_argument('--flutter-plan-duration', type=float, help='Stage 05a optional bounded audit duration')
     parser.add_argument('--skip-deflutter', action='store_true', help='Skip stage 05b correction')
-    parser.add_argument('--target-dbfs', type=float, default=DEFAULT_TARGET_DBFS, help='Stage 07b sample-peak target (default: -3 dBFS); 05b retains v2 gain')
-    parser.add_argument('--max-boost-db', type=float, default=DEFAULT_MAX_BOOST_DB, help='Stage 07b maximum boost (default: 12 dB)')
     timing = parser.add_argument_group('timing transcription (stage 06)')
     timing.add_argument('--transcribe-start', type=float, help='Stage 06 window start (canonical tape seconds)')
     timing.add_argument('--transcribe-end', type=float, help='Stage 06 window end')
@@ -241,7 +238,6 @@ def parse_args(argv=None):
         if args.input and (args.input.resolve() == args.output.resolve() or args.input.resolve() in args.output.resolve().parents):
             parser.error('--output must be outside --input')
     try:
-        validate_settings(args.target_dbfs, args.max_boost_db)
         SpeechSettings(target_speech_dbfs=args.speech_target_dbfs,
                        max_boost_db=args.speech_max_boost_db,
                        max_noise_dbfs=args.speech_max_noise_dbfs).validate()
@@ -391,8 +387,7 @@ def make_jobs(args, selected, run_dir):
                 continue
             command = [sys.executable, '-u', str(source_path('07b_retime.py')), '--tape', folder.name,
                        '--defluttered-root', str(args.defluttered_root), '--retimed-root', str(args.retimed_root),
-                       '--quindar-analysis-root', str(args.quindar_analysis_root),
-                       '--target-dbfs', str(args.target_dbfs), '--max-boost-db', str(args.max_boost_db)]
+                       '--quindar-analysis-root', str(args.quindar_analysis_root)]
             command += ['--channel', str(args.channel)] if args.channel else ['--all-channels']
             if args.sg_fit:
                 command += ['--sg-fit', str(args.sg_fit)]
@@ -521,8 +516,6 @@ def make_tape_jobs(args, selected, run_dir):
                 current = output
         if number in {'02','04','05','05a','05b'} and args.alignment_root:
             command += ['--alignment-root', str(args.alignment_root)]
-        if number == '07b':
-            command += ['--target-dbfs',str(args.target_dbfs),'--max-boost-db',str(args.max_boost_db)]
         if number in selected and number in {'05b', '07b', '08'} and status != 'skipped explicitly':
             current = output
         jobs.append(dict(number=number, name=name, script=script, description=description,

@@ -14,7 +14,6 @@ from scipy.interpolate import PchipInterpolator
 from quindar_speed import fit_events, scan
 from flutter import resample_at
 from flutter_plan_store import planning_lock
-from normalization import normalize_pending_file, validate_settings, verify_peak
 
 DEFAULT_RETIMED_ROOT = Path('D:/Apollo_15_30-Track/retimed')
 
@@ -203,7 +202,8 @@ def render_stream(source, output, input_times, output_times, speed, *, block_sec
                 resampler='255-tap Kaiser antialias; 8x FIR/cubic; 512-sample halo; global inverse map')
 
 
-def retime(source, destination, candidates_path=None, bandwidth=None, target_dbfs=-3., max_boost_db=12., progress=print, *, shared_plan=None):
+def retime(source, destination, candidates_path=None, bandwidth=None, progress=print, *, shared_plan=None):
+    """Render at unity gain; stage 08 sets the one delivery gain."""
     source, destination = Path(source).resolve(), Path(destination).resolve()
     if source.is_dir():
         if (source/'deflutter.wav').is_file():
@@ -217,12 +217,10 @@ def retime(source, destination, candidates_path=None, bandwidth=None, target_dbf
         raise ValueError('Input and output must be separate non-overlapping locations')
     if shared_plan is None and 'irig' in source.name.lower():
         raise ValueError('Quindar calibration requires a voice channel, not IRIG')
-    validate_settings(target_dbfs, max_boost_db)
     signature = audio_signature(source)
     if signature['channels'] != 1 or signature['frames'] == 0:
         raise ValueError('Retiming requires nonempty mono defluttered audio')
-    settings = dict(kernel_sigma_seconds=bandwidth, target_dbfs=target_dbfs, max_boost_db=max_boost_db,
-                    map_step_seconds=.1, method='robust_local_linear_quindar_anchors_pchip')
+    settings = dict(kernel_sigma_seconds=bandwidth, gain='unity', map_step_seconds=.1, method='robust_local_linear_quindar_anchors_pchip')
     shared = None
     if shared_plan is not None:
         if candidates_path is not None or bandwidth is not None:
@@ -292,14 +290,12 @@ def retime(source, destination, candidates_path=None, bandwidth=None, target_dbf
             progress(f'{len(model["anchors"])} Quindar anchors; {model["kernel_sigma_seconds"]/60:g}-minute smoothing; output {nominal[-1]:.3f}s')
             temporary = destination/'retimed.partial.wav'
             record['render'] = render_stream(source, temporary, tt, nominal, speed, progress=progress)
-            normalization = normalize_pending_file(temporary, target_dbfs, max_boost_db, progress)
             audio = verify_audio(temporary)
-            verify_peak(audio['peak'], normalization)
             if audio['frames'] != round(nominal[-1]*signature['sample_rate']):
                 raise ValueError('Rendered frame count disagrees with timing map')
             if audio_signature(source) != signature:
                 raise ValueError('Input changed during retiming')
-            record.update(audio=audio, normalization=normalization,
+            record.update(audio=audio,
                           output_duration_seconds=audio['frames']/audio['sample_rate'],
                           seconds_removed=duration-audio['frames']/audio['sample_rate'])
             # Markers are input-file-relative, as emitted by stage 05b.

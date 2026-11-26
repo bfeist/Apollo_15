@@ -103,7 +103,8 @@ class QuindarRetimeTests(unittest.TestCase):
             record = json.loads(manifest_path.read_text())
             self.assertEqual(record['status'], 'complete')
             self.assertEqual(record['audio']['frames'], round(duration*.987*sr))
-            self.assertLessEqual(record['audio']['peak'], 10**(-3/20)+1e-7)
+            self.assertNotIn('normalization', record)  # unity gain; stage 08 sets the delivery gain
+            self.assertLess(abs(record['audio']['peak']-.2), .02)
             import csv
             with (output/'markers.csv').open() as f:
                 marker = next(csv.DictReader(f))

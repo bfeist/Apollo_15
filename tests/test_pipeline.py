@@ -468,8 +468,7 @@ class PipelineTests(unittest.TestCase):
 
     def test_order_residuals_and_explicit_skip(self):
         before = self.wav.read_bytes()
-        result = self.run_pipeline('--stages', '03,05b', '--skip-deflutter',
-                                   '--target-dbfs', '-3', '--max-boost-db', '12')
+        result = self.run_pipeline('--stages', '03,05b', '--skip-deflutter')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         run, manifest = self.manifest()
         self.assertEqual([s['status'] for s in manifest['stages'] if s['number'] in {'03','05b'}], ['done', 'skipped explicitly'])
@@ -493,7 +492,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(before, self.wav.read_bytes())
 
     def test_deflutter_requires_plan_before_export(self):
-        result = self.run_pipeline('--stages', '05b', '--target-dbfs', '-3', '--max-boost-db', '6')
+        result = self.run_pipeline('--stages', '05b')
         self.assertEqual(result.returncode, 2)
         self.assertIn('Stage 05b requires --channel', result.stderr)
         self.assertFalse(self.output.exists())

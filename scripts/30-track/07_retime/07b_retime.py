@@ -1,8 +1,9 @@
-"""Stage 07b: apply one frozen tape-speed plan (07a SG fit, or a Quindar plan) to every defluttered channel.
+"""Stage 07b: apply one frozen tape-speed plan (07i time code, 07a SG fit, or a Quindar plan) to every defluttered channel.
 
-Inputs: the 05b defluttered channels, the stage-06 transcripts and a 07a plan (built from the
-retimed SG reels). Outputs, per channel under the retimed root (D:/Apollo_15_30-Track/retimed):
-``retimed.wav`` (32-bit float, the 05b sample rate, constant peak gain) with ``retime.json``,
+Inputs: the 05b defluttered channels, the stage-06 transcripts and a plan: by default the newest
+07i time-code plan of the tape (irig_timing.py; time-code tapes only), else the newest final
+07a plan (built from the retimed SG reels), else the Quindar plan. Outputs, per channel under the retimed root (D:/Apollo_15_30-Track/retimed):
+``retimed.wav`` (32-bit float, the 05b sample rate, unity gain; stage 08 sets the delivery gain) with ``retime.json``,
 ``timing_map.npz`` and ``curve.json``; and ``timed_transcript.tsv``/``.json``, the 06 transcript
 on the same output clock (timed_transcript.py).
 """
@@ -24,6 +25,7 @@ from quindar_retime import DEFAULT_RETIMED_ROOT, retime
 from quindar_survey import DEFAULT_ANALYSIS_ROOT
 from quindar_tape import build_shared_plan, load_shared_plan
 from sg_inputs import RETIMING_ROOT
+from irig_timing import irig_plan
 from timed_transcript import write_timed_transcript
 
 
@@ -53,14 +55,14 @@ def main():
     p.add_argument('--quindar-plan', type=Path, help='Frozen shared tape plan override')
     p.add_argument('--sg-fit', type=Path, help='07a fit edition (sg_fit/<edition>) whose plan to apply; default: '
                    'the newest final edition with this tape, else the Quindar plan')
+    p.add_argument('--irig-fit', type=Path, help='07i edition folder (irig/<tape>/fit-<digest>) to apply')
+    p.add_argument('--no-irig', action='store_true', help='ignore 07i time-code plans (apply 07a or Quindar)')
     p.add_argument('--clock-anchors', type=Path, help='Authenticated anchors carried through the actual 05b map; for one-tape --plan-only')
     p.add_argument('--experimental-single-channel', action='store_true', help='Explicitly permit the original per-file assessment workflow')
     p.add_argument('--defluttered-root', type=Path, default=DEFAULT_DEFLUTTERED_ROOT)
     p.add_argument('--retimed-root', type=Path, default=DEFAULT_RETIMED_ROOT)
     p.add_argument('--candidates', type=Path, help='Reuse a complete candidate inventory for the exact input file')
     p.add_argument('--smoothing-seconds', type=float, help='Gaussian kernel sigma >=300 seconds; default selects by block validation')
-    p.add_argument('--target-dbfs', type=float, default=-3.)
-    p.add_argument('--max-boost-db', type=float, default=12.)
     args = p.parse_args()
     try:
         if args.clock_anchors and (not args.plan_only or args.all_tapes):
@@ -87,9 +89,16 @@ def main():
             print(f"Frozen tape plan: {record['tape']}; {record['unique_calibration_events']} unique anchors; {record['reference_count']} post-deflutter references")
             return
         if args.tape and not args.experimental_single_channel and plan is None:
-            plan = sg_plan(args.tape, args.sg_fit)
-            if plan is not None:
-                print(f'Applying the 07a SG plan {plan}', flush=True)
+            if not args.no_irig and args.sg_fit is None:
+                plan = irig_plan(args.tape, args.irig_fit)
+                if plan is not None:
+                    print(f'Applying the 07i time-code plan {plan}', flush=True)
+            elif args.irig_fit is not None:
+                p.error('--irig-fit cannot be combined with --no-irig or --sg-fit')
+            if plan is None:
+                plan = sg_plan(args.tape, args.sg_fit)
+                if plan is not None:
+                    print(f'Applying the 07a SG plan {plan}', flush=True)
             plan = plan or tape_directory(args.tape, args.quindar_analysis_root)/'shared_plan'/'plan.json'
         if not args.experimental_single_channel:
             if plan is None or not plan.exists():
@@ -107,7 +116,7 @@ def main():
             for source in sources:
                 destination = tape_directory(args.tape, args.retimed_root)/source.parent.name
                 try:
-                    record = retime(source, destination, target_dbfs=args.target_dbfs, max_boost_db=args.max_boost_db, shared_plan=plan)
+                    record = retime(source, destination, shared_plan=plan)
                     write_timed_transcript(destination, Path(record['source']['path']))
                 except (ValueError, OSError, RuntimeError, KeyError, TypeError) as error:
                     failures.append(f'{source.parent.name}: {error}')
@@ -124,7 +133,7 @@ def main():
             if args.input is None or args.output is None:
                 p.error('File mode requires --input and --output')
             source, destination = args.input, args.output
-        record = retime(source, destination, args.candidates, args.smoothing_seconds, args.target_dbfs, args.max_boost_db, shared_plan=plan)
+        record = retime(source, destination, args.candidates, args.smoothing_seconds, shared_plan=plan)
         write_timed_transcript(destination, Path(record['source']['path']))
     except (ValueError, OSError, RuntimeError, KeyError, TypeError) as error:
         p.error(str(error))
