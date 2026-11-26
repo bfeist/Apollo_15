@@ -7,7 +7,8 @@ evidence records the former absolute script paths. This module corrects both
 when the modules load. It does not alter saved files.
 
 On 2026-11-26 the 30-track stages after deflutter were renumbered (06 transcribe,
-07 retime, 08 normalize, 09 IRIG) and a few modules changed owner. ``RENAMED``
+07 retime, 08 normalize, 09 IRIG), a few modules changed owner, and the
+space-to-ground sources moved under scripts/sg-audio/. ``RENAMED``
 is the old-to-new record of those moves (paths relative to scripts/); every moved
 file is byte-identical, so recorded implementation hashes still match.
 """
@@ -35,6 +36,13 @@ RENAMED = {
     '30-track/07_normalize/07_normalize.py': '30-track/08_normalize/08_normalize.py',
     '30-track/07_normalize/': '30-track/08_normalize/',
     '30-track/08_irig/': '30-track/09_irig/',
+    # Space-to-ground pipeline under one parent folder.
+    'sg-audio/sg_sources.py': 'sg-audio/01_sg-internetarchive/sg_sources.py',
+    'sg-audio/sg_transcribe.py': 'sg-audio/01_sg-internetarchive/sg_transcribe.py',
+    'sg-audio/sg_drift_fit.py': 'sg-audio/03_sg-internetarchive-respeed/sg_drift_fit.py',
+    'sg-audio/sg_respeed.py': 'sg-audio/03_sg-internetarchive-respeed/sg_respeed.py',
+    'sg_nara/': 'sg-audio/01_sg-nara/',
+    'sg_transcript/': 'sg-audio/02_sg-transcript/',
 }
 
 

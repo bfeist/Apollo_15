@@ -23,7 +23,7 @@ from dataclasses import dataclass, asdict
 from functools import lru_cache
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[2]
+REPO = Path(__file__).resolve().parents[3]  # scripts/sg-audio/<stage>/
 NARA_ROOT = Path(os.environ.get('A15_NARA_AUDIO_ROOT', 'F:/Apollo_15_data/raw/audio/NARA'))
 PROCESSING_ROOT = Path(os.environ.get('A15_PROCESSING_ROOT', 'F:/Apollo_15_data/processing'))
 DATA_ROOT = PROCESSING_ROOT / 'sg_nara'

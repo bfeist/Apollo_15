@@ -58,6 +58,20 @@ class ScriptLayoutTests(unittest.TestCase):
         self.assertEqual(crosstalk_stage.json.loads(json.dumps({'path': former})),
                          {'path': str(layout.STAGES/'04_crosstalk/repeat_catalog.py')})
 
+    def test_sg_pipeline_finds_the_same_repository_artifacts(self):
+        import nara_sources
+        import sg_drift_fit
+        import sg_respeed
+        self.assertEqual(sg_respeed.MAPS, layout.REPO/'catalog/sg_drift/sg_drift_maps.json')
+        self.assertEqual(sg_drift_fit.CATALOG, layout.REPO/'catalog/sg_drift')
+        self.assertEqual(sg_drift_fit.REELS, layout.REPO/'MISSION_DATA/sg_reels.tsv')
+        self.assertEqual(nara_sources.DOWNLOADS, layout.REPO/'.local/mission_data/audio_inventory/a15_nara_downloads.tsv')
+        for folder in ('01_sg-internetarchive', '01_sg-nara', '02_sg-transcript', '03_sg-internetarchive-respeed'):
+            self.assertTrue((layout.SCRIPTS/'sg-audio'/folder).is_dir(), folder)
+        result = subprocess.run([sys.executable, str(layout.SCRIPTS/'sg-audio/03_sg-internetarchive-respeed/sg_respeed.py'),
+                                 '--help'], capture_output=True, text=True, timeout=45, cwd=layout.REPO)
+        self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+
     def test_renumbered_script_paths_resolve_to_their_current_files(self):
         import script_relocation
         for old, new in (('06_retime/06c_sg_retime.py', '07_retime/07a_sg_retime.py'),

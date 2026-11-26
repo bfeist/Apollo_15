@@ -46,7 +46,7 @@ from pathlib import Path
 
 import numpy as np
 
-REPO = Path(__file__).resolve().parents[2]
+REPO = Path(__file__).resolve().parents[3]  # scripts/sg-audio/<stage>/
 ANCHORS = REPO / '.local/mission_data/sg/sg_anchors.tsv'
 REELS = REPO / 'MISSION_DATA/sg_reels.tsv'
 CATALOG = REPO / 'catalog/sg_drift'

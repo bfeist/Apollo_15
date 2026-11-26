@@ -7,7 +7,7 @@ post-05b tape second ``start_seconds + n / rate``. Add the origin once.
 
 The generic source, reader and checksum code is in ``00_common/audio_sources.py``
 and is re-exported here. Space-to-ground reels and DVD streams have their own
-inventories in ``scripts/sg-audio`` and ``scripts/video/dvds``.
+inventories in ``scripts/sg-audio/01_sg-internetarchive`` and ``scripts/video/dvds``.
 """
 from __future__ import annotations
 

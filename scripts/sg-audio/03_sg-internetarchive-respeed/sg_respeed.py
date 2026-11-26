@@ -49,7 +49,7 @@ from numba import njit, prange
 
 from sg_sources import SG_ROOT
 
-REPO = Path(__file__).resolve().parents[2]
+REPO = Path(__file__).resolve().parents[3]  # scripts/sg-audio/<stage>/
 MAPS = REPO / 'catalog/sg_drift/sg_drift_maps.json'
 OUTPUT_ROOT = Path(os.environ.get('A15_SG_RESPEED_ROOT', 'F:/Apollo_15_data/processing/sg/respeed'))
 VERSION = 'sg-respeed-v3'

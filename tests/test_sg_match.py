@@ -1,4 +1,4 @@
-"""SG reel matching (scripts/sg_transcript/md_sg.py): segment parsing, offsets, anchors and judging."""
+"""SG reel matching (scripts/sg-audio/02_sg-transcript/md_sg.py): segment parsing, offsets, anchors and judging."""
 from pathlib import Path
 import sys
 import unittest

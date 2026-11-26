@@ -1,7 +1,7 @@
 """Stable source identities, sample-exact readers and media checksums for transcription.
 
-Shared by the 30-track timing transcript (stage 06a), the space-to-ground reels
-(scripts/sg-audio) and the DVD audio streams (scripts/video/dvds). Each caller
+Shared by the 30-track timing transcript (stage 06), the space-to-ground reels
+(scripts/sg-audio/01_sg-internetarchive), the NARA flight tapes (01_sg-nara) and the DVD audio streams (scripts/video/dvds). Each caller
 supplies its own source inventory; this module is collection-agnostic.
 
 Source identities omit drive letters. A changed checksum, origin, review or map

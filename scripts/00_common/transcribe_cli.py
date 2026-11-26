@@ -1,6 +1,6 @@
 """Shared transcription command line: inventory, estimate, run, status, watch, verify, stop.
 
-Stage 06a (30-track), scripts/sg-audio (space-to-ground reels) and
+Stage 06 (30-track), scripts/sg-audio (IA reels and NARA flight tapes) and
 scripts/video/dvds (DVD audio streams) each call :func:`main` with their own
 :class:`Collection`. They share the recognizer and chunk store code but write
 separate stores with separate locks, so they can run at the same time.

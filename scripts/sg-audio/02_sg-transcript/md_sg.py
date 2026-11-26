@@ -2,8 +2,8 @@
 
 docs/16_2026-11-23_mission_data_ingestion.md, "Space-to-ground reels", steps 1, 3 and 4.
 The journals and the 1971 transcripts are the timing authority. The stage-06a-style ASR of
-each reel (written by scripts/sg-audio/sg_transcribe.py) only locates their utterances on the
-reel clock. Retiming the audio from these anchors is later work in scripts/sg-audio/.
+each reel (written by scripts/sg-audio/01_sg-internetarchive/sg_transcribe.py) only locates their utterances on
+the reel clock. The anchors feed the IA drift fit and respeed (scripts/sg-audio/03_sg-internetarchive-respeed/).
 
 Steps (``sg_transcript.py sg <step>``):
 
