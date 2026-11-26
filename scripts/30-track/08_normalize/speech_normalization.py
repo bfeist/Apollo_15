@@ -1,8 +1,17 @@
-"""Conservative speech-level measurement and separate, constant-gain listening renders.
+"""Stage 08: conservative speech-level gain and the final 8 kHz, 16-bit delivery WAV.
 
-This is a voiced-speech activity heuristic, not P.56, LUFS, or a transcription
-model. Only sustained, harmonic, non-tonal activity above the estimated floor
-can request gain. Uncertain channels are deliberately left at their input level.
+The level measurement is a voiced-speech activity heuristic, not P.56, LUFS, or a
+transcription model. Only sustained, harmonic, non-tonal activity above the estimated
+floor can request gain. Uncertain channels (silence, noise, tones, too little speech)
+get no boost, so tape noise on empty channels is not amplified.
+
+Every channel then becomes the delivery format: the earlier stages' working float audio is
+resampled to 8 kHz if it is not already at 8 kHz, scaled by its one constant gain,
+kept below the peak ceiling (-1 dBFS) and converted to 16-bit PCM with TPDF dither.
+The peak ceiling also applies to bypassed channels. Isolated sharp
+impulses (very short spikes) never set the gain; a 5 ms limiter holds them at the
+ceiling and may touch nothing else. So neither the gain change nor the conversion
+clips. The resampler, dither and conversion settings are recorded in ``normalization.json``.
 """
 from dataclasses import asdict, dataclass
 import hashlib
@@ -13,12 +22,22 @@ from pathlib import Path
 import numpy as np
 import soundfile as sf
 from scipy.ndimage import maximum_filter1d, uniform_filter1d
+from scipy.signal import resample_poly
 
 from flutter_plan_store import planning_lock
 
-DEFAULT_NORMALIZED_ROOT = Path('D:/Apollo_15_30-Track/speech_normalized')
-METHOD = 'conservative_voiced_speech_rms_v4'
+DEFAULT_NORMALIZED_ROOT = Path('D:/Apollo_15_30-Track/normalized')
+METHOD = 'conservative_voiced_speech_rms_v5'
 FRAME_SECONDS = .02
+DELIVERY_RATE = 8000
+DELIVERY_SUBTYPE = 'PCM_16'
+FULL_SCALE = 32768.  # PCM_16 code = round(sample * 32768 + dither), as soundfile decodes it
+RESAMPLER = dict(function='scipy.signal.resample_poly', window=('kaiser', 5.0), padtype='constant',
+                 half_length='10 x max(up, down) taps (scipy default)', streaming='30 s blocks with input halos; '
+                 'equal to one whole-file resample_poly call')
+DITHER = dict(type='TPDF', amplitude='+/-1 LSB (difference of two uniform [0, 1) LSB variates)', noise_shaping=None,
+              quantization='round half to even after dither', generator='numpy PCG64',
+              seed='first 8 bytes of the decoded float32 sha256 of the delivered-rate input, big-endian')
 
 
 @dataclass(frozen=True)
@@ -178,7 +197,7 @@ def analyze(source, settings=Settings(), *, timing_only=False, progress=print):
                   measurement='Median full-band 20 ms RMS of accepted voiced speech; not LUFS or P.56',
                   detector='Spectral periodicity, tone rejection, energy margin and sustained activity')
     if not len(features) or timing_only:
-        return result
+        return bypass_headroom(result, source, features, settings, timing_only)
     floor = float(np.percentile(db(features[:, 1]), 20))
     mask, impulses = speech_mask(features, floor, settings)
     seconds = float(mask.sum()*size/rate)
@@ -190,7 +209,7 @@ def analyze(source, settings=Settings(), *, timing_only=False, progress=print):
                   speech_band_floor_dbfs=floor, rejected_impulse_seconds=float(impulses.sum()*size/rate),
                   candidate_intervals=[[int(a*size), int(b*size)] for a, b in ranges(mask)])
     if seconds < settings.min_speech_seconds:
-        return result
+        return bypass_headroom(result, source, features, settings, timing_only)
     level = float(np.median(db(features[mask, 0])))
     contrast = level-noise if noise is not None else None
     result.update(candidate_level_dbfs=level, candidate_contrast_db=contrast)
@@ -199,7 +218,7 @@ def analyze(source, settings=Settings(), *, timing_only=False, progress=print):
     # amplify. Confirmed empty T510077 CH01/CH02 exposed this failure mode.
     if contrast is None or contrast < settings.min_snr_db:
         result['reason'] = 'insufficient_speech_contrast'
-        return result
+        return bypass_headroom(result, source, features, settings, timing_only)
     result.update(speech_seconds=seconds, speech_intervals=result['candidate_intervals'])
     # Stage 08 is independent of the old denoise gain policy. Use one scalar,
     # protecting ordinary peaks instead of forcing quiet median speech to its
@@ -224,6 +243,67 @@ def analyze(source, settings=Settings(), *, timing_only=False, progress=print):
     return result
 
 
+def bypass_headroom(result, source, features, settings, timing_only):
+    """A channel without speech gain keeps unity gain unless its ordinary peak exceeds the ceiling.
+
+    Only attenuation is possible, never a boost. Isolated impulses are exempt exactly as for speech
+    channels, and the renderer limits them. Timing-only channels (IRIG) are never limited: their whole
+    sample peak sets the attenuation.
+    """
+    if timing_only or not len(features):
+        peak, headroom = result['input_peak'], None
+    else:
+        binding = result['source']
+        headroom = program_headroom(source, features, binding['sample_rate'], binding['frames'])
+        peak = headroom['program_peak']
+    gain_db = min(0., settings.peak_ceiling_dbfs-float(db(peak))) if peak > 0 else 0.
+    result.update(gain_db=gain_db, gain=10**(gain_db/20), headroom=headroom, headroom_limited=gain_db < 0,
+                  gain_policy='bypass: unity gain, attenuated only to keep the peak ceiling')
+    return result
+
+
+def resample_file(source, output, rate_out=DELIVERY_RATE, block_seconds=30, progress=print):
+    """Write ``source`` (mono float) at ``rate_out`` as float32; blocks give the same samples as one call."""
+    with sf.SoundFile(source) as audio:
+        rate, frames = audio.samplerate, audio.frames
+        g = math.gcd(rate, rate_out)
+        up, down = rate_out//g, rate//g
+        half = 10*max(up, down)
+        halo = down*(math.ceil((half/up+2)/down)+1)  # input samples, a multiple of down
+        block = down*max(1, round(block_seconds*rate/down))
+        total = -(-frames*up//down)
+        written = 0
+        fmt = 'RF64' if total*4 >= 0xffffff00 else 'WAV'
+        with sf.SoundFile(output, 'w', samplerate=rate_out, channels=1, subtype='FLOAT', format=fmt) as out:
+            for start in range(0, frames, block):
+                end = min(frames, start+block)
+                left, right = start-halo, end+halo
+                audio.seek(max(0, left))
+                x = audio.read(min(frames, right)-max(0, left), dtype='float64')
+                x = np.r_[np.zeros(max(0, -left)), x, np.zeros(max(0, right-frames))]
+                if not np.isfinite(x).all():
+                    raise ValueError('Non-finite input audio')
+                y = resample_poly(x, up, down, window=RESAMPLER['window'], padtype='constant')
+                skip = halo*up//down
+                count = min(total, -(-end*up//down) if end == frames else end*up//down)-start*up//down
+                out.write(y[skip:skip+count].astype('<f4'))
+                written += count
+                progress(f'Resampled {end/rate/60:.1f} minutes')
+    if written != total:
+        raise ValueError('Resampled frame count mismatch')
+    return dict(RESAMPLER, input_rate=rate, output_rate=rate_out, up=up, down=down, input_frames=frames,
+                output_frames=total)
+
+
+def dither_and_quantize(samples, rng):
+    """TPDF dither of +/-1 LSB, then round to 16-bit codes; the caller keeps the peak below full scale."""
+    noise = rng.random(len(samples))-rng.random(len(samples))
+    codes = np.rint(samples*FULL_SCALE+noise)
+    if codes.size and (codes.max() > 32767 or codes.min() < -32768):
+        raise ValueError('16-bit conversion would clip')
+    return codes.astype('<i2')
+
+
 def limit_peaks(samples, rate, ceiling):
     """Symmetric 5 ms peak-envelope limiter, no delay or duration change.
 
@@ -245,24 +325,35 @@ def write_json(path, record):
 
 
 def normalize(source, destination, settings=Settings(), *, dry_run=False, timing_only=False, progress=print):
+    """Measure, then write ``normalized.wav`` (8 kHz, 16-bit, dithered) and ``normalization.json``."""
     source, destination = Path(source).resolve(), Path(destination).resolve()
     if (destination == source.parent or source.parent in destination.parents
             or destination in source.parents):
         raise ValueError('Input and output must be separate non-overlapping locations')
     if destination.exists() and any(destination.iterdir()):
         raise ValueError('Output must be new or empty; existing audio is immutable')
-    analysis = analyze(source, settings, timing_only=timing_only, progress=progress)
+    input_binding = signature(source)
     sidecars = {}
-    for name in ('denoised.json', 'review.json', 'retime.json', 'markers.csv'):
+    for name in ('denoised.json', 'review.json', 'retime.json', 'markers.csv',
+                 'timed_transcript.tsv', 'timed_transcript.json'):
         path = source.parent/name
         if path.is_file():
             sidecars[name] = path.read_bytes()
-    record = dict(schema=1, stage='07', status='planned', analysis=analysis,
+    record = dict(schema=2, stage='08', status='planned', input=input_binding,
                   implementation_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                   source_metadata={name:hashlib.sha256(raw).hexdigest() for name, raw in sidecars.items()},
+                  delivery=dict(sample_rate=DELIVERY_RATE, subtype=DELIVERY_SUBTYPE, container='WAV',
+                                full_scale=FULL_SCALE, peak_ceiling_dbfs=settings.peak_ceiling_dbfs),
                   duration_and_offsets_preserved=True, listening_approved=False)
     if dry_run:
+        if input_binding['sample_rate'] != DELIVERY_RATE:
+            record['resampling'] = dict(RESAMPLER, input_rate=input_binding['sample_rate'], output_rate=DELIVERY_RATE,
+                                        note='dry run measured the input rate; the run measures the resampled audio')
+        record['analysis'] = analyze(source, settings, timing_only=timing_only, progress=progress)
         return record
+    # At the delivery rate, measure before creating the destination (a bad input leaves nothing behind).
+    measured = (analyze(source, settings, timing_only=timing_only, progress=progress)
+                if input_binding['sample_rate'] == DELIVERY_RATE else None)
     with planning_lock(destination):
         if destination.exists() and any(destination.iterdir()):
             raise ValueError('Output must be new or empty')
@@ -270,17 +361,33 @@ def normalize(source, destination, settings=Settings(), *, dry_run=False, timing
         manifest = destination/'normalization.json'
         record['status'] = 'running'
         write_json(manifest, record)
+        resampled = destination/'resampled.partial.wav'
         try:
+            # Resample first, so the measurement, the headroom and the limiter all see the delivered samples.
+            work = source
+            if input_binding['sample_rate'] != DELIVERY_RATE:
+                record['resampling'] = resample_file(source, resampled, progress=progress)
+                if signature(source) != input_binding:
+                    raise ValueError('Source changed during resampling')
+                work = resampled
+            else:
+                record['resampling'] = dict(applied=False, reason=f'input is already {DELIVERY_RATE} Hz')
+            analysis = measured or analyze(work, settings, timing_only=timing_only, progress=progress)
+            record['analysis'] = analysis
             binding = analysis['source']
             rate, frames = binding['sample_rate'], binding['frames']
+            seed = int(binding['decoded_float32_sha256'][:16], 16)
+            rng = np.random.Generator(np.random.PCG64(seed))
+            record['dither'] = dict(DITHER, seed=seed)
+            ceiling = 10**(settings.peak_ceiling_dbfs/20)
             halo = 2*max(1, round(rate*.005))
             pending = destination/'normalized.partial.wav'
             in_hash, out_hash = hashlib.sha256(), hashlib.sha256()
             changed, min_gain, peak = 0, 1., 0.
             protected_limited_samples = 0
-            eligible = analysis['speech_level_dbfs'] is not None
-            with sf.SoundFile(source) as audio, sf.SoundFile(pending, 'w', samplerate=rate,
-                    channels=1, subtype='FLOAT', format='RF64' if frames*4 >= 0xffffff00 else 'WAV') as output:
+            limited = analysis.get('headroom') is not None
+            with sf.SoundFile(work) as audio, sf.SoundFile(pending, 'w', samplerate=rate, channels=1,
+                    subtype=DELIVERY_SUBTYPE, format='RF64' if frames*2 >= 0xffffff00 else 'WAV') as output:
                 for start in range(0, frames, rate*30):
                     end = min(frames, start+rate*30)
                     left, right = max(0, start-halo), min(frames, end+halo)
@@ -291,8 +398,8 @@ def normalize(source, destination, settings=Settings(), *, dry_run=False, timing
                     crop = slice(start-left, end-left)
                     in_hash.update(x[crop].astype('<f4', copy=False).tobytes())
                     y = x.astype(np.float64)*analysis['gain']
-                    if eligible:
-                        y, reduction = limit_peaks(y, rate, 10**(settings.peak_ceiling_dbfs/20))
+                    if limited:
+                        y, reduction = limit_peaks(y, rate, ceiling)
                         altered = reduction[crop] < 1.-1e-7
                         allowed = np.zeros(end-start, dtype=bool)
                         for a, b in analysis['headroom']['isolated_impulse_intervals']:
@@ -304,34 +411,38 @@ def normalize(source, destination, settings=Settings(), *, dry_run=False, timing
                             raise ValueError('Headroom verification failed: limiting would alter protected audio')
                         changed += int(np.count_nonzero(altered))
                         min_gain = min(min_gain, float(reduction[crop].min()))
-                    y = y[crop].astype('<f4')
-                    output.write(y)
-                    out_hash.update(y.tobytes())
-                    peak = max(peak, float(np.max(np.abs(y), initial=0)))
+                    codes = dither_and_quantize(y[crop], rng)
+                    output.write(codes)
+                    out_hash.update(codes.tobytes())
+                    peak = max(peak, float(np.max(np.abs(codes.astype(np.int32)), initial=0))/FULL_SCALE)
             expected = {k:v for k,v in binding.items() if k != 'decoded_float32_sha256'}
-            if signature(source) != expected or in_hash.hexdigest() != binding['decoded_float32_sha256']:
+            if signature(work) != expected or in_hash.hexdigest() != binding['decoded_float32_sha256']:
+                raise ValueError('Source changed between analysis and rendering')
+            if work != source and signature(source) != input_binding:
                 raise ValueError('Source changed between analysis and rendering')
             verified = hashlib.sha256()
             with sf.SoundFile(pending) as audio:
-                if (audio.frames, audio.samplerate, audio.channels, audio.subtype) != (frames, rate, 1, 'FLOAT'):
+                if (audio.frames, audio.samplerate, audio.channels, audio.subtype) != (frames, rate, 1, DELIVERY_SUBTYPE):
                     raise ValueError('Output format or duration mismatch')
-                for x in audio.blocks(blocksize=rate*30, dtype='float32'):
-                    verified.update(x.astype('<f4', copy=False).tobytes())
+                for x in audio.blocks(blocksize=rate*30, dtype='int16'):
+                    verified.update(x.astype('<i2', copy=False).tobytes())
             if verified.hexdigest() != out_hash.hexdigest():
                 raise ValueError('Output verification failed')
-            if eligible and peak > 10**(settings.peak_ceiling_dbfs/20)+1e-7:
+            # The dither may add at most 1 LSB to a sample held at the ceiling.
+            if peak > ceiling+1.5/FULL_SCALE:
                 raise ValueError('Output exceeded peak ceiling')
             for name, raw in sidecars.items():
                 if (source.parent/name).read_bytes() != raw:
                     raise ValueError('Source timing metadata changed')
-                # Markers keep the same coordinates. Preserve the source stage
-                # manifest under a distinct name rather than posing as its output.
-                output_name = name if name == 'markers.csv' else 'source_'+name
-                (destination/output_name).write_bytes(raw)
+                # Markers and the timed transcript keep their coordinates (seconds; resampling keeps the
+                # duration). The source stage manifest is kept under a distinct name.
+                keep = name in ('markers.csv', 'timed_transcript.tsv', 'timed_transcript.json')
+                (destination/(name if keep else 'source_'+name)).write_bytes(raw)
             pending.replace(destination/'normalized.wav')
-            record.update(status='complete', output=dict(file='normalized.wav', frames=frames,
-                sample_rate=rate, peak=peak, decoded_float32_sha256=verified.hexdigest()),
-                limiter=dict(method='symmetric_5ms_peak_envelope', applied=eligible,
+            resampled.unlink(missing_ok=True)
+            record.update(status='complete', output=dict(file='normalized.wav', frames=frames, sample_rate=rate,
+                subtype=DELIVERY_SUBTYPE, peak=peak, peak_dbfs=float(db(peak)), decoded_int16_sha256=verified.hexdigest()),
+                limiter=dict(method='symmetric_5ms_peak_envelope', applied=limited,
                     affected_seconds=changed/rate, affected_fraction=changed/frames,
                     maximum_reduction_db=float(-db(min_gain)),
                     protected_limited_samples=protected_limited_samples,
@@ -339,6 +450,7 @@ def normalize(source, destination, settings=Settings(), *, dry_run=False, timing
             write_json(manifest, record)
             return record
         except BaseException as error:
+            resampled.unlink(missing_ok=True)
             record.update(status='failed', error=f'{type(error).__name__}: {error}')
             write_json(manifest, record)
             raise

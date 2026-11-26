@@ -1,4 +1,9 @@
-"""Stage 08: constant gain to a speech target, bypassing uncertain channels."""
+"""Stage 08: one constant speech gain per channel and the final 8 kHz, 16-bit dithered delivery WAV.
+
+Reads the 07b retimed channels by default (``--input-root``); writes ``normalized.wav`` and
+``normalization.json`` per channel under ``--output-root`` (D:/Apollo_15_30-Track/normalized),
+with the timed transcript and markers copied beside it. See speech_normalization.py.
+"""
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -7,7 +12,7 @@ install()
 
 import argparse
 import json
-from shared_tape import DEFAULT_DEFLUTTERED_ROOT
+from quindar_retime import DEFAULT_RETIMED_ROOT
 from speech_normalization import DEFAULT_NORMALIZED_ROOT, Settings, normalize
 
 
@@ -37,7 +42,7 @@ def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--input', type=Path, help='One mono WAV or completed channel folder')
     p.add_argument('--output', type=Path, help='New destination for one channel')
-    p.add_argument('--input-root', type=Path, default=DEFAULT_DEFLUTTERED_ROOT)
+    p.add_argument('--input-root', type=Path, default=DEFAULT_RETIMED_ROOT, help='Retimed channels (07b); or the 05b root')
     p.add_argument('--output-root', type=Path, default=DEFAULT_NORMALIZED_ROOT)
     tapes = p.add_mutually_exclusive_group()
     tapes.add_argument('--tape')

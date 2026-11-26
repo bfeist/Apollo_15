@@ -1,4 +1,4 @@
-"""Speech selection, sparse/noise safety, peak handling and immutable outputs."""
+"""Speech selection, sparse/noise safety, peak handling, 8 kHz 16-bit delivery and immutable outputs."""
 import hashlib
 import importlib.util
 import json
@@ -15,7 +15,7 @@ import soundfile as sf
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT/'scripts'))
 import _bootstrap
-from speech_normalization import Settings, analyze, normalize, limit_peaks
+from speech_normalization import Settings, analyze, normalize, limit_peaks, resample_file
 import pipeline
 
 
@@ -25,6 +25,11 @@ def voice(rate=8000, seconds=8):
     # Several changing formant harmonics, syllabic amplitude and pitch.
     x = sum(np.sin(h*phase)/h**.35 for h in range(2, 16))
     return .012*x*(.55+.45*np.sin(2*np.pi*3.2*t)**2)
+
+
+LSB = 1/32768
+# TPDF dither (+/-1 LSB) plus rounding moves a delivered sample by at most 1.5 LSB.
+DELIVERY_ATOL = 1.5*LSB+1e-9
 
 
 class SpeechNormalizationTests(unittest.TestCase):
@@ -56,7 +61,12 @@ class SpeechNormalizationTests(unittest.TestCase):
                 self.assertEqual(result['analysis']['reason'], 'insufficient_speech')
                 original, _ = sf.read(self.source, dtype='float32')
                 output, _ = sf.read(self.root/name/'normalized.wav', dtype='float32')
-                np.testing.assert_array_equal(output, original)
+                self.assertEqual(sf.info(self.root/name/'normalized.wav').subtype, 'PCM_16')
+                ordinary = np.ones(len(original), dtype=bool)
+                ordinary[self.rate*25-80:self.rate*25+81] = False  # the spike and its 10 ms limiter window
+                # No boost: only the isolated spike above the ceiling is held there.
+                np.testing.assert_allclose(output[ordinary], original[ordinary], atol=DELIVERY_ATOL)
+                self.assertLessEqual(np.max(np.abs(output)), 10**(-1/20)+DELIVERY_ATOL)
 
     def test_sparse_speech_and_interior_spike_do_not_set_gain(self):
         x = np.random.default_rng(42).normal(0, .0001, self.rate*90)
@@ -72,13 +82,13 @@ class SpeechNormalizationTests(unittest.TestCase):
         self.assertAlmostEqual(before['gain_db'], result['analysis']['gain_db'], places=3)
         audio, rate = sf.read(self.output/'normalized.wav', dtype='float32')
         self.assertEqual((len(audio), rate), (len(x), self.rate))
-        self.assertLessEqual(np.max(np.abs(audio)), 10**(-1/20)+1e-7)
+        self.assertLessEqual(np.max(np.abs(audio)), 10**(-1/20)+DELIVERY_ATOL)
         self.assertGreater(result['limiter']['affected_seconds'], 0)
         self.assertLess(result['limiter']['affected_fraction'], .001)
         # Speech is a constant gain, without a gate or timeline shift.
         original, _ = sf.read(self.source, dtype='float32')
         np.testing.assert_allclose(audio[self.rate*10:self.rate*18],
-            original[self.rate*10:self.rate*18]*result['analysis']['gain'], rtol=2e-7, atol=1e-8)
+            original[self.rate*10:self.rate*18]*result['analysis']['gain'], rtol=2e-7, atol=DELIVERY_ATOL)
         self.assertEqual(hashlib.sha256(self.source.read_bytes()).hexdigest(), digest)
         with self.assertRaisesRegex(ValueError, 'immutable'):
             normalize(self.source, self.output)
@@ -120,7 +130,7 @@ class SpeechNormalizationTests(unittest.TestCase):
         original, _ = sf.read(self.source, dtype='float32')
         output, _ = sf.read(self.output/'normalized.wav', dtype='float32')
         # Constant gain includes both transmissions and the intervening noise.
-        np.testing.assert_allclose(output, original*analysis['gain'], rtol=2e-7, atol=1e-8)
+        np.testing.assert_allclose(output, original*analysis['gain'], rtol=2e-7, atol=DELIVERY_ATOL)
 
     def test_loud_transmission_sets_headroom_without_compressing_speech(self):
         x = np.random.default_rng(23).normal(0,.0001,self.rate*40)
@@ -138,8 +148,8 @@ class SpeechNormalizationTests(unittest.TestCase):
         output, _ = sf.read(self.output/'normalized.wav', dtype='float32')
         # Both quiet and loud transmissions remain exact scalar multiples.
         np.testing.assert_allclose(output[:self.rate*20], original[:self.rate*20]*analysis['gain'],
-                                   rtol=2e-7, atol=1e-8)
-        self.assertLessEqual(np.max(np.abs(output)), 10**(-1/20)+1e-7)
+                                   rtol=2e-7, atol=DELIVERY_ATOL)
+        self.assertLessEqual(np.max(np.abs(output)), 10**(-1/20)+DELIVERY_ATOL)
 
     def test_underestimated_headroom_cannot_publish_broadly_limited_audio(self):
         x = np.random.default_rng(24).normal(0,.0001,self.rate*30)
@@ -167,10 +177,10 @@ class SpeechNormalizationTests(unittest.TestCase):
         self.assertEqual(analysis['reason'], 'insufficient_speech_contrast')
         self.assertEqual(analysis['gain'], 1.)
         self.assertEqual(analysis['speech_seconds'], 0.)
-        self.assertFalse(result['limiter']['applied'])
+        self.assertEqual(result['limiter']['affected_seconds'], 0)
         original, _ = sf.read(self.source, dtype='float32')
         output, _ = sf.read(self.output/'normalized.wav', dtype='float32')
-        np.testing.assert_array_equal(output, original)
+        np.testing.assert_allclose(output, original, atol=DELIVERY_ATOL)
 
     def test_short_transmission_and_invalid_inputs_bypass_or_fail(self):
         x = np.zeros(self.rate*10)
@@ -215,7 +225,8 @@ class SpeechNormalizationTests(unittest.TestCase):
         result = subprocess.run(cmd, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
         output, rate = sf.read(self.output/'normalized.wav', dtype='float32')
-        np.testing.assert_array_equal(output, x)
+        # Timing-only: no limiter; the 0.8 tail sample is below the ceiling, so unity gain.
+        np.testing.assert_allclose(output, x, atol=DELIVERY_ATOL)
         self.assertEqual(rate, self.rate)
         self.assertEqual((self.output/'markers.csv').read_bytes(), marker)
         self.assertEqual(json.loads((self.output/'source_review.json').read_text()), review)
@@ -234,15 +245,78 @@ class SpeechNormalizationTests(unittest.TestCase):
         capped_job = next(j for j in pipeline.make_jobs(capped_args, capped_selected, self.root) if j['number'] == '08')
         self.assertIn('--max-boost-db', capped_job['command'])
         self.assertIn('--max-noise-dbfs', capped_job['command'])
-        source = self.root/'defluttered'/'A15_T001'/'CH07'
+        source = self.root/'retimed'/'A15_T001'/'CH07'
         source.mkdir(parents=True)
         args, selected = pipeline.parse_args(['plan', '--stages', '08', '--all-tapes',
-            '--defluttered-root', str(source.parents[1]), '--normalized-root', str(self.output)])
+            '--retimed-root', str(source.parents[1]), '--normalized-root', str(self.output)])
         jobs = pipeline.make_jobs(args, selected, self.root)
         self.assertEqual(len(jobs), 1)
         self.assertEqual(jobs[0]['channel'], 7)
         self.assertIn(str(source.parents[1]), jobs[0]['command'])
         self.assertFalse(self.output.exists())
+
+
+class DeliveryFormatTests(unittest.TestCase):
+    """The delivery WAV is 8 kHz 16-bit with TPDF dither, recorded settings and no clipping."""
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.source = self.root/'input'/'retimed.wav'
+        self.source.parent.mkdir()
+
+    def test_working_float_at_a_higher_rate_is_resampled_then_measured(self):
+        rate = 16000
+        x = np.random.default_rng(5).normal(0, .0001, rate*30)
+        x[rate*5:rate*13] += voice(rate=rate)*.2
+        sf.write(self.source, x, rate, subtype='FLOAT')
+        result = normalize(self.source, self.root/'out', progress=lambda _: None)
+        info = sf.info(self.root/'out'/'normalized.wav')
+        self.assertEqual((info.samplerate, info.subtype, info.frames), (8000, 'PCM_16', len(x)//2))
+        self.assertEqual(result['resampling']['function'], 'scipy.signal.resample_poly')
+        self.assertEqual((result['resampling']['up'], result['resampling']['down']), (1, 2))
+        self.assertEqual(result['dither']['type'], 'TPDF')
+        self.assertGreater(result['analysis']['gain_db'], 0)
+        self.assertFalse((self.root/'out'/'resampled.partial.wav').exists())
+        saved = json.loads((self.root/'out'/'normalization.json').read_text())
+        self.assertEqual(saved['delivery'], dict(sample_rate=8000, subtype='PCM_16', container='WAV',
+                                                 full_scale=32768., peak_ceiling_dbfs=-1.))
+
+    def test_streamed_resampling_equals_one_whole_file_call(self):
+        from scipy.signal import resample_poly
+        for rate, frames in ((44100, 44100*3+123), (11025, 11025*70+7)):
+            with self.subTest(rate=rate):
+                x = np.random.default_rng(rate).normal(0, .1, frames)
+                sf.write(self.source, x, rate, subtype='FLOAT')
+                out = self.root/f'r{rate}.wav'
+                record = resample_file(self.source, out, block_seconds=1, progress=lambda _: None)
+                y, out_rate = sf.read(out, dtype='float64')
+                g = np.gcd(rate, 8000)
+                whole = resample_poly(sf.read(self.source, dtype='float64')[0], 8000//g, rate//g,
+                                      window=('kaiser', 5.0), padtype='constant')
+                self.assertEqual((out_rate, len(y), record['output_frames']), (8000, len(whole), len(whole)))
+                np.testing.assert_allclose(y, whole.astype(np.float32), atol=1e-6)
+
+    def test_loud_bypassed_channel_is_attenuated_never_clipped(self):
+        # Broadband noise near full scale: no speech, so no boost; its sustained peak must not clip.
+        x = np.clip(np.random.default_rng(8).normal(0, .45, 8000*20), -1.2, 1.2)
+        sf.write(self.source, x, 8000, subtype='FLOAT')
+        result = normalize(self.source, self.root/'out', progress=lambda _: None)
+        self.assertLess(result['analysis']['gain_db'], 0)
+        self.assertTrue(result['analysis']['headroom_limited'])
+        y, _ = sf.read(self.root/'out'/'normalized.wav', dtype='float64')
+        self.assertLessEqual(np.max(np.abs(y)), 10**(-1/20)+DELIVERY_ATOL)
+        self.assertLess(result['output']['peak'], 1.)
+
+    def test_dither_is_tpdf_and_reproducible(self):
+        x = np.full(8000*10, .25*LSB)  # below one LSB: plain rounding would give digital silence
+        sf.write(self.source, x, 8000, subtype='FLOAT')
+        first = normalize(self.source, self.root/'a', progress=lambda _: None)
+        second = normalize(self.source, self.root/'b', progress=lambda _: None)
+        self.assertEqual(first['output']['decoded_int16_sha256'], second['output']['decoded_int16_sha256'])
+        codes, _ = sf.read(self.root/'a'/'normalized.wav', dtype='int16')
+        self.assertLessEqual(set(np.unique(codes).tolist()), {-1, 0, 1})
+        self.assertAlmostEqual(float(codes.mean()), .25, delta=.02)  # dither keeps the sub-LSB level
 
 
 if __name__ == '__main__':

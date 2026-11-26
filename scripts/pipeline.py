@@ -90,7 +90,7 @@ def parse_args(argv=None):
     parser.add_argument('--defluttered-root', type=Path, default=DEFAULT_DEFLUTTERED_ROOT)
     parser.add_argument('--retimed-root', type=Path, default=DEFAULT_RETIMED_ROOT)
     parser.add_argument('--normalized-root', type=Path, default=DEFAULT_NORMALIZED_ROOT)
-    parser.add_argument('--normalize-from', choices=['defluttered', 'retimed'], default='defluttered',
+    parser.add_argument('--normalize-from', choices=['defluttered', 'retimed'], default='retimed',
                         help='Stage 08 input when no preceding audio stage is selected')
     parser.add_argument('--speech-target-dbfs', type=float, default=-23., help='Stage 08 active speech RMS target; not LUFS')
     parser.add_argument('--speech-max-boost-db', type=float, help='Stage 08 optional boost limit; disabled by default')
