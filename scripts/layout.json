@@ -89,6 +89,8 @@
   "mission_asr.py": "00_common/mission_asr.py",
   "mission_store.py": "00_common/mission_store.py",
   "transcribe_run.py": "00_common/transcribe_run.py",
+  "transcript_read.py": "00_common/transcript_read.py",
+  "mission_align.py": "00_common/mission_align.py",
   "sg_transcript.py": "sg_transcript/sg_transcript.py",
   "flight_plan.py": "flight_plan/flight_plan.py",
   "md_common.py": "sg_transcript/md_common.py",

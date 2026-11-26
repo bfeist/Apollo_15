@@ -16,6 +16,9 @@ dependencies = [
     "pillow>=12.3.0",
     "lxml>=6.1.3",
     "opencv-python-headless>=4.10",
+    # Forced alignment of the timing transcripts (scripts/00_common/mission_align.py).
+    "torch==2.8.0",
+    "torchaudio==2.8.0",
 ]
 
 [project.optional-dependencies]
@@ -23,3 +26,12 @@ irig = ["numba"]
 
 [tool.uv]
 package = false
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+torchaudio = { index = "pytorch-cu128" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true

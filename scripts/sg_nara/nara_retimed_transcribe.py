@@ -12,7 +12,7 @@ transcription stages. A tape is selected only when its render provenance is comp
 frame count matches the WAV); the provenance checksum and map checksum are part of the source
 identity, so a re-rendered tape gets a new identity.
 
-Subcommands are those of stage 06a: inventory, estimate, run, status, watch, rescue, verify, stop.
+Subcommands are those of stage 06a: inventory, estimate, run, status, watch, verify, stop.
 For example:
   uv run python scripts/run.py nara_retimed_transcribe.py run --tape all --batch-size 8 --prep-workers 4
 """

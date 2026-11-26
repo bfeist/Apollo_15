@@ -5,12 +5,14 @@ Layout under the transcript root::
     <settings_id>/settings.json
     <settings_id>/sources/<collection>/<...key>/<identity_id>/source.json
     <settings_id>/sources/<collection>/<...key>/<identity_id>/chunks/c00012/{chunk.json,segments.jsonl.gz}
-    <settings_id>/rescue/<rescue_id>/sources/.../chunks/c00012/...
 
-A chunk directory appears only by renaming a complete temporary directory.
-Reuse requires the same settings, the same source identity and the same
-nominal chunk range. A new source checksum, origin or map gives a new identity
-directory; earlier transcripts stay in place and are reported as superseded.
+A chunk directory appears only by renaming a complete temporary directory. Aligning
+an older chunk replaces it the same way, after moving the old directory aside.
+Reuse requires the same settings, the same source identity and the same nominal
+chunk range. A new source checksum, origin or map gives a new identity directory;
+earlier transcripts stay in place and are reported as superseded. A store is found
+by its transcript-defining settings (``resolve_settings``), so execution-only
+settings such as the batch size need not match.
 
 Session ledgers (one per invocation) live under the evidence root and record
 throughput, failures and the selected scope.
@@ -110,25 +112,47 @@ class Store:
     def settings_dir(self, settings_id):
         return self.root / settings_id
 
-    def source_dir(self, settings_id, source: Source, layer=None):
-        base = self.settings_dir(settings_id) if layer is None else self.settings_dir(settings_id) / 'rescue' / layer
-        return base / 'sources' / Path(*source.key.split('/')) / source.identity_id
+    def source_dir(self, settings_id, source: Source):
+        return self.settings_dir(settings_id) / 'sources' / Path(*source.key.split('/')) / source.identity_id
 
-    def chunk_dir(self, settings_id, source, index, layer=None):
-        return self.source_dir(settings_id, source, layer) / 'chunks' / f'c{index:05d}'
+    def chunk_dir(self, settings_id, source, index):
+        return self.source_dir(settings_id, source) / 'chunks' / f'c{index:05d}'
 
     # ----------------------------------------------------------------- settings
+    def resolve_settings(self, settings):
+        """The store directory for ``settings``.
+
+        The existing directory whose transcript-defining settings match (the newest if several),
+        else the settings' own identity for a new store. Execution-only settings such as the
+        batch size are ignored, so every command finds a store whatever batch size made it.
+        """
+        from mission_asr import transcript_fields
+        own = settings.settings_id
+        if (self.settings_dir(own) / 'settings.json').is_file():
+            return own
+        wanted = settings.transcript_description()
+        found = []
+        for path in (sorted(self.root.glob('asr-*/settings.json')) if self.root.is_dir() else []):
+            try:
+                saved = read_json(path)
+            except (OSError, json.JSONDecodeError):
+                continue
+            if transcript_fields(saved['settings']) == wanted:
+                found.append((saved.get('created', ''), saved['settings_id']))
+        return max(found)[1] if found else own
+
     def register_settings(self, settings_id, description):
+        from mission_asr import transcript_fields
         path = self.settings_dir(settings_id) / 'settings.json'
         if path.is_file():
             saved = read_json(path)
-            if saved['settings'] != description:
+            if transcript_fields(saved['settings']) != transcript_fields(description):
                 raise ValueError(f'Settings {settings_id} were saved with different parameters')
             return
         write_json(path, dict(settings_id=settings_id, settings=description, created=now()))
 
-    def register_source(self, settings_id, source: Source, layer=None):
-        path = self.source_dir(settings_id, source, layer) / 'source.json'
+    def register_source(self, settings_id, source: Source):
+        path = self.source_dir(settings_id, source) / 'source.json'
         record = source.to_json()
         identity = source.identity()
         if path.is_file():
@@ -138,8 +162,8 @@ class Store:
         write_json(path, dict(identity=identity, source=record, registered=now()))
 
     # ----------------------------------------------------------------- chunks
-    def completed(self, settings_id, source, spec_index, nominal, layer=None, verify=False):
-        folder = self.chunk_dir(settings_id, source, spec_index, layer)
+    def completed(self, settings_id, source, spec_index, nominal, verify=False):
+        folder = self.chunk_dir(settings_id, source, spec_index)
         receipt_path = folder / 'chunk.json'
         if not receipt_path.is_file():
             return None
@@ -158,9 +182,7 @@ class Store:
                 raise ValueError(f'Transcript chunk changed after publication: {folder}')
         return receipt
 
-    def publish_chunk(self, settings_id, source, index, receipt, rows, layer=None):
-        """Write rows and receipt to a temporary directory, then rename it into place."""
-        final = self.chunk_dir(settings_id, source, index, layer)
+    def _write_temporary(self, final, settings_id, source, receipt, rows):
         final.parent.mkdir(parents=True, exist_ok=True)
         tmp = final.parent / f'.tmp-{final.name}-{uuid.uuid4().hex[:8]}'
         tmp.mkdir()
@@ -169,26 +191,62 @@ class Store:
                                     compresslevel=6, mtime=0)
             (tmp / 'segments.jsonl.gz').write_bytes(payload)
             receipt = dict(receipt, schema=CHUNK_SCHEMA, status='complete', settings_id=settings_id,
-                           identity_id=source.identity_id, source_key=source.key, layer=layer,
+                           identity_id=source.identity_id, source_key=source.key,
                            segments_sha256=sha256_bytes(payload), published=now())
             write_json(tmp / 'chunk.json', receipt)
-            try:
-                os.rename(tmp, final)
-            except OSError:
-                if (final / 'chunk.json').is_file():
-                    # Another worker published the same deterministic chunk first.
-                    shutil.rmtree(tmp, ignore_errors=True)
-                    return read_json(final / 'chunk.json')
-                raise
-            return receipt
+            return tmp, receipt
         except BaseException:
             shutil.rmtree(tmp, ignore_errors=True)
             raise
 
+    def publish_chunk(self, settings_id, source, index, receipt, rows):
+        """Write rows and receipt to a temporary directory, then rename it into place."""
+        final = self.chunk_dir(settings_id, source, index)
+        tmp, receipt = self._write_temporary(final, settings_id, source, receipt, rows)
+        try:
+            os.rename(tmp, final)
+        except OSError:
+            shutil.rmtree(tmp, ignore_errors=True)
+            if (final / 'chunk.json').is_file():
+                # Another worker published the same deterministic chunk first.
+                return read_json(final / 'chunk.json')
+            raise
+        return receipt
+
+    def replace_chunk(self, settings_id, source, index, receipt, rows):
+        """Replace a published chunk: write the new one aside, move the old one out, rename.
+
+        A crash between the two renames leaves ``.old-cNNNNN-*`` and no chunk;
+        ``clean_temporaries`` puts the old chunk back.
+        """
+        final = self.chunk_dir(settings_id, source, index)
+        tmp, receipt = self._write_temporary(final, settings_id, source, receipt, rows)
+        old = final.parent / f'.old-{final.name}-{uuid.uuid4().hex[:8]}'
+        try:
+            os.rename(final, old)
+        except BaseException:
+            shutil.rmtree(tmp, ignore_errors=True)
+            raise
+        try:
+            os.rename(tmp, final)
+        except BaseException:
+            os.rename(old, final)
+            shutil.rmtree(tmp, ignore_errors=True)
+            raise
+        shutil.rmtree(old, ignore_errors=True)
+        return receipt
+
     def clean_temporaries(self, settings_id):
+        """Remove unpublished temporaries and restore a chunk whose replacement was interrupted."""
         removed = 0
         base = self.settings_dir(settings_id)
         if base.is_dir():
+            for old in base.rglob('.old-c*'):
+                final = old.parent / old.name.split('-')[1]
+                if old.is_dir() and not final.exists():
+                    os.rename(old, final)
+                elif old.is_dir():
+                    shutil.rmtree(old, ignore_errors=True)
             for tmp in base.rglob('.tmp-c*'):
                 if tmp.is_dir():
                     shutil.rmtree(tmp, ignore_errors=True)
@@ -199,8 +257,8 @@ class Store:
         with gzip.open(Path(folder) / 'segments.jsonl.gz', 'rt', encoding='utf-8') as stream:
             return [json.loads(line) for line in stream if line.strip()]
 
-    def source_chunks(self, settings_id, source, layer=None):
-        base = self.source_dir(settings_id, source, layer) / 'chunks'
+    def source_chunks(self, settings_id, source):
+        base = self.source_dir(settings_id, source) / 'chunks'
         out = []
         if base.is_dir():
             for folder in sorted(base.glob('c[0-9]*')):
@@ -211,9 +269,8 @@ class Store:
                         out.append((folder, receipt))
         return out
 
-    def identities(self, settings_id, key, layer=None):
-        base = self.settings_dir(settings_id) if layer is None else self.settings_dir(settings_id) / 'rescue' / layer
-        folder = base / 'sources' / Path(*key.split('/'))
+    def identities(self, settings_id, key):
+        folder = self.settings_dir(settings_id) / 'sources' / Path(*key.split('/'))
         return sorted(p.name for p in folder.iterdir() if p.is_dir()) if folder.is_dir() else []
 
     # ----------------------------------------------------------------- sessions

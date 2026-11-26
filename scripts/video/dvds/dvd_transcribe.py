@@ -4,7 +4,7 @@ Uses the shared recognizer and chunk store (scripts/00_common) with its own
 store and lock under F:/Apollo_15_data/processing/dvd, so it can run alongside stage 06a.
 
 Subcommands are those of stage 06a: inventory, estimate, run, status, watch,
-rescue, verify, stop. Example:
+verify, stop. Example:
   uv run python scripts/run.py dvd_transcribe.py run --dvd 'D04-T02-P0[12]'
 """
 import sys as _sys

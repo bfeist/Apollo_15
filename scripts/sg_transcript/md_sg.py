@@ -23,9 +23,9 @@ from __future__ import annotations
 
 import bisect
 import difflib
-import gzip
 import json
 import re
+import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 from statistics import median
@@ -33,6 +33,9 @@ from statistics import median
 from md_common import LOCAL, MISSION_DATA, RAW_MANIFEST, SCRAPED, format_get, read_tsv, sha256_file, today, \
     tokens, write_tsv
 from md_reconcile import comparable, load_journal, load_printed  # noqa: F401
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / '00_common'))
+from transcript_read import identity_rows  # noqa: E402
 
 SG_STORE = Path('F:/Apollo_15_data/processing/sg/timing_transcripts')
 SG_INDEX_PDF = Path('N:/Projects/Apollo/Mission Data/NASA-Audio-Archive_Digital-Audio-File_Metadata.pdf')
@@ -68,7 +71,7 @@ LOCAL_EACH = 4            # nearest clean neighbours used on each side (a local 
 OK_RESIDUAL = 3.0         # |offset - local median| for an anchor to be consistent
 PAO_MIN_TOKENS = 5
 PAO_COVERAGE = 0.5
-BAD_SEGMENT_FLAGS = {'collapsed_timing', 'high_compression', 'no_word_times'}
+BAD_SEGMENT_FLAGS = {'collapsed_timing', 'high_compression', 'no_word_times', 'align_failed'}
 # Word or segment timing that cannot place an onset (the timing plan's "no collapsed or uncertain words").
 # Measured on all reels (2026-11-24): a word whose segment has collapsed timing is a median 13 s off
 # its neighbours, and a long word spanning a VAD gap 6 s. A zero-duration, clipped or low-probability
@@ -106,18 +109,16 @@ def reel_identity(settings: Path, reel: str) -> Path | None:
 
 
 def load_asr(identity: Path) -> list[dict]:
-    """Owned segments of every completed chunk, in reel order, with comparable tokens per word."""
+    """Owned segments of every completed chunk, in reel order, with comparable tokens per word.
+
+    Word times are the CTC-aligned ones where the chunk is aligned (scripts/00_common/
+    transcript_read.py), Whisper's otherwise.
+    """
     rate = json.loads((identity / 'source.json').read_text(encoding='utf-8'))['identity']['sample_rate']
-    segments = []
-    for folder in sorted((identity / 'chunks').glob('c[0-9]*')):
-        receipt = folder / 'chunk.json'
-        if not receipt.is_file() or json.loads(receipt.read_text(encoding='utf-8')).get('status') != 'complete':
-            raise RuntimeError(f'Incomplete transcript chunk {folder}; finish sg_transcribe.py first')
-        with gzip.open(folder / 'segments.jsonl.gz', 'rt', encoding='utf-8') as stream:
-            for line in stream:
-                if line.strip():
-                    segments.append(json.loads(line))
-    segments.sort(key=lambda s: s['sf'])
+    try:
+        segments = identity_rows(identity)
+    except RuntimeError as error:
+        raise RuntimeError(f'{error}; finish sg_transcribe.py first') from error
     out = []
     for i, seg in enumerate(segments):
         words = []

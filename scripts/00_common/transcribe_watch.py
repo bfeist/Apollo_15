@@ -216,6 +216,7 @@ class State:
         self.folder = None
         self.record = {}
         self.rows = []
+        self.align = None      # latest alignment progress row (aligning published chunks)
         self.alive = False
         self.failures = 0
         self.last_group_at = None
@@ -270,6 +271,12 @@ def header(state, feed, now_wall=None):
                  'last group', f'{last_rate:,.0f}x' if last_rate else '-', 'since group', duration(since))
     grid.add_row('groups', f'{len(rows):,}', 'speech', f'{retained / (done * 3600):.1%}' if done else '-',
                  'words', f'{words:,}', 'flag marks', f'{flagged / words:.1%}' if words else '-')
+    if state.align:
+        a = state.align
+        grid.add_row('aligned', f"{a['chunks']:,} / {record.get('unaligned_chunks', 0):,} chunks", 'aligned ch-h',
+                     f"{a['aligned_source_hours']:,.1f}", 'align rate',
+                     f"{a['aligned_source_hours'] * 3600 / max(a['elapsed_seconds'], 1e-9):,.0f}x",
+                     'failed ctx', f"{a['failed_contexts']:,}")
     grid.add_row('reused', f'{reused:,.1f} ch-h', 'failures',
                  Text(f'{state.failures}', style='bold red' if state.failures else ''),
                  'feed', f'{feed.shown:,} shown', 'sampled out', f'{feed.sampled_out:,}')
@@ -283,7 +290,7 @@ def header(state, feed, now_wall=None):
 
 def dashboard(state, feed):
     layout = Layout()
-    layout.split_column(Layout(header(state, feed), name='header', size=8),
+    layout.split_column(Layout(header(state, feed), name='header', size=9 if state.align else 8),
                         Layout(Panel(FeedView(feed), title='Recent transcript (canonical tape time, source)',
                                      title_align='left', subtitle='dim = collapsed timing / high compression; '
                                      'Ctrl+C closes the watcher only', subtitle_align='right',
@@ -311,6 +318,8 @@ def watch(transcript_root, evidence_root, *, session_id=None, channels=None, min
             state.folder, state.rows, state.last_group_at = folder, [], None
             tail = ProgressTail(folder)
             first = tail.poll()
+            state.align = next((r for r in reversed(first) if r.get('kind') == 'align'), None)
+            first = [r for r in first if r.get('kind') != 'align']
             state.rows.extend(first)
             record = read_json(folder / 'session.json')
             for row in first[-seed_groups:] if seed_groups else []:
@@ -327,6 +336,9 @@ def watch(transcript_root, evidence_root, *, session_id=None, channels=None, min
         state.failures = sum(1 for _ in failures.open('rb')) if failures.is_file() else 0
         new = tail.poll()
         for row in new:
+            if row.get('kind') == 'align':
+                state.align = row
+                continue
             state.rows.append(row)
             state.last_group_at = parse_time(row['t']) or time.time()
             segments = group_segments(transcript_root, state.record['settings_id'], row.get('ledger', []),

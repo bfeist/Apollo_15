@@ -1,4 +1,4 @@
-"""Shared transcription command line: inventory, estimate, run, status, watch, rescue, verify, stop.
+"""Shared transcription command line: inventory, estimate, run, status, watch, verify, stop.
 
 Stage 06a (30-track), scripts/sg-audio (space-to-ground reels) and
 scripts/video/dvds (DVD audio streams) each call :func:`main` with their own
@@ -153,9 +153,13 @@ def cmd_estimate(args):
     done = sum(r['done_hours'] for r in rows)
     retained = sum(r['retained_hours'] for r in rows)
     remaining = total - done
+    settings_id = store.resolve_settings(settings)
     sessions = store.sessions()
-    model = runner.throughput_model([s for s in sessions if s.get('settings_id') == settings.settings_id])
-    print(f'Selected {len(sources)} sources, {total:,.2f} channel-hours; {done:,.2f} complete; {remaining:,.2f} remaining.')
+    model = runner.throughput_model([s for s in sessions if s.get('settings_id') == settings_id])
+    aligned = sum(r['aligned_chunks'] for r in rows)
+    chunks = sum(r['done_chunks'] for r in rows)
+    print(f'Store {settings_id}. Selected {len(sources)} sources, {total:,.2f} channel-hours; {done:,.2f} transcribed; '
+          f'{remaining:,.2f} remaining; {aligned:,} of {chunks:,} transcribed chunks aligned.')
     if model:
         print(f"Measured on {model['measured_channel_hours']:.2f} channel-hours in {model['groups']} groups: "
               f"{model['measured_rate']:.0f}x at {model['measured_occupancy']:.1%} speech occupancy; "
@@ -170,18 +174,6 @@ def cmd_estimate(args):
         p = runner.projection(remaining, occupancy, model)
         out.append((label, f"{occupancy:.1%}", f"{p['rate']:.0f}x", f"{p['hours']:.1f} h"))
     table(out, ('scenario', 'occupancy', 'rate', 'remaining first pass'))
-    rescue = [s for s in sessions if s.get('kind') == 'rescue' and s.get('settings_id') == settings.settings_id
-              and s['progress'] and s.get('examined_channel_hours')]
-    if rescue:
-        examined = sum(s['examined_channel_hours'] for s in rescue)
-        clip_h = sum(p['clip_seconds'] for s in rescue for p in s['progress']) / 3600
-        wall = sum(p['wall_seconds'] for s in rescue for p in s['progress'])
-        per_hour = wall / examined
-        print(f'Rescue measured separately on {examined:.2f} transcribed channel-hours: {clip_h:.3f} h of clips '
-              f'({clip_h / examined:.1%}) in {wall:.1f} s, i.e. {per_hour:.2f} s per transcribed channel-hour. '
-              f'Projected extra for all {total:,.2f} selected channel-hours: {total * per_hour / 3600:.1f} h.')
-    else:
-        print('Rescue cost not yet measured for these settings (run `rescue`); it is reported separately from the first pass.')
     return 0
 
 
@@ -216,7 +208,8 @@ def cmd_status(args):
     while True:
         store = Store(args.transcript_root, args.evidence_root)
         settings = settings_from(args)
-        sessions = [s for s in store.sessions() if s.get('settings_id') == settings.settings_id]
+        settings_id = store.resolve_settings(settings)
+        sessions = [s for s in store.sessions() if s.get('settings_id') == settings_id]
         if has_selection(args):
             _, sources, _ = selected_sources(args)
             windows = windows_from(args)
@@ -231,23 +224,29 @@ def cmd_status(args):
             windows = {k: tuple(v) for k, v in saved['windows'].items()} if saved.get('windows') else None
             print(f"Scope of session {last['session']}: {json.dumps(last['scope'])}")
         rows = (runner.coverage(store, settings, sources, windows) if args.scan
-                else runner.coverage_from_ledgers(sessions, settings, sources, windows))
+                else runner.coverage_from_ledgers(sessions, settings, sources, windows, settings_id))
         total = sum(r['hours'] for r in rows)
         done = sum(r['done_hours'] for r in rows)
         retained = sum(r['retained_hours'] for r in rows)
         words = sum(r['words'] for r in rows)
         flagged = sum(r['flagged_words'] for r in rows)
-        print(f'Settings {settings.settings_id}: {done:,.2f} of {total:,.2f} channel-hours transcribed '
+        print(f'Store {settings_id}: {done:,.2f} of {total:,.2f} channel-hours transcribed '
               f'({done / total:.1%}); speech occupancy {retained / done if done else 0:.1%}; '
               f'{words:,} words, {flagged:,} timestamp flags.' if total else 'Nothing selected.')
+        if args.scan and total:
+            aligned = sum(r['aligned_chunks'] for r in rows)
+            chunks = sum(r['done_chunks'] for r in rows)
+            print(f"Aligned: {aligned:,} of {chunks:,} transcribed chunks; "
+                  f"{sum(r['failed_contexts'] for r in rows):,} decoder contexts could not be aligned.")
         superseded = [r for r in rows if r['superseded_identities']]
         if superseded:
             print(f'{len(superseded)} sources have superseded transcript identities (source changed); kept read-only.')
         summaries = [runner.session_summary(s) for s in sessions]
-        table([(s['session'], s['kind'], s['status'], fmt_hours(s['hours']), f"{s['wall_seconds']:.0f}",
-                f"{s['rate']:.0f}x" if s['rate'] else '-', f"{s['occupancy']:.1%}" if s['occupancy'] else '-',
-                s['failures']) for s in summaries[-args.sessions:]],
-              ('session', 'kind', 'status', 'ch-h', 'wall s', 'rate', 'occupancy', 'failures'))
+        table([(s['session'], s['kind'], s['status'], fmt_hours(s['hours']), fmt_hours(s['aligned_hours']),
+                f"{s['wall_seconds']:.0f}", f"{s['rate']:.0f}x" if s['rate'] else '-',
+                f"{s['occupancy']:.1%}" if s['occupancy'] else '-', s['failures']) for s in summaries[-args.sessions:]],
+              ('session', 'kind', 'status', 'transcribed ch-h', 'aligned ch-h', 'wall s', 'rate', 'occupancy',
+               'failures'))
         model = runner.throughput_model(sessions)
         remaining = total - done
         if model and remaining > 0:
@@ -280,21 +279,10 @@ def cmd_watch(args):
                                   screen=not args.no_screen)
 
 
-def cmd_rescue(args):
-    handles = add_cuda(CUDA_DIRS + args.dll_dir)
-    store, sources, _ = selected_sources(args)
-    try:
-        runner.rescue(store, settings_from(args), sources, include_empty_windows=args.include_empty_windows,
-                      log=lambda m: print(m, flush=True))
-    finally:
-        for handle in handles:
-            handle.close()
-    return 0
-
-
 def cmd_verify(args):
     store, sources, _ = selected_sources(args)
     settings = settings_from(args)
+    settings_id = store.resolve_settings(settings)
     bad = 0
     for source in sources:
         if args.audio:
@@ -302,13 +290,13 @@ def cmd_verify(args):
             if observed != source.content_sha256:
                 print(f'CHANGED {source.key}: {observed} != {source.content_sha256}')
                 bad += 1
-        for folder, receipt in store.source_chunks(settings.settings_id, source):
+        for folder, receipt in store.source_chunks(settings_id, source):
             try:
-                store.completed(settings.settings_id, source, receipt['index'], receipt['nominal_frames'], verify=True)
+                store.completed(settings_id, source, receipt['index'], receipt['nominal_frames'], verify=True)
             except ValueError as error:
                 print(error)
                 bad += 1
-    print(f'Verified {len(sources)} sources; {bad} problems.')
+    print(f'Verified {len(sources)} sources in store {settings_id}; {bad} problems.')
     return 1 if bad else 0
 
 
@@ -332,7 +320,6 @@ def main(collection: Collection, description: str, argv=None):
             ('run', cmd_run, 'Transcribe pending chunks (resumable)'),
             ('status', cmd_status, 'Report coverage, throughput, failures and ETA'),
             ('watch', cmd_watch, 'Live dashboard with a scrolling transcript feed (read-only)'),
-            ('rescue', cmd_rescue, 'Continuous re-decoding of flagged spans'),
             ('verify', cmd_verify, 'Check source and chunk checksums'),
             ('stop', cmd_stop, 'Stop a running session after its current group')):
         command = sub.add_parser(name, help=help_text)
@@ -343,16 +330,13 @@ def main(collection: Collection, description: str, argv=None):
             command.add_argument('--write', action='store_true', help='Save the inventory under the evidence root')
             command.add_argument('--list', action='store_true', help='Print every source identity')
             command.add_argument('--no-hash', action='store_true', help='Skip hashing new external media (listing only)')
-        if name in ('run', 'rescue'):
+        if name == 'run':
             command.add_argument('--dll-dir', type=Path, action='append', default=[], help='Extra CUDA/cuDNN DLL folder')
         if name == 'run':
             command.add_argument('--group-hours', type=float, default=5.0, help='Source hours per GPU group')
             command.add_argument('--prep-workers', type=int, default=8)
             command.add_argument('--max-hours', type=float, help='Stop after this many wall hours (resumable)')
             command.add_argument('--max-chunks', type=int, help='Process at most this many pending chunks')
-        if name == 'rescue':
-            command.add_argument('--include-empty-windows', action='store_true',
-                                 help='Also re-decode retained windows >= 1 s that produced no words')
         if name == 'status':
             command.add_argument('--watch', type=float, help='Repeat every N seconds')
             command.add_argument('--sessions', type=int, default=8)

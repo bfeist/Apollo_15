@@ -97,9 +97,23 @@ class Settings:
                     word_timestamps=True, without_timestamps=False, resampler='scipy.signal.resample_poly',
                     packages=versions, purpose='interim transcript for tape timing', ownership='quietest-frame cuts on a fixed grid; window ownership by chunk')
 
+    def transcript_description(self):
+        """The settings that define the transcript; execution-only settings are left out."""
+        return transcript_fields(self.describe())
+
     @property
     def settings_id(self):
-        return 'asr-' + digest(self.describe(), 12)
+        """Identity of a new store. An existing store is found by ``Store.resolve_settings``."""
+        return 'asr-' + digest(self.transcript_description(), 12)
+
+
+# Settings that change speed, not the transcript. A store made with another batch size is the
+# same transcript, so these are recorded per session but are not part of a store's identity.
+EXECUTION_FIELDS = ('batch_size',)
+
+
+def transcript_fields(description):
+    return {k: v for k, v in description.items() if k not in EXECUTION_FIELDS}
 
 
 # --------------------------------------------------------------------------- chunk plan

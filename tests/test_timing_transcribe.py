@@ -1,4 +1,4 @@
-"""Stage 06a interim timing transcript: ownership, attribution, resume and invalidation."""
+"""Timing transcript: ownership, attribution, alignment, resume and invalidation."""
 import gzip
 import hashlib
 import json
@@ -20,6 +20,7 @@ import mission_asr as asr
 from mission_sources import Reader, tape_sources, wav_layout, decode_pcm
 from mission_store import Store
 import transcribe_run as runner
+import mission_align as align
 
 RATE = 8000
 
@@ -207,7 +208,7 @@ class ResumeTests(unittest.TestCase):
 
     def run_once(self, store, recognizer, **kwargs):
         return runner.run(store, SETTINGS, self.sources, recognizer_factory=lambda s: recognizer,
-                          group_hours=60 / 3600 * 3, prep_workers=2, log=lambda m: None, detector=energy_detector, **kwargs)
+                          aligner_factory=FakeAligner, group_hours=60 / 3600 * 3, prep_workers=2, log=lambda m: None, detector=energy_detector, **kwargs)
 
     def test_interrupted_run_resumes_without_lost_or_duplicated_words(self):
         reference = self.store('reference')
@@ -284,30 +285,6 @@ class ResumeTests(unittest.TestCase):
             self.assertEqual((a['done_chunks'], a['words']), (b['done_chunks'], b['words']))
             self.assertAlmostEqual(a['done_hours'], b['done_hours'])
 
-    def test_rescue_is_a_separate_layer_with_its_own_cost(self):
-        store = self.store('rescue')
-        self.run_once(store, FakeRecognizer())
-        before = all_words(store, self.sources)
-        runner.rescue(store, SETTINGS, self.sources, recognizer_factory=lambda s: FakeRecognizer(),
-                      include_empty_windows=True, log=lambda m: None)
-        self.assertEqual(all_words(store, self.sources), before, 'first-pass transcripts are unchanged')
-        session = store.sessions()[-1]
-        self.assertEqual(session['kind'], 'rescue')
-        self.assertGreater(session['examined_channel_hours'], 0)
-        layer = session['layer']
-        rescued = [store.source_chunks(SETTINGS.settings_id, s, layer) for s in self.sources]
-        self.assertTrue(any(rescued))
-        for chunks in rescued:
-            for folder, receipt in chunks:
-                for row in store.chunk_rows(folder):
-                    a, b = row['rescue_span']
-                    self.assertTrue(receipt['cut_frames'][0] <= a < b <= receipt['cut_frames'][1])
-        # A second rescue reuses the published layer.
-        recognizer = FakeRecognizer()
-        runner.rescue(store, SETTINGS, self.sources, recognizer_factory=lambda s: recognizer,
-                      include_empty_windows=True, log=lambda m: None)
-        self.assertEqual(recognizer.calls, 0)
-
 
 class WatchTests(unittest.TestCase):
     setUp, store, run_once = ResumeTests.setUp, ResumeTests.store, ResumeTests.run_once
@@ -352,6 +329,157 @@ class WatchTests(unittest.TestCase):
         text = console.file.getvalue()
         self.assertIn('complete', text)
         self.assertIn('T999 CH0', text)
+
+
+class FakeAligner:
+    """Stand-in for the CTC model: one 20 ms frame per token from the start of each context."""
+    load_seconds = 0.0
+
+    def __init__(self):
+        self.calls = 0
+
+    def emissions(self, audio):
+        self.calls += 1
+        return np.zeros((max(1, len(audio) // 320), len(align.LABELS)), np.float32)
+
+    def path(self, log_probs, tokens):
+        frames = log_probs.shape[0]
+        if not tokens or frames < len(tokens):
+            return None
+        return [(i, i + 1, 0.5) for i in range(len(tokens))]
+
+
+class AlignTests(unittest.TestCase):
+    setUp, store = ResumeTests.setUp, ResumeTests.store
+
+    def run_once(self, store, recognizer=None, aligner=None, settings=SETTINGS, **kwargs):
+        return runner.run(store, settings, self.sources, recognizer_factory=lambda s: recognizer or FakeRecognizer(),
+                          aligner_factory=lambda: aligner or FakeAligner(), group_hours=60 / 3600 * 3, prep_workers=2,
+                          log=lambda m: None, detector=energy_detector, **kwargs)
+
+    def test_spelling_for_the_model(self):
+        self.assertEqual(align.spell('P20'), ['P', 'TWENTY'])
+        self.assertEqual(align.spell('213'), ['TWO', 'ONE', 'THREE'])
+        self.assertEqual(align.spell('5.0,'), ['FIVE', 'POINT', 'ZERO'])
+        self.assertEqual(align.spell('19,656'), ['ONE', 'NINE', 'SIX', 'FIVE', 'SIX'])
+        self.assertEqual(align.spell("it\u2019s,"), ["IT'S"])
+        self.assertEqual(align.spell('...'), [])
+        tokens, owner = align.tokens_of([dict(w=' Go'), dict(w='...'), dict(w=' 08')])
+        self.assertEqual(''.join(align.LABELS[t] for t in tokens), 'GO|EIGHT')
+        self.assertEqual(owner, [0, 0, None, 2, 2, 2, 2, 2])
+
+    def test_run_publishes_aligned_words_and_keeps_whisper_times(self):
+        store = self.store('aligned')
+        self.run_once(store)
+        receipts = [r for s in self.sources for _, r in store.source_chunks(SETTINGS.settings_id, s)]
+        self.assertTrue(receipts and all(align.is_aligned(r) for r in receipts))
+        self.assertTrue(all(r['alignment']['failed_contexts'] == 0 for r in receipts))
+        for s in self.sources:
+            for folder, receipt in store.source_chunks(SETTINGS.settings_id, s):
+                lo, hi = receipt['cut_frames']
+                for row in store.chunk_rows(folder):
+                    self.assertIn('aligned', row['flags'])
+                    for w in row['words']:
+                        self.assertIn('wsf', w)
+                        self.assertTrue(lo <= w['sf'] < w['ef'] <= hi)
+                        # Each word lies inside one retained window.
+                        self.assertTrue(any(a <= w['sf'] and w['ef'] <= b for a, b, _ in receipt['windows']))
+
+    def test_published_chunks_are_aligned_in_place_without_whisper(self):
+        store = self.store('legacy')
+        real = align.align_id
+        align.align_id = lambda: 'align-older'
+        try:
+            self.run_once(store)
+        finally:
+            align.align_id = real
+        before = {(s.key, r['index']): (r['segments_sha256'], [w['sf'] for row in store.chunk_rows(f)
+                                                                for w in row['words']])
+                  for s in self.sources for f, r in store.source_chunks(SETTINGS.settings_id, s)}
+        recognizer, aligner = FakeRecognizer(), FakeAligner()
+        self.run_once(store, recognizer, aligner)
+        self.assertEqual(recognizer.calls, 0, 'Whisper is not run again')
+        self.assertGreater(aligner.calls, 0)
+        session = store.sessions()[-1]
+        self.assertEqual((session['status'], session['pending_chunks'], session['unaligned_chunks']),
+                         ('complete', 0, len(before)))
+        for s in self.sources:
+            for folder, receipt in store.source_chunks(SETTINGS.settings_id, s):
+                old_sha, old_starts = before[s.key, receipt['index']]
+                self.assertTrue(align.is_aligned(receipt))
+                self.assertEqual(receipt['alignment']['whisper_segments_sha256'], old_sha)
+                words = [w for row in store.chunk_rows(folder) for w in row['words']]
+                self.assertEqual(sorted(w['wsf'] for w in words), sorted(old_starts))
+        self.assertFalse(list(store.root.rglob('.old-*')) + list(store.root.rglob('.tmp-*')))
+        # Nothing left to do.
+        aligner = FakeAligner()
+        self.run_once(store, FakeRecognizer(), aligner)
+        self.assertEqual(aligner.calls, 0)
+
+    def test_stopped_alignment_resumes(self):
+        store = self.store('stop')
+        real = align.align_id
+        align.align_id = lambda: 'align-older'
+        try:
+            self.run_once(store)
+        finally:
+            align.align_id = real
+        (store.evidence / 'STOP').write_text('x')
+        self.run_once(store)
+        stopped = store.sessions()[-1]
+        self.assertEqual(stopped['status'], 'stopped')
+        aligned = sum(align.is_aligned(r) for s in self.sources for _, r in store.source_chunks(SETTINGS.settings_id, s))
+        self.assertLess(aligned, stopped['unaligned_chunks'])
+        (store.evidence / 'STOP').unlink()
+        self.run_once(store)
+        self.assertEqual(store.sessions()[-1]['unaligned_chunks'], stopped['unaligned_chunks'] - aligned)
+        self.assertTrue(all(align.is_aligned(r) for s in self.sources for _, r in store.source_chunks(SETTINGS.settings_id, s)))
+
+    def test_interrupted_replacement_is_restored(self):
+        store = self.store('replace')
+        self.run_once(store)
+        source = self.sources[0]
+        final = store.chunk_dir(SETTINGS.settings_id, source, 0)
+        old = final.parent / '.old-c00000-dead'
+        final.rename(old)
+        store.clean_temporaries(SETTINGS.settings_id)
+        self.assertTrue((final / 'chunk.json').is_file())
+        self.assertFalse(old.exists())
+
+    def test_store_is_found_whatever_the_batch_size(self):
+        store = self.store('batch')
+        self.run_once(store)
+        other = asr.Settings(chunk_seconds=60.0, cut_search_s=3.0, batch_size=4)
+        self.assertEqual(store.resolve_settings(other), SETTINGS.settings_id)
+        self.assertEqual(other.settings_id, SETTINGS.settings_id, 'batch size is not part of a new identity')
+        recognizer = FakeRecognizer()
+        self.run_once(store, recognizer, settings=other)
+        self.assertEqual(recognizer.calls, 0)
+        # A store made under an identity that still included the batch size is found by its settings.
+        legacy = store.root / 'asr-legacy000000'
+        store.settings_dir(SETTINGS.settings_id).rename(legacy)
+        saved = json.loads((legacy / 'settings.json').read_text())
+        (legacy / 'settings.json').write_text(json.dumps(dict(saved, settings_id='asr-legacy000000')))
+        self.assertEqual(store.resolve_settings(other), 'asr-legacy000000')
+
+    def test_reader_reports_alignment_state(self):
+        import transcript_read
+        store = self.store('reader')
+        real = align.align_id
+        align.align_id = lambda: 'align-older'
+        try:
+            self.run_once(store)
+        finally:
+            align.align_id = real
+        identity = store.source_dir(SETTINGS.settings_id, self.sources[0])
+        before = transcript_read.identity_state(identity)
+        self.assertEqual(before['aligned_chunks'], 0)
+        self.run_once(store)
+        after = transcript_read.identity_state(identity)
+        self.assertEqual(after['aligned_chunks'], after['chunks'])
+        self.assertNotEqual(after['sha256'], before['sha256'])
+        rows = transcript_read.identity_rows(identity)
+        self.assertEqual([r['sf'] for r in rows], sorted(r['sf'] for r in rows))
 
 
 class PipelineEntryTests(unittest.TestCase):

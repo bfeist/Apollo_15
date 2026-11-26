@@ -12,10 +12,10 @@ records under this stage's transcript root are left unchanged.
 Subcommands
   inventory  List selected sources, their identities and channel-hours.
   estimate   Project the remaining first pass from measured (or pilot) throughput.
-  run        Transcribe pending chunks; completed chunks are reused. Resumable.
+  run        Transcribe and align pending chunks; align published chunks that are not yet
+             aligned (Whisper is not run again). Completed chunks are reused. Resumable.
   status     Coverage, speech occupancy, throughput, failures and ETA.
   watch      Read-only live dashboard: progress plus a scrolling feed of new transcript.
-  rescue     Re-decode questionable spans with intervening audio intact (separate cost).
   verify     Recompute source checksums and transcript-chunk checksums.
   stop       Ask a running session to stop after its current group.
 

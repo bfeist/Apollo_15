@@ -9,7 +9,7 @@ store and lock under F:/Apollo_15_data/processing/sg, so it can run alongside st
 recognizer defaults equal stage 06a's, so settings IDs match.
 
 Subcommands are those of stage 06a: inventory, estimate, run, status, watch,
-rescue, verify, stop. Example:
+verify, stop. Example:
   uv run python scripts/run.py sg_transcribe.py run --reel 572-AAA
 
 While the local copy is still being made, ``follow`` transcribes each reel as
