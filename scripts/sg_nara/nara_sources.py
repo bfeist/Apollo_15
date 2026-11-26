@@ -28,6 +28,10 @@ NARA_ROOT = Path(os.environ.get('A15_NARA_AUDIO_ROOT', 'F:/Apollo_15_data/raw/au
 PROCESSING_ROOT = Path(os.environ.get('A15_PROCESSING_ROOT', 'F:/Apollo_15_data/processing'))
 DATA_ROOT = PROCESSING_ROOT / 'sg_nara'
 DOWNLOADS = REPO / '.local/mission_data/audio_inventory/a15_nara_downloads.tsv'
+# Respeeded flight tapes (nara_respeed.py) and their transcript store (nara_retimed_transcribe.py).
+RESPEED_ROOT = Path(os.environ.get('A15_NARA_RESPEED_ROOT', DATA_ROOT / 'respeed'))
+RETIMED_TRANSCRIPT_ROOT = DATA_ROOT / 'retimed_transcripts'
+RETIMED_EVIDENCE_ROOT = RETIMED_TRANSCRIPT_ROOT / 'evidence'
 TRACK_RE = re.compile(r'-tr(\d)$', re.I)
 
 
@@ -105,4 +109,50 @@ def by_tape(items: list[Track]) -> dict[str, list[Track]]:
     out: dict[str, list[Track]] = {}
     for t in items:
         out.setdefault(t.tape, []).append(t)
+    return out
+
+
+# ------------------------------------------------------------------ transcription sources
+def wanted(tape: str, names) -> bool:
+    if not names or 'all' in names:
+        return True
+    short = tape.split('-', 2)[-1]  # 255-PAOa-640-AAA -> 640-AAA
+    return tape in names or short in names
+
+
+def retimed_sources(root=RESPEED_ROOT, names=None, hashes=None, errors=None):
+    """Transcription sources: the mix WAV of each tape whose respeed render is complete."""
+    from audio_sources import Source, wav_layout
+    out = []
+    for folder in sorted(p for p in Path(root).iterdir() if p.is_dir() and '.' not in p.name):
+        tape = folder.name
+        if not wanted(tape, names):
+            continue
+        short = tape.split('-', 2)[-1]
+        key = f'sg_nara/{short}'
+        try:
+            meta_path = folder / f'{short}.json'
+            wav = folder / f'{short}_mix.wav'
+            if not meta_path.is_file() or not wav.is_file():
+                raise ValueError('no respeed provenance (render not finished)')
+            meta_bytes = meta_path.read_bytes()
+            meta = json.loads(meta_bytes)
+            layout = wav_layout(wav)
+            mix = meta['outputs']['mix']
+            if mix['frames'] != layout.frames:
+                raise ValueError(f"provenance frames {mix['frames']} != WAV frames {layout.frames}")
+            stat = wav.stat()
+            checksum = hashes.get(wav) if hashes else ''
+            out.append(Source(
+                key=key, collection='sg_nara_respeed', relpath=f'{tape}/{wav.name}', path=str(wav.resolve()),
+                sample_rate=layout.rate, frames=layout.frames, source_channels=layout.channels,
+                mix='single_channel', sample_format=layout.description, time_domain='sg_nara_respeed_output_seconds',
+                content_sha256=checksum or '', hash_origin='computed' if checksum else 'pending',
+                size=stat.st_size, mtime_ns=stat.st_mtime_ns, tape=tape, label=f'NARA flight tape {short} (retimed)',
+                review=dict(sha256=hashlib.sha256(meta_bytes).hexdigest(), map_sha256=meta['map']['sha256'],
+                            version=meta.get('version'), sources_sha256=meta.get('sources'))))
+        except (OSError, ValueError, KeyError) as error:
+            if errors is None:
+                raise
+            errors.append(dict(key=key, error=str(error)))
     return out
