@@ -13,6 +13,11 @@ Subcommands
              segment revision and coverage as the union of supported tape time.
   run        reference, anchors, [refine], [quindar] and fit in order.
 
+Inputs: the 06 transcripts of the 05b channels and the retimed space-to-ground set (IA reels on GET
+through catalog/sg_drift, NARA flight tapes respeeded from IRIG-B, and the transcripts of both).
+Every step except ``status`` first checks that the SG set is present and stops with the missing
+inputs and the commands that make them.
+
 Word times are the CTC-aligned ones (scripts/00_common/mission_align.py). While a store has a
 running transcription session, or a transcript read is not fully aligned with the current
 aligner, steps refuse unless ``--allow-provisional`` is given; such editions are named
@@ -34,10 +39,53 @@ import sys
 from pathlib import Path
 
 import sg_stage
+import sg_inputs
 from sg_inputs import RETIMING_ROOT, STORES, store_state, tape_channels, tape_names, transcript_state
 
 
 BLOCKED = []
+SG_PRODUCERS = dict(
+    ia_maps='IA drift maps: run sg_drift_fit.py (scripts/sg-audio/03_sg-internetarchive-respeed)',
+    ia_transcripts='IA reel transcripts: run sg_transcribe.py run --reel all (scripts/sg-audio/01_sg-internetarchive)',
+    nara_respeed='NARA respeed: run nara_respeed.py (scripts/sg-audio/01_sg-nara)',
+    nara_transcripts='NARA retimed transcripts: run nara_retimed_transcribe.py run --tape all (scripts/sg-audio/01_sg-nara)',
+)
+
+
+class MissingSG(RuntimeError):
+    pass
+
+
+def check_sg_inputs():
+    """The retimed space-to-ground set is this stage's timing basis; refuse to start without it.
+
+    Both SG sets must be present: the IA reels placed on GET by their drift maps, with transcripts,
+    and the NARA flight tapes respeeded from IRIG-B, with transcripts of the respeeded mix.
+    Returns a short summary; raises MissingSG naming each missing input and the command that makes it.
+    """
+    missing = []
+    ia = nara = []
+    if not sg_inputs.DRIFT_MAPS.is_file():
+        missing.append(f"{SG_PRODUCERS['ia_maps']} (expected {sg_inputs.DRIFT_MAPS})")
+    else:
+        ia = sg_inputs.ia_sources()
+        if not ia:
+            missing.append(f"{SG_PRODUCERS['ia_maps']} ({sg_inputs.DRIFT_MAPS} has no fitted reel)")
+        elif not any(s['identity_dir'] for s in ia):
+            missing.append(f"{SG_PRODUCERS['ia_transcripts']} (no transcript under {STORES['ia'].sources})")
+    if not sg_inputs.NARA_RESPEED_ROOT.is_dir():
+        missing.append(f"{SG_PRODUCERS['nara_respeed']} (expected {sg_inputs.NARA_RESPEED_ROOT})")
+    else:
+        nara = sg_inputs.nara_sources()
+        if not nara:
+            missing.append(f"{SG_PRODUCERS['nara_respeed']} (no respeed record under {sg_inputs.NARA_RESPEED_ROOT})")
+        elif not any(s['identity_dir'] for s in nara):
+            missing.append(f"{SG_PRODUCERS['nara_transcripts']} (no transcript under {STORES['nara'].sources})")
+    if missing:
+        raise MissingSG('Stage 07a needs the retimed space-to-ground set as its timing basis. Missing:\n  - '
+                        + '\n  - '.join(missing))
+    return (f"SG inputs: {sum(bool(s['identity_dir']) for s in ia)}/{len(ia)} IA reels and "
+            f"{sum(bool(s['identity_dir']) for s in nara)}/{len(nara)} NARA tapes with transcripts")
 
 
 def tapes_of(args):
@@ -114,6 +162,10 @@ def run(args):
 
 
 def status(args):
+    try:
+        print(check_sg_inputs())
+    except MissingSG as error:
+        print(error)
     for name, store in STORES.items():
         state = store_state(store)
         print(f"{name:5s} {store.settings_id}: aligner {state['align_id']}; "
@@ -161,8 +213,12 @@ def main(argv=None):
         s.add_argument('--skip-quindar', action='store_true', help='run: no Quindar step')
     args = p.parse_args(argv)
     try:
+        if args.command != 'status':
+            print(check_sg_inputs(), flush=True)
         dict(status=status, reference=reference, anchors=anchors, refine=refine, quindar=quindar, fit=fit, run=run)[args.command](args)
     except sg_stage.Provisional as error:
+        p.exit(2, f'{error}\n')
+    except MissingSG as error:
         p.exit(2, f'{error}\n')
     if BLOCKED:
         print(f'Blocked: {", ".join(sorted(set(BLOCKED)))}', file=sys.stderr)

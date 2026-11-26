@@ -357,5 +357,33 @@ class InputTests(unittest.TestCase):
             self.assertIn('06a origin', rows[2]['problem'])
 
 
+class SGInputCheckTests(unittest.TestCase):
+    """Stage 07a refuses to start without the retimed SG set and says what is missing."""
+    def setUp(self):
+        import importlib
+        self.stage = importlib.import_module('07a_sg_retime')
+
+    def test_missing_ia_maps_and_nara_respeed_are_named_with_their_commands(self):
+        with tempfile.TemporaryDirectory() as tmp,                 unittest.mock.patch.object(sg_inputs, 'DRIFT_MAPS', Path(tmp)/'none.json'),                 unittest.mock.patch.object(sg_inputs, 'NARA_RESPEED_ROOT', Path(tmp)/'none'):
+            with self.assertRaises(self.stage.MissingSG) as caught:
+                self.stage.check_sg_inputs()
+            message = str(caught.exception)
+            self.assertIn('sg_drift_fit.py', message)
+            self.assertIn('nara_respeed.py', message)
+            with self.assertRaises(SystemExit) as stopped:
+                self.stage.main(['reference'])
+            self.assertEqual(stopped.exception.code, 2)
+
+    def test_sources_without_transcripts_are_missing(self):
+        ia = [dict(identity_dir=None)]
+        nara = [dict(identity_dir='x')]
+        with tempfile.TemporaryDirectory() as tmp,                 unittest.mock.patch.object(sg_inputs, 'DRIFT_MAPS', Path(tmp)/'maps.json'),                 unittest.mock.patch.object(sg_inputs, 'NARA_RESPEED_ROOT', Path(tmp)),                 unittest.mock.patch.object(sg_inputs, 'ia_sources', return_value=ia),                 unittest.mock.patch.object(sg_inputs, 'nara_sources', return_value=nara):
+            (Path(tmp)/'maps.json').write_text('{}')
+            with self.assertRaisesRegex(self.stage.MissingSG, 'sg_transcribe.py'):
+                self.stage.check_sg_inputs()
+            ia[0]['identity_dir'] = 'y'
+            self.assertIn('1/1 IA reels', self.stage.check_sg_inputs())
+
+
 if __name__ == '__main__':
     unittest.main()
