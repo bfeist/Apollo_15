@@ -1,7 +1,7 @@
 """SG reels, step 5: one slow drift curve per reel, fitted to the transcript timing anchors.
 
 docs/16 "Space-to-ground reels" step 5. The transcripts' GETs (journals and 1971 PDFs) are the
-timing authority. The Whisper word starts on each reel (``sg_anchors.tsv``, written by
+timing authority. The ASR word starts on each reel (CTC-aligned since 2026-11-25; ``sg_anchors.tsv``, written by
 ``sg_transcript.py sg anchors``) only measure where those utterances fall on the reel clock.
 Their difference, offset = GET - reel time, grows slowly along a reel: the transfers run about
 0.5 % off speed.
@@ -53,10 +53,12 @@ CATALOG = REPO / 'catalog/sg_drift'
 KNOWN_EDITS = CATALOG / 'known_edits.tsv'
 RESIDUALS = REPO / '.local/mission_data/sg/sg_drift_residuals.tsv'
 REPORTS = REPO / 'reports/sg_drift'
-VERSION = 'sg-drift-v1'
+VERSION = 'sg-drift-v2'  # v2: replay islands dropped; anchors from CTC-aligned word times
 
 WEIGHT = {'ok': 1.0, 'flagged': 0.5}
 GAP_JUMP_S = 20.0      # an offset step this large between neighbouring anchors: the recorder stopped
+REPLAY_MAX_ANCHORS = 4  # a segment entered by a backward step this large, with at most this many anchors, is a
+                        # replay or a mismatch: a stop only moves GET forward. Its anchors are dropped.
 EDIT_MIN_S = 2.0       # a smaller step counts as an edit only if at least this large ...
 EDIT_Z = 4.0           # ... and this many standard errors of the two sides' medians
 EDIT_MIN_SIDE = 5      # ... with at least this many anchors on each side
@@ -160,6 +162,27 @@ def segments_by_gaps(t, y, known: list[float]) -> np.ndarray:
     return seg
 
 
+def replay_islands(t, y, known: list[float]) -> np.ndarray:
+    """Mask of anchors in short segments that begin with a backward offset step (GET earlier than
+    the reel position allows). A recorder stop makes the offset jump forward; material whose GET
+    goes back by more than GAP_JUMP_S is a replay on the reel or a wrong match, and a few anchors
+    cannot place it as a segment of its own. Known edits (small repeats) are below GAP_JUMP_S."""
+    drop = np.zeros(len(t), bool)
+    while True:
+        keep = np.flatnonzero(~drop)
+        seg = segments_by_gaps(t[keep], y[keep], known)
+        found = False
+        for k in range(1, seg.max() + 1 if len(seg) else 0):
+            idx = keep[seg == k]
+            before = keep[seg == k - 1]
+            if len(idx) <= REPLAY_MAX_ANCHORS and np.median(y[idx]) < np.median(y[before]) - GAP_JUMP_S:
+                drop[idx] = True
+                found = True
+                break
+        if not found:
+            return drop
+
+
 def split_edits(r: np.ndarray, seg: np.ndarray) -> list[int]:
     """Anchor indices where the residuals step: the median of the next EDIT_WINDOW anchors differs
     from that of the previous EDIT_WINDOW by at least EDIT_MIN_S and EDIT_Z standard errors.
@@ -253,6 +276,12 @@ def fit_reel(reel: dict, anchors: list[dict], known: list[float], prior_ppm: flo
         return out
     t = np.array([float(a['source_s']) for a in rows])
     y = np.array([float(a['offset_s']) for a in rows])
+    replay = replay_islands(t, y, known)
+    if replay.any():
+        out['replay_anchors_dropped_s'] = [round(float(x), 3) for x in t[replay]]
+        rows = [a for a, r in zip(rows, replay) if not r]
+        t, y = t[~replay], y[~replay]
+        out['anchors'] = len(rows)
     w = np.array([WEIGHT[a['status']] for a in rows])
     seg = segments_by_gaps(t, y, known)
 

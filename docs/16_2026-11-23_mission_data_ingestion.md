@@ -797,7 +797,8 @@ minute-resolution PAO header times are never fitted.
      journal GET can resolve an unreadable or mistyped printed stamp, and the choice is recorded.
 5. **Fit one slow drift curve per reel** with `scripts/sg-audio/sg_drift_fit.py`
    (`uv run --with matplotlib python scripts/run.py sg_drift_fit.py`). It is kept apart from
-   stage 06. The transcript GETs are the reference; the Whisper onsets only measure the reel clock.
+   stage 06. The transcript GETs are the reference; the ASR onsets (CTC-aligned word starts since
+   2026-11-25) only measure the reel clock.
    - **Model.** `GET(t) = t + D(t) + c_k`. `D` is one polynomial across the whole file, with
      D(0) = 0: a line, or a parabola when blocked 5-fold cross-validation cuts the held-out error
      by at least 10% and 0.05 s. A curve whose rate changes by more than 6,000 ppm across the
@@ -808,6 +809,9 @@ minute-resolution PAO header times are never fitted.
    - **Segments.** `c_k` is one constant per continuous segment. Segments split only where the
      offset steps by more than 20 s between neighbouring anchors (the recorder stopped) and at
      the known edits in `catalog/sg_drift/known_edits.tsv` (the 4.279 s repeat on 572-AAA).
+     A segment entered by a *backward* step of more than 20 s with at most four anchors is a
+     replay or a wrong match, since a recorder stop only moves GET forward. Its anchors are dropped
+     and listed (`replay_anchors_dropped_s`; three on 561-AAA).
      The constants place the respeeded audio on GET without bending `D`.
    - **Anchors.** `ok` anchors have weight 1 and `flagged` ones 0.5, in a Huber fit. A reel
      whose slope standard error exceeds 300 ppm takes the median rate of the well-measured
@@ -827,6 +831,20 @@ minute-resolution PAO header times are never fitted.
      7,000 ppm. A pooled curvature on the line reels predicted worse on 11 of 20, so those
      reels keep a constant rate. The held-out mean error is 0.4–0.9 s on 31 reels, and
      1.1–2.9 s on the lunar-surface reels with the transcript steps.
+   - **Refit with aligned word times (2026-11-25, `sg-drift-v2`).**
+     - *Anchors.* The anchors were rebuilt from the aligned IA transcripts. There are 5,593
+       `ok` anchors where there were 3,117, and the rejections fall from 2,306 to 204. The fit uses
+       7,499 anchors in all.
+     - *Unchanged.* The residual to the local offset barely moves (median 0.38 s), because the
+       whole-second printed GETs limit it. The median held-out error is 0.60 s, as before. The
+       mission rate is 5,262 ppm. 23 reels take a parabola.
+     - *Segmentation.* 546-AAA gains an early segment that now agrees with its PAO headers: the
+       file starts at GET 30:24, where the old fit put 30:59. 547-AAA loses its spurious split.
+     - *Checked by stage 06c.* On the IA-referenced 30-track tapes, the curve residuals and
+       held-out errors of the 06c pilot are equal or smaller with the refit
+       ([SG retiming](20_2026-11-25_sg_retime_30track.md#results-with-aligned-word-times-scratch-root-provisional)).
+     - *Respeed.* The respeeded reels from step 6 were rendered from the old map. They are stale
+       until re-rendered with `--replace`.
 6. **Respeed the reels** with `scripts/sg-audio/sg_respeed.py`
    (`uv run python scripts/run.py sg_respeed.py --reel all --workers 4`).
    - **Output.** Each output sample at time `u` takes the source at `t`, where `u = t + D(t)`.

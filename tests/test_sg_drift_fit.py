@@ -30,6 +30,18 @@ class DriftFitTests(unittest.TestCase):
         self.assertEqual([s['boundary'] for s in res['segments']], ['file_start', 'recorder_gap'])
         self.assertAlmostEqual(res['segments'][1]['constant_s'] - res['segments'][0]['constant_s'], 600, delta=0.5)
 
+    def test_a_short_backward_jump_is_a_replay_not_a_segment(self):
+        offset = 1000 + 0.005 * self.t + self.rng.normal(0, 0.4, len(self.t))
+        replay = np.flatnonzero((self.t > 3000) & (self.t < 4000))[:3]
+        offset[replay] -= 54.0
+        res = fit.fit_reel(REEL, anchors(self.t, offset), [], None)
+        self.assertEqual(len(res['segments']), 1)
+        self.assertEqual(len(res['replay_anchors_dropped_s']), 3)
+        self.assertEqual(res['anchors'], len(self.t) - 3)
+        # A forward step of the same size is a recorder stop and stays a segment.
+        offset[replay] += 2 * 54.0
+        self.assertEqual(len(fit.fit_reel(REEL, anchors(self.t, offset), [], None)['segments']), 3)
+
     def test_a_slowly_changing_rate_takes_one_curve(self):
         x = self.t / 10000
         offset = 50 + 45 * x + 5 * x ** 2 + self.rng.normal(0, 0.3, len(self.t))
