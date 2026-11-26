@@ -58,6 +58,20 @@ class ScriptLayoutTests(unittest.TestCase):
         self.assertEqual(crosstalk_stage.json.loads(json.dumps({'path': former})),
                          {'path': str(layout.STAGES/'04_crosstalk/repeat_catalog.py')})
 
+    def test_renumbered_script_paths_resolve_to_their_current_files(self):
+        import script_relocation
+        for old, new in (('06_retime/06c_sg_retime.py', '07_retime/07a_sg_retime.py'),
+                         ('30-track/06_retime/06b_retime.py', '07_retime/07b_retime.py'),
+                         ('30-track/06_retime/sg_stage.py', '07_retime/sg_stage.py'),
+                         ('07_normalize/speech_normalization.py', '08_normalize/speech_normalization.py'),
+                         ('30-track/05_deflutter/carrier_survey.py', '09_irig/carrier_survey.py')):
+            with self.subTest(old=old):
+                self.assertEqual(script_relocation.current_script(str(layout.SCRIPTS/old)), str(layout.STAGES/new))
+        for target in script_relocation.RENAMED.values():
+            self.assertTrue((layout.SCRIPTS/target).exists(), target)
+        unmoved = str(layout.SCRIPTS/'pipeline.py')
+        self.assertIs(script_relocation.current_script(unmoved), unmoved)
+
     def test_direct_stage_run_finds_the_shared_adapter(self):
         result = subprocess.run([sys.executable, str(layout.STAGES/'05_deflutter/05b_deflutter.py'), '--help'],
                                 capture_output=True, text=True, timeout=45, cwd=layout.REPO)
@@ -96,7 +110,7 @@ class ScriptLayoutTests(unittest.TestCase):
                      'denoise_v2_console.py', 'denoise_v2_launcher.py', 'denoise_v2_cluster.py',
                      'denoise_v2_accelerated.py', 'denoise_v2_rollout.py', 'qualify_denoise_numba.py',
                      '04_crosstalk.py', '05_detect_flutter.py', '05_analyze_flutter.py', '05a_plan_deflutter.py', '05b_deflutter.py', 'render_channel_review.py', 'inspect_tone.py',
-                     '06a_transcribe.py', 'sg_transcribe.py', 'dvd_transcribe.py', '06b_retime.py', '06_retime.py', '05c_retime.py', '07_normalize.py', 'quindar_survey.py', 'irig_search.py'):
+                     '06_transcribe.py', 'sg_transcribe.py', 'dvd_transcribe.py', 'nara_retimed_transcribe.py', '07a_sg_retime.py', '07b_retime.py', '08_normalize.py', 'quindar_survey.py', 'irig_search.py'):
             with self.subTest(script=name):
                 result = subprocess.run(layout.command(name, '--help'), capture_output=True,
                                         text=True, timeout=45, cwd=layout.REPO)

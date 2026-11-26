@@ -1,4 +1,4 @@
-"""Stage 06c: retime the 30-track tapes against the space-to-ground set (IA and NARA).
+"""Stage 07a: fit the 30-track tape-speed curves against the space-to-ground set (IA and NARA).
 
 docs/20_2026-11-25_sg_retime_30track.md. Every step reads saved artifacts only and writes a new
 edition named by the digest of its inputs; completed editions are reused, never rewritten.
@@ -16,9 +16,10 @@ Subcommands
 Word times are the CTC-aligned ones (scripts/00_common/mission_align.py). While a store has a
 running transcription session, or a transcript read is not fully aligned with the current
 aligner, steps refuse unless ``--allow-provisional`` is given; such editions are named
-``provisional-...`` and their plans cannot be applied by 06b. Apply a final plan with:
+``provisional-...`` and their plans cannot be applied by 07b. (The frozen sg_*.py modules still say 06a/06b/06c, the
+former numbers of stages 06, 07b and 07a.) Apply a final plan with:
 
-  uv run python scripts/run.py 06b_retime.py --tape TAPE --all-channels \\
+  uv run python scripts/run.py 07b_retime.py --tape TAPE --all-channels \\
       --quindar-plan <root>/sg_fit/<edition>/tapes/TAPE/plan.json --retimed-root D:/Apollo_15_30-Track/retimed_sg
 """
 # Resolve shared modules from the stage folders.

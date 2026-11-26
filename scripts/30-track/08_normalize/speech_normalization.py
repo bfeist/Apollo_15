@@ -201,7 +201,7 @@ def analyze(source, settings=Settings(), *, timing_only=False, progress=print):
         result['reason'] = 'insufficient_speech_contrast'
         return result
     result.update(speech_seconds=seconds, speech_intervals=result['candidate_intervals'])
-    # Stage 07 is independent of the old denoise gain policy. Use one scalar,
+    # Stage 08 is independent of the old denoise gain policy. Use one scalar,
     # protecting ordinary peaks instead of forcing quiet median speech to its
     # target through broad limiting. Optional policy caps are caller-selected.
     desired_gain_db = settings.target_speech_dbfs-level

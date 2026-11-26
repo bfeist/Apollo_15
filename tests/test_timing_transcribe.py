@@ -483,25 +483,35 @@ class AlignTests(unittest.TestCase):
 
 
 class PipelineEntryTests(unittest.TestCase):
-    def test_stage_06a_is_one_resumable_job_before_retime(self):
+    def test_stage_06_is_one_resumable_job_before_retime(self):
         import pipeline
         numbers = [stage[0] for stage in pipeline.STAGES]
-        self.assertEqual(numbers.index('06a') + 1, numbers.index('06b'))
-        args, selected = pipeline.parse_args(['plan', '--stages', '06a', '--tape', 'A15_T510093', '--channel', '18',
+        self.assertEqual(numbers[numbers.index('05b'):], ['05b', '06', '07a', '07b', '08'])
+        args, selected = pipeline.parse_args(['plan', '--stages', '06', '--tape', 'A15_T510093', '--channel', '18',
                                               '--transcribe-start', '37000'])
         job, = pipeline.make_jobs(args, selected, Path('unused'))
-        self.assertEqual(job['script'], '06a_transcribe.py')
+        self.assertEqual(job['script'], '06_transcribe.py')
         command = job['command']
-        self.assertEqual(command[command.index('06a_transcribe.py') + 1], 'run')
+        self.assertEqual(command[command.index('06_transcribe.py') + 1], 'run')
         for expected in ('--tape=A15_T510093', '--start'):
             self.assertIn(expected, command)
-        args, selected = pipeline.parse_args(['plan', '--stages', '06a', '--all-tapes'])
+        args, selected = pipeline.parse_args(['plan', '--stages', '06', '--all-tapes'])
         job, = pipeline.make_jobs(args, selected, Path('unused'))
         self.assertIn('--all-tapes', job['command'])
 
-    def test_stage_06a_rejects_mixed_or_empty_selection(self):
+    def test_stage_07a_is_one_job_over_the_selected_tapes(self):
         import pipeline
-        for argv in (['plan', '--stages', '06a,06b', '--tape', 'A15_T510093'], ['plan', '--stages', '06a']):
+        args, selected = pipeline.parse_args(['plan', '--stages', '07a', '--all-tapes'])
+        job, = pipeline.make_jobs(args, selected, Path('unused'))
+        command = job['command']
+        self.assertEqual(command[command.index('07a_sg_retime.py') + 1:], ['run', '--all-tapes'])
+        with self.assertRaises(SystemExit):
+            pipeline.parse_args(['plan', '--stages', '07a', '--tape', 'A15_T510093', '--channel', '3'])
+
+    def test_stage_06_rejects_mixed_or_empty_selection(self):
+        import pipeline
+        for argv in (['plan', '--stages', '06,07b', '--tape', 'A15_T510093'], ['plan', '--stages', '06'],
+                     ['plan', '--stages', '06,07a', '--all-tapes']):
             with self.subTest(argv=argv), self.assertRaises(SystemExit):
                 pipeline.parse_args(argv)
 

@@ -1,4 +1,4 @@
-"""Stage-05b 30-track channels as transcription sources (stage 06a).
+"""Stage-05b 30-track channels as transcription sources (stage 06, formerly 06a).
 
 ``tape``: completed stage-05b WAVs. The adjacent ``review.json`` supplies the
 published audio checksum and the channel's canonical origin, which already

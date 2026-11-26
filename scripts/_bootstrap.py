@@ -13,7 +13,7 @@ import sys
 SCRIPTS = Path(__file__).resolve().parent
 REPO = SCRIPTS.parent
 LAYOUT = json.loads((SCRIPTS/'layout.json').read_text(encoding='utf-8'))
-STAGES = SCRIPTS/'30-track'  # 30-track stage folders 01-08, moved from scripts/ on 2026-11-24
+STAGES = SCRIPTS/'30-track'  # 30-track stage folders, moved from scripts/ on 2026-11-24 (renumbered 2026-11-26)
 RUNTIME = STAGES/'03_denoise/runtime'
 GENUS_SSH = 'bfeist@192.168.0.3'
 LEGACY_GENUS_SSH = {'bfeist@192.168.0.4', 'bfeist@192.168.0.240'}  # earlier genus addresses

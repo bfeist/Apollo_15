@@ -5,6 +5,11 @@ byte changes, so every recorded implementation hash still matches. A few
 sources located the repository from their own folder depth, and saved stage-04
 evidence records the former absolute script paths. This module corrects both
 when the modules load. It does not alter saved files.
+
+On 2026-11-26 the 30-track stages after deflutter were renumbered (06 transcribe,
+07 retime, 08 normalize, 09 IRIG) and a few modules changed owner. ``RENAMED``
+is the old-to-new record of those moves (paths relative to scripts/); every moved
+file is byte-identical, so recorded implementation hashes still match.
 """
 import json as _json
 from pathlib import Path, PurePosixPath
@@ -15,19 +20,50 @@ REPO = SCRIPTS.parent
 STAGES = SCRIPTS/'30-track'
 MOVED = ('01_ingest', '02_alignment', '03_denoise', '04_crosstalk', '05_deflutter',
          '06_retime', '07_normalize', '08_irig')
+# Old location -> new location, relative to scripts/. A trailing '/' maps a whole folder.
+RENAMED = {
+    '30-track/05_deflutter/carrier_survey.py': '30-track/09_irig/carrier_survey.py',
+    '30-track/05_deflutter/irig_clock.py': '30-track/09_irig/irig_clock.py',
+    '30-track/05_deflutter/flutter_policy.py': '30-track/09_irig/flutter_policy.py',
+    'sg_transcript/md_common.py': '00_common/md_common.py',
+    'sg_transcript/md_ai.py': '00_common/md_ai.py',
+    '30-track/06_retime/06a_transcribe.py': '30-track/06_transcribe/06_transcribe.py',
+    '30-track/06_retime/mission_sources.py': '30-track/06_transcribe/mission_sources.py',
+    '30-track/06_retime/06b_retime.py': '30-track/07_retime/07b_retime.py',
+    '30-track/06_retime/06c_sg_retime.py': '30-track/07_retime/07a_sg_retime.py',
+    '30-track/06_retime/': '30-track/07_retime/',
+    '30-track/07_normalize/07_normalize.py': '30-track/08_normalize/08_normalize.py',
+    '30-track/07_normalize/': '30-track/08_normalize/',
+    '30-track/08_irig/': '30-track/09_irig/',
+}
+
+
+def renamed(relative):
+    """The current location (relative to scripts/) of a recorded relative script path."""
+    relative = PurePosixPath(relative).as_posix()
+    if relative in RENAMED:
+        return RENAMED[relative]
+    for old, new in RENAMED.items():
+        if old.endswith('/') and relative.startswith(old):
+            return new+relative[len(old):]
+    return relative
 
 
 def current_script(path):
-    """Map a recorded pre-move script location to the same file in scripts/30-track/."""
+    """Map a recorded pre-move script location to the same file at its current location."""
     if not isinstance(path, str):
         return path
     candidate = Path(path)
     if not candidate.is_absolute() or not candidate.is_relative_to(SCRIPTS):
         return path
     parts = candidate.relative_to(SCRIPTS).parts
-    if len(parts) < 2 or parts[0] not in MOVED:
+    if len(parts) < 2:
         return path
-    moved = STAGES.joinpath(*parts)
+    recorded = '/'.join(parts)
+    relative = renamed('30-track/'+recorded if parts[0] in MOVED else recorded)
+    if relative == recorded:
+        return path  # never moved: keep the recorded string exactly
+    moved = SCRIPTS/relative
     return str(moved) if moved.is_file() else path
 
 

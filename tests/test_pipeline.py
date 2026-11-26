@@ -521,7 +521,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(json.loads((self.output/'speech.json').read_text())['stage'], 'denoise')
 
     def test_retired_stages_are_rejected(self):
-        for stage in ('02b', '04', '08'):
+        for stage in ('02b', '04', '09'):
             with self.subTest(stage=stage):
                 result = self.run_pipeline('--stages', stage)
                 self.assertEqual(result.returncode, 2)

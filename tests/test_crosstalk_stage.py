@@ -207,12 +207,12 @@ class CrosstalkStageTests(unittest.TestCase):
 
     def test_pipeline_routes_stage04_before_map_and_normalization(self):
         args, selected = pipeline.parse_args(['plan', '--tape', 'A15_T001', '--channel', '20',
-            '--stages', '07,05b,04', '--crosstalk-root', str(self.root/'stage04')])
+            '--stages', '08,05b,04', '--crosstalk-root', str(self.root/'stage04')])
         jobs = [j for j in pipeline.make_jobs(args, selected, self.root/'runs') if j['status'] == 'pending']
-        self.assertEqual([j['number'] for j in jobs], ['04', '05b', '07'])
+        self.assertEqual([j['number'] for j in jobs], ['04', '05b', '08'])
         command = jobs[1]['command']
         self.assertEqual(command[command.index('--crosstalk-input')+1], str(self.root/'stage04/A15_T001/CH20'))
-        for stages in ['04,07', '04,06']:
+        for stages in ['04,08', '04,07b']:
             with self.assertRaises(SystemExit):
                 pipeline.parse_args(['--channel', '20', '--stages', stages])
 

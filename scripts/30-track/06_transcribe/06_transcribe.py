@@ -1,12 +1,13 @@
-"""Stage 06a: interim timing transcript of the 30-track stage-05b channels.
+"""Stage 06: timing transcript of the 30-track stage-05b (defluttered) channels.
 
-This transcript exists to place the tapes on mission time (locating exchanges
-for the tape-timing evidence). It is not the final archive transcript; the
-archive is expected to be transcribed again after retiming.
+The transcript places the tapes on mission time: stage 07a matches it against the
+space-to-ground transcripts, and stage 07b carries it onto the retimed timeline
+(``timed_transcript.tsv`` beside each retimed WAV). Formerly stage 06a.
 
-Space-to-ground reels and DVD audio streams have their own commands
-(scripts/sg-audio/sg_transcribe.py, scripts/video/dvds/dvd_transcribe.py) with
-separate stores. Earlier runs of this stage also held those sources; their
+The recognizer, chunk store and commands are the shared engine in
+scripts/00_common (transcribe_cli, transcribe_run, mission_asr). The SG reels, the
+NARA flight tapes and the DVD audio streams use the same engine through their own
+entry points and stores. Earlier runs of this stage also held those sources; their
 records under this stage's transcript root are left unchanged.
 
 Subcommands

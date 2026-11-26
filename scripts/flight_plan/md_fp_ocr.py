@@ -51,7 +51,7 @@ TIME_RE = re.compile(r'\d{1,3}:\d{2}(?::\d{2}(?:\.\d)?)?')
 
 # ------------------------------------------------------------------ guards
 def transcription_running() -> bool:
-    """True while a stage-06a run holds the GPU (OCR must not run then)."""
+    """True while a transcription run (any shared-engine entry point) holds the GPU (OCR must not run then)."""
     try:
         out = subprocess.run(['powershell', '-NoProfile', '-Command',
                               "Get-CimInstance Win32_Process -Filter \"Name='python.exe'\" | "
@@ -59,7 +59,7 @@ def transcription_running() -> bool:
                              capture_output=True, text=True, timeout=30).stdout
     except (OSError, subprocess.SubprocessError):
         out = ''
-    return '06a_transcribe' in out
+    return any(name in out for name in ('06_transcribe', 'sg_transcribe', 'nara_retimed_transcribe', 'dvd_transcribe'))
 
 
 SHARED_GPU_CAP = 0.35  # vLLM share of VRAM at or below which OXR fits beside a 06a run

@@ -207,7 +207,7 @@ class SpeechNormalizationTests(unittest.TestCase):
         (self.source.parent/'markers.csv').write_bytes(marker)
         review = dict(status='complete', source=dict(role='timing_only'), source_offset_frames=2400)
         (self.source.parent/'review.json').write_text(json.dumps(review))
-        cmd = [sys.executable, str(ROOT/'scripts/30-track/07_normalize/07_normalize.py'),
+        cmd = [sys.executable, str(ROOT/'scripts/30-track/08_normalize/08_normalize.py'),
                '--input', str(self.source), '--output', str(self.output)]
         preview = subprocess.run([*cmd, '--dry-run'], capture_output=True, text=True)
         self.assertEqual(preview.returncode, 0, preview.stdout+preview.stderr)
@@ -223,22 +223,20 @@ class SpeechNormalizationTests(unittest.TestCase):
         self.assertEqual(saved['analysis']['reason'], 'timing_only')
 
     def test_pipeline_order_alias_and_batch_source(self):
-        args, selected = pipeline.parse_args(['plan', '--stages', '07,05b,06b', '--tape', 'A15_T001', '--channel', '7'])
+        args, selected = pipeline.parse_args(['plan', '--stages', '08,05b,07b', '--tape', 'A15_T001', '--channel', '7'])
         jobs = [j for j in pipeline.make_jobs(args, selected, self.root) if j['status'] == 'pending']
-        self.assertEqual([j['number'] for j in jobs], ['05b', '06b', '07'])
+        self.assertEqual([j['number'] for j in jobs], ['05b', '07b', '08'])
         self.assertIn(str(args.retimed_root), jobs[-1]['command'])
         self.assertNotIn('--max-boost-db', jobs[-1]['command'])
         self.assertNotIn('--max-noise-dbfs', jobs[-1]['command'])
-        capped_args, capped_selected = pipeline.parse_args(['plan', '--stages', '07', '--channel', '7',
+        capped_args, capped_selected = pipeline.parse_args(['plan', '--stages', '08', '--channel', '7',
             '--speech-max-boost-db', '5', '--speech-max-noise-dbfs', '-50'])
-        capped_job = next(j for j in pipeline.make_jobs(capped_args, capped_selected, self.root) if j['number'] == '07')
+        capped_job = next(j for j in pipeline.make_jobs(capped_args, capped_selected, self.root) if j['number'] == '08')
         self.assertIn('--max-boost-db', capped_job['command'])
         self.assertIn('--max-noise-dbfs', capped_job['command'])
-        _, selected = pipeline.parse_args(['plan', '--stages', '05c', '--channel', '7'])
-        self.assertEqual(selected, {'06b'})
         source = self.root/'defluttered'/'A15_T001'/'CH07'
         source.mkdir(parents=True)
-        args, selected = pipeline.parse_args(['plan', '--stages', '07', '--all-tapes',
+        args, selected = pipeline.parse_args(['plan', '--stages', '08', '--all-tapes',
             '--defluttered-root', str(source.parents[1]), '--normalized-root', str(self.output)])
         jobs = pipeline.make_jobs(args, selected, self.root)
         self.assertEqual(len(jobs), 1)

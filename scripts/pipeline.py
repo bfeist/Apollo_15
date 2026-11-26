@@ -48,14 +48,18 @@ STAGES = [
      'Blind cross-channel tape-motion census on originals; Proprius and Genus workers'),
     ('05a', 'Plan deflutter', '05a_plan_deflutter.py', 'Compile one tape map from saved evidence and census on all channels'),
     ('05b', 'Deflutter', '05b_deflutter.py', 'Apply the shared tape map to stage-04 audio at its existing gain'),
-    ('06a', 'Transcribe', '06a_transcribe.py',
-     'Interim timing transcript: gain-gated Whisper on 05b channels'),
-    ('06b', 'Retime', '06b_retime.py', 'Apply a smoothed Quindar anchor curve to defluttered audio'),
-    ('07', 'Normalize', '07_normalize.py', 'Reach the speech target with one constant gain; bypass noise-only channels'),
+    ('06', 'Transcribe', '06_transcribe.py',
+     'Timing transcript: gain-gated Whisper on 05b channels (shared engine, scripts/00_common)'),
+    ('07a', 'SG retime fit', '07a_sg_retime.py',
+     'Fit one tape-speed curve per tape against the retimed space-to-ground reels; freeze one plan per tape'),
+    ('07b', 'Retime', '07b_retime.py',
+     'Apply the frozen tape plan to every defluttered channel; carry the 06 transcript onto the output clock'),
+    ('08', 'Normalize', '08_normalize.py',
+     'Speech target with one constant gain; 8 kHz 16-bit dithered delivery WAV'),
 ]
-TRANSCRIBE_STAGES = {'06a'}
-LETTERED = {'05a', '05b', '06a', '06b'}
-ALIASES = {'05c': '06b', '06': '06b', '6': '06b'}  # former retime stage numbers
+SET_STAGES = {'06', '07a'}  # one resumable process over the selected tapes, run on their own
+LETTERED = {'05a', '05b', '07a', '07b'}
+STAGE_LIST = '01,02,03,04,05,05a,05b,06,07a,07b,08'
 
 
 def parse_args(argv=None):
@@ -69,7 +73,7 @@ def parse_args(argv=None):
     parser.add_argument('--concatenated', type=Path, default=Path('D:/Apollo_15_30-Track/orig_concatenated'))
     tapes = parser.add_mutually_exclusive_group()
     tapes.add_argument('--tape', help='Select one canonical tape folder')
-    tapes.add_argument('--all-tapes', action='store_true', help='Process all tapes for stage 03, 04, 05, 05a, 05b, 06a, 06b, or 07')
+    tapes.add_argument('--all-tapes', action='store_true', help='Process all tapes for stage 03, 04, 05, 05a, 05b, 06, 07a, 07b, or 08')
     parser.add_argument('--exclude-tape', action='append', default=[], metavar='TAPE',
                         help='Skip a tape in an all-tapes batch; may be repeated')
     channels = parser.add_mutually_exclusive_group()
@@ -87,15 +91,17 @@ def parse_args(argv=None):
     parser.add_argument('--retimed-root', type=Path, default=DEFAULT_RETIMED_ROOT)
     parser.add_argument('--normalized-root', type=Path, default=DEFAULT_NORMALIZED_ROOT)
     parser.add_argument('--normalize-from', choices=['defluttered', 'retimed'], default='defluttered',
-                        help='Stage 07 input when no preceding audio stage is selected')
-    parser.add_argument('--speech-target-dbfs', type=float, default=-23., help='Stage 07 active speech RMS target; not LUFS')
-    parser.add_argument('--speech-max-boost-db', type=float, help='Stage 07 optional boost limit; disabled by default')
-    parser.add_argument('--speech-max-noise-dbfs', type=float, help='Stage 07 optional noise ceiling; disabled by default')
+                        help='Stage 08 input when no preceding audio stage is selected')
+    parser.add_argument('--speech-target-dbfs', type=float, default=-23., help='Stage 08 active speech RMS target; not LUFS')
+    parser.add_argument('--speech-max-boost-db', type=float, help='Stage 08 optional boost limit; disabled by default')
+    parser.add_argument('--speech-max-noise-dbfs', type=float, help='Stage 08 optional noise ceiling; disabled by default')
     parser.add_argument('--quindar-analysis-root', type=Path, default=DEFAULT_ANALYSIS_ROOT)
-    parser.add_argument('--quindar-plan', type=Path, help='Stage 06b frozen shared tape plan')
+    parser.add_argument('--quindar-plan', type=Path, help='Stage 07b frozen shared tape plan override')
+    parser.add_argument('--sg-fit', type=Path, help='Stage 07b: 07a fit edition whose per-tape plans to apply (default: newest final edition)')
+    parser.add_argument('--sg-allow-provisional', action='store_true', help='Stage 07a: build provisional editions')
     parser.add_argument('--experimental-single-channel', action='store_true', help='Allow the original per-file Quindar assessment workflow')
-    parser.add_argument('--retime-candidates', type=Path, help='Stage 06b: full candidate inventory for the exact defluttered input')
-    parser.add_argument('--retime-smoothing-seconds', type=float, help='Stage 06b: smoothing kernel sigma; default chooses by block validation')
+    parser.add_argument('--retime-candidates', type=Path, help='Stage 07b: full candidate inventory for the exact defluttered input')
+    parser.add_argument('--retime-smoothing-seconds', type=float, help='Stage 07b: smoothing kernel sigma; default chooses by block validation')
     parser.add_argument('--min-age', type=float, default=60)
     parser.add_argument('--flutter-planning-root', '--planning-root', type=Path,
                         default=DEFAULT_PLANNING_ROOT, help='Shared tape maps')
@@ -122,12 +128,12 @@ def parse_args(argv=None):
     parser.add_argument('--flutter-plan-start', type=float, default=0, help='Stage 05a bounded audit start; default whole tape')
     parser.add_argument('--flutter-plan-duration', type=float, help='Stage 05a optional bounded audit duration')
     parser.add_argument('--skip-deflutter', action='store_true', help='Skip stage 05b correction')
-    parser.add_argument('--target-dbfs', type=float, default=DEFAULT_TARGET_DBFS, help='Stage 06b sample-peak target (default: -3 dBFS); 05b retains v2 gain')
-    parser.add_argument('--max-boost-db', type=float, default=DEFAULT_MAX_BOOST_DB, help='Stage 06b maximum boost (default: 12 dB)')
-    timing = parser.add_argument_group('interim timing transcription (stage 06a)')
-    timing.add_argument('--transcribe-start', type=float, help='Stage 06a window start (canonical tape seconds)')
-    timing.add_argument('--transcribe-end', type=float, help='Stage 06a window end')
-    timing.add_argument('--transcribe-max-hours', type=float, help='Stage 06a wall-time budget; rerun to resume')
+    parser.add_argument('--target-dbfs', type=float, default=DEFAULT_TARGET_DBFS, help='Stage 07b sample-peak target (default: -3 dBFS); 05b retains v2 gain')
+    parser.add_argument('--max-boost-db', type=float, default=DEFAULT_MAX_BOOST_DB, help='Stage 07b maximum boost (default: 12 dB)')
+    timing = parser.add_argument_group('timing transcription (stage 06)')
+    timing.add_argument('--transcribe-start', type=float, help='Stage 06 window start (canonical tape seconds)')
+    timing.add_argument('--transcribe-end', type=float, help='Stage 06 window end')
+    timing.add_argument('--transcribe-max-hours', type=float, help='Stage 06 wall-time budget; rerun to resume')
     parser.add_argument('--plain', action='store_true', help='Print sequential logs without a live dashboard')
     args = parser.parse_args(argv)
     args.tape_given = args.tape
@@ -148,26 +154,26 @@ def parse_args(argv=None):
     try:
         requested = args.stages or ('03' if args.batch else
                                     '05b' if args.channel is not None else '03')
-        tokens = [ALIASES.get(value.strip().lower(), value.strip().lower()) for value in requested.split(',')]
+        tokens = [value.strip().lower() for value in requested.split(',')]
         selected = {value if value in LETTERED else f'{int(value):02d}' for value in tokens}
     except ValueError:
-        parser.error('--stages must contain 01,02,03,04,05,05a,05b,06a,06b,07')
+        parser.error(f'--stages must contain {STAGE_LIST}')
     if not selected or not selected <= {s[0] for s in STAGES}:
-        parser.error('--stages must contain 01,02,03,04,05,05a,05b,06a,06b,07')
-    args.transcribe = bool(selected & TRANSCRIBE_STAGES)
+        parser.error(f'--stages must contain {STAGE_LIST}')
+    args.transcribe = bool(selected & SET_STAGES)
     if args.transcribe:
-        if not selected <= TRANSCRIBE_STAGES:
-            parser.error('Run stage 06a transcription separately from the audio stages')
+        if len(selected) != 1:
+            parser.error('Run stage 06 or 07a on its own, separately from the audio stages')
         if args.input or args.all_channels or args.exclude_tape:
-            parser.error('Stage 06a selects 05b tapes with --tape/--all-tapes and optional --channel')
+            parser.error('Stages 06 and 07a select 05b tapes with --tape/--all-tapes')
         if not (args.tape_given or args.all_tapes):
-            parser.error('Stage 06a needs --tape or --all-tapes (SG reels and DVDs: sg_transcribe.py, dvd_transcribe.py)')
-        if args.channel is not None and not 1 <= args.channel <= 30:
-            parser.error('--channel must be 1-30')
+            parser.error('Stages 06 and 07a need --tape or --all-tapes (SG reels and DVDs: sg_transcribe.py, dvd_transcribe.py)')
+        if args.channel is not None and ('07a' in selected or not 1 <= args.channel <= 30):
+            parser.error('--channel must be 1-30, and only for stage 06')
         args.batch = args.batch_flutter = args.batch_denoise = False
         return args, selected
-    if args.batch and selected not in ({'02'}, {'03'}, {'04'}, {'05'}, {'05a'}, {'05b'}, {'06b'}, {'07'}):
-        parser.error('Batch mode supports one stage at a time; use --stages 02, 03, 04, 05, 05a, 05b, 06b, or 07')
+    if args.batch and selected not in ({'02'}, {'03'}, {'04'}, {'05'}, {'05a'}, {'05b'}, {'07b'}, {'08'}):
+        parser.error('Batch mode supports one stage at a time; use --stages 02, 03, 04, 05, 05a, 05b, 07b, or 08')
     args.batch_detect = args.batch and selected == {'05'}
     if '05a' in selected and '05' not in selected and args.flutter_detection_root and not args.flutter_qualification_root:
         parser.error('Stage 05a needs --flutter-qualification-root to import census evidence. '
@@ -182,13 +188,13 @@ def parse_args(argv=None):
         parser.error('--skip-crosstalk requires stage 05b without stage 04')
     if '04' in selected and not args.batch and args.channel is None:
         parser.error('Stage 04 requires --channel, --all-channels, or --all-tapes')
-    if '04' in selected and selected & {'06b', '07'} and ('05b' not in selected or args.skip_deflutter):
+    if '04' in selected and selected & {'07b', '08'} and ('05b' not in selected or args.skip_deflutter):
         parser.error('Run stage 05b between stage 04 and retiming/normalization')
     if args.batch_crosstalk and args.input:
         parser.error('Batch 04 uses completed v2 channels under --denoised-root; omit --input')
-    args.batch_normalize = args.batch and selected == {'07'}
+    args.batch_normalize = args.batch and selected == {'08'}
     if args.batch_normalize and args.input:
-        parser.error('Batch 07 uses --normalize-from and stage roots; omit --input')
+        parser.error('Batch 08 uses --normalize-from and stage roots; omit --input')
     args.batch_denoise = args.batch and selected == {'03'}
     if args.denoise_version == 'v2':
         if (selected != {'03'} or not (args.all_tapes or args.channel is not None)
@@ -199,12 +205,12 @@ def parse_args(argv=None):
     args.batch_flutter = args.batch and bool(selected & {'05a', '05b'})
     if args.flutter_plan_stop_on_error and not (args.batch and selected == {'05a'}):
         parser.error('--flutter-plan-stop-on-error requires batch stage 05a')
-    args.batch_retime = args.batch and selected == {'06b'}
+    args.batch_retime = args.batch and selected == {'07b'}
     if args.batch_retime:
         if args.input or args.quindar_plan or args.retime_candidates or args.retime_smoothing_seconds or args.experimental_single_channel:
-            parser.error('Batch 06b uses one saved plan per tape; omit file-specific overrides')
-    if args.skip_deflutter and {'05b', '06b'} <= selected:
-        parser.error('Cannot retime a skipped deflutter stage; run 06b alone on existing defluttered audio')
+            parser.error('Batch 07b uses one saved plan per tape; omit file-specific overrides')
+    if args.skip_deflutter and {'05b', '07b'} <= selected:
+        parser.error('Cannot retime a skipped deflutter stage; run 07b alone on existing defluttered audio')
     if '05b' in selected and not args.skip_deflutter and not args.batch and args.channel is None:
         parser.error('Stage 05b requires --channel, --all-channels, or --all-tapes; use render_channel_review.py for listening pilots')
     if Path(args.tape).name != args.tape or args.tape in {'.', '..'}:
@@ -225,13 +231,13 @@ def parse_args(argv=None):
         if args.flutter_plan_start != 0 or args.flutter_plan_duration is not None:
             parser.error('Whole-channel mode requires a whole-tape plan; omit bounded planning arguments')
     if args.action == 'run':
-        if '07' in selected and not args.batch and args.channel is None and not selected & {'05b', '06b'}:
+        if '08' in selected and not args.batch and args.channel is None and not selected & {'05b', '07b'}:
             if args.input is None or not args.input.exists():
-                parser.error('Standalone 07 requires --input or a tape/channel selection')
+                parser.error('Standalone 08 requires --input or a tape/channel selection')
         if not args.batch and args.channel is None and selected & {'03', '05b'} and (args.input is None or not args.input.is_dir()):
             parser.error('Audio stages require --input pointing to a speech excerpt folder')
-        if not args.batch_retime and args.channel is None and '06b' in selected and '05b' not in selected and (args.input is None or not args.input.exists()):
-            parser.error('Standalone 06b requires --input pointing to defluttered audio')
+        if not args.batch_retime and args.channel is None and '07b' in selected and '05b' not in selected and (args.input is None or not args.input.exists()):
+            parser.error('Standalone 07b requires --input pointing to defluttered audio')
         if args.input and (args.input.resolve() == args.output.resolve() or args.input.resolve() in args.output.resolve().parents):
             parser.error('--output must be outside --input')
     try:
@@ -328,13 +334,17 @@ def make_flutter_batch(args, selected, run_dir):
 
 
 def make_transcribe_jobs(args, selected):
-    """One resumable transcription process; it reuses completed chunks."""
+    """One resumable process over the selected tapes: 06 transcription or the 07a SG fit."""
     jobs = []
     for number, name, script, description in STAGES:
         if number not in selected:
             continue
         command = script_command(script)
-        if number == '06a':
+        if number == '07a':
+            command += ['run', '--all-tapes'] if args.all_tapes else ['run', f'--tape={args.tape_given}']
+            if args.sg_allow_provisional:
+                command += ['--allow-provisional']
+        if number == '06':
             command += ['run']
             command += ['--all-tapes'] if args.all_tapes else [f'--tape={args.tape_given}'] if args.tape_given else []
             if args.channel is not None:
@@ -363,9 +373,9 @@ def make_jobs(args, selected, run_dir):
                 channel = int(source.name[2:])
                 options = argparse.Namespace(**vars(args))
                 options.channel, options.tape = channel, folder.name
-                job = next(j for j in make_tape_jobs(options, selected, run_dir) if j['number'] == '07')
+                job = next(j for j in make_tape_jobs(options, selected, run_dir) if j['number'] == '08')
                 job.update(name=f'{folder.name} CH{channel:02d}', tape=folder.name, channel=channel,
-                           log=f'07_{folder.name}_CH{channel:02d}.log')
+                           log=f'08_{folder.name}_CH{channel:02d}.log')
                 jobs.append(job)
         if not jobs:
             raise ValueError('No channels are available for speech normalization')
@@ -379,14 +389,16 @@ def make_jobs(args, selected, run_dir):
         for folder in folders:
             if not list(folder.glob('CH*/deflutter.wav')):
                 continue
-            command = [sys.executable, '-u', str(source_path('06b_retime.py')), '--tape', folder.name,
+            command = [sys.executable, '-u', str(source_path('07b_retime.py')), '--tape', folder.name,
                        '--defluttered-root', str(args.defluttered_root), '--retimed-root', str(args.retimed_root),
                        '--quindar-analysis-root', str(args.quindar_analysis_root),
                        '--target-dbfs', str(args.target_dbfs), '--max-boost-db', str(args.max_boost_db)]
             command += ['--channel', str(args.channel)] if args.channel else ['--all-channels']
-            jobs.append(dict(number='06b', name=folder.name, script='06b_retime.py',
+            if args.sg_fit:
+                command += ['--sg-fit', str(args.sg_fit)]
+            jobs.append(dict(number='07b', name=folder.name, script='07b_retime.py',
                              description='Apply one frozen tape curve to available defluttered channels', command=command,
-                             status='pending', elapsed=0., returncode=None, log=f'06b_{folder.name}.log'))
+                             status='pending', elapsed=0., returncode=None, log=f'07b_{folder.name}.log'))
         if not jobs:
             raise ValueError('No defluttered channels are available')
         return jobs
@@ -472,10 +484,12 @@ def make_tape_jobs(args, selected, run_dir):
             command += ['--tape',args.tape,'--channel',str(args.channel),'--output',str(output),
                         '--flutter-plan',str(plan),
                         '--denoised-input' if args.skip_crosstalk else '--crosstalk-input',str(source)]
-        elif number == '06b':
+        elif number == '07b':
             command += ['--quindar-analysis-root', str(args.quindar_analysis_root)]
             if args.quindar_plan:
                 command += ['--quindar-plan', str(args.quindar_plan)]
+            elif args.sg_fit:
+                command += ['--sg-fit', str(args.sg_fit)]
             if args.experimental_single_channel:
                 command += ['--experimental-single-channel']
             if args.channel is not None:
@@ -488,9 +502,9 @@ def make_tape_jobs(args, selected, run_dir):
                 command += ['--candidates', str(args.retime_candidates)]
             if args.retime_smoothing_seconds is not None:
                 command += ['--smoothing-seconds', str(args.retime_smoothing_seconds)]
-        elif number == '07':
+        elif number == '08':
             if args.channel is not None:
-                root = args.retimed_root if '06b' in selected or args.normalize_from == 'retimed' else args.defluttered_root
+                root = args.retimed_root if '07b' in selected or args.normalize_from == 'retimed' else args.defluttered_root
                 output = args.normalized_root/args.tape/f'CH{args.channel:02d}'
                 command += ['--tape', args.tape, '--channel', str(args.channel),
                             '--input-root', str(root), '--output', str(output)]
@@ -507,9 +521,9 @@ def make_tape_jobs(args, selected, run_dir):
                 current = output
         if number in {'02','04','05','05a','05b'} and args.alignment_root:
             command += ['--alignment-root', str(args.alignment_root)]
-        if number == '06b':
+        if number == '07b':
             command += ['--target-dbfs',str(args.target_dbfs),'--max-boost-db',str(args.max_boost_db)]
-        if number in selected and number in {'05b', '06b', '07'} and status != 'skipped explicitly':
+        if number in selected and number in {'05b', '07b', '08'} and status != 'skipped explicitly':
             current = output
         jobs.append(dict(number=number, name=name, script=script, description=description,
                          command=command, status=status, elapsed=0.0,
@@ -593,7 +607,7 @@ def execute(job, jobs, tail, run_dir, live, console, stop_event=None, report_que
                 if live:
                     live.update(dashboard(jobs, tail, run_dir))
         job['returncode'] = process.wait()
-        job['status'] = 'done' if process.returncode == 0 else ('blocked' if job['number'] in {'05b', '06b'} else 'failed')
+        job['status'] = 'done' if process.returncode == 0 else ('blocked' if job['number'] in {'05b', '07b'} else 'failed')
         return process.returncode
     finally:
         if process.poll() is None:
@@ -703,7 +717,7 @@ def main(argv=None):
             if job['status'] == 'pending':
                 console.print(Text(subprocess.list2cmdline(job['command'])))
         console.print('Commands only; no outputs written.' if args.batch else
-                      'Commands only. Whole-channel order: 03 denoise, 04 crosstalk, 05 detect and 05a plan on originals, 05b deflutter, 06a interim timing transcript, 06b Quindar retime, 07 speech normalization.')
+                      'Commands only. Whole-channel order: 03 denoise, 04 crosstalk, 05 detect and 05a plan on originals, 05b deflutter, 06 timing transcript, 07a SG retime fit, 07b retime, 08 normalization and delivery.')
         return 2 if invalid else 0
     run_dir.mkdir(parents=True)
     live = None if args.plain or not console.is_terminal else Live(console=console, refresh_per_second=5)

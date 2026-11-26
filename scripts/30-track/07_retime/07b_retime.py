@@ -1,4 +1,4 @@
-"""Stage 06b: retime defluttered audio using a smoothed Quindar anchor curve."""
+"""Stage 07b: apply one frozen tape-speed plan (07a SG fit, or a Quindar plan) to every defluttered channel."""
 
 # Resolve shared modules from the stage folders.
 import sys as _sys
@@ -8,6 +8,7 @@ from _bootstrap import install as _install
 _install()
 
 import argparse
+import json
 from pathlib import Path
 
 from flutter_plan_store import tape_directory
@@ -15,6 +16,20 @@ from shared_tape import DEFAULT_DEFLUTTERED_ROOT
 from quindar_retime import DEFAULT_RETIMED_ROOT, retime
 from quindar_survey import DEFAULT_ANALYSIS_ROOT
 from quindar_tape import build_shared_plan, load_shared_plan
+from sg_inputs import RETIMING_ROOT
+
+
+def sg_plan(tape, fit=None, root=RETIMING_ROOT):
+    """The 07a plan of ``tape``: from the named fit edition, else the newest final edition with that tape."""
+    if fit is not None:
+        plan = Path(fit)/'tapes'/tape/'plan.json'
+        if not plan.is_file():
+            raise ValueError(f'07a fit edition {fit} has no plan for {tape}')
+        return plan
+    fits = [f for f in (Path(root)/'sg_fit').glob('fit-*')  # provisional editions are named provisional-fit-*
+            if (f/'tapes'/tape/'plan.json').is_file() and (f/'manifest.json').is_file()
+            and json.loads((f/'manifest.json').read_text(encoding='utf-8')).get('status') == 'complete']
+    return max(fits, key=lambda f: (f/'tapes'/tape/'plan.json').stat().st_mtime_ns)/'tapes'/tape/'plan.json' if fits else None
 
 
 def main():
@@ -28,6 +43,8 @@ def main():
     p.add_argument('--plan-only', action='store_true', help='Freeze the tape plan after exhaustive discovery and post-deflutter measurement')
     p.add_argument('--quindar-analysis-root', type=Path, default=DEFAULT_ANALYSIS_ROOT)
     p.add_argument('--quindar-plan', type=Path, help='Frozen shared tape plan override')
+    p.add_argument('--sg-fit', type=Path, help='07a fit edition (sg_fit/<edition>) whose plan to apply; default: '
+                   'the newest final edition with this tape, else the Quindar plan')
     p.add_argument('--clock-anchors', type=Path, help='Authenticated anchors carried through the actual 05b map; for one-tape --plan-only')
     p.add_argument('--experimental-single-channel', action='store_true', help='Explicitly permit the original per-file assessment workflow')
     p.add_argument('--defluttered-root', type=Path, default=DEFAULT_DEFLUTTERED_ROOT)
@@ -61,7 +78,10 @@ def main():
             record = build_shared_plan(tape_directory(args.tape, args.quindar_analysis_root), args.smoothing_seconds, args.clock_anchors)
             print(f"Frozen tape plan: {record['tape']}; {record['unique_calibration_events']} unique anchors; {record['reference_count']} post-deflutter references")
             return
-        if args.tape and not args.experimental_single_channel:
+        if args.tape and not args.experimental_single_channel and plan is None:
+            plan = sg_plan(args.tape, args.sg_fit)
+            if plan is not None:
+                print(f'Applying the 07a SG plan {plan}', flush=True)
             plan = plan or tape_directory(args.tape, args.quindar_analysis_root)/'shared_plan'/'plan.json'
         if not args.experimental_single_channel:
             if plan is None or not plan.exists():
