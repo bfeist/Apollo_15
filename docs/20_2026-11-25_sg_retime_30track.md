@@ -503,7 +503,7 @@ reels and segments. The two sets therefore constrain each other:
 - **Generator calibration.** The NARA bursts on IRIG time give key 2524.5–2527.2 Hz and unkey
   2476.5–2478.1 Hz on the well-populated tapes (645, 646, 649). Spec is 2525/2475 Hz. Replace the
   nominal in `quindar_speed` fits with these measured values and their spread. This is about the
-  0.1 % bias that `reports/sg_quindar/README.md` could not resolve.
+  0.1 % bias that `archive/2026-11-26_reorg/reports/sg_quindar/README.md` could not resolve.
 
 ## Where it plugs into stage 06
 

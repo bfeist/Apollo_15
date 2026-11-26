@@ -1,6 +1,6 @@
 # Parakeet and Spur gate benchmark
 
-The tables below use outputs from `runs/mission_timing_pilot/asr/`.
+The tables below use outputs from `archive/2026-11-26_reorg/runs/mission_timing_pilot/asr/`.
 
 FP32 Parakeet and source-safe distil Whisper were tested on the 3-hour T510093 census and a 1,720-second set containing PAO, CH23 and other 05b channels, DVD, journal audio, and a 120-second CH30 empty control. Each gated test used the same 0.12 Silero windows. The Parakeet benchmark independently re-ran Silero to verify every saved window against the exact source. It sent each window as an independent continuous excerpt and batched by duration. It wrote token onsets back on the timebase of each source. The TDT output supplied no word ends.
 
@@ -33,10 +33,10 @@ The RMS boost captured both the TV call and readout opening on all three sources
 
 ```powershell
 uv run --with faster-whisper==1.2.1 python research/mission_timing/benchmark_spur_vad.py `
-  runs/mission_timing_pilot/asr/census_inputs.json `
-  runs/mission_timing_pilot/asr/matched_inputs.json `
-  catalog/spur_exchange.tsv `
-  runs/mission_timing_pilot/asr/spur_vad_experiment
+  archive/2026-11-26_reorg/runs/mission_timing_pilot/asr/census_inputs.json `
+  archive/2026-11-26_reorg/runs/mission_timing_pilot/asr/matched_inputs.json `
+  research/mission_timing/catalog/spur_exchange.tsv `
+  archive/2026-11-26_reorg/runs/mission_timing_pilot/asr/spur_vad_experiment
 ```
 
 ## Distil Whisper with the boosted gate
@@ -63,7 +63,7 @@ Nine case openings received zero-duration tags. The worst raw discrepancy was âˆ
 ### Reproduce the boosted runs
 
 ```powershell
-$apolloAsrRuns = 'runs/mission_timing_pilot/asr'
+$apolloAsrRuns = 'archive/2026-11-26_reorg/runs/mission_timing_pilot/asr'
 $apolloCudnn = 'C:/Program Files/NVIDIA/CUDNN/v9.10/bin/12.9'
 $env:PATH = $apolloCudnn + [IO.Path]::PathSeparator + $env:PATH
 $apolloGainSuites = @(

@@ -734,7 +734,7 @@ Combine them as follows:
 
 - The TEC index from step 2 and the event IDs from step 5 are the same records that
   [mission timing](14_2026-11-22_mission_timing_plan.md#build-a-searchable-transcript-index) uses.
-  Keep the pilot files `catalog/pao_572aaa_*` and `catalog/spur_exchange.*` unchanged. Map their
+  Keep the pilot files `research/mission_timing/catalog/pao_572aaa_*` and `research/mission_timing/catalog/spur_exchange.*` unchanged. Map their
   event IDs into the utterance events rather than renumbering them.
 - Journal GETs are editorially corrected and sometimes adjusted by listening. They help
   identification and are not independent of the printed GET. Never pool them as separate timing

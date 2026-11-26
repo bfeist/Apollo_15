@@ -132,7 +132,7 @@ Whisper's word times come from its cross-attention and are unreliable here. A co
 - **Path.** Frame scores come from the GPU; the Viterbi path (`torchaudio.functional.forced_align`) runs on CPU threads. A frame maps back to its source sample through its window.
 - **Output.** `sf`/`ef` are aligned; `wsf`/`wef` keep Whisper's times. `ap` is the mean probability of the word's character frames. On this narrowband audio a low `ap` does not mean a misplaced word: the pilot found words at 0.005–0.02 within 0.16 s of the visual pick. It is therefore not a flag.
 
-**Pilot (November 25, `research/mission_timing/align_pilot.py`, `runs/align_pilot/report.json`).** Onset error of the same words, Whisper's times against aligned times, on visually picked call openings:
+**Pilot (November 25, `research/mission_timing/align_pilot.py`, `archive/2026-11-26_reorg/runs/align_pilot/report.json`).** Onset error of the same words, Whisper's times against aligned times, on visually picked call openings:
 
 | Set                                  | Whisper median / p90 / worst | Aligned median / p90 / worst | Aligned within 0.25 s |
 | ------------------------------------ | ---------------------------- | ---------------------------- | --------------------- |

@@ -9,7 +9,7 @@ Run a full recording or a bounded excerpt with `transcribe.py`. The default inpu
 ```powershell
 $cudaDirs = @('--dll-dir', 'C:\Program Files\NVIDIA\CUDNN\v9.10\bin\12.9', '--dll-dir', 'C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8\bin')
 $pao = 'N:/Projects/Apollo/Mission Data/Apollo 15/Audio/Internet Archive/572-AAA.wav'
-uv run --with faster-whisper==1.2.1 --with ctranslate2==4.9.1 python research/mission_timing/transcribe.py --source $pao --output runs/mission_timing_pilot/asr/pao_example --model large-v3 @cudaDirs
+uv run --with faster-whisper==1.2.1 --with ctranslate2==4.9.1 python research/mission_timing/transcribe.py --source $pao --output archive/2026-11-26_reorg/runs/mission_timing_pilot/asr/pao_example --model large-v3 @cudaDirs
 ```
 
 The new output directory contains `segments.jsonl` and `blocks.jsonl`, which can be read as the run progresses. The manifest reaches `complete` after the source hash is checked. Segment and word `start` and `end` are elapsed seconds on the input stream. `blocks.jsonl` records the read bounds and chunk origins in source coordinates. Faster-whisper restores pauses removed by its VAD before the block origin is added. The WAV file’s clock, any stage-05b channel origin, PTS and GET remain distinct.
@@ -21,7 +21,7 @@ The [sample specification](asr_samples.json) records the exact pilot intervals a
 ```powershell
 $src = 'research/mission_timing'
 $stage05 = 'D:/Apollo_15_30-Track/defluttered_shared'
-$run = 'runs/mission_timing_pilot/asr'
+$run = 'archive/2026-11-26_reorg/runs/mission_timing_pilot/asr'
 uv run python "$src/build_asr_samples.py" --set sustained_T510093 --stage05-root $stage05 --output "$run/sustained_T510093_inputs.json"
 uv run --with faster-whisper==1.2.1 --with ctranslate2==4.9.1 python "$src/benchmark_asr.py" --inputs "$run/sustained_T510093_inputs.json" --output "$run/repeat_sustained" --model distil-large-v3.5 --batch-beam 16 1 --vad-threshold 0.12 @cudaDirs
 ```
@@ -39,7 +39,7 @@ uv run --with faster-whisper==1.2.1 --with ctranslate2==4.9.1 python "$src/bench
 ```
 
 ```powershell
-uv run --with faster-whisper==1.2.1 --with ctranslate2==4.9.1 python research/mission_timing/benchmark_asr.py --inputs runs/mission_timing_pilot/asr/census_inputs.json --output runs/mission_timing_pilot/asr/census_example --model distil-large-v3.5 --batch-beam 16 1 --batch-beam 32 1 @cudaDirs
+uv run --with faster-whisper==1.2.1 --with ctranslate2==4.9.1 python research/mission_timing/benchmark_asr.py --inputs archive/2026-11-26_reorg/runs/mission_timing_pilot/asr/census_inputs.json --output archive/2026-11-26_reorg/runs/mission_timing_pilot/asr/census_example --model distil-large-v3.5 --batch-beam 16 1 --batch-beam 32 1 @cudaDirs
 ```
 
 The benchmark holds its inputs in memory, so keep each job bounded. The pilot census used 90 excerpts of 120 seconds. By default every decoder context belongs to one input excerpt. The GPU batch can include contexts from different excerpts. The decoder context identifies the source, and its inverse VAD map restores each word's source time. `--max-vad-gap 1` keeps original intervening samples for gaps up to one second and starts a new decoder context after larger gaps. `--mix-sources` reproduces the experimental first pass that allowed one decoder context to combine excerpts. Its source attribution depends on estimated word boundaries.

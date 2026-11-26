@@ -2,8 +2,8 @@
 
 Scores Whisper's native word starts and the CTC-aligned starts of the same words on
 
-* the 31 reviewed call openings of PAO reel 572-AAA (``runs/mission_timing_pilot/pao_anchors.csv``),
-* the Spur exchange picks on 572-AAA and T510092 CH23 (``catalog/spur_exchange.tsv``),
+* the 31 reviewed call openings of PAO reel 572-AAA (``archive/2026-11-26_reorg/runs/mission_timing_pilot/pao_anchors.csv``),
+* the Spur exchange picks on 572-AAA and T510092 CH23 (``research/mission_timing/catalog/spur_exchange.tsv``),
 
 and reports alignment coverage and speed for whole sources. Writes nothing to the stores.
 
@@ -170,10 +170,10 @@ def main():
     rows = align_source(aligner, identity, source, totals=totals)
     report['572-AAA totals'] = totals
     words = word_list(rows, source.sample_rate, 0.0)
-    with (REPO / 'runs/mission_timing_pilot/pao_anchors.csv').open(encoding='utf-8') as f:
+    with (REPO / 'archive/2026-11-26_reorg/runs/mission_timing_pilot/pao_anchors.csv').open(encoding='utf-8') as f:
         anchors = [(r['anchor_id'], float(r['source_seconds']), r['text']) for r in csv.DictReader(f)]
     pao = score(words, anchors)
-    spur_rows = list(csv.DictReader((REPO / 'catalog/spur_exchange.tsv').open(encoding='utf-8'), delimiter='\t'))
+    spur_rows = list(csv.DictReader((REPO / 'research/mission_timing/catalog/spur_exchange.tsv').open(encoding='utf-8'), delimiter='\t'))
     spur_text = {r['event_id']: r['landmark'] for r in spur_rows}
 
     def opening(landmark):

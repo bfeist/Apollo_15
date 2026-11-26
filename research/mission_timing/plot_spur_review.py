@@ -11,7 +11,7 @@ from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 import numpy as np
 from scipy import signal
 
-root = Path("runs/mission_timing_pilot/spur_review")
+root = Path("archive/2026-11-26_reorg/runs/mission_timing_pilot/spur_review")
 root.mkdir(parents=True, exist_ok=True)
 base = Path("D:/! Media Files/A15/Spacecraft Films")
 paths = {

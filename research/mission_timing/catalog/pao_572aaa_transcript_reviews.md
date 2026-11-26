@@ -24,8 +24,8 @@ Run from the repository root with the verified source PDF in the pilot run’s s
 
 ```powershell
 uv run --with pymupdf==2.1 python research/mission_timing/index_technical_transcript.py `
-  runs/mission_timing_pilot/transcript/source/AS15_TEC.pdf `
-  runs/mission_timing_pilot/transcript/technical_rows.tsv
+  archive/2026-11-26_reorg/runs/mission_timing_pilot/transcript/source/AS15_TEC.pdf `
+  archive/2026-11-26_reorg/runs/mission_timing_pilot/transcript/technical_rows.tsv
 ```
 
 The extractor reads the embedded text layer on PDF pages 784–910. It groups words by y position, estimates the time columns on each page, and preserves left-to-right layout. Each timed row retains the original timestamp and speaker tokens, recognized text and normalized search words. Bounding boxes are PDF points with the origin at the top left. Standalone wrap text at a page start retains an untimed record. The index follows printed order, including the separately marked CC–CM sequences. `link_context=cc_lm` restricts comparisons to the lunar-module conversation in this pilot. Same-second entries and regressions are flagged. A shared whole-second stamp or interruption mark signals a possible overlap whose duration is unmeasured. The JSON sidecar gives the source hash and extraction parameters. The downloaded Internet Archive OCR was useful as a second reading of Scott’s Spur TV sentence. The generated index uses the NASA scan’s text layer. [Internet Archive OCR edition](https://archive.org/download/Apollo15/AS15_TEC_djvu.txt)
