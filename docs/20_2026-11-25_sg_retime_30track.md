@@ -1,8 +1,8 @@
 # Retiming the 30-track tapes against the space-to-ground set
 
-**Status: implemented as stage 06c (2026-11-25); the archive run waits for 06a word alignment.**
-The stage is `scripts/30-track/06_retime/06c_sg_retime.py`
-([implementation](#implementation-stage-06c)). It reads the 06a transcripts with CTC-aligned word
+**Status: implemented as stage 07a (2026-11-25); the archive run waits for 06 word alignment.**
+The stage is `scripts/30-track/07_retime/07a_sg_retime.py`
+([implementation](#implementation-stage-07a)). It reads the 06 transcripts with CTC-aligned word
 times ([runbook](15_2026-11-22_transcription_runbook.md#word-times-forced-alignment)). The
 earlier rescue passes, and every number measured on Whisper's own word times, are withdrawn. The
 IA and NARA stores are aligned. The 30-track store is being aligned in place. Official editions
@@ -20,7 +20,7 @@ loop is the same audio that is on the SG reels, and those reels are now on GET:
   held-out error of 0.4–0.9 s on most reels
   ([guide](16_2026-11-23_mission_data_ingestion.md#space-to-ground-reels)).
 
-Stage 06a has transcribed every 30-track channel (18,675 channel-hours, complete), and both SG sets
+Stage 06 has transcribed every 30-track channel (18,675 channel-hours, complete), and both SG sets
 are transcribed with the same recognizer. Matching **ASR against ASR** of the same broadcast is
 much tighter than matching ASR against the 1971 typed transcript. The prototypes show this is
 feasible on every tested tape:
@@ -52,7 +52,7 @@ Five findings shape the plan:
    the anchors allow.
 5. **Every tape shows two stagger groups 1.33–1.39 s apart.** Each SG-carrying channel falls in
    one of them. This measures the main-utterance stagger that the catalog lists as `unknown` for
-   every track ([timing plan](14_2026-11-22_mission_timing_plan.md#how-to-interpret-a-speech-timestamp)).
+   every track ([timing plan](../archive/docs_retired_20261126/14_2026-11-22_mission_timing_plan.md#how-to-interpret-a-speech-timestamp)).
 
 SG reference coverage of the 30-track (union of tape time, per AGENTS.md) is **71 %** of the
 delivered tape-hours by GET span. The rest has no SG reel: GET 7–9, 15–25, 40–49 and the gaps
@@ -60,26 +60,35 @@ inside reels, plus 653-AAA and after 286 h. Inside the covered spans, speech den
 usable share: 19–50 % of tape time is within 120 s of an anchor, and 24–65 % within 600 s. The
 Quindar and hum rate witnesses carry the curve between anchored intervals.
 
-## Implementation (stage 06c)
+## Implementation (stage 07a)
 
 ### Commands
 
 ```
-uv run python scripts/run.py 06c_sg_retime.py status --all-tapes
-uv run python scripts/run.py 06c_sg_retime.py run --all-tapes          # reference, anchors, refine, quindar, fit
-uv run python scripts/run.py 06c_sg_retime.py anchors --tape A15_T510104 # or any single step
+uv run python scripts/run.py 07a_sg_retime.py status --all-tapes
+uv run python scripts/run.py 07a_sg_retime.py run --all-tapes          # reference, anchors, refine, quindar, fit
+uv run python scripts/run.py 07a_sg_retime.py anchors --tape A15_T510104 # or any single step
 ```
 
-Apply a final plan with the existing 06b, to a separate output root:
+Every step except `status` first checks the SG inputs: the IA drift maps
+(`catalog/sg_drift`, from `sg-audio/03_sg-internetarchive-respeed`), the IA reel
+transcripts (`01_sg-internetarchive`), the NARA respeed records and their transcripts
+(`01_sg-nara`). If any is missing, the step stops with exit status 2 and names each missing
+input with the command that makes it. `status` prints the same check.
+
+Then apply the plans with 07b. By default it uses the newest final fit edition that holds the
+tape (`--sg-fit <edition folder>` selects one, `--quindar-plan` overrides). It writes
+`retimed.wav` and `timed_transcript.tsv` per channel under `D:/Apollo_15_30-Track/retimed`
+(`uv run python scripts/pipeline.py run --stages 07b --all-tapes`), or explicitly:
 
 ```
-uv run python scripts/run.py 06b_retime.py --tape TAPE --all-channels \
-    --quindar-plan D:/Apollo_15_30-Track/stage_evidence/retiming/sg_fit/<edition>/tapes/TAPE/plan.json \
-    --retimed-root D:/Apollo_15_30-Track/retimed_sg
+uv run python scripts/run.py 07b_retime.py --tape TAPE --all-channels \
+    --sg-fit D:/Apollo_15_30-Track/stage_evidence/retiming/sg_fit/<edition>
 ```
 
-The plan is in the stage-06 shared-plan layout. `quindar_tape.load_shared_plan` and
-`target_map` accept it unchanged. 06b slices the same map for every channel at its own canonical
+The plan is in the shared-plan layout of the Quindar retime. The frozen `sg_*.py` modules still
+call the stages by their former numbers: 06a is now 06, 06b is 07b and 06c is 07a.
+`quindar_tape.load_shared_plan` and `target_map` accept it unchanged. 07b slices the same map for every channel at its own canonical
 origin. On T510100, CH26 (origin +7.06 s) starts at output +6.99 s, which is the origin times the
 local rate.
 
@@ -107,7 +116,7 @@ temporary folder and a rename. A changed input gives a new edition beside the ol
 | `sg_fit/<edition>/`                              | `coverage.tsv`, `ia_offsets.tsv`, `ia_segment_revision.json` (proposal, never applied) and `tapes/<tape>/plan.json`, `curve.json`, `timing_map.npz` |
 | `_cache/`                                        | Word arrays per transcript digest, Quindar scans per exact file identity                                                                            |
 
-Anchor editions bind the 06a identity and the transcript digest of every channel, as well as
+Anchor editions bind the 06 identity and the transcript digest of every channel, as well as
 its 05b review checksum, origin and deflutter-plan checksum. Reference editions bind every IA
 and NARA transcript digest, the drift-map checksum and the NARA respeed record checksums. A
 transcript state is the checksum over its chunks' row checksums
@@ -180,7 +189,7 @@ the CTC-aligned times once a chunk is aligned. `wsf`/`wef` keep Whisper's times 
    against IA are therefore predicted in that frame, and they keep their `b_k`. The first
    version did not do this, and its audio lags on T510093 showed the absorbed `b_k`: median
    −2.13 s, against +0.006 s after the fix.
-6. **Plan placement.** A plan stores the speed map 06b renders: output = ∫rate. It also stores
+6. **Plan placement.** A plan stores the speed map 07b renders: output = ∫rate. It also stores
    the GET placement as `GET = output + get_equals_output_plus_s` per recorder segment, the same
    convention as the IA and NARA respeeds.
 7. **Channel origins.** The 05b review's own planning folder has moved on some tapes, for
@@ -264,14 +273,14 @@ the 30-track alignment session was still running. Reference: all IA and NARA ree
 
 | Input              | Location                                                                                     | Time domain                                                |
 | ------------------ | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| 30-track ASR (06a) | `D:/Apollo_15_30-Track/timing_transcripts/asr-c1198b48a6d3/sources/tape/<tape>/CHnn/`        | canonical post-05b tape s = `canonical_origin_s + sf/rate` |
+| 30-track ASR (06) | `D:/Apollo_15_30-Track/timing_transcripts/asr-c1198b48a6d3/sources/tape/<tape>/CHnn/`        | canonical post-05b tape s = `canonical_origin_s + sf/rate` |
 | 30-track audio     | `D:/Apollo_15_30-Track/defluttered_shared/<tape>/CHnn/deflutter.wav` + `review.json`         | local 05b s; add `start_seconds` once                      |
 | IA SG ASR          | `F:/Apollo_15_data/processing/sg/timing_transcripts/asr-c1198b48a6d3/sources/sg/<reel>/`     | reel source s                                              |
 | IA GET map         | `catalog/sg_drift/sg_drift_maps.json`                                                        | `GET = t + D(t) + c_segment`                               |
 | NARA ASR (mix)     | `F:/Apollo_15_data/processing/sg_nara/retimed_transcripts/asr-08ce474a85b7/sources/sg_nara/` | respeed output s                                           |
 | NARA GET           | `F:/Apollo_15_data/processing/sg_nara/respeed/255-PAOa-<tape>/<tape>.json` `segments`        | `GET = u + get_equals_output_plus_s`                       |
 | Coarse prior       | filename start stamp and per-tape hum (`research/readme_figures/inventory.json`)             | `GET ≈ start − launch + t·hum/60` (minutes off)            |
-| Quindar detector   | `quindar_speed.detect` / `quality_events` (stage 06)                                         | any                                                        |
+| Quindar detector   | `quindar_speed.detect` / `quality_events` (stage 07)                                         | any                                                        |
 
 Select the IA transcript identity by `content_sha256` against the drift map's `sha256`.
 `md_sg.reel_identity` fails on 553-AAA (two identities, neither matching by size and mtime). This is
@@ -284,7 +293,7 @@ flutter analysis (`05_analyze_flutter`, [shared map guide](08_2026-11-15_shared_
 It finds one tape-motion correction at each canonical tape time, and applies it to every channel.
 
 - **One time axis.** Every observation is placed on canonical post-05b tape seconds before it is
-  used. For a transcript word, that is `canonical_origin_s + sf / rate` from the 06a `source.json`.
+  used. For a transcript word, that is `canonical_origin_s + sf / rate` from the 06 `source.json`.
   For audio, it is the 05b `review.json` `start_seconds` plus local seconds. These origins already
   contain the stage-02 capture offsets (55 channels on 7 tapes, 0.98–11.87 s; see
   [channel offsets](#channel-offsets-from-earlier-stages)) and the shared 05b map. Add the origin exactly once. Never re-measure or re-fit capture offsets in this stage.
@@ -295,7 +304,7 @@ It finds one tape-motion correction at each canonical tape time, and applies it 
   (IRIG, quiet loops) still gets the tape's correction wherever any channel supports it. Channels
   are not fitted, duration-anchored or bypassed one by one.
 - **One curve, one application.** The fit gives one `Φ_tape` per tape interval. It is joined once
-  and applied by 06b as the same inverse map to every channel. Each channel keeps its existing
+  and applied by 07b as the same inverse map to every channel. Each channel keeps its existing
   canonical offset, so every channel moves together.
 - **Coverage is the union.** A tape second counts as supported if an anchor on any channel
   supports it. Coverage is not a sum of channel-seconds, and not one channel's share.
@@ -311,7 +320,7 @@ It finds one tape-motion correction at each canonical tape time, and applies it 
   - A channel with too few matches to measure its stagger contributes an anchor only if the anchor
     falls clearly in one group (within ±0.3 s of 0 or of the group delay).
   - Otherwise the anchor is kept as evidence but excluded from positions.
-- **Reuse.** Reuse saved evidence from every channel: 06a transcripts, Quindar surveys, census hum
+- **Reuse.** Reuse saved evidence from every channel: 06 transcripts, Quindar surveys, census hum
   and stage-04 timing records. Completed artifacts stay immutable.
 
 ### Channel offsets from earlier stages
@@ -329,11 +338,11 @@ channel:
 | ------------------------------------------------------------ | ------------------------------------------------------------------ |
 | Stage-02 report (bound in `deflutter_maps/<tape>/plan.json`) | `alignment.path`, `sha256`, `action`, `origin_shift_seconds`       |
 | `defluttered_shared/<tape>/CHnn/review.json`                 | `start_seconds` (canonical) and `source.acquisition_start_seconds` |
-| 06a `source.json`                                            | `identity.canonical_origin_s`, `identity.review_sha256`            |
+| 06 `source.json`                                            | `identity.canonical_origin_s`, `identity.review_sha256`            |
 | This stage's anchor records                                  | origin used, and the review and plan checksums                     |
 
-**Audit (2026-11-25), all 1,139 published 05b channels.** Every channel has a 06a transcript on its
-current 05b review (`review_sha256` matches). Every 06a origin equals the review's
+**Audit (2026-11-25), all 1,139 published 05b channels.** Every channel has a 06 transcript on its
+current 05b review (`review_sha256` matches). Every 06 origin equals the review's
 `start_seconds`. 55 channels on 7 tapes have nonzero origins. All acquisition starts are 0, so the
 whole offset comes from stage 02. The other 31 tapes are all zero.
 
@@ -354,19 +363,19 @@ Rules for this stage:
   - Audio: `review.start_seconds + local seconds`.
   - Quindar: the survey's canonical `tape_seconds`.
 
-  Refuse a channel whose 06a identity, review and plan alignment disagree. Do not fall back to
+  Refuse a channel whose 06 identity, review and plan alignment disagree. Do not fall back to
   local WAV time or to the acquisition start.
 
 - **Write anchors in canonical tape seconds.** Each anchor keeps its source channel and local
-  time too. The 06b curve is then a function of canonical time and applies to each channel at its
-  own origin, as the 05b map does. 06b keeps the existing offsets and does not re-align channels.
+  time too. The 07b curve is then a function of canonical time and applies to each channel at its
+  own origin, as the 05b map does. 07b keeps the existing offsets and does not re-align channels.
 - **Keep capture offsets separate from stagger.** Capture offsets are digitizer start differences
   of 1–12 s, already removed. Stagger is the 1.33–1.39 s placement of the SG copy measured
   after that. A residual near a capture-offset value (for example 7.06 s on T510100 CH25–30)
   means a channel was placed on local time by mistake. Flag it; never fit it as stagger.
 - **Track stale editions.** If stage 02 is re-run for a tape (selective recovery in the
   [shared map guide](08_2026-11-15_shared_deflutter.md#capture-alignment-and-selective-recovery)),
-  its new 05b reviews give new 06a identities and new origins. Anchors bound to the old review
+  its new 05b reviews give new 06 identities and new origins. Anchors bound to the old review
   checksum become stale and are rebuilt for that tape only.
 
 **Check on an offset tape (T510100 against NARA 640–643, throwaway prototype).**
@@ -471,7 +480,7 @@ reels and segments. The two sets therefore constrain each other:
     at T510104 hours 15–16.
   - A 30-minute Gaussian smoother is too stiff there: one held-out block is off by 28 s.
 - **Rate witnesses between anchors.**
-  - **Quindar.** Use the stage-06 Quindar pitch ratio (from `quindar_survey`/`quindar_tape`) as a
+  - **Quindar.** Use the stage-07 Quindar pitch ratio (from `quindar_survey`/`quindar_tape`) as a
     rate observation. Calibrate the tone generator from NARA bursts on IRIG time, not from the
     nominal values (step 6).
   - **Hum.** The 1971 hum fundamental from the stage-05 census is a second rate witness, available
@@ -505,20 +514,20 @@ reels and segments. The two sets therefore constrain each other:
   nominal in `quindar_speed` fits with these measured values and their spread. This is about the
   0.1 % bias that `archive/2026-11-26_reorg/reports/sg_quindar/README.md` could not resolve.
 
-## Where it plugs into stage 06
+## Where it plugs into stage 07
 
-_As built:_ the step is `06c_sg_retime.py`, the joint fitter exists, and the plans go to 06b
+_As built:_ the step is `07a_sg_retime.py`, the joint fitter exists, and the plans go to 07b
 through `--quindar-plan`. The clock-anchor increment below was therefore not needed. A tape
 without a curve (T510111, T510112) gets no SG plan and is bypassed.
 
-- **New evidence step `06c`**, next to the Quindar survey. It writes per-tape
+- **New evidence step `07a`**, next to the Quindar survey. It writes per-tape
   JSON/TSV under `D:/Apollo_15_30-Track/stage_evidence/retiming/<tape>/sg_anchors/`:
   - text pairs, accepted anchors and per-channel/interval stagger, with each anchor's source
     channel, its canonical tape second and the origin used (stage-02/05b review checksum)
   - one tape-level event table, with duplicates across channels collapsed, which is the only
     input to the fit
   - audio-refined windows and Quindar matches
-  - all bound to the 06a settings ID, transcript identity checksums, 05b review checksums, the
+  - all bound to the 06 settings ID, transcript identity checksums, 05b review checksums, the
     drift map checksum and the NARA respeed record checksums.
 
   Reuse completed artifacts, and never rewrite earlier ones.
@@ -528,7 +537,7 @@ without a curve (T510111, T510112) gets no SG plan and is bypassed.
   support intervals, its held-out errors and the `b_k` used. The IA segment corrections are
   written separately, as a proposed revision of `catalog/sg_drift`, for review. They never
   silently replace the accepted map.
-- **06b application.** `06b_retime.py` applies the same inverse map to every channel and keeps the
+- **07b application.** `07b_retime.py` applies the same inverse map to every channel and keeps the
   existing offsets (AGENTS.md shared-tape rule). This includes channels that contributed no anchor.
   It bypasses only where no channel supports the curve, and reports coverage as the union of
   supported tape time.
@@ -561,7 +570,7 @@ All steps run on saved transcripts and audio.
    hour) should be confirmed by listening or by the census hum before rate bounds are fixed. It
    looks physical, because the hum fundamental follows it.
 4. **Uncovered spans.** GET 7–9, 15–25, 40–49 h, 653-AAA and after 286 h have no SG reel. There the
-   curve relies on Quindar and hum alone, as stage 06 does today. NARA 609–639 are not digitized.
+   curve relies on Quindar and hum alone, as the Quindar-only plan does. NARA 609–639 are not digitized.
    Ordering them would close most of the IA gaps with IRIG-timed audio
    ([inventory](18_2026-11-24_audio_inventory.md)).
 

@@ -1,6 +1,6 @@
 # NARA flight tapes: IRIG-B respeed and transcription
 
-`scripts/sg_nara/` respeeds the digitized NARA "Historical Apollo 15 Flight Tape" recordings
+`scripts/sg-audio/01_sg-nara/` respeeds the digitized NARA "Historical Apollo 15 Flight Tape" recordings
 (`255-PAOa-608-AAA` and `640-AAA`..`655-AAA`, GET -002:22 to 285:49) to mission rate from the
 IRIG-B timecode recorded on them, and transcribes the result with the same recognizer as
 `sg_retimed_transcribe.py`. The decoder is a vectorized reimplementation of the logic of

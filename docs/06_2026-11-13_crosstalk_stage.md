@@ -26,7 +26,7 @@ catalog establishes earlier-copy removal for T510083 CH17
 and CH20, using CH19, only at canonical **13569.10–13570.48 seconds**. Other
 intervals and channels pass through unchanged. Wider coverage requires additional
 within-target repeat evidence. An interchannel match alone never authorizes removal.
-See [the research record](03_2026-11-15_crosstalk_research.md) for scope and listening limitations.
+See [the research record](../archive/docs_retired_20261126/03_2026-11-15_crosstalk_research.md) for scope and listening limitations.
 
 ## Archive discovery and processing
 
@@ -125,7 +125,7 @@ after reading back and checking its full file hash.
 Preview a single channel and its downstream stages:
 
 ```powershell
-uv run python scripts/pipeline.py plan --stages 04,05b,07 --tape A15_T510083 --channel 20 --plain
+uv run python scripts/pipeline.py plan --stages 04,05b,08 --tape A15_T510083 --channel 20 --plain
 ```
 
 Once the target and donor v2 files are complete, run stage 04 on a channel or tape:
@@ -136,7 +136,7 @@ uv run python scripts/pipeline.py run --stages 04 --tape A15_T510083 --all-chann
 ```
 
 `--all-tapes` also works. Batch mode processes one stage at a time. Single-channel
-mode can run `--stages 04,05b,07` (or add `06`) once the shared map is available.
+mode can run `--stages 04,05b,08` (or add `07b`) once the shared map is available.
 V2 denoising retains its separate production console and frozen runtime.
 
 Defaults:

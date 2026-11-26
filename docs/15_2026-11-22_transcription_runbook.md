@@ -1,6 +1,6 @@
-# Stage 06a interim timing transcript runbook
+# Stage 06 interim timing transcript runbook
 
-Stage 06a transcribes completed stage-05b 30-track channels for one purpose: locating mission speech so the tapes can be placed on mission time before stage 06b retiming. It is an interim product. The archive will likely be transcribed again after retiming. The recognizer and chunk store are shared code in `scripts/00_common/`; space-to-ground reels and DVD streams have their own commands and stores (see the end of this guide). Stage 06a uses the tested pilot configuration: faster-whisper 1.2.1 with `distil-large-v3.5` (pinned revision) on CUDA FP16, batch 16, beam 1. The Silero detector runs at threshold 0.12 on a voice-band, RMS-gained copy of the audio, and the recognizer reads the original samples. Each decoder context holds audio from one chunk of one source, and the GPU batches contexts from many sources. Whisper supplies the words; their times come from forced alignment with a CTC acoustic model, as in WhisperX (see [Word times](#word-times-forced-alignment)). Whisper's own word times are unreliable on this material. [Pilot measurements](../research/mission_timing/asr_timing_benchmarks.md) · [Mission timing plan](14_2026-11-22_mission_timing_plan.md)
+Stage 06 transcribes completed stage-05b 30-track channels for one purpose: locating mission speech so the tapes can be placed on mission time before stage 07b retiming. It is an interim product. The archive will likely be transcribed again after retiming. The recognizer and chunk store are shared code in `scripts/00_common/`; space-to-ground reels and DVD streams have their own commands and stores (see the end of this guide). Stage 06 uses the tested pilot configuration: faster-whisper 1.2.1 with `distil-large-v3.5` (pinned revision) on CUDA FP16, batch 16, beam 1. The Silero detector runs at threshold 0.12 on a voice-band, RMS-gained copy of the audio, and the recognizer reads the original samples. Each decoder context holds audio from one chunk of one source, and the GPU batches contexts from many sources. Whisper supplies the words; their times come from forced alignment with a CTC acoustic model, as in WhisperX (see [Word times](#word-times-forced-alignment)). Whisper's own word times are unreliable on this material. [Pilot measurements](../research/mission_timing/asr_timing_benchmarks.md) · [Mission timing plan](../archive/docs_retired_20261126/14_2026-11-22_mission_timing_plan.md)
 
 ## What it writes
 
@@ -42,36 +42,36 @@ Run from the repository root. CUDA 12.8 and cuDNN 9.10 DLL folders are added aut
 
 ```powershell
 # Inventory (writes nothing unless --write)
-uv run python scripts/run.py 06a_transcribe.py inventory --all-tapes --write
+uv run python scripts/run.py 06_transcribe.py inventory --all-tapes --write
 
 # Estimate the remaining first pass from measured sessions
-uv run python scripts/run.py 06a_transcribe.py estimate --all-tapes
+uv run python scripts/run.py 06_transcribe.py estimate --all-tapes
 
 # One tape through the pipeline entry point (the validated pilot)
-uv run python scripts/pipeline.py run --stages 06a --tape A15_T510093 --plain
+uv run python scripts/pipeline.py run --stages 06 --tape A15_T510093 --plain
 
 # Archive-wide launch: explicit operator command, resumable
-uv run python scripts/pipeline.py run --stages 06a --all-tapes --plain
+uv run python scripts/pipeline.py run --stages 06 --all-tapes --plain
 
 # Monitor from another terminal (coverage, occupancy, rate, failures, ETA)
-uv run python scripts/run.py 06a_transcribe.py status --watch 60
+uv run python scripts/run.py 06_transcribe.py status --watch 60
 
 # Live dashboard from another terminal: progress, ETA and a scrolling feed of new transcript.
 # Read-only; Ctrl+C closes only the watcher. Options: --channel N, --grep REGEX, --min-words N,
 # --lines-per-second N (default 6; busier groups are evenly sampled), --no-screen.
-uv run python scripts/run.py 06a_transcribe.py watch
+uv run python scripts/run.py 06_transcribe.py watch
 
 # Stop cleanly after the current group; resume by rerunning the same run command
-uv run python scripts/run.py 06a_transcribe.py stop
+uv run python scripts/run.py 06_transcribe.py stop
 
 # Time-boxed run, for example overnight
-uv run python scripts/run.py 06a_transcribe.py run --all-tapes --max-hours 10
+uv run python scripts/run.py 06_transcribe.py run --all-tapes --max-hours 10
 
 # Aligned-chunk counts and contexts that could not be aligned (reads every receipt)
-uv run python scripts/run.py 06a_transcribe.py status --all-tapes --scan
+uv run python scripts/run.py 06_transcribe.py status --all-tapes --scan
 
 # Verify transcript chunks (add --audio to recompute full source checksums; slow)
-uv run python scripts/run.py 06a_transcribe.py verify --all-tapes
+uv run python scripts/run.py 06_transcribe.py verify --all-tapes
 ```
 
 `--start` and `--end` restrict a run to whole grid chunks inside a window, given in canonical tape seconds or in SG/DVD source seconds. A later full run reuses those chunks. `--channel` limits tape channels.
@@ -84,12 +84,12 @@ These have their own commands with the same subcommands and recognizer defaults 
 
 | Command                                                              | Sources                                                                                                                                                                                                                                                              | Store                               | Time coordinates                                                                                |
 | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `scripts/sg-audio/sg_transcribe.py --reel 572-AAA` (or `--reel all`) | The 44 Apollo 15 SG reels, read from the local copy `F:\Apollo_15_data\raw\audio\Internet Archive` (`--sg-root`, or `A15_SG_ROOT`). The masters stay in `N:\Projects\Apollo\Mission Data\Apollo 15\Audio\Internet Archive`; `550-AAG`, Apollo 11, is excluded | `F:\Apollo_15_data\processing\sg\`  | Reel seconds from the first sample                                                              |
+| `scripts/sg-audio/01_sg-internetarchive/sg_transcribe.py --reel 572-AAA` (or `--reel all`) | The 44 Apollo 15 SG reels, read from the local copy `F:\Apollo_15_data\raw\audio\Internet Archive` (`--sg-root`, or `A15_SG_ROOT`). The masters stay in `N:\Projects\Apollo\Mission Data\Apollo 15\Audio\Internet Archive`; `550-AAG`, Apollo 11, is excluded | `F:\Apollo_15_data\processing\sg\`  | Reel seconds from the first sample                                                              |
 | `scripts/video/dvds/dvd_transcribe.py --dvd 'D04-T02-P0[12]'`        | Each audio stream of the Spacecraft Films MP4s                                                                                                                                                                                                                       | `F:\Apollo_15_data\processing\dvd\` | Program PTS = `pts_origin_s + sf / sample_rate`, counting decoded samples from the stream start |
 
 While the local copy is being made, `sg_transcribe.py follow --prep-workers 4` transcribes each reel as soon as its copy is complete: same size and modification time as the master, and no longer held open by the copy. It waits for the rest, passes other `run` options through, and ends when all reels are copied and transcribed or after `stop`.
 
-Before this split, stage 06a held these as collections `pao` (the SG reels, then misnamed "PAO reels") and `dvd`. Those records (`sources/pao/572-AAA` and two DVD streams under the 30-track transcript root) are left unchanged. Collection and key are part of a source identity, so the new commands transcribe those sources again rather than reuse them.
+Before this split, stage 06 held these as collections `pao` (the SG reels, then misnamed "PAO reels") and `dvd`. Those records (`sources/pao/572-AAA` and two DVD streams under the 30-track transcript root) are left unchanged. Collection and key are part of a source identity, so the new commands transcribe those sources again rather than reuse them.
 
 ## Measured on T510093 (November 22)
 

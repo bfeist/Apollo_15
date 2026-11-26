@@ -9,7 +9,7 @@ backend, with provenance added to checkpoints and newly completed manifests.
 The console and launcher apply `denoise_v2_output_policy.py` to newly finished
 channels on both machines. The already verified unity-gain WAV is published as
 `CHxx.wav` through a hard link, without a gain scan or a second audio write.
-Stage 07 sets the final speech level after deflutter or retiming.
+Stage 08 sets the final speech level after deflutter or retiming.
 Frozen source bytes, run identities, checkpoint prefixes, qualifications,
 approvals and completed normalized outputs stay unchanged. Existing checkpoints
 resume their denoise work and finish at unity gain.

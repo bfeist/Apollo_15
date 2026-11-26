@@ -3,7 +3,7 @@
 Status: research-qualified design (2026-11-15), **implemented in stage 05 on
 2026-11-15** — see the operating guide [10_2026-11-15_deflutter_detection.md](10_2026-11-15_deflutter_detection.md)
 (including where the implementation deliberately differs) and
-[12_2026-11-15_deflutter_next_steps.md](12_2026-11-15_deflutter_next_steps.md). This document keeps the
+[12_2026-11-15_deflutter_next_steps.md](../archive/docs_retired_20261126/12_2026-11-15_deflutter_next_steps.md). This document keeps the
 design rationale, how to verify it, and what not to repeat. The evidence is in
 `reports/flutter_census_20261115/REPORT.md` (local, Git-ignored), which
 links three worker reports. The research code is in `research/flutter_census/`.

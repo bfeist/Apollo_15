@@ -1,7 +1,7 @@
 # Stage 05 archive analysis and qualification
 
 Implemented November 17, 2026 from section 4 of
-[next steps](12_2026-11-15_deflutter_next_steps.md). This is the operating
+[next steps](../archive/docs_retired_20261126/12_2026-11-15_deflutter_next_steps.md). This is the operating
 guide for everything between a completed detection census
 ([10_2026-11-15_deflutter_detection.md](10_2026-11-15_deflutter_detection.md))
 and stage-05a map compilation. Nothing here changes the detector, its gates,

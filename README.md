@@ -1,8 +1,10 @@
 # Restoring the Apollo 15 Mission Control 30-track recordings: hum subtraction, crosstalk removal and shared-tape flutter correction
 
-**Status, November 2026.** Stages 01–05 have been run across the archive. Stage 06a
-(an interim timing transcript of the stage-05b audio) is in progress. It will be used to
-place each tape on mission time for stage 06b retiming. All numbers below come from
+**Status, November 2026.** Stages 01–05 have been run across the archive. Stage 06
+(the timing transcript of the stage-05b audio) is complete. It places each tape on mission
+time through stage 07a (the fit against the retimed space-to-ground reels) and 07b
+(retiming). Stage 08 then writes the 8 kHz 16-bit delivery files. The one-page
+[pipeline overview](docs/00_pipeline_overview.md) lists every stage, its data and its format. All numbers below come from
 the published archive records under `D:/Apollo_15_30-Track`, and all figures are
 regenerated from those records by `research/readme_figures/` (Appendix A).
 
@@ -77,7 +79,7 @@ at 60 Hz, but it appears at 58.5–59.3 Hz, so the digitized tapes play **1.2–
 slow**. The per-head medians are 2.4 % (HR1U), 1.75 % (HR1L), 1.74 % (HR2U) and
 1.37 % (HR2L) (Figure 1, right). A 17-hour reel therefore plays roughly 12–25 minutes
 long. These figures assume the 1971 mains ran at its nominal 60 Hz. This is a timing
-error that stage 06 must correct against mission time.
+error that stage 07 must correct against mission time.
 
 *Each 1971 transport ran at its own speed.* The speed error is not one common number.
 Each head group carries its own error, steady over the 9–10 reels it recorded across
@@ -102,7 +104,7 @@ group was digitized on a separate playback setup.
 With IRIG on track 1 (E.1), this would have been routine to find and correct. The
 time code encodes true seconds, so its replay rate on each reel would give that reel's
 absolute speed directly, and would separate record-speed from playback-speed error.
-Without it, the 1971 hum is the only speed reference on the tapes. Stage 06 will
+Without it, the 1971 hum is the only speed reference on the tapes. Stage 07 will
 calibrate the speed against mission time, and the per-deck structure helps there. A
 few constants, one per transport, should explain every reel in its group. A reel that
 breaks from its group's speed is an immediate flag for a mislabelled head, a mis-dated
@@ -155,13 +157,13 @@ and every later stage uses them (§3, Figure 3).
   durations that contradict the digitized length. Their start times fit the HR1
   handover sequence exactly (a 14:53 start just before T510085 ends; 06:25 just before
   T510109 ends). We place them provisionally on 30 July and 7 August, pending
-  confirmation in stage 06.
+  confirmation in stage 07.
 
 **Where things stand.** Stages 01–05 are complete. All 1,169 delivered tracks have
 been hum-subtracted and crosstalk-processed, and the 1,139 tracks of the 38 reels with
-signal have been de-fluttered with their tape's shared map. Stage 06a is now
+signal have been de-fluttered with their tape's shared map. Stage 06 is now
 transcribing that audio to locate exchanges in the 1971 mission transcripts and other
-recordings. That will put each reel on mission time, so that stage 06b can remove the
+recordings. That will put each reel on mission time, so that stage 07b can remove the
 slow-playback error (E.4), and it will provide evidence for resolving the channel
 numbering (E.1).
 
@@ -213,7 +215,7 @@ in its filename. The time `t` of a sample is the WAV time plus the track's
 `start_seconds`. All stages preserve the frame count, sample rate and offset of each
 track, and every stage-04/05 record is expressed in canonical tape seconds. This is a
 filename timeline, not authenticated mission time (GET). Anchoring to GET is the purpose
-of stage 06.
+of stage 07.
 
 ---
 
@@ -227,7 +229,7 @@ because denoising deliberately removes the tones that carry the timing evidence.
 two paths meet only at stage 05b, where the qualified tape map is applied to the
 stage-04 audio. Dashed boxes are in progress or planned.
 
-| Stage | Entry point (`scripts/`)               | Function                                                                  | Archive state                                                    |
+| Stage | Entry point (`scripts/30-track/`)      | Function                                                                  | Archive state                                                    |
 | ----- | -------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | 01    | `01_ingest/01_concatenate.py`          | Verify fragment order and continuity; assemble one WAV per track          | Done; originals ZIP-archived by `01a_zip_originals.py`           |
 | 02    | `02_alignment/02_align_capture.py`     | Measure fixed capture offsets between tracks                              | Done; 7 tapes corrected                                          |
@@ -237,10 +239,11 @@ stage-04 audio. Dashed boxes are in progress or planned.
 | 05    | `05_deflutter/05_analyze_flutter.py`   | Assessment, follow-up, qualification, held-out validation                 | Done; validation passed                                          |
 | 05a   | `05_deflutter/05a_plan_deflutter.py`   | Compile one timing map per tape                                           | Done; 38 maps in `deflutter_maps/`                               |
 | 05b   | `05_deflutter/05b_deflutter.py`        | Apply the tape map to every stage-04 track                                | Done; 1,139 tracks in `defluttered_shared/`                      |
-| 06a   | `06_retime/06a_transcribe.py`          | Interim timing transcript of 05b audio                                    | In progress ([runbook](docs/15_2026-11-22_transcription_runbook.md)) |
-| 06c   | `06_retime/06c_sg_retime.py`           | SG anchors (IA, NARA) and one joint curve per tape, as shared-layout plans | Implemented; waits for 06a word alignment ([SG retiming](docs/20_2026-11-25_sg_retime_30track.md)) |
-| 06b   | `06_retime/06b_retime.py`              | Retime each tape to the mission clock                                     | Planned ([timing plan](docs/14_2026-11-22_mission_timing_plan.md)) |
-| 07    | `07_normalize/07_normalize.py`         | Constant gain to a speech-level target                                    | Planned ([guide](docs/05_2026-11-13_speech_normalization.md))    |
+| 06    | `06_transcribe/06_transcribe.py`       | Timing transcript of 05b audio (shared engine in `00_common/`)            | Done; words CTC-aligned ([runbook](docs/15_2026-11-22_transcription_runbook.md)) |
+| 07a   | `07_retime/07a_sg_retime.py`           | SG anchors (IA, NARA) and one joint curve per tape, as shared-layout plans; needs the retimed SG set | Next ([SG retiming](docs/20_2026-11-25_sg_retime_30track.md)) |
+| 07b   | `07_retime/07b_retime.py`              | Apply the tape plan to every track; write the 06 transcript on the output clock | Planned |
+| 08    | `08_normalize/08_normalize.py`         | Constant gain to a speech-level target; 8 kHz 16-bit dithered delivery WAV | Planned ([guide](docs/05_2026-11-13_speech_normalization.md))    |
+| 09    | `09_irig/irig_search.py`               | Standalone IRIG time-code search                                          | Not integrated                                                   |
 
 The order is fixed. Hum is subtracted first, because it would otherwise dominate the
 crosstalk fit. Crosstalk is subtracted before de-flutter, so that measured
@@ -331,7 +334,7 @@ Every anchor writes a record of its components, coherences, validation gains and
 gated intervals (`cleanup.jsonl`, about 1,900 anchors for a 17 h track). The first
 stage-03 releases (263 tracks, on T510073–T510083) applied one constant peak gain per
 track: −3 dBFS target, +12 dB cap, ignoring isolated endpoint impulses. The other 906
-tracks were written at unity gain. Stages 04 and 05b retain that gain, and stage 07
+tracks were written at unity gain. Stages 04 and 05b retain that gain, and stage 08
 will set the final speech level.
 
 ![Denoising](docs/images/readme_fig04_denoise.png)
@@ -343,7 +346,7 @@ the 60·n Hz grid the median level falls by 25.4 dB, and the median change off t
 is 0.02 dB. The notches about ±10–20 Hz wide in (d, e) show that the time-gated line
 models also attenuate speech and noise energy where it overlaps an established hum
 line. The project owner accepted this trade-off in listening review
-([findings](docs/01_2026-11-11_denoise_v2_plan.md)).
+([findings](archive/docs_retired_20261126/01_2026-11-11_denoise_v2_plan.md)).
 
 ---
 
@@ -619,11 +622,11 @@ corrected tape time, never a sum over tracks.
   6 Hz target set during research. Amplitude calibration, autofocus refinement and full-rate
   hum harmonics are not implemented.
 - **Slow drift.** Saved v5/regional curves introduce slow displacement of up to 2.6 s
-  (§6.4). This is within the range that stage 06b retiming must model in any case, but
+  (§6.4). This is within the range that stage 07b retiming must model in any case, but
   it is not independently validated as physical motion.
 - **Crosstalk.** Removal is bounded to evidenced intervals, and part of each copy can
   remain. Faint repeats, and repeats overlapped by strong speech, may be missed.
-- **Time basis.** All coordinates are filename tape time until stage 06 anchors them
+- **Time basis.** All coordinates are filename tape time until stage 07 anchors them
   to mission time. The filename clock runs 1.2–2.5 % slow (E.4), and two reels are
   mis-dated (E.6).
 - **Channel identity.** Delivered channel numbers are offset from the true tracks by
@@ -631,21 +634,21 @@ corrected tape time, never a sum over tracks.
 
 ---
 
-## 9. Current work: transcription and retiming (stage 06)
+## 9. Current work: transcription and retiming (stages 06 and 07)
 
-Stage 06a transcribes the stage-05b tracks into an *interim timing transcript*. Its
+Stage 06 transcribes the stage-05b tracks into an *interim timing transcript*. Its
 purpose is to locate exchanges that can be matched to the 1971 mission transcripts,
-the space-to-ground reels and the DVD audio, which places each tape on GET. Stage 06b
+the space-to-ground reels and the DVD audio, which places each tape on GET. Stage 07b
 will then apply one retiming curve per tape, following the same shared-tape rule. The
 final archive transcript will be produced after retiming. See the
-[mission timing plan](docs/14_2026-11-22_mission_timing_plan.md), the
+[mission timing plan](archive/docs_retired_20261126/14_2026-11-22_mission_timing_plan.md), the
 [transcription runbook](docs/15_2026-11-22_transcription_runbook.md), and the ingestion
 plans for [mission data](docs/16_2026-11-23_mission_data_ingestion.md) and the
 [flight plan](docs/17_2026-11-23_flight_plan_ingestion.md). Retiming the 30-track against the
 space-to-ground set (IA and NARA, matching ASR to ASR, audio refinement and Quindar) is
-stage 06c, `06_retime/06c_sg_retime.py`. It writes one plan per tape that 06b applies
+stage 07a, `scripts/30-track/07_retime/07a_sg_retime.py`. It writes one plan per tape that 07b applies
 identically to every channel ([SG retiming](docs/20_2026-11-25_sg_retime_30track.md)). Its
-archive run uses the 06a transcripts once their words are aligned.
+archive run uses the 06 transcripts once their words are aligned.
 
 ---
 
@@ -682,6 +685,7 @@ uv run --with matplotlib python research/readme_figures/make_figures.py         
 
 ```powershell
 uv run python -m unittest discover -s tests -v
+uv run python -m pytest tests/test_denoise_v2_kernels.py tests/test_denoise_v2_numba.py
 ```
 
 ## Appendix B. Data layout
@@ -700,9 +704,15 @@ current editions.
 | `stage_evidence/archive/deflutter_analysis/`  | Qualification decisions, `windows.jsonl`, `events.jsonl`, validation |
 | `F:/…/deflutter_detection_census/<run-id>/`   | Census blocks, joined streams, cluster state                   |
 | `F:/…/deflutter_alignment/`                   | Stage-02 capture-offset reports                                |
+| `timing_transcripts/`                         | Stage-06 transcript store                                      |
+| `stage_evidence/retiming/`                    | Stage-07a SG reference, anchors, fits and per-tape plans       |
+| `retimed/<tape>/CHnn/`                        | Stage-07b `retimed.wav`, `retime.json`, `timed_transcript.tsv` |
+| `normalized/<tape>/CHnn/`                     | Stage-08 `normalized.wav` (8 kHz, 16-bit), `normalization.json` |
 
 Recordings and outputs are not distributed with the source. `reports/`, `runs/` and
-`archive/` are local, ignored artifacts.
+`archive/` are local, ignored artifacts. [Data locations](docs/21_2026-11-26_data_locations.md)
+lists every stage's storage, including the SG and document pipelines and the path-bound
+evidence kept in the checkout.
 
 ## Appendix C. Further documentation
 
@@ -710,12 +720,14 @@ The `docs/` guides record design decisions and operating procedures, numbered by
 date. Several began as plans. Where a guide and the code disagree, the code and the
 archive records are authoritative.
 
-| Topic                       | Guide                                                                                                                                                                    |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Denoise v2                  | [findings](docs/01_2026-11-11_denoise_v2_plan.md), [rollout](docs/02_2026-11-13_denoise_v2_all_tapes_runbook.md), [cluster console](docs/07_2026-11-15_denoise_cluster.md) |
-| Crosstalk                   | [research](docs/03_2026-11-15_crosstalk_research.md), [stage 04](docs/06_2026-11-13_crosstalk_stage.md)                                                                  |
-| Shared map and capture alignment | [shared de-flutter](docs/08_2026-11-15_shared_deflutter.md)                                                                                                         |
-| Census and qualification    | [design](docs/09_2026-11-15_deflutter_detection_guide.md), [census](docs/10_2026-11-15_deflutter_detection.md), [qualification](docs/13_2026-11-17_deflutter_qualification.md), [next steps](docs/12_2026-11-15_deflutter_next_steps.md) |
-| Status and layout           | [project status](docs/11_2026-11-15_project_status.md), [script layout](docs/04_2026-11-15_script_layout.md)                                                             |
-| Stages 06–07                | [mission timing](docs/14_2026-11-22_mission_timing_plan.md), [transcription](docs/15_2026-11-22_transcription_runbook.md), [speech normalization](docs/05_2026-11-13_speech_normalization.md) |
+| Topic                       | Guide |
+| --------------------------- | ----- |
+| Overview and data           | [pipeline overview](docs/00_pipeline_overview.md), [data locations](docs/21_2026-11-26_data_locations.md) |
+| Denoise v2                  | [cluster console](docs/07_2026-11-15_denoise_cluster.md) |
+| Crosstalk                   | [stage 04](docs/06_2026-11-13_crosstalk_stage.md) |
+| Shared map and capture alignment | [shared de-flutter](docs/08_2026-11-15_shared_deflutter.md) |
+| Census and qualification    | [design](docs/09_2026-11-15_deflutter_detection_guide.md), [census](docs/10_2026-11-15_deflutter_detection.md), [qualification](docs/13_2026-11-17_deflutter_qualification.md) |
+| Stages 06–08                | [transcription](docs/15_2026-11-22_transcription_runbook.md), [SG retiming](docs/20_2026-11-25_sg_retime_30track.md), [normalization and delivery](docs/05_2026-11-13_speech_normalization.md) |
+| SG and documents            | [mission data](docs/16_2026-11-23_mission_data_ingestion.md), [flight plan](docs/17_2026-11-23_flight_plan_ingestion.md), [audio inventory](docs/18_2026-11-24_audio_inventory.md), [NARA flight tapes](docs/19_2026-11-24_nara_flight_tapes.md) |
+| Retired guides              | Local copies in `archive/docs_retired_20261115/` and `archive/docs_retired_20261126/` (denoise v2 plan and rollout, crosstalk research, script layout, Nov 15 status, deflutter next steps, mission timing plan) |
 | IRIG (standalone)           | `uv run --extra irig python scripts/run.py irig_search.py --help` searches CH01–CH04 for IRIG time code; integration undecided                                           |

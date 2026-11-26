@@ -3,7 +3,7 @@
 **Status: plan.** No ingestion code exists yet. This guide describes how to bring the Apollo 15
 mission record into the form used by the earlier Apollo in Real Time missions. The audio pipeline
 (stages 01–08) is unaffected. The only shared work is the transcript index used for retiming
-([mission timing](14_2026-11-22_mission_timing_plan.md)). This guide extends that index rather than
+([mission timing](../archive/docs_retired_20261126/14_2026-11-22_mission_timing_plan.md)). This guide extends that index rather than
 starting a second one.
 
 **The division of labour.** This repository covers Apollo 15 mission data only. The 30-track
@@ -451,7 +451,7 @@ source.
 
 5. **Combine the judgements.** When the rules, the alignment and the AI agree, the action is
    applied automatically. Any disagreement, any low AI confidence and any flagged restoration
-   goes to the review queue. Once stage 06a has run, the ASR words are a fourth witness, but
+   goes to the review queue. Once stage 06 has run, the ASR words are a fourth witness, but
    never the authority (§6 step 7). A span that all text methods would remove but the ASR
    contains goes to the review queue, where a reviewer decides by listening.
 6. **Record each decision once.** Store decisions in `MISSION_DATA/review/editorial_spans.tsv`,
@@ -724,7 +724,7 @@ Combine them as follows:
   pages remain incomplete.
 - **Review:** keep review material as TSV and image crops, not HTML pages.
 - **Scheduling:** OXR takes about 60% of the 4090's memory, and local Strata may also need the
-  GPU. Schedule OCR outside stage 06a transcription runs, and do not run more than one
+  GPU. Schedule OCR outside stage 06 transcription runs, and do not run more than one
   GPU model at a time.
 - **Licence:** OXR's custom licence adds commercial-use thresholds and attribution terms to
   Apache 2.0. Confirm that the terms suit the website's use, and record the engine and its
@@ -733,13 +733,13 @@ Combine them as follows:
 ## 6. Relationship to the retiming work
 
 - The TEC index from step 2 and the event IDs from step 5 are the same records that
-  [mission timing](14_2026-11-22_mission_timing_plan.md#build-a-searchable-transcript-index) uses.
+  [mission timing](../archive/docs_retired_20261126/14_2026-11-22_mission_timing_plan.md#build-a-searchable-transcript-index) uses.
   Keep the pilot files `research/mission_timing/catalog/pao_572aaa_*` and `research/mission_timing/catalog/spur_exchange.*` unchanged. Map their
   event IDs into the utterance events rather than renumbering them.
 - Journal GETs are editorially corrected and sometimes adjusted by listening. They help
   identification and are not independent of the printed GET. Never pool them as separate timing
   observations.
-- The stage 06a transcript is the audio witness for §4 and §5. After the mission-time fits are
+- The stage 06 transcript is the audio witness for §4 and §5. After the mission-time fits are
   accepted, its word timings can also refine utterance onsets. Store those as a separate
   `measured` GET basis tied to the map revision used, and leave the printed and journal readings
   unchanged.
@@ -778,9 +778,9 @@ minute-resolution PAO header times are never fitted.
 
    Add the index PDF to `raw_manifest.tsv` by its external path.
 
-2. **Transcribe** with a dedicated SG script in `scripts/sg-audio/`. Stage 06 is reserved for the
+2. **Transcribe** with a dedicated SG script in `scripts/sg-audio/`. Stage 07 is reserved for the
    30-track, so the SG work does not extend it.
-   - `scripts/sg-audio/sg_transcribe.py` uses the shared recognizer in `scripts/00_common/`.
+   - `scripts/sg-audio/01_sg-internetarchive/sg_transcribe.py` uses the shared recognizer in `scripts/00_common/`.
    - It has its own transcript store and lock under `F:\Apollo_15_data\processing\sg`, outside the 30-track timing root. Each reel runs on
      its own source clock.
    - It may run alongside 30-track transcription while the GPU has headroom. It runs at lower
@@ -795,9 +795,9 @@ minute-resolution PAO header times are never fitted.
      collapsed or uncertain words.
    - For an event, the printed TEC GET and the journal GET are not independent observations. The
      journal GET can resolve an unreadable or mistyped printed stamp, and the choice is recorded.
-5. **Fit one slow drift curve per reel** with `scripts/sg-audio/sg_drift_fit.py`
+5. **Fit one slow drift curve per reel** with `scripts/sg-audio/03_sg-internetarchive-respeed/sg_drift_fit.py`
    (`uv run --with matplotlib python scripts/run.py sg_drift_fit.py`). It is kept apart from
-   stage 06. The transcript GETs are the reference; the ASR onsets (CTC-aligned word starts since
+   stage 07. The transcript GETs are the reference; the ASR onsets (CTC-aligned word starts since
    2026-11-25) only measure the reel clock.
    - **Model.** `GET(t) = t + D(t) + c_k`. `D` is one polynomial across the whole file, with
      D(0) = 0: a line, or a parabola when blocked 5-fold cross-validation cuts the held-out error
@@ -840,19 +840,19 @@ minute-resolution PAO header times are never fitted.
        mission rate is 5,262 ppm. 23 reels take a parabola.
      - *Segmentation.* 546-AAA gains an early segment that now agrees with its PAO headers: the
        file starts at GET 30:24, where the old fit put 30:59. 547-AAA loses its spurious split.
-     - *Checked by stage 06c.* On the IA-referenced 30-track tapes, the curve residuals and
-       held-out errors of the 06c pilot are equal or smaller with the refit
+     - *Checked by stage 07a.* On the IA-referenced 30-track tapes, the curve residuals and
+       held-out errors of the 07a pilot are equal or smaller with the refit
        ([SG retiming](20_2026-11-25_sg_retime_30track.md#results-with-aligned-word-times-scratch-root-provisional)).
      - *Respeed.* The respeeded reels from step 6 were rendered from the old map. They are stale
        until re-rendered with `--replace`.
-6. **Respeed the reels** with `scripts/sg-audio/sg_respeed.py`
+6. **Respeed the reels** with `scripts/sg-audio/03_sg-internetarchive-respeed/sg_respeed.py`
    (`uv run python scripts/run.py sg_respeed.py --reel all --workers 4`).
    - **Output.** Each output sample at time `u` takes the source at `t`, where `u = t + D(t)`.
      The output is in `F:\Apollo_15_data\processing\sg\respeed\<reel>.wav`, in the
      source's 24-bit PCM, 48 kHz stereo.
    - **Kernel.** The resampler is a numba Kaiser-windowed sinc with 64 taps and a 2,048-phase
      table, from one global inverse map.
-     - **Accuracy.** Against exact sinusoids up to 10 kHz, the error is -108 dB. The stage 06b
+     - **Accuracy.** Against exact sinusoids up to 10 kHz, the error is -108 dB. The stage 07b
        FIR with 8x oversampling and a cubic spline gives -96 dB.
      - **Speed.** It is about 70 times faster, so a 3 h reel takes about a minute and the
        44 reels take 16 minutes.
@@ -886,7 +886,7 @@ minute-resolution PAO header times are never fitted.
      ASR times are never pooled with them as separate timing observations.
 
 **Execution status (2026-11-24): steps 1, 3, 4, 5 and the respeed done; PAO measured times are next.**
-The matching is part of the transcript pipeline, `scripts/sg_transcript/md_sg.py`, run with
+The matching is part of the transcript pipeline, `scripts/sg-audio/02_sg-transcript/md_sg.py`, run with
 `uv run python scripts/run.py sg_transcript.py sg {reels,pao,anchors,all}` after `reconcile`.
 Retiming the audio from the anchors (step 5) is separate work in `scripts/sg-audio/`. Reruns on
 unchanged inputs are byte-identical (checked).
@@ -900,7 +900,7 @@ unchanged inputs are byte-identical (checked).
   than continuous recordings, so the offset jumps within a reel.
 - **The PAO edition transcribes these reels.** Its segment numbers are the index's number
   ranges, and it contains the CAPCOM and crew air-to-ground as well as PAO announcements.
-- **PAO readings and word correction** (`scripts/sg_transcript/md_pao.py`, run inside `sg pao`).
+- **PAO readings and word correction** (`scripts/sg-audio/02_sg-transcript/md_pao.py`, run inside `sg pao`).
   - **Readings.** Each PAO-edition row has two OCR readings: the PDF text layer and the Internet
     Archive's own OCR of the same 1,238-page scan (`original_docs/internet_archive/AS15_PAO_djvu.xml`,
     in `raw_manifest.tsv` as kind `ocr_reading`). The two are aligned per page. Each
@@ -938,9 +938,9 @@ unchanged inputs are byte-identical (checked).
     two OCR readings that agree outvote the third, before the ASR and vocabulary rules. Pages
     without OXR use the other two readings, so the transcript pipeline runs either way and is
     rerun after the OCR step.
-  - **OXR beside 06a (2026-11-24).** OXR runs beside 06a with vLLM capped at 30% of VRAM
+  - **OXR beside 06 (2026-11-24).** OXR runs beside 06 with vLLM capped at 30% of VRAM
     (`scripts/flight_plan/compose.oxr-shared-gpu.yaml`). Peak use was 19.8 of 24.5 GB, at
-    about 7 s per page. The OCR step's GPU guard allows a run during 06a only with that cap or
+    about 7 s per page. The OCR step's GPU guard allows a run during 06 only with that cap or
     `--force`.
 - **PAO separation** (`.local/mission_data/sg/sg_pao.tsv`). An ASR segment is PAO when at least
   half its tokens fall in 3-word or longer runs shared with a corrected PAO-speaker row of the
@@ -995,9 +995,9 @@ unchanged inputs are byte-identical (checked).
 
 ## 7. Code location
 
-Put the code in `scripts/sg_transcript/`, registered in `scripts/layout.json`, with tests in
+Put the code in `scripts/sg-audio/02_sg-transcript/`, registered in `scripts/layout.json`, with tests in
 `tests/`. Run it with `uv run python …`. The existing numbered audio stages (`scripts/00_common/`
-through `scripts/30-track/08_irig/`) are planned to move to `scripts/30track/`. That move is separate
+through `scripts/30-track/09_irig/`) are planned to move to `scripts/30track/`. That move is separate
 work: update `layout.json`, `pipeline.py`, `run.py` and the frozen-runtime path adapter
 together, and keep the frozen denoise runtime's internal layout unchanged.
 
@@ -1012,6 +1012,6 @@ together, and keep the frozen denoise runtime's internal layout unchanged.
    Apollo 11, 13 and 17 inline `(Laughter)` convention, with an approved list (§4).
 5. **PDFs and other raw downloads:** keep them in `N:\Projects\Apollo\Apollo 15 Project`, not in
    Git. Keep their manifest in Git (§3).
-6. **Code:** `scripts/sg_transcript/`. The numbered audio folders will move to `scripts/30track/`.
+6. **Code:** `scripts/sg-audio/02_sg-transcript/`. The numbered audio folders will move to `scripts/30track/`.
    This repository is for Apollo 15 mission data. The website is `../AiRT2` (§2, §7).
 7. **HGX model:** `LLM-Alpha-512K`, which is GLM-5.3-Flash.

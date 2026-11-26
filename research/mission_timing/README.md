@@ -1,6 +1,6 @@
 # Reproduce the Apollo 15 mission-timing pilot
 
-The pilot has 31 identifiable openings of scan-reviewed transmissions on the stereo PAO reel. A three-source comparison later found a 4.279 s repeat on PAO. Four picked calls precede it and 27 follow it. The tables carry local samples, source checksums, printed times and page locators. The PAO, DVD and tape observations of one call inherit the same printed time. [Post-repeat anchor table](catalog/pao_572aaa_after_repeat_predictions.csv) · [All observations and initial whole-reel comparison](catalog/pao_572aaa_anchor_predictions.csv) · [Mission timing plan and results](../../docs/14_2026-11-22_mission_timing_plan.md)
+The pilot has 31 identifiable openings of scan-reviewed transmissions on the stereo PAO reel. A three-source comparison later found a 4.279 s repeat on PAO. Four picked calls precede it and 27 follow it. The tables carry local samples, source checksums, printed times and page locators. The PAO, DVD and tape observations of one call inherit the same printed time. [Post-repeat anchor table](catalog/pao_572aaa_after_repeat_predictions.csv) · [All observations and initial whole-reel comparison](catalog/pao_572aaa_anchor_predictions.csv) · [Mission timing plan and results](../../archive/docs_retired_20261126/14_2026-11-22_mission_timing_plan.md)
 
 ## Repeat the fit from the reviewed measurements
 

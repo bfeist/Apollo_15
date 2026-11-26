@@ -3,7 +3,7 @@
 Implemented November 15, 2026 from the
 [implementation guide](09_2026-11-15_deflutter_detection_guide.md), which keeps the design
 rationale and the research evidence. This page is the operating guide.
-[Next steps](12_2026-11-15_deflutter_next_steps.md) lists what is still to be run.
+[Next steps](../archive/docs_retired_20261126/12_2026-11-15_deflutter_next_steps.md) lists what is still to be run.
 
 ## What it does
 
@@ -291,7 +291,7 @@ Real-data regression with the production code on one 64 s read per window
 
 The confirmation windows were fixed before the research outcome and were not
 used for tuning; the sign-conflict rule left them unchanged. On the 228 sweep3
-windows 211 (92.5 %) were eligible; see [next steps](12_2026-11-15_deflutter_next_steps.md)
+windows 211 (92.5 %) were eligible; see [next steps](../archive/docs_retired_20261126/12_2026-11-15_deflutter_next_steps.md)
 for their beep audit and one adverse window. At the listening-approved T510083
 14034 window the production consensus agrees with the saved v5 map at lag 0
 (r 0.968/0.966 on CH15/CH17, gain v5/census 1.02/0.88) and its beep ratio
