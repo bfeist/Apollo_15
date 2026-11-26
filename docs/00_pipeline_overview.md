@@ -17,8 +17,9 @@ SG:   01_sg-internetarchive ──► 02_sg-transcript ──► 03_sg-interneta
                                   └──► flight_plan (documents)                       │
                                                                                      ▼
 30-track: 01 ► 02 ► 03 ► 04 ► 05 ► 05a ► 05b ► 06 ──────────────────────────────► 07a ► 07b ► 08
-                                                                                   fit   apply  deliver
-Independent: video/dvds (dvd_transcribe.py); 09_irig (standalone search)
+                                                │                                  fit   apply  deliver
+                                                └──► 07i (time-code tapes) ─────────────────┘
+Independent: video/dvds (dvd_transcribe.py); 09_irig (standalone search); 10_channelid
 ```
 
 **07a is the link between the pipelines.** It uses the retimed SG set as its
@@ -38,9 +39,11 @@ and stops, naming the missing inputs, if it is absent.
 | 05b ([guide](08_2026-11-15_shared_deflutter.md)) | 04 tracks + map → defluttered tracks | `D:defluttered_shared` | 8 kHz, 32-bit float |
 | 06 transcribe ([runbook](15_2026-11-22_transcription_runbook.md)) | 05b tracks → timing transcript | `D:timing_transcripts` | reads 05b; ASR at 16 kHz internally |
 | 07a SG retime fit ([guide](20_2026-11-25_sg_retime_30track.md)) | 06 transcript + retimed SG set → one plan per tape | `D:stage_evidence/retiming` | (plans) |
-| 07b retime | 05b tracks + 06 transcript + 07a plan → `retimed.wav`, `timed_transcript.tsv` | `D:retimed` | 8 kHz, 32-bit float |
+| 07i time-code retime ([guide](22_2026-11-26_irig_timecode_retime.md)) | 05b time-code track (+ 07a anchors for the hybrid) → one plan per time-code tape | `D:stage_evidence/retiming/irig` | (plans) |
+| 07b retime | 05b tracks + 06 transcript + 07i plan, else 07a plan → `retimed.wav`, `timed_transcript.tsv` | `D:retimed` | 8 kHz, 32-bit float |
 | 08 normalize ([guide](05_2026-11-13_speech_normalization.md)) | 07b tracks → **delivery** `normalized.wav` (+ timed transcript) | `D:normalized` | **8 kHz, 16-bit PCM, TPDF dither** |
 | 09 IRIG | originals CH01–CH04 → IRIG decodes | `D:irig_search` | (reports) |
+| 10 channel ID | 06 transcripts + GLM + time code → delivered-to-true channel maps | `D:channel_id` | (maps, labels) |
 
 The conversion to the delivery format happens only in **08**. It resamples any
 input that isn't at 8 kHz, applies one constant gain with a -1 dBFS peak

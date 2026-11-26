@@ -42,7 +42,9 @@ resumable render and crosstalk scratch.
 - **Video/DVD** (`scripts/video/dvds/`): input `D:/! Media Files/A15/Spacecraft Films`; transcripts
   `F:/Apollo_15_data/processing/dvd`.
 - **Audio inventory** (`scripts/audio_inventory/`): `.local/mission_data/audio_inventory/`.
-- **Channel ID** (`scripts/30-track/10_channelid/`, in progress): `D:/…/channel_id`.
+- **Channel ID** (`scripts/30-track/10_channelid/`): `D:/…/channel_id` (`evidence/`, `glm/`, `maps/`, `labels/`,
+  `shared/` final maps, `irig_nara/` time-code decodes of the originals, `consistency/`).
+- **07i time-code retime**: `D:/…/stage_evidence/retiming/irig/<tape>/` (`decode/`, `fit-<digest>/`).
 
 ## Research, archive and the 2026-11-26 cleanup
 
