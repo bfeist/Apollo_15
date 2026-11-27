@@ -18,6 +18,11 @@ guide to reuse completed work on tapes whose clocks still agree.
 - Select one tape-level curve per interval, join it once, and apply the same
   inverse timing map to all output channels, preserving their existing offsets.
   Do not fit or duration-anchor a separate map for each output channel.
+- Retiming (07) places the tape curve on the earlier head row, which carries the
+  time code and is real time. At 07b each later-row channel is moved earlier by
+  its measured stagger (about 1.38 s) through the same map, per channel and
+  interval from the measured rows, never from delivered channel numbers. See
+  `docs/23_2026-11-26_head_rows_and_real_time.md`.
 - Bypass where no usable tape-level correction is available. Partial improvement
   is acceptable; retain smooth transitions and do not force correction into gaps.
 - Count coverage as the union of eligible tape-time intervals across channels,

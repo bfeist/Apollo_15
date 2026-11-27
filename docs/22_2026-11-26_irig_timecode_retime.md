@@ -2,6 +2,10 @@
 
 **Status (2026-11-26):** implemented; plans built for the five time-code tapes. 07b applies them by
 default. 07a stays available for these tapes and is the only timing method for every other tape.
+**Superseded placement (v2, [docs/23](23_2026-11-26_head_rows_and_real_time.md)):** the time code is on
+the earlier head row, which is real time, so v2 plans (`irig-timing-v2`) place GET from it directly.
+The "voice offset" below (time-code track minus voice reference group, +0.28 to +0.36 s) was the
+Internet Archive reel offset. v1 plans are kept but 07b no longer applies them.
 
 ## What was found
 

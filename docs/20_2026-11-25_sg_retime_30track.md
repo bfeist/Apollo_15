@@ -1,6 +1,6 @@
 # Retiming the 30-track tapes against the space-to-ground set
 
-**Status: implemented as stage 07a (2026-11-25); the archive run waits for 06 word alignment.**
+**Status: implemented as stage 07a (2026-11-25). The 06 word alignment is complete (2026-11-25). v3 (2026-11-26) places the curve on the earlier, real-time head row, corrects NARA voice rows, gives the IA offsets a prior mean and adds the time code of time-coded tapes; open decision 1 is decided ([docs/23](23_2026-11-26_head_rows_and_real_time.md)). The archive run is pending.**
 The stage is `scripts/30-track/07_retime/07a_sg_retime.py`
 ([implementation](#implementation-stage-07a)). It reads the 06 transcripts with CTC-aligned word
 times ([runbook](15_2026-11-22_transcription_runbook.md#word-times-forced-alignment)). The
@@ -558,7 +558,7 @@ All steps run on saved transcripts and audio.
 
 ## Open decisions for the owner
 
-1. **Reference stagger group.** One tape map must define GET for one head-stack group. Applying it
+1. **Reference stagger group** (decided 2026-11-26, [docs/23](23_2026-11-26_head_rows_and_real_time.md): the earlier row is real time; 07b moves the later row). One tape map must define GET for one head-stack group. Applying it
    to all channels leaves the other group 1.33–1.39 s off GET. AGENTS.md forbids per-channel maps.
    Should a constant per-channel shift by the measured stagger be allowed as a separate,
    documented step? Or should it stay metadata, as the timing plan already describes for speech

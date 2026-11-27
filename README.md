@@ -249,12 +249,12 @@ stage-04 audio. Dashed boxes are in progress or planned.
 | 05a   | `05_deflutter/05a_plan_deflutter.py`   | Compile one timing map per tape                                           | Done; 38 maps in `deflutter_maps/`                               |
 | 05b   | `05_deflutter/05b_deflutter.py`        | Apply the tape map to every stage-04 track                                | Done; 1,139 tracks in `defluttered_shared/`                      |
 | 06    | `06_transcribe/06_transcribe.py`       | Timing transcript of 05b audio (shared engine in `00_common/`)            | Done; words CTC-aligned ([runbook](docs/15_2026-11-22_transcription_runbook.md)) |
-| 07a   | `07_retime/07a_sg_retime.py`           | SG anchors (IA, NARA) and one joint curve per tape, as shared-layout plans; needs the retimed SG set | Anchors for 2 tapes; archive fit pending ([SG retiming](docs/20_2026-11-25_sg_retime_30track.md)) |
-| 07i   | `07_retime/07i_irig_retime.py`         | Plans from the IRIG-B time code on delivered CH30 (hybrid with 07a evidence) | Done; 5 tapes ([time-code retime](docs/22_2026-11-26_irig_timecode_retime.md)) |
-| 07b   | `07_retime/07b_retime.py`              | Apply the tape plan (07i, else 07a) to every track; write the 06 transcript on the output clock | Checked on T510075 CH30; archive run pending |
+| 07a   | `07_retime/07a_sg_retime.py`           | SG anchors (IA, NARA) and one joint curve per tape on the real-time head row, as shared-layout plans; needs the retimed SG set | v3 code; archive run pending ([SG retiming](docs/20_2026-11-25_sg_retime_30track.md), [head rows](docs/23_2026-11-26_head_rows_and_real_time.md)) |
+| 07i   | `07_retime/07i_irig_retime.py`         | Plans from the IRIG-B time code on delivered CH30 (hybrid with 07a evidence) | v1 plans for 5 tapes; v2 refit pending the v3 anchors ([time-code retime](docs/22_2026-11-26_irig_timecode_retime.md)) |
+| 07b   | `07_retime/07b_retime.py`              | Apply the tape plan (07i, else 07a) to every track, moving later-row channels earlier by their measured stagger; write the 06 transcript on the output clock | Checked on T510075 CH28-CH30; archive run pending |
 | 08    | `08_normalize/08_normalize.py`         | Constant gain to a speech-level target; 8 kHz 16-bit dithered delivery WAV | Planned ([guide](docs/05_2026-11-13_speech_normalization.md))    |
 | 09    | `09_irig/irig_search.py`               | Standalone IRIG time-code search (delivered CH01–CH04)                    | Not integrated; the CH30 decode of stage 10 supersedes it        |
-| 10    | `10_channelid/10_channelid.py`         | True track-sheet channel of every delivered channel; missing-track inventory | Run on 38 tapes; maps not yet applied ([§9](#9-channel-identification-stage-10)) |
+| 10    | `10_channelid/10_channelid.py`         | True track-sheet channel of every delivered channel; missing-track inventory | v2 maps with head-row and carrier evidence in `shared-v2/`; not yet applied ([§9](#9-channel-identification-stage-10), [§10.5](#105-which-head-row-is-real-time)) |
 
 The order is fixed. Hum is subtracted first, because it would otherwise dominate the
 crosstalk fit. Crosstalk is subtracted before de-flutter, so that measured
@@ -642,8 +642,8 @@ corrected tape time, never a sum over tracks.
   mis-dated (E.6). Where IRIG-B survives, the filename clock is 15–23 min behind GMT by
   the end of a reel (§10.3). Only those five reels are timed from a clock on the tape; the
   other 33 depend on the SG reels and their own clock errors (§10.4).
-- **Channel identity.** Stage 10 maps every delivered channel to a true track (§9), but
-  the maps are not yet applied: file names and loop labels still carry the delivered
+- **Channel identity.** Stage 10 maps every delivered channel to a true track (§9; v2 with
+  head-row evidence, §10.5), but the maps are not yet applied: file names and loop labels still carry the delivered
   numbering. The identity of the skipped tracks on HR1U and HR2U is weakly determined
   (margins of 1.5 and 0.6 nats over a pattern that differs by one track).
 
@@ -800,6 +800,12 @@ six (T510073 and T510086–T510090), CH30 yields no frame candidate at all.
 
 **Status and caveats.**
 
+- *Superseded by v2 (§10.5).* The measured head row of each channel fixes the parity of its true
+  track, and a channel without the 1 kHz carrier cannot be true CH01. With that evidence the skips
+  follow each reel, not each head stack. Examples: T510075 reads true CH15 (skipped track 12),
+  T510078 and T510073 read true CH08, and T510073 and T510086–T510090 have no true CH01 on CH30.
+  The v2 maps are in `channel_id/shared-v2/` (`10_channelid.py shared`, grouping `tape`). The table
+  above is the v1 result.
 - The archive copy of the shared maps (`channel_id/shared/`, written 26 Nov 11:09) predates the
   IRIG decode (11:27–12:05). It still lists true CH03 (HR1L) and CH05 (HR2L) as skipped, and
   CH01 as captured nowhere. The numbers above come from the same code run in memory on the
@@ -824,7 +830,8 @@ hum gives only a median speed per reel (E.4). Two techniques put a tape on missi
   had its archive run.
 
 Both follow the shared-tape rule: one curve per tape, applied identically by 07b to every channel
-at its canonical origin. 07b prefers a 07i plan where one exists and otherwise takes the 07a
+at its canonical origin. The curve is placed on the earlier head row, which is real time. 07b moves
+each later-row channel earlier by its measured stagger through the same map (§10.5). 07b prefers a 07i plan where one exists and otherwise takes the 07a
 plan. Stage 06 supplies the transcripts both read. It transcribes the stage-05b tracks into an
 interim timing transcript with CTC-aligned word times
 ([runbook](docs/15_2026-11-22_transcription_runbook.md)). The final archive transcript is
@@ -957,16 +964,16 @@ with the hum:
   median error of 0.17 s (T510075) and 0.22 s (T510078), and a p90 of 1.47 s and 0.90 s.
 
 **Open items.**
-- *Three plans are time-code-only.* T510076, T510077 and T510085 have no 07a anchors edition
-  yet. Their plans are placed on the time-code track, not on the voice group (`review_flags`).
-  Building their anchors and refitting measures the voice offset.
-- *The voice offset may not be a geometry constant.* It is 0.28–0.36 s on these reels against
-  0.683 s on NARA. It could be pinned down on a reel that overlaps a NARA SG tape, but none of
-  the five does.
-- *The 05b decode of the other tapes has not run.* `07i_irig_retime.py decode --all-tapes` has not
-  been run on 05b, although the decode of the originals found no time code there.
-- *The archive is not yet retimed.* 07b has rendered only the check channel, into
-  `retiming/irig/A15_T510075/check/`. `retimed/` does not exist yet.
+- *Placement is now direct.* The time code is on the earlier head row, which is on real time
+  (§10.5). The v2 plans (`irig-timing-v2`) take GET from it with no voice offset. The
+  0.28–0.36 s "voice offset" measured before is the Internet Archive reel offset, now fitted as
+  `b_k`. The hybrid needs the v3 07a anchors of each tape.
+- *The 05b decode of the other tapes has not run.* `07i_irig_retime.py decode` has run on 05b for
+  T510073 only (no frames: CH30 there carries no 1 kHz carrier, and stage 10 v2 maps it to no
+  track). T510086–T510090 have a weak 1 kHz line (5–11 dB) on CH30 and are worth decoding.
+- *The archive is not yet retimed.* 07b has rendered only check channels: T510075 CH30 into
+  `retiming/irig/A15_T510075/check/`, and CH28/CH29 with the head-row shift into a scratch test
+  root on F:. `retimed/` does not exist yet.
 
 ### 10.4 Space-to-ground anchors for tapes without time code (stage 07a, built, archive run pending)
 
@@ -987,14 +994,18 @@ the evidence of all channels per tape:
    the SG word stream. They vote per 20-minute block for an offset and slope within ±30 min of
    the filename/hum prior. Continuity tests reject replays and second loops.
 2. **Stagger.** The same SG word heard on two channels measures each channel's placement. Every
-   tape shows two groups 1.38 ± 0.01 s apart. Stagger is a placement, never a per-channel map.
+   tape shows two groups 1.38 ± 0.01 s apart: the two head rows (§10.5). Staggers are expressed
+   relative to the earlier row, which is real time. 07b moves later-row channels earlier by their
+   measured stagger, through the same tape map; there is no per-channel curve.
 3. **Audio refinement.** GCC-PHAT at the text-located windows (300–1,800 Hz, ±5 s) gives about
    10 ms precision.
 4. **Quindar.** Bursts matched to NARA give an independent position check and a rate witness.
    The tone generator is calibrated on IRIG time (key 2526.7 Hz, unkey 2477.6 Hz).
 5. **Joint fit.** All tapes are fitted together: `GET = Φ_tape(t_ref) + b_k`. `Φ_tape` is a
    monotone P-spline in rate with recorder-stop segments, and `b_k` is a nuisance offset per IA
-   segment. `b_k` is fixed at 0 for NARA, and overlapping reels share it. The smoothing is
+   segment, with prior mean −0.42 s (§10.5). `b_k` is fixed at 0 for NARA after its voice-row
+   correction, except for 655-AAA, whose row is unknown. Overlapping reels share it. Time-coded
+   tapes enter with their time code as fixed positions. The smoothing is
    chosen on NARA-held-out 30-minute blocks only. Each tape gets one frozen plan in the
    shared-plan layout, which 07b applies to every channel.
 
@@ -1014,14 +1025,87 @@ and 40–49 h, 653-AAA, or the time after 286 h. There the curve relies on Quind
 the hum witness is not implemented.
 
 **Status.**
-- *What exists.* The SG reference and 07a anchors editions exist for T510075 and T510078, where
-  07i uses them. No fit edition (`sg_fit/`) exists yet.
-- *What it waits for.* The archive run waits for the stage-06 word alignment of every tape. Then
-  `07a_sg_retime.py run --all-tapes` writes final editions, and 07b renders `retimed/`.
-- *Open decisions.* These are still open: which stagger group is "on time", feedback of `b_k`
-  into the IA drift map, rate bounds, and the uncovered spans.
-- *Calibration.* The time-code reels already score the SG text method (§10.3). Once their 07a
-  fits exist, they will calibrate 07a's IA-anchored error.
+- *What exists.* The stage-06 word alignment is complete (18,675 channel-hours). A v3 SG
+  reference and v3 anchors exist for T510075. Earlier v2 anchors exist for T510073, T510078 and
+  T510100–T510110 and serve as evidence only. No fit edition (`sg_fit/`) exists yet.
+- *What changed in v3* (§10.5):
+  - the curve is placed on the earlier, real-time head row;
+  - NARA voice rows are corrected;
+  - IA offsets have prior mean −0.42 s;
+  - time-coded tapes add their time code to the joint fit;
+  - `--scratch` stages audio for `refine`/`quindar`.
+- *Open decisions.* Feedback of `b_k` into the IA drift map, rate bounds, the uncovered spans, and
+  the free voice offset of NARA 655-AAA.
+
+### 10.5 Which head row is real time
+
+[Guide](docs/23_2026-11-26_head_rows_and_real_time.md). Decided 2026-11-26.
+
+On every tape, one set of channels hears each sound 1.36–1.39 s after the other set. A tape plan
+is one curve, so it can put only one set exactly on mission time.
+
+**Answer.**
+- The earlier set is real time. Those are the odd true tracks, on the head row that also carries
+  the IRIG-B time code (true CH01).
+- The later set, the even true tracks, is late by its measured stagger. 07b moves each of those
+  channels earlier by it, through the same tape map.
+- The NARA flight tapes have the same geometry at twice the tape speed. Their voice is 0.683 s
+  late against their time code wherever it comes from the other row.
+
+**How we got there.**
+
+1. **Documented events (NASA SP-4029, *Apollo by the Numbers*).** First we compared events in the
+   transcripts with their documented times, using the time code on the five time-coded reels as
+   the clock.
+   - *Midcourse correction burn* (GET 28:40:22.00, on T510077/T510078). CAPCOM's cue "okay guys,
+     go ahead" comes 6.6 s or 5.2 s before ignition, depending on the row. The controller's "we got
+     a burn, flight" comes 6.2 s or 7.6 s after. Both rows are possible, given the 0.7 s radio
+     delay and the crew's reaction, so the burn does not decide.
+   - *Lunar-orbit burns on T510085.* They happened behind the Moon, with no live callouts.
+2. **The launch countdown.** NARA 608 carries its own time code and the launch commentary. Against
+   the documented range zero (13:34:00 GMT), every countdown number is heard 0.96 s after its tick,
+   steady to ±0.14 s. That fits a NARA voice late by its 0.683 s row gap and an announcer 0.28 s
+   behind the clock.
+3. **A withdrawn first answer.** Chaining NARA 608 → T510073 → the T510073/T510075 overlap → the
+   T510075 time code first pointed to the later row. It depends on T510073's clock 40 minutes past
+   the end of NARA 608. A constant or a changing tape speed there gives clocks 0.26 s or 1.27 s
+   apart, enough to flip the answer, so it is not used.
+4. **Track parity.** The measured row of a channel follows the parity of its true track: earlier
+   row for odd, later row for even. This holds for 29 of 34 channels whose identity the language
+   model confirmed. The five exceptions mark wrong skips in the old maps. The time code is true
+   CH01, an odd track, so it is on the earlier row.
+5. **Leakage.** On T510075 the time code's bits leak into true CH03, its stack neighbour, at zero
+   lag and 19× the noise floor. That is stronger than the leak into true CH02, the next track on
+   the tape (15×). Crosstalk between neighbouring heads in one stack while recording produces
+   exactly that: a copy with no delay.
+6. **Check.** After 07b, the words heard on both T510075 CH28 (earlier row) and CH29 (later row)
+   agree to −0.001 s (MAD 0.010 s, 25,951 sequences). Before, they were +1.359 s apart.
+
+**Consequences.**
+- **NARA voice rows** (`catalog/nara_voice/nara_voice_offsets.json`), measured per tape from four
+  kinds of evidence: file splits (−680 to −684 ms on 608, 644, 650 and 652; +684 ms on 646),
+  overlap steps between tapes (641−640 +0.678 s), Internet Archive overlaps, and 30-track
+  continuity (T510100–T510110). The values:
+  - 0.683 s on 608 and 641–654;
+  - 0 on 640 and in the first hour of 646;
+  - 655 unknown, so it is fitted free.
+
+  After the correction, consecutive NARA tapes agree within 0.005 s in their overlaps.
+- **Internet Archive reels** run 0.36–0.52 s early against that truth. Their segment offsets now
+  have prior mean −0.42 s.
+- **Time-code plans** (`irig-timing-v2`) take GET straight from the time code. The 0.28–0.36 s
+  "voice offset" seen before was the Internet Archive offset.
+- **Channel maps** (stage 10 v2, `channel_id/shared-v2/`):
+  - The measured rows enter as parity evidence.
+  - A channel without the 1 kHz carrier cannot be true CH01.
+  - Skips are fitted per reel, because they follow each reel's position on the head. They are
+    not shared per head stack.
+  - Examples: T510073 CH30 reads no track (no carrier, only bleed), as do T510086–T510090.
+    T510075 reads true CH15 (skipped track 12). T510078 reads true CH08.
+- **Rows change along a tape.** Where the playback head slides by one track partway through a
+  reel, a channel changes row, as on T510075 CH19 and CH20. 07b therefore takes each channel's row
+  per 30-minute interval from the 07a stagger tables, and ramps a change over 600 s. Neither the
+  delivered channel number nor a static map gives the row.
 
 ---
 
@@ -1053,8 +1137,14 @@ Stage 07i (time-code tapes) and its application:
 uv run python scripts/run.py 07i_irig_retime.py decode --all-tapes      # 05b CH28-CH30 of every tape
 uv run python scripts/run.py 07i_irig_retime.py fit --all-tapes         # plans where time code exists
 uv run python scripts/run.py 07i_irig_retime.py status --all-tapes
-uv run python scripts/run.py 07b_retime.py --tape A15_T510075 --all-channels   # prefers the 07i plan; --no-irig skips it
+uv run python scripts/run.py 07b_retime.py --all-tapes --all-channels --workers 8 --genus-workers 12   # every tape, Proprius + Genus (queue)
+uv run python scripts/run.py 07b_retime.py --tape A15_T510075 --all-channels --scratch F:/Apollo_15_30-Track/work/retime   # one tape here
+#   prefers the 07i plan (--no-irig skips it); moves later-row channels onto real time (head_rows.json);
+#   --scratch stages audio on F: so D: sees one sequential copy at a time (docs/23)
 ```
+
+The full retiming run, in order, is in
+[docs/23](docs/23_2026-11-26_head_rows_and_real_time.md#archive-run).
 
 `render_channel_review.py` writes matched mono float `A.wav` (stage 04) and `B.wav`
 (with the shared map) for Adobe Audition. Both cover an identical interval and

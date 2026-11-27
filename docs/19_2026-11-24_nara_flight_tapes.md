@@ -143,7 +143,9 @@ The command is in `nara_respeed.py`'s docstring.
 
 ## Open items
 
-1. Voice-versus-timecode position (0 or 0.683 s per tape): calibrate against the IA SG reels where they
+1. Voice-versus-timecode position (0 or 0.683 s per tape): measured 2026-11-26, table in
+   `catalog/nara_voice/nara_voice_offsets.json`, applied by 07a v3 ([docs/23](23_2026-11-26_head_rows_and_real_time.md)).
+   Previously: calibrate against the IA SG reels where they
    overlap.
 2. 653-AAA: its first and last ~20 minutes overlap 652 and 654. Correlating against their respeeded
    audio could give 653 a mean rate and a GET placement.
