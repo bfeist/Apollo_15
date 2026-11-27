@@ -11,7 +11,9 @@ Subcommands
   quindar    Quindar bursts: NARA generator calibration, matches (a check) and rate witnesses.
   fit        One joint fit over the selected tapes; one shared-layout plan per tape, a proposed IA
              segment revision and coverage as the union of supported tape time. Each evidence
-             island (anchors more than 1 h apart) takes its own GET level (sg_levels.py).
+             island (anchors more than 1 h apart) takes its own GET level (sg_levels.py), and
+             the TEC/AFJ timed rows heard on the tape are positions too (sg_journal.py); a tape
+             without an SG curve gets a journal anchors edition.
   run        reference, anchors, [refine], [quindar] and fit in order.
 
 Inputs: the 06 transcripts of the 05b channels and the retimed space-to-ground set (IA reels on GET
@@ -163,7 +165,7 @@ def quindar(args, found=None):
 
 def fit(args, found=None):
     found = found or current_anchors(args)
-    # A separate GET level per evidence island (sg_levels.py; docs/23, Level gaps)
+    # Level gaps and journal anchors (sg_levels.py, sg_journal.py; docs/23)
     folder = sg_levels.build_fit(list(found), args.root, allow_provisional=args.allow_provisional, anchors_by_tape=found)
     print(f'Fit edition: {folder}')
 

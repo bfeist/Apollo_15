@@ -131,6 +131,48 @@ Result against `fit-fee097094a89eb4c`:
   journal map is off (held-out error 2.3 s, five unapplied residual steps) or both recorders
   stopped there. The 564 → 565 join needs −4.2 s.
 
+### Journal anchors (`sg_journal.py`, `journal-anchors-v1`)
+
+The SG reference leaves stretches of 30-track tape without anchors: GET 7–9, 15–25 and 40–49 h,
+653-AAA, everything after 285.8 h, and the gaps inside reels. The technical transcript (TEC) and
+the AFJ, whose stamps are the TEC times, cover the whole mission. The fit now matches their timed
+rows directly on the 30-track tapes with the transcript-time technique (`transcript_times.py`):
+
+- **Match.** The first four comparable words of a row must be heard as one run, once within the
+  window, and the following words must agree. The search runs first ±600 s around the tape's SG
+  curve, then ±60 s around the curve plus the running offset of the first pass. Only rows with
+  their own stamps count; AFJ duplicates of TEC rows are counted once.
+- **Head rows.** Each match is moved onto the real-time row by the tape's head-row plan. The
+  channels that heard a row give one event at their median tape time. An event more than 3 s from
+  the running median of its neighbours is dropped.
+- **Fit.** Events have σ 0.5 s and one mission-wide offset `journal:TEC` (prior −0.40 ± 0.2 s;
+  whole-second stamps truncated). The NARA and time-code tapes calibrate it for every other tape.
+- **Tapes without an SG curve.** T510111 and T510112 get a journal anchors edition
+  (`<tape>/sg_anchors/anchors-journal-<digest>`). It is built by the SG vote and `pooled_fit` from
+  the journal matches, which measure the stagger groups too (+1.36 and +1.37 s). head_rows and 07b
+  use it like any anchors edition.
+- **Upstream reused.** Like the level gaps, this extends only the fit. The fit's tape evidence
+  records the journal events (`journal`), and its `ia_offsets.tsv` has a `journal:TEC` row.
+
+Result of the first full fit (38 tapes):
+
+- **Offset.** `journal:TEC` = −0.310 ± 0.008 s from 17,496 events, consistent with the IRIG-B
+  transcript-time check (stamps 0.35 s early).
+- **Independent check.** On the 12 tapes with NARA or time code, journal residuals are 0.27–0.36 s
+  median and 0.6–1.1 s p90. Their curves move by less than 0.2 s, apart from local gaps.
+- **Extrapolated stretches corrected.** The largest GET changes are where the old curves only
+  extrapolated: T510105 up to 541 s (SG anchors only at 4.8–8.3 h), T510110 up to 208 s (SG
+  anchors only in its first 2.3 h) and T510090 up to 78 s.
+- **New plans.** T510111 is anchored from tape 5.8 h (GET about 286.7 h; no transcript rows in
+  278–286 h) and T510112 through entry and splashdown.
+- **Coverage.** Tape time within 600 s of an anchor rises from 56.5 % to 62.6 %.
+- **IA offsets.** 36 IA segments remain more than 0.35 s from −0.42 s (was 49). 561:2 and 562 stay
+  at −7 s, but are now measured against journal events, so they are IA drift-map errors and no
+  longer move the 30-track GET.
+- **Open.** On the IA-only tapes T510090–T510095, journal residuals are 1.0–1.5 s median: there
+  tens of thousands of IA events (σ 0.15 s) still set the curve's shape, on reels whose drift maps
+  have held-out errors of 2–3.5 s.
+
 ## Channel maps (stage 10, `channelid-shared-v2`)
 
 - **Parity evidence.** A measured row fixes the parity of the true track: −6 nats for the wrong
@@ -155,6 +197,7 @@ Result against `fit-fee097094a89eb4c`:
 
 | Stage | Change |
 | ----- | ------ |
+| 07a `fit` (`sg_journal.py`) | TEC/AFJ timed rows matched on every channel and placed on the real-time row become fit positions (σ 0.5 s, one fitted `journal:TEC` offset). A tape whose SG anchors have no curve gets a journal anchors edition. See [Journal anchors](#journal-anchors-sg_journalpy-journal-anchors-v1). |
 | 07a `fit` (`sg_levels.py`) | A separate GET level for each anchor island without time code, beside a gap of more than 1 h; the step is ramped across the gap. The joint solve is conditioned (GET minus a unit-rate line). See [Level gaps](#level-gaps-sg_levelspy-level-gaps-v1). |
 | 07a `sg_stage` v3 | Staggers are re-referenced to the earlier row (`rereference_to_real_time`). The curve and every plan define GET for that row. NARA segments are corrected by the voice table. A NARA tape of unknown voice row gets a free offset. IA offsets get prior mean −0.42 s. Time-coded tapes add their time code to the joint fit as fixed positions. `--scratch` stages each tape's WAVs for `refine`/`quindar`. |
 | 07i `irig-timing-v2` | The time code is on the real-time row, so the plan places GET from it with no offset. The SG offset against it is reported as `timecode_minus_sg_events` (the IA offset). Decodes are unchanged (v1). |

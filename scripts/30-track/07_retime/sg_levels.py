@@ -29,6 +29,10 @@ does not see it, so the model is the same; without it the normal equations mix G
 from lambda 1e8; T510104 at 1e4: a negative roughness c'Pc and 0.5 s differences 3 h from the
 nearest anchor).
 
+The wrapper also adds the journal anchors (sg_journal.py): TEC/AFJ events in every tape's
+evidence before its level gaps are found, a ``journal:TEC`` offset among the reference segments,
+and journal anchors editions for tapes without an SG curve.
+
 This module only wraps ``sg_stage.build_fit``. The upstream editions (reference, anchors, audio,
 quindar) hash sg_stage.CODE and are unchanged. The fit edition records this module's hash and
 settings in each tape's evidence (``level_gaps``), so it gets a new name.
@@ -179,33 +183,52 @@ class _CurveModule:
 
 
 @contextmanager
-def _hooked():
+def _hooked(root, log, journal=True):
+    import sg_journal
     gaps = {}
     tape_evidence = sg_stage.tape_evidence
+    read_json = sg_stage.read_json
 
     def with_levels(tape, anchors):
         ev, manifest, extra = tape_evidence(tape, anchors)
         if ev is None:
             return ev, manifest, extra
+        if journal:  # journal events first: they fill gaps before the level gaps are found
+            ev, extra = sg_journal.extend(ev, manifest, extra, tape, anchors, root, log)
         gaps[tape] = level_gaps(ev.t, ev.ref_kind == 'nara', ev.cuts)
         extra = dict(extra, level_gaps=dict(version=VERSION, code=code_sha(), settings=LEVELS,
                                             gaps_s=[[a, b] for a, b in gaps[tape]]))
         return ev, manifest, extra
 
+    def with_journal_segment(path):
+        """The reference manifest as the fit reads it, with the journal offset among its segments
+        (its prior and its row in ia_offsets.tsv)."""
+        value = read_json(path)
+        p = Path(path)
+        if journal and p.name == 'manifest.json' and p.parent.parent.name == 'sg_reference':
+            value = dict(value, segments=[*value['segments'], sg_journal.SEGMENT])
+        return value
+
     original = sg_stage.sg_curve
     sg_stage.tape_evidence = with_levels
     sg_stage.sg_curve = _CurveModule(gaps)
+    sg_stage.read_json = with_journal_segment
     try:
         yield gaps
     finally:
         sg_stage.tape_evidence = tape_evidence
         sg_stage.sg_curve = original
+        sg_stage.read_json = read_json
 
 
 def build_fit(tapes, root=sg_stage.RETIMING_ROOT, log=print, allow_provisional=False, anchors_by_tape=None):
-    """``sg_stage.build_fit`` with a separate GET level per island without time code (module doc)."""
-    with _hooked() as gaps:
-        folder = sg_stage.build_fit(tapes, root, log=log, allow_provisional=allow_provisional,
+    """``sg_stage.build_fit`` with a separate GET level per island without time code (module doc)
+    and the journal anchors (sg_journal.py): journal events on every tape, and a journal anchors
+    edition for a tape whose SG anchors have no curve."""
+    import sg_journal
+    anchors_by_tape = sg_journal.substitute(anchors_by_tape, root, log)
+    with _hooked(root, log) as gaps:
+        folder = sg_stage.build_fit(list(anchors_by_tape), root, log=log, allow_provisional=allow_provisional,
                                     anchors_by_tape=anchors_by_tape)
     n = sum(len(v) for v in gaps.values())
     log(f'Level gaps ({VERSION}, > {LEVELS["min_gap_s"]:.0f} s without anchors, beside an island without time code): '
