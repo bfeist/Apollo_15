@@ -189,7 +189,7 @@ def main(argv=None):
     r.add_argument('--no-screen', action='store_true', help='dashboard without the alternate screen')
     r.set_defaults(func=run)
     sh = sub.add_parser('shared', help='final maps: missing-track pattern shared per head stack (no GLM calls)')
-    sh.add_argument('--grouping', choices=('all', 'recorder', 'head'), default='head')
+    sh.add_argument('--grouping', choices=('all', 'recorder', 'head', 'tape'), default='tape')
     sh.set_defaults(func=shared)
     sub.add_parser('report').set_defaults(func=report)
     s = sub.add_parser('show')

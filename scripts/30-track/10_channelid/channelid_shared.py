@@ -20,7 +20,11 @@ group's posterior. Groupings (all tapes, recorder, head stack) are compared by t
 A tape whose own best ``M`` beats the group's by more than ``DEVIATION_NATS`` is flagged
 for review; its own best map is reported alongside, the group map stays primary.
 
-Read-only on ``glm/`` and ``evidence/``; writes ``<root>/shared/``.
+Physical evidence (v2, docs/23): the measured head row of each channel (07a stagger) fixes the
+parity of its true track (``channelid_rows.row_logp``), and a channel without a 1 kHz carrier
+cannot be true CH01. True CH01 may then be a skipped track like any other.
+
+Read-only on ``glm/`` and ``evidence/``; writes ``<root>/shared-v2/`` (v1 maps stay in ``shared/``).
 """
 from __future__ import annotations
 
@@ -42,7 +46,8 @@ import channelid_evidence as ce  # noqa: E402
 import channelid_report as cr  # noqa: E402
 import channelid_solve as cv  # noqa: E402
 import channelid_irig_nara as cin  # noqa: E402
-from channelid_sheets import sheet  # noqa: E402
+import channelid_rows as crow  # noqa: E402
+from channelid_sheets import IRIG_CHANNEL, sheet  # noqa: E402
 
 DEFAULT_ROOT = Path('D:/Apollo_15_30-Track/channel_id')
 MAX_MISSING = 2
@@ -51,15 +56,20 @@ MISSING_COST = 10.0   # evidence (tempered nats, summed over a group) a missing 
 TAPE_MISSING_COST = -math.log(cv.STEP_P)   # 4.6 nats: one tape's own pattern, as a step in channelid_solve
 DEVIATION_NATS = 8.0
 D0_RANGE = range(-2, 9)                     # delivered channel reading true 30 (<=0: off the edge)
-GROUPINGS = {'all': lambda h: 'all', 'recorder': lambda h: h[:3], 'head': lambda h: h}
-SHARED_VERSION = 'channelid-shared-v1'
+GROUPINGS = {'all': lambda t: 'all', 'recorder': lambda t: t['head'][:3], 'head': lambda t: t['head'],
+             'tape': lambda t: t['tape']}   # tape: each reel its own skips (they follow its lateral offset; docs/23)
+SHARED_VERSION = 'channelid-shared-v2'   # v2: head-row parity and carrier evidence (docs/23)
+CARRIER_ABSENT = math.log(1e-12) / 2.0   # true CH01 on a channel without its 1 kHz carrier
+OUT_NAME = 'shared-v2'                   # v1 maps stay in shared/
 
 
 def missing_sets():
+    """Up to MAX_MISSING skipped tracks among true 2-29, each set also with true CH01 skipped (a head
+    past the time-code track reads no track: T510073 CH30 carries no 1 kHz carrier, only bleed)."""
     out = [()]
     for k in range(1, MAX_MISSING + 1):
         out += list(itertools.combinations(range(2, 30), k))
-    return out
+    return out + [(1,) + m for m in out]
 
 
 def mapping(d0, missing, delivered):
@@ -81,7 +91,43 @@ def load(root: Path, tape: str):
         model = rec['model']
     irig = cin.tape_irig(root, tape)
     lp, notes = cv.emissions(answers, ev, irig)
-    return dict(tape=tape, head=ev['head'], ev=ev, answers=answers, lp=lp, notes=notes, model=model, irig=irig)
+    # physical evidence (docs/23): measured head row -> parity of the true track; no 1 kHz carrier -> not CH01
+    measured, edition = crow.rows(tape)
+    for d in lp:
+        info = measured.get(d)
+        if info and info['intervals'] >= crow.MIN_INTERVALS:
+            lp[d] = lp[d] + crow.row_logp(info)
+            notes[d] = (notes.get(d, '') + f" row {info['row']} {info['sequence']}"
+                        + (' (row changes along the tape)' if info['changes'] else '')).strip()
+    carriers = carrier_table(root, tape, irig, lp)
+    for d, db in carriers.items():
+        if db is None or d not in lp:
+            continue
+        if db < crow.CARRIER_MIN_DB:
+            lp[d][IRIG_CHANNEL] = CARRIER_ABSENT
+            notes[d] = (notes.get(d, '') + f' no 1 kHz carrier ({db:+.1f} dB): not true CH01').strip()
+        else:
+            # a carrier without decodable frames is still the time-code track's: neutral, not absent
+            lp[d][IRIG_CHANNEL] = max(lp[d][IRIG_CHANNEL], float(np.median(lp[d])))
+            notes[d] = (notes.get(d, '') + f' 1 kHz carrier {db:+.1f} dB, no decodable frames').strip()
+    return dict(tape=tape, head=ev['head'], ev=ev, answers=answers, lp=lp, notes=notes, model=model, irig=irig,
+                rows=measured, rows_edition=edition, carriers=carriers)
+
+
+def carrier_table(root, tape, irig, lp):
+    """1 kHz carrier strength of the channels that could read true CH01 without decoded time code (cached)."""
+    decoded = cv.irig_anchor(irig) if irig else None
+    candidates = [d for d in (28, 29, 30) if d in lp and d != decoded]
+    path = Path(root) / 'carrier' / f'{tape}.json'
+    cached = json.loads(path.read_text(encoding='utf-8')) if path.is_file() else {}
+    out = {}
+    for d in candidates:
+        if str(d) not in cached:
+            cached[str(d)] = crow.carrier(tape, d)
+        out[d] = cached[str(d)]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(cached, indent=1), encoding='utf-8')
+    return out
 
 
 def tape_table(t, msets):
@@ -96,7 +142,9 @@ def tape_table(t, msets):
 
 
 def group_fit(members, msets):
-    cost = np.array([MISSING_COST * len(m) for m in msets])
+    per = TAPE_MISSING_COST if len(members) == 1 else MISSING_COST
+    # true CH01 skipped costs nothing extra: its evidence is the carrier/time-code term itself
+    cost = np.array([per * len([x for x in m if x != 1]) for m in msets])
     per_m = sum(logsumexp(t['S'], axis=1) - math.log(len(D0_RANGE)) for t in members)   # marginal over d0
     score = per_m - cost
     post = np.exp(score - logsumexp(score))
@@ -129,7 +177,7 @@ def solve_tape(t, msets, group, sh):
             mp = mapping(dd, m, ds)
             for d in ds:
                 marg[d][mp[d]] = marg[d].get(mp[d], 0.0) + float(w[i, k])
-    cost = np.array([TAPE_MISSING_COST * len(m) for m in msets])
+    cost = np.array([TAPE_MISSING_COST * len([x for x in m if x != 1]) for m in msets])
     own_scores = S.max(axis=1) - cost
     own = int(np.argmax(own_scores))
     deviation = float(own_scores[own] - (S[mb].max() - cost[mb]))
@@ -244,7 +292,7 @@ def run(root: Path, grouping: str):
     for gname, key in GROUPINGS.items():
         groups = {}
         for t in data:
-            groups.setdefault(key(t['head']), []).append(t)
+            groups.setdefault(key(t), []).append(t)
         fits = {g: group_fit(ms, msets) for g, ms in groups.items()}
         comparison[gname] = dict(score=round(sum(f['score'] for f in fits.values()), 2),
                                  groups={g: dict(tapes=len(groups[g]), missing=list(msets[f['best']]),
@@ -253,15 +301,15 @@ def run(root: Path, grouping: str):
                                                  posterior=round(float(f['post'][f['best']]), 4))
                                          for g, f in sorted(fits.items())})
     # per-tape free (no sharing) for reference
-    cost = np.array([MISSING_COST * len(m) for m in msets])
+    cost = np.array([MISSING_COST * len([x for x in m if x != 1]) for m in msets])
     own = [float(np.max(logsumexp(t['S'], axis=1) - math.log(len(D0_RANGE)) - cost)) for t in data]
     comparison['per tape (no sharing)'] = dict(score=round(sum(own), 2), groups={})
 
     key = GROUPINGS[grouping]
     groups = {}
     for t in data:
-        groups.setdefault(key(t['head']), []).append(t)
-    out = root / 'shared'
+        groups.setdefault(key(t), []).append(t)
+    out = root / OUT_NAME
     (out / 'maps').mkdir(parents=True, exist_ok=True)
     (out / 'labels').mkdir(parents=True, exist_ok=True)
     summary = []
@@ -338,7 +386,7 @@ def main(argv=None):
     sys.stdout.reconfigure(encoding='utf-8')
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--root', default=str(DEFAULT_ROOT))
-    p.add_argument('--grouping', choices=sorted(GROUPINGS), default='head')
+    p.add_argument('--grouping', choices=sorted(GROUPINGS), default='tape')
     args = p.parse_args(argv)
     comparison, maps = run(Path(args.root), args.grouping)
     from rich.console import Console
@@ -366,7 +414,7 @@ def main(argv=None):
                    (f'own {",".join(map(str, sh["own_missing"])) or "-"} CH{sh["own_d0"]:02d} +{sh["deviation_nats"]:.0f}'
                     if sh['review'] else ''))
     con.print(t2)
-    print(f'Wrote {Path(args.root) / "shared"}')
+    print(f'Wrote {Path(args.root) / OUT_NAME}')
 
 
 if __name__ == '__main__':
