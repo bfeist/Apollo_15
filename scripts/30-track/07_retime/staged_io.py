@@ -231,12 +231,15 @@ def progress_path(out):
     return out.parent.parent / 'progress' / (out.name + '.json')
 
 
-def note_progress(path, text):
-    """Record the latest progress line of a render (``Retime 42.0% ...`` gives the percentage)."""
+def note_progress(path, text, percent=None):
+    """Record the latest progress line of a render (``Retime 42.0% ...`` gives the percentage;
+    ``percent`` gives it for lines without one)."""
     data = dict(text=str(text)[:200], time=time.time())
     m = re.match(r'Retime ([\d.]+)%', str(text))
     if m:
         data['percent'] = float(m.group(1))
+    elif percent is not None:
+        data['percent'] = float(percent)
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
         tmp = path.with_name(path.name + '.tmp')
@@ -258,12 +261,17 @@ def _render(args):
     from quindar_retime import retime
     from timed_transcript import write_timed_transcript
     log, live = [], progress_path(out)
+    last = dict(percent=None)  # lines without a percentage keep the last one (the dashboard rate)
 
     def progress(message):
         log.append(message)
-        note_progress(live, message)
+        m = re.match(r'Retime ([\d.]+)%', str(message))
+        if m:
+            last['percent'] = float(m.group(1))
+        note_progress(live, message, last['percent'])
     record = retime(source, out, shared_plan=plan, row_shift=knots, read_from=staged, progress=progress)
-    note_progress(live, 'Timed transcript')
+    last['percent'] = 100.0
+    note_progress(live, 'Timed transcript', 100.0)
     write_timed_transcript(out, Path(record['source']['path']), progress=progress)
     return log[-3:]
 

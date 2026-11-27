@@ -254,6 +254,34 @@ class DiskLockTests(unittest.TestCase):
                     pass
 
 
+class DashboardTests(unittest.TestCase):
+    def test_a_momentary_dip_does_not_reset_the_rate(self):
+        import retime_dashboard as rd
+        r = rd.Rate()
+        for t, v in ((0, 0), (60, 100), (90, 50), (200, 400)):
+            r.observe(t, v)
+        self.assertAlmostEqual(r.value(), 2.0)
+
+    def test_an_unreadable_host_file_keeps_its_last_reading(self):
+        import retime_dashboard as rd
+        with tempfile.TemporaryDirectory() as tmp:
+            hosts = Path(tmp) / '.queue' / 'hosts'
+            hosts.mkdir(parents=True)
+            board = rd.Dashboard.__new__(rd.Dashboard)
+            board.queue, board.last_hosts = Path(tmp) / '.queue', {}
+            (hosts / 'proprius.json').write_text('{"state": "running"}', encoding='utf-8')
+            self.assertEqual(board._hosts()['proprius']['state'], 'running')
+            (hosts / 'proprius.json').write_text('{"state": "runn', encoding='utf-8')  # mid-write
+            self.assertEqual(board._hosts()['proprius']['state'], 'running')
+
+    def test_progress_lines_without_a_percentage_keep_the_last_one(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'CH01.json'
+            staged_io.note_progress(path, 'Timed transcript', 100.0)
+            self.assertEqual(staged_io.read_progress(path)['percent'], 100.0)
+            staged_io.note_progress(path, 'Retime 42.5% (10 s)', 100.0)
+            self.assertEqual(staged_io.read_progress(path)['percent'], 42.5)
+
 class CommandTests(unittest.TestCase):
     def test_genus_command_translates_archive_paths(self):
         self.assertEqual(rc.linux_path('D:\\Apollo_15_30-Track\\retimed'), '/mnt/d/Apollo_15_30-Track/retimed')

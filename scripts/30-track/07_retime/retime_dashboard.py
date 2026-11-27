@@ -86,14 +86,15 @@ def rate_text(bytes_per_s):
 
 
 class Rate:
-    """Progress samples (time, bytes) over the last ``WINDOW_S``; reset when progress goes back."""
+    """Progress samples (time, bytes) over the last ``WINDOW_S``.
+
+    A momentary dip (a channel between phases) does not reset the window; a host that restarts gets
+    a new Rate (keyed by its start time)."""
 
     def __init__(self):
         self.samples = deque()
 
     def observe(self, now, value):
-        if self.samples and value < self.samples[-1][1] - 1:
-            self.samples.clear()
         self.samples.append((now, value))
         while len(self.samples) > 2 and self.samples[1][0] < now - WINDOW_S:
             self.samples.popleft()
@@ -141,14 +142,19 @@ class Dashboard:
         self.rates = {}
         self.started = time.time()
         self.stopping = False
+        self.last_hosts = {}
 
     def _hosts(self):
+        """Each host's status file; one that cannot be read right now (being replaced on Windows)
+        keeps its last reading."""
         hosts = {}
         for f in sorted((self.queue / 'hosts').glob('*.json')):
             try:
-                hosts[f.stem] = json.loads(f.read_text(encoding='utf-8'))
+                self.last_hosts[f.stem] = json.loads(f.read_text(encoding='utf-8'))
             except (OSError, ValueError):
-                continue
+                pass
+            if f.stem in self.last_hosts:
+                hosts[f.stem] = json.loads(json.dumps(self.last_hosts[f.stem]))  # snapshot() annotates its copy
         return hosts
 
     def _queue(self):
@@ -188,7 +194,7 @@ class Dashboard:
         self.rates.setdefault('all', Rate()).observe(now, done + partial)
         for label, h in hosts.items():
             if h['live']:
-                self.rates.setdefault(label, Rate()).observe(now, h.get('done_bytes', 0) + h['partial'])
+                self.rates.setdefault((label, h.get('started')), Rate()).observe(now, h.get('done_bytes', 0) + h['partial'])
         rate = self.rates['all'].value()
         remaining = max(0.0, total - done - blocked - partial)
         tapes = {}
@@ -233,12 +239,13 @@ class Dashboard:
             jobs = h.get('jobs', []) if h['live'] else []
             rendering = sum(1 for j in jobs if j.get('phase') == 'rendering')
             waiting = sum(1 for j in jobs if j.get('phase') in ('staged', 'staging in', 'waiting for disk', 'rendered', 'publishing'))
-            age = s['now'] - h.get('updated', 0)
+            age = max(0.0, s['now'] - h.get('updated', 0))  # the hosts' clocks differ slightly
             state = h.get('state', '?') if h['live'] or h.get('state') != 'running' else 'no update (stopped?)'
             machines.add_row(label, Text(state, style='green' if h['live'] else 'yellow'),
                              f"{rendering}/{h.get('workers', '?')}", str(waiting),
                              f"{h.get('done_channels', 0)}" + (f" ({h.get('failed_channels')} failed)" if h.get('failed_channels') else ''),
-                             rate_text(self.rates[label].value()) if h['live'] and label in self.rates else '-',
+                             rate_text(self.rates[(label, h.get('started'))].value())
+                             if h['live'] and (label, h.get('started')) in self.rates else '-',
                              ', '.join(sorted({j['tape'].replace('A15_', '') for j in jobs})) or '-',
                              f'{age:.0f} s ago')
 
