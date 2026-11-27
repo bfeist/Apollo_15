@@ -15,8 +15,9 @@ It reads files only, so it never touches the render:
 * each host's status (``.queue/hosts/<host>.json``, rewritten every 2 s by retime_cluster.HostStatus):
   the channels it holds with their phase and render progress.
 
-Rates are measured from progress over the last ``WINDOW_S`` (published bytes plus the rendered
-share of running channels), so ETAs need a few minutes to warm up.
+Rates are each host's progress (published bytes plus the rendered share of its channels in flight):
+its average since it started until this view has watched for ``WINDOW_S``, then over the last
+``WINDOW_S``. The combined rate is their sum; the ETA is the remaining audio over it.
 """
 
 # Resolve shared modules from the stage folders.
@@ -39,7 +40,6 @@ from rich.text import Text
 
 BYTES_PER_AUDIO_S = 8000 * 4   # 05b channels: 8 kHz 32-bit float mono
 WINDOW_S = 900.0               # rate window
-WARMUP_S = 120.0
 DONE_RECHECK_S = 20.0
 HOST_STALE_S = 60.0
 PHASE_ORDER = {'rendering': 0, 'publishing': 1, 'rendered': 2, 'staging in': 3, 'waiting for disk': 4, 'staged': 5}
@@ -47,7 +47,7 @@ PHASE_ORDER = {'rendering': 0, 'publishing': 1, 'rendered': 2, 'staging in': 3, 
 
 def duration(seconds):
     if seconds is None:
-        return 'warming up'
+        return '-'
     if seconds <= 0:
         return 'finishing'
     minutes = max(1, round(seconds / 60))
@@ -82,7 +82,7 @@ def hours_text(n_bytes):
 
 
 def rate_text(bytes_per_s):
-    return 'warming up' if bytes_per_s is None else f'{audio_hours(bytes_per_s) * 3600:.1f} audio h/h'
+    return '-' if bytes_per_s is None else f'{audio_hours(bytes_per_s) * 3600:.1f} audio h/h'
 
 
 class Rate:
@@ -103,9 +103,12 @@ class Rate:
         if len(self.samples) < 2:
             return None
         (t0, v0), (t1, v1) = self.samples[0], self.samples[-1]
-        if t1 - t0 < WARMUP_S or v1 <= v0:
+        if t1 - t0 <= 0:
             return None
-        return (v1 - v0) / (t1 - t0)
+        return max(0.0, v1 - v0) / (t1 - t0)
+
+    def span(self):
+        return self.samples[-1][0] - self.samples[0][0] if len(self.samples) > 1 else 0.0
 
 
 class Inventory:
@@ -157,6 +160,16 @@ class Dashboard:
                 hosts[f.stem] = json.loads(json.dumps(self.last_hosts[f.stem]))  # snapshot() annotates its copy
         return hosts
 
+    def _host_rate(self, label, h, now):
+        """Audio bytes per second: over the last ``WINDOW_S`` once this view has watched that long,
+        before that the host's average since it started (published bytes plus the rendered share
+        of its channels in flight; everything it holds was started after it started)."""
+        r = self.rates.get((label, h.get('started')))
+        if r is not None and r.span() >= WINDOW_S:
+            return r.value()
+        elapsed = now - h.get('started', now)
+        return (h.get('done_bytes', 0) + h['partial']) / elapsed if elapsed > 0 else None
+
     def _queue(self):
         state = {}
         for tape in self.inventory.tapes:
@@ -191,11 +204,13 @@ class Dashboard:
         done = sum(inv.channels[k] for k in inv.done)
         blocked = sum(b for (t, _), b in inv.channels.items() if t in failed_tapes and (t, _) not in inv.done)
         partial = sum(h['partial'] for h in hosts.values())
-        self.rates.setdefault('all', Rate()).observe(now, done + partial)
         for label, h in hosts.items():
             if h['live']:
                 self.rates.setdefault((label, h.get('started')), Rate()).observe(now, h.get('done_bytes', 0) + h['partial'])
-        rate = self.rates['all'].value()
+        for label, h in hosts.items():
+            h['rate'] = self._host_rate(label, h, now) if h['live'] else None
+        live_rates = [h['rate'] for h in hosts.values() if h['live'] and h['rate'] is not None]
+        rate = sum(live_rates) if live_rates else None
         remaining = max(0.0, total - done - blocked - partial)
         tapes = {}
         for (tape, ch), size in inv.channels.items():
@@ -244,8 +259,7 @@ class Dashboard:
             machines.add_row(label, Text(state, style='green' if h['live'] else 'yellow'),
                              f"{rendering}/{h.get('workers', '?')}", str(waiting),
                              f"{h.get('done_channels', 0)}" + (f" ({h.get('failed_channels')} failed)" if h.get('failed_channels') else ''),
-                             rate_text(self.rates[(label, h.get('started'))].value())
-                             if h['live'] and (label, h.get('started')) in self.rates else '-',
+                             rate_text(h['rate']),
                              ', '.join(sorted({j['tape'].replace('A15_', '') for j in jobs})) or '-',
                              f'{age:.0f} s ago')
 
