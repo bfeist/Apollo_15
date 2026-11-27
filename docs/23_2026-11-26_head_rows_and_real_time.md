@@ -96,6 +96,41 @@ IA GET minus true GET is consistently negative:
 The IA segment offsets `b_k` are now fitted with prior mean **−0.42 s**
 (`sg_inputs.IA_OFFSET_PRIOR_MEAN_S`) and their own held-out σ. Before this they had prior mean 0.
 
+### Level gaps (`sg_levels.py`, `level-gaps-v1`)
+
+Where a tape has no time code, its GET comes from the journals: the IA drift maps are fitted to
+TEC/journal anchors. Across a long stretch without anchors, the curve's rate is only weakly
+constrained, and 0.03 % over six hours is 6.5 s. The first full v3 fit (`fit-fee097094a89eb4c`)
+carried that drift across the gaps into the IA offsets. On the IA-only tapes T510079–T510097
+they reached −7.9 to +6.5 s, although each segment follows its own IA audio within 0.03–0.08 s.
+
+Rule of the joint fit (07a `fit`):
+
+- **Gap.** Consecutive position anchors more than 1 h apart, with no recorder cut between them.
+- **Free level.** If the island on either side has fewer than 20 NARA or time-code positions, the
+  two sides get separate GET levels. The IA-sided island is then placed by its own IA segments:
+  their journal placement plus the IA offset prior. Gaps between two time-coded islands keep the
+  continuous fit.
+- **Continuous map.** The level difference is spread over the whole gap as a smoothstep in the
+  rate. The timing map stays continuous and monotone, and `GET = output + segment constant` still
+  holds. `curve.json` lists each ramp (`level_ramps`: gap, step, `max_rate_added`). In the first
+  run the ramps added at most 0.09 % to the rate.
+- **Smoothing unchanged.** λ is chosen per tape exactly as before, without the free levels. Only
+  the final joint solve changes, and it is solved on GET minus a unit-rate line. Without that
+  conditioning, GET-sized values (6e5 s) lose precision at large λ.
+- **Upstream reused.** The reference, anchors, audio and Quindar editions are unchanged. Only the
+  fit edition is new; its tape evidence records `level_gaps`.
+
+Result against `fit-fee097094a89eb4c`:
+
+- NARA and time-coded tapes are unchanged: the same λ, and NARA residuals within 0.005 s (p90).
+- The 569–575:0 run (T510092–T510095) moves from −5.8..−1.7 s to −2.9..+2.0 s.
+- The 579:1–581 run (T510097) moves from +0.3..+6.5 s to −1.5..+3.9 s.
+- **Still open: the 561:2–566 block.** It stays at −6.7..+7.5 s. It is joined on continuous tape
+  (gaps under 1 h). The 562 → 563 join on T510088/T510089 needs a 12.5 s step: either the 563
+  journal map is off (held-out error 2.3 s, five unapplied residual steps) or both recorders
+  stopped there. The 564 → 565 join needs −4.2 s.
+
 ## Channel maps (stage 10, `channelid-shared-v2`)
 
 - **Parity evidence.** A measured row fixes the parity of the true track: −6 nats for the wrong
@@ -120,6 +155,7 @@ The IA segment offsets `b_k` are now fitted with prior mean **−0.42 s**
 
 | Stage | Change |
 | ----- | ------ |
+| 07a `fit` (`sg_levels.py`) | A separate GET level for each anchor island without time code, beside a gap of more than 1 h; the step is ramped across the gap. The joint solve is conditioned (GET minus a unit-rate line). See [Level gaps](#level-gaps-sg_levelspy-level-gaps-v1). |
 | 07a `sg_stage` v3 | Staggers are re-referenced to the earlier row (`rereference_to_real_time`). The curve and every plan define GET for that row. NARA segments are corrected by the voice table. A NARA tape of unknown voice row gets a free offset. IA offsets get prior mean −0.42 s. Time-coded tapes add their time code to the joint fit as fixed positions. `--scratch` stages each tape's WAVs for `refine`/`quindar`. |
 | 07i `irig-timing-v2` | The time code is on the real-time row, so the plan places GET from it with no offset. The SG offset against it is reported as `timecode_minus_sg_events` (the IA offset). Decodes are unchanged (v1). |
 | 07b | `head_rows.row_plan` gives each channel's row per 30-minute interval, frozen as `retimed/<tape>/head_rows.json`. It applies the shift through the tape map (`quindar_tape.target_map(row_shift=...)`). The timed transcript chooses each word's GET segment from its real-time position. `--no-row-shift` is for comparisons only. |
@@ -181,6 +217,11 @@ work, and is resumable. Proprius commands run in PowerShell from `F:\_repos\Apol
    ```powershell
    uv run python scripts/run.py 07a_sg_retime.py run --all-tapes --scratch F:/Apollo_15_30-Track/work/sg_audio --workers 8
    ```
+   If steps 2–4 are already complete and only the fit code changed, refit alone (about a minute;
+   no audio is read):
+   ```powershell
+   uv run python scripts/run.py 07a_sg_retime.py fit --all-tapes
+   ```
 5. **Review the fit.** The script finds the newest complete fit edition itself:
    ```powershell
    uv run python research/event_check/fit_review.py
@@ -189,6 +230,9 @@ work, and is resumable. Proprius commands run in PowerShell from `F:\_repos\Apol
    - Otherwise it lists each decision:
      - NARA bins off by a voice-row step, with the NARA tape and a candidate interval for
        `catalog/nara_voice/nara_voice_offsets.json`. Then rerun from step 2.
+       - **Not a row switch:** a bin where only scattered text matches move (MAD near 1 s) and the
+         audio anchors stay near 0. Examples are 217:00 (644-AAA) and 251:00 (650-AAA). A real
+         switch moves both by about 0.68 s, with a tight spread.
      - A 655-AAA free offset that is neither 0 nor 0.683 s.
      - IA offsets more than 0.35 s from −0.42 s.
 6. **Refit the time-code plans** (v2, hybrid with the v3 anchors):

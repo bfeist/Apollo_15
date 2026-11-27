@@ -10,7 +10,8 @@ Subcommands
   refine     GCC-PHAT audio refinement at the text-located windows (precision step).
   quindar    Quindar bursts: NARA generator calibration, matches (a check) and rate witnesses.
   fit        One joint fit over the selected tapes; one shared-layout plan per tape, a proposed IA
-             segment revision and coverage as the union of supported tape time.
+             segment revision and coverage as the union of supported tape time. Each evidence
+             island (anchors more than 1 h apart) takes its own GET level (sg_levels.py).
   run        reference, anchors, [refine], [quindar] and fit in order.
 
 Inputs: the 06 transcripts of the 05b channels and the retimed space-to-ground set (IA reels on GET
@@ -40,6 +41,7 @@ from pathlib import Path
 
 import sg_stage
 import sg_inputs
+import sg_levels
 from sg_inputs import RETIMING_ROOT, STORES, store_state, tape_channels, tape_names, transcript_state
 
 
@@ -161,7 +163,8 @@ def quindar(args, found=None):
 
 def fit(args, found=None):
     found = found or current_anchors(args)
-    folder = sg_stage.build_fit(list(found), args.root, allow_provisional=args.allow_provisional, anchors_by_tape=found)
+    # A separate GET level per evidence island (sg_levels.py; docs/23, Level gaps)
+    folder = sg_levels.build_fit(list(found), args.root, allow_provisional=args.allow_provisional, anchors_by_tape=found)
     print(f'Fit edition: {folder}')
 
 
