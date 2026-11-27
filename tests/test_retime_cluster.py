@@ -197,6 +197,30 @@ class StreamTests(unittest.TestCase):
                 self.assertTrue((destination / 'retimed.wav').is_file())
 
 
+    def test_without_publish_under_lock_a_publish_runs_while_the_disk_is_held(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            jobs = channels(root, 'T1', 2)
+            other = staged_io.DiskLock(root)  # Proprius, holding the disk while CH01 publishes
+            published = threading.Event()
+
+            def log(message):
+                if 'CH01: published' in message:
+                    published.set()
+
+            def render(args):
+                if 'CH02' in args[0]:
+                    with other:
+                        self.assertTrue(published.wait(10))
+                return fake_render(args)
+            done = {}
+            batches = iter([('T1', jobs, 'p', root / 's' / 'T1')])
+            staged_io.run_stream(lambda: next(batches, None), 1, root, lambda k, f: done.setdefault(k, f),
+                                 log=log, render=render, pool_factory=ThreadPoolExecutor, publish_under_lock=False)
+            self.assertEqual(done, {'T1': []})
+            for _, destination, _ in jobs:
+                self.assertTrue((destination / 'retimed.wav').is_file())
+
 class DiskLockTests(unittest.TestCase):
     def test_a_releasing_holder_yields_to_a_waiting_host(self):
         with tempfile.TemporaryDirectory() as tmp:

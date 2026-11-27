@@ -203,7 +203,7 @@ Result of the first full fit (38 tapes):
 | 07a `sg_stage` v3 | Staggers are re-referenced to the earlier row (`rereference_to_real_time`). The curve and every plan define GET for that row. NARA segments are corrected by the voice table. A NARA tape of unknown voice row gets a free offset. IA offsets get prior mean −0.42 s. Time-coded tapes add their time code to the joint fit as fixed positions. `--scratch` stages each tape's WAVs for `refine`/`quindar`. |
 | 07i `irig-timing-v2` | The time code is on the real-time row, so the plan places GET from it with no offset. The SG offset against it is reported as `timecode_minus_sg_events` (the IA offset). Decodes are unchanged (v1). |
 | 07b | `head_rows.row_plan` gives each channel's row per 30-minute interval, frozen as `retimed/<tape>/head_rows.json`. It applies the shift through the tape map (`quindar_tape.target_map(row_shift=...)`). The timed transcript chooses each word's GET segment from its real-time position. `--no-row-shift` is for comparisons only. |
-| 07b `--scratch` | `staged_io.run_staged` (one tape) and `run_stream` (the queue: tapes share one render pool): only one disk thread per host touches the archive disk, one verified sequential copy at a time, under `DiskLock`, a lock file on D: shared by Proprius and Genus. Workers render from local copies. |
+| 07b `--scratch` | `staged_io.run_staged` (one tape) and `run_stream` (the queue: tapes share one render pool): disk threads do the archive copies, one verified sequential copy at a time per thread; reads and Proprius publishes hold `DiskLock`, a lock file on D: shared by Proprius and Genus. Workers render from local copies. |
 
 How the row plan decides each channel and interval, in order:
 
@@ -306,9 +306,14 @@ work, and is resumable. Proprius commands run in PowerShell from `F:\_repos\Apol
      is busy, and it starts rendering as soon as its copy verifies. A rendered channel is queued
      for publishing (phase `rendered`), and its worker takes the next staged channel at once. The
      disk thread stages in while a worker is idle and otherwise publishes the oldest rendered
-     channel. `DiskLock` is fair between hosts: a waiting host leaves a `.wait` file, and the
-     holder lets it take the next copy. The hosts therefore alternate channel by channel instead
-     of one host draining its whole queue. The log gives each copy's time and MB/s.
+     channel. `DiskLock` covers every read of D: (both hosts' stage-ins) and Proprius's local
+     publishes, and it is fair between hosts: a waiting host leaves a `.wait` file, and the holder
+     lets it take the next copy. Genus publishes outside the lock, one at a time on a second
+     disk thread. Its writes reach D: over SMB at network speed (about 30-40 MB/s), and the
+     Proprius write cache flushes them in large blocks. Holding the disk for them would idle D:
+     and stall Proprius, and Genus stage-ins would queue behind them. If Proprius copies slow
+     down noticeably while a Genus publish runs, that assumption has failed. The log gives each
+     copy's time and MB/s.
    - Scratch defaults: `F:/Apollo_15_30-Track/work/retime` on Proprius,
      `/home/bfeist/.local/share/apollo15-retime` on Genus. Every archive copy holds `DiskLock`.
    - `--hosts local` renders on Proprius only. `--tapes A,B,...` limits the set.

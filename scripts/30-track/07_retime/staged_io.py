@@ -47,6 +47,7 @@ import signal
 import socket
 import threading
 import time
+from contextlib import nullcontext
 from concurrent.futures import FIRST_COMPLETED, Future, ProcessPoolExecutor, wait
 from concurrent.futures.process import BrokenProcessPool
 from pathlib import Path
@@ -319,7 +320,7 @@ def _rate(size, seconds):
 
 
 def run_stream(next_batch, workers: int, lock_root: Path, on_done, log=print, render=_render,
-               pool_factory=render_pool, status=None, should_stop=None):
+               pool_factory=render_pool, status=None, should_stop=None, publish_under_lock=True):
     """Render batches from ``next_batch()`` -> (key, jobs, plan, scratch) or None through one pool.
 
     ``jobs`` is [(source, destination, knots)]; the batch stages under its own ``scratch`` folder
@@ -330,18 +331,24 @@ def run_stream(next_batch, workers: int, lock_root: Path, on_done, log=print, re
     channel's phase for the dashboard (retime_dashboard.py). ``should_stop()`` is polled every
     ``POLL_S``; when it returns true the run stops as on Ctrl-C (``07b_retime.py --stop``).
 
-    This thread only schedules: archive copies run on one disk thread, renders in the pool. The
+    This thread only schedules: archive copies run on disk threads, renders in the pool. With
+    ``publish_under_lock`` (the host that owns the archive disk: its copies are local and fast), one
     disk thread gets one channel at a time: a stage-in while a worker is idle, otherwise the oldest
-    rendered channel's publish, otherwise one spare stage-in. A staged channel is submitted at once.
+    rendered channel's publish, otherwise one spare stage-in. Without it (Genus: it writes over SMB,
+    throttled by the network, and the archive host's write cache flushes the stream to the disk in
+    large blocks), publishes run one at a time on their own thread outside ``DiskLock``, so its
+    stage-ins (reads, still under the lock) never wait behind a slow publish. A staged channel is
+    submitted at once.
     """
     status = status or _NoStatus()
     cancel = threading.Event()
     lock = DiskLock(Path(lock_root), cancel=cancel)
+    publish_lock = lock if publish_under_lock else nullcontext()
     workers = max(1, workers)
     pending, staged, running, rendered = [], [], {}, []
     remaining, failures, scratches = {}, {}, {}
     exhausted = False
-    io = None  # (future, kind, item): the copy on the disk thread
+    io = {}  # kind ('stage' | 'publish') -> (future, item): the copies on the disk threads
 
     def fail(key, name, text):
         failures[key].append(f'{name}: {text}')
@@ -390,7 +397,7 @@ def run_stream(next_batch, workers: int, lock_root: Path, on_done, log=print, re
         if partial.exists():
             shutil.rmtree(partial)
         files = [f for f in sorted(out.iterdir()) if f.is_file()]
-        with lock:
+        with publish_lock:
             began = time.monotonic()
             status.update(key, name, 'publishing')
             for f in files:
@@ -496,13 +503,14 @@ def run_stream(next_batch, workers: int, lock_root: Path, on_done, log=print, re
         return pool
 
     disk = _DiskThread()
+    disks = dict(stage=disk, publish=disk if publish_under_lock else _DiskThread())
     pool = pool_factory(max_workers=workers)
     try:
         while True:
             check_stop()
             while staged and len(running) < workers:
                 pool = submit(pool, staged.pop(0))
-            staging = 1 if io and io[1] == 'stage' else 0
+            staging = 1 if 'stage' in io else 0
             # claim the next batch once this one has nothing left to stage and a slot would be free
             while not pending and not exhausted and len(running) + len(staged) + staging < workers + 1:
                 batch = next_batch()
@@ -510,30 +518,40 @@ def run_stream(next_batch, workers: int, lock_root: Path, on_done, log=print, re
                     exhausted = True
                 else:
                     add_batch(*batch)
-            if io is None:
-                idle = workers - len(running) - len(staged)
-                if pending and (idle > 0 or (not rendered and not staged)):
+            idle = workers - len(running) - len(staged)
+            if publish_under_lock:  # one disk thread: one copy at a time
+                if not io:
+                    if pending and (idle > 0 or (not rendered and not staged)):
+                        item = pending.pop(0)
+                        io['stage'] = (disk.submit(lambda item=item: stage_in(item)), item)
+                    elif rendered:
+                        item = rendered.pop(0)
+                        io['publish'] = (disk.submit(lambda item=item: publish(item)), item)
+            else:  # a stage-in lane and a publish lane
+                if 'stage' not in io and pending and (idle > 0 or not staged):
                     item = pending.pop(0)
-                    io = (disk.submit(lambda item=item: stage_in(item)), 'stage', item)
-                elif rendered:
+                    io['stage'] = (disks['stage'].submit(lambda item=item: stage_in(item)), item)
+                if 'publish' not in io and rendered:
                     item = rendered.pop(0)
-                    io = (disk.submit(lambda item=item: publish(item)), 'publish', item)
-            if not running and io is None and not staged:
+                    io['publish'] = (disks['publish'].submit(lambda item=item: publish(item)), item)
+            if not running and not io and not staged:
                 if exhausted and not pending and not rendered:
                     break
                 continue
-            done, _ = wait(list(running) + ([io[0]] if io else []), timeout=POLL_S, return_when=FIRST_COMPLETED)
-            if io and io[0] in done:
-                fut, kind, item = io
-                io = None
-                (staged_done if kind == 'stage' else published_done)(fut, item)
+            done, _ = wait(list(running) + [f for f, _ in io.values()], timeout=POLL_S, return_when=FIRST_COMPLETED)
+            for kind, (fut, item) in list(io.items()):
+                if fut in done:
+                    del io[kind]
+                    (staged_done if kind == 'stage' else published_done)(fut, item)
             for fut in done:
                 if fut in running:
                     pool = rendered_done(fut, pool)
     except BaseException:  # Ctrl-C or a signal: stop now, do not wait for the running channels
         cancel.set()
         kill_pool(pool)
-        disk.close(timeout=30)  # the copy in progress stops at its next block and releases the lock
+        for d in set(disks.values()):
+            d.close(timeout=30)  # the copy in progress stops at its next block and releases the lock
         raise
-    disk.close()
+    for d in set(disks.values()):
+        d.close()
     pool.shutdown(wait=True, cancel_futures=True)

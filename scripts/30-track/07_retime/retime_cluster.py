@@ -14,8 +14,11 @@ worker over SSH and runs a worker itself. Both take tapes from one queue on the 
 Each worker renders its tape with its own local scratch (``--scratch``; defaults: F: on Windows,
 the SSD on Genus). A worker's tapes share one render pool (``staged_io.run_stream``): it claims
 the next tape once the current one has no channel left to stage, so workers do not drain at each
-tape boundary; a host briefly holds two claims. Every archive copy holds ``staged_io.DiskLock``,
-so the archive disk sees one sequential stream across both hosts.
+tape boundary; a host briefly holds two claims. Every read of the archive disk and every
+Proprius publish holds ``staged_io.DiskLock``, so those copies form one sequential stream across
+both hosts. Genus publishes outside the lock: its writes arrive over SMB at network speed and the
+Proprius write cache flushes them to the disk in large blocks, so holding the disk for them would
+idle it and stall Proprius.
 
 Ctrl-C on the coordinator, or ``07b_retime.py --stop`` from any terminal on either host (it writes
 ``.queue/stop``, which both hosts check every 2 s), stops both hosts at once: this host's render workers are killed, the SSH
@@ -288,6 +291,8 @@ def worker(args, prepare_tape, label, lock_root, log=print, **stream):
             return tape, jobs, plan, Path(args.scratch) / tape
         return None
 
+    # the archive disk is local to Proprius; Genus publishes over SMB outside the shared lock
+    stream.setdefault('publish_under_lock', os.name == 'nt')
     state = 'stopped'
     try:
         staged_io.run_stream(next_batch, args.workers, lock_root, finish, log=tag, status=status,
