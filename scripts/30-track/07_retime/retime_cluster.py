@@ -12,8 +12,10 @@ worker over SSH and runs a worker itself. Both take tapes from one queue on the 
   reason. The coordinator clears these at start, so a new run retries them.
 
 Each worker renders its tape with its own local scratch (``--scratch``; defaults: F: on Windows,
-the SSD on Genus). Every archive copy holds ``staged_io.DiskLock``, so the archive disk sees one
-sequential stream across both hosts. Interrupting the coordinator stops Genus too (``ssh -tt``).
+the SSD on Genus). A worker's tapes share one render pool (``staged_io.run_stream``): it claims
+the next tape once the current one has no channel left to stage, so workers do not drain at each
+tape boundary; a host briefly holds two claims. Every archive copy holds ``staged_io.DiskLock``,
+so the archive disk sees one sequential stream across both hosts. Interrupting the coordinator stops Genus too (``ssh -tt``).
 A rerun resumes: completed channels are skipped from their records.
 """
 from __future__ import annotations
@@ -140,30 +142,50 @@ def tapes_of(args):
     return sorted(p.name for p in root.glob('A15_T*') if any(p.glob('CH*/deflutter.wav')))
 
 
-def worker(args, render_tape, label, log=print):
-    """Render queued tapes until none is open. Returns the number of tapes this worker rendered."""
+def worker(args, prepare_tape, label, lock_root, log=print, **stream):
+    """Render queued tapes until none is open. Returns the number of tapes this worker finished.
+
+    ``prepare_tape(tape, args, log)`` -> (plan, jobs). The tapes share one render pool
+    (``staged_io.run_stream``): the next tape is claimed as soon as the current one has no channel
+    left to stage, so its channels start while the last channels of the previous tape render.
+    A tape whose plan or jobs cannot be prepared is marked failed and the next one is claimed."""
+    import staged_io
     queue = TapeQueue(args.retimed_root)
     args.scratch = args.scratch or LOCAL_SCRATCH
-    done = 0
-    log(f'[{label}] worker started: {args.workers} render workers, scratch {args.scratch}, queue {queue.root}')
-    for tape in tapes_of(args):
-        if not queue.claim(tape):
-            continue
-        stop = threading.Event()
-        beat = threading.Thread(target=queue.heartbeat, args=(tape, stop), daemon=True)
-        beat.start()
-        began = time.monotonic()
-        log(f'[{label}] {tape}: claimed')
-        try:
-            failures = render_tape(tape, args, log=lambda m: log(f'[{label}] {m}'))
-        except Exception as error:  # noqa: BLE001 - a blocked tape must not stop the queue
-            failures = [str(error)]
-        stop.set()
+    tapes = iter(tapes_of(args))
+    beats, began, finished = {}, {}, []
+    tag = lambda m: log(f'[{label}] {m}')  # noqa: E731
+    tag(f'worker started: {args.workers} render workers, scratch {args.scratch}, queue {queue.root}')
+
+    def finish(tape, failures):
+        beats.pop(tape).set()
         queue.finish(tape, failures)
-        done += 1
-        log(f'[{label}] {tape}: {"FAILED " + "; ".join(failures) if failures else "done"} '
-            f'({(time.monotonic() - began) / 60:.0f} min)')
-    return done
+        finished.append(tape)
+        tag(f'{tape}: {"FAILED " + "; ".join(failures) if failures else "done"} '
+            f'({(time.monotonic() - began.pop(tape)) / 60:.0f} min)')
+
+    def next_batch():
+        for tape in tapes:
+            if not queue.claim(tape):
+                continue
+            stop = threading.Event()
+            threading.Thread(target=queue.heartbeat, args=(tape, stop), daemon=True).start()
+            beats[tape], began[tape] = stop, time.monotonic()
+            tag(f'{tape}: claimed')
+            try:
+                plan, jobs = prepare_tape(tape, args, log=tag)
+            except Exception as error:  # noqa: BLE001 - a blocked tape must not stop the queue
+                finish(tape, [str(error)])
+                continue
+            return tape, jobs, plan, Path(args.scratch) / tape
+        return None
+
+    try:
+        staged_io.run_stream(next_batch, args.workers, lock_root, finish, log=tag, **stream)
+    finally:
+        for stop in beats.values():  # claims left by an interruption go stale and are taken over
+            stop.set()
+    return len(finished)
 
 
 def genus_command(args):
@@ -206,7 +228,7 @@ def start_genus(args, log):
     return proc, t
 
 
-def run(args, render_tape):
+def run(args, prepare_tape, lock_root):
     """Coordinator (or, with --queue-worker, one worker). Returns a process exit code."""
     lock = threading.Lock()
 
@@ -215,7 +237,7 @@ def run(args, render_tape):
             print(message, flush=True)
 
     if args.queue_worker:
-        worker(args, render_tape, 'genus' if os.name != 'nt' else 'proprius', log)
+        worker(args, prepare_tape, 'genus' if os.name != 'nt' else 'proprius', lock_root, log)
         return 0
     queue = TapeQueue(args.retimed_root)
     queue.reset_failed()
@@ -228,7 +250,7 @@ def run(args, render_tape):
     genus = start_genus(args, log) if use_genus else None
     try:
         if args.hosts != 'genus':
-            worker(args, render_tape, socket.gethostname().lower(), log)
+            worker(args, prepare_tape, socket.gethostname().lower(), lock_root, log)
         if genus:
             genus[0].wait()
             genus[1].join(timeout=10)

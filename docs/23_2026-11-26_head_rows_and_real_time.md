@@ -123,7 +123,7 @@ The IA segment offsets `b_k` are now fitted with prior mean **−0.42 s**
 | 07a `sg_stage` v3 | Staggers are re-referenced to the earlier row (`rereference_to_real_time`). The curve and every plan define GET for that row. NARA segments are corrected by the voice table. A NARA tape of unknown voice row gets a free offset. IA offsets get prior mean −0.42 s. Time-coded tapes add their time code to the joint fit as fixed positions. `--scratch` stages each tape's WAVs for `refine`/`quindar`. |
 | 07i `irig-timing-v2` | The time code is on the real-time row, so the plan places GET from it with no offset. The SG offset against it is reported as `timecode_minus_sg_events` (the IA offset). Decodes are unchanged (v1). |
 | 07b | `head_rows.row_plan` gives each channel's row per 30-minute interval, frozen as `retimed/<tape>/head_rows.json`. It applies the shift through the tape map (`quindar_tape.target_map(row_shift=...)`). The timed transcript chooses each word's GET segment from its real-time position. `--no-row-shift` is for comparisons only. |
-| 07b `--scratch` | `staged_io.run_staged`: only the coordinator touches the archive disk, one verified sequential copy at a time, under `DiskLock`, a lock file on D: shared by Proprius and Genus. Workers render from local copies. |
+| 07b `--scratch` | `staged_io.run_staged` (one tape) and `run_stream` (the queue: tapes share one render pool): only the coordinator touches the archive disk, one verified sequential copy at a time, under `DiskLock`, a lock file on D: shared by Proprius and Genus. Workers render from local copies. |
 
 How the row plan decides each channel and interval, in order:
 
@@ -208,6 +208,11 @@ work, and is resumable. Proprius commands run in PowerShell from `F:\_repos\Apol
      runs one itself. Both take whole tapes from a queue on the archive disk
      (`retimed/.queue/`, `retime_cluster.py`), so the faster host renders more tapes. Genus lines
      are printed with a `[genus]` prefix.
+   - Each host keeps its render workers busy across tape boundaries. Once the current tape has no
+     channel left to stage, the host claims the next tape and stages its channels into the workers
+     that free up (`staged_io.run_stream`). A tape is marked done when its own channels are
+     published. Scratch still holds at most `workers + 1` inputs. A worker process that dies
+     fails only its channel; the host starts a new pool and continues.
    - Scratch defaults: `F:/Apollo_15_30-Track/work/retime` on Proprius,
      `/home/bfeist/.local/share/apollo15-retime` on Genus. Every archive copy holds `DiskLock`.
    - `--hosts local` renders on Proprius only. `--tapes A,B,...` limits the set.

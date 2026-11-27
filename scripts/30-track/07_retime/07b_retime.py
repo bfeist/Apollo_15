@@ -109,8 +109,8 @@ def choose_plan(tape, args, log=print):
     return plan
 
 
-def render_tape(tape, args, log=print):
-    """Every channel of one tape with its plan and head-row shift. Returns failure texts."""
+def prepare_tape(tape, args, log=print):
+    """(plan, jobs) of one tape: its plan and every channel [(source, destination, knots)]."""
     plan = choose_plan(tape, args, log)
     saved = load_shared_plan(plan)
     if saved['tape'] != tape:
@@ -122,6 +122,12 @@ def render_tape(tape, args, log=print):
     jobs = [(source, tape_directory(tape, args.retimed_root)/source.parent.name,
              None if rows is None else rows['channels'][str(int(source.parent.name[2:]))]['knots'])
             for source in sources]
+    return plan, jobs
+
+
+def render_tape(tape, args, log=print):
+    """Every channel of one tape with its plan and head-row shift. Returns failure texts."""
+    plan, jobs = prepare_tape(tape, args, log)
     if args.scratch:
         return staged_io.run_staged(jobs, plan, args.scratch / tape, args.workers, lock_root=TAPE_DATA, log=log)
     failures = []
@@ -176,7 +182,7 @@ def main():
         if args.all_tapes and args.all_channels:
             if args.plan_only or args.tape or args.channel or args.input or args.output or plan:
                 p.error('--all-tapes --all-channels renders every tape; omit --tape/--channel/--input/--plan-only')
-            raise SystemExit(retime_cluster.run(args, render_tape))
+            raise SystemExit(retime_cluster.run(args, prepare_tape, TAPE_DATA))
         if args.all_tapes:
             if not args.plan_only or args.tape or args.channel or args.input or args.all_channels or plan:
                 p.error('--all-tapes requires --plan-only and no per-tape overrides')
