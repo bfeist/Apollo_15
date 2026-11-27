@@ -109,7 +109,7 @@ def main():
     out = dict(fits=dict(first=FIRST, levels=LEVELS, journal=JOURNAL), bin_s=BIN_S, journal_offset_s=b,
                journal_offset_se_s=offsets(JOURNAL)['journal:TEC'][1], tapes=tapes, journal_residuals=residuals,
                change=change, ia_offsets=ia)
-    (HERE / 'retime_evidence.json').write_text(json.dumps(out) + '\n', encoding='utf-8')
+    (HERE / 'retime_evidence.json').write_bytes((json.dumps(out) + '\n').encode('utf-8'))  # LF on every host
     n = {k: len(v) for k, v in residuals.items()}
     print(f'wrote {HERE / "retime_evidence.json"}: {len(tapes)} tapes, journal residuals {n}, offset {b:+.3f} s')
 
