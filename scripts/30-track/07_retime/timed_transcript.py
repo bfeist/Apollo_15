@@ -13,6 +13,9 @@ result is written beside ``retimed.wav``:
   ``source_start_s``/``source_end_s`` keep the 05b-local times.
 * ``timed_transcript.json``: what was read and its checksums (transcript identity, chunk
   state, timing map, retime record and plan), the column meanings and the TSV checksum.
+* ``transcript_times.tsv``/``.json``: the mission transcripts' GETs checked against the words
+  heard on this channel (transcript_times.py; docs/24). Written after the timed transcript and
+  bound to it; skipped, not failed, where the scraped mission transcripts are not available.
 
 A completed pair is reused when its inputs are unchanged and is never rewritten. Downstream
 packaging (web playback data) reads these files; this stage defines no web format.
@@ -95,6 +98,7 @@ def write_timed_transcript(destination, source, progress=print, store=STORES['ta
         if old.get('inputs') != inputs or not tsv.is_file() or sha256_file(tsv) != old.get('tsv_sha256'):
             raise ValueError(f'{destination}: the timed transcript inputs changed; write 07b to a new retimed root')
         progress(f'{destination}: reusing verified timed transcript')
+        check_times(destination, progress)
         return old
 
     rate = float(source_record['sample_rate'])
@@ -150,4 +154,16 @@ def write_timed_transcript(destination, source, progress=print, store=STORES['ta
     pending.write_text(json.dumps(out, indent=1, allow_nan=False)+'\n', encoding='utf-8')
     pending.replace(meta)
     progress(f"{destination}: timed transcript, {counts['segments']:,} segments, {counts['words']:,} words")
+    check_times(destination, progress)
     return out
+
+
+def check_times(destination, progress=print):
+    """The transcript-time check of this channel (transcript_times.py). It never fails the render:
+    without the scraped mission transcripts, or on any error, it is reported and skipped."""
+    try:
+        from transcript_times import check_channel
+        return check_channel(destination, progress)
+    except Exception as error:  # noqa: BLE001 - a report, not a render product
+        progress(f'{destination}: transcript times not checked ({type(error).__name__}: {error})')
+        return None

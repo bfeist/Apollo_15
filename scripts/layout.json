@@ -148,6 +148,7 @@
   "07c_historical_hum.py": "30-track/07_retime/07c_historical_hum.py",
   "08_normalize.py": "30-track/08_normalize/08_normalize.py",
   "timed_transcript.py": "30-track/07_retime/timed_transcript.py",
+  "transcript_times.py": "30-track/07_retime/transcript_times.py",
   "07i_irig_retime.py": "30-track/07_retime/07i_irig_retime.py",
   "irig_timing.py": "30-track/07_retime/irig_timing.py",
   "head_rows.py": "30-track/07_retime/head_rows.py",

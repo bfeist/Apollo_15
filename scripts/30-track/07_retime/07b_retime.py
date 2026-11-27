@@ -9,7 +9,9 @@ stagger through the same tape map (head_rows.py, ``head_rows.json`` per tape; do
 copy at a time (staged_io.py). Outputs, per channel under the retimed root (D:/Apollo_15_30-Track/retimed):
 ``retimed.wav`` (32-bit float, the 05b sample rate, unity gain; stage 08 sets the delivery gain) with ``retime.json``,
 ``timing_map.npz`` and ``curve.json``; and ``timed_transcript.tsv``/``.json``, the 06 transcript
-on the same output clock (timed_transcript.py).
+on the same output clock (timed_transcript.py), with ``transcript_times.tsv``/``.json``, the mission
+transcripts' GETs checked against the words heard (transcript_times.py; one combined edition per
+finished tape under stage_evidence/retiming/transcript_times/<tape>/).
 """
 
 # Resolve shared modules from the stage folders.
@@ -33,6 +35,7 @@ from timed_transcript import write_timed_transcript
 import head_rows
 import retime_cluster
 import staged_io
+import transcript_times
 
 DEFAULT_DEFLUTTERED_ROOT = DEFLUTTERED_ROOT
 DEFAULT_RETIMED_ROOT = TAPE_DATA / 'retimed'
@@ -129,15 +132,18 @@ def render_tape(tape, args, log=print):
     """Every channel of one tape with its plan and head-row shift. Returns failure texts."""
     plan, jobs = prepare_tape(tape, args, log)
     if args.scratch:
-        return staged_io.run_staged(jobs, plan, args.scratch / tape, args.workers, lock_root=TAPE_DATA, log=log)
-    failures = []
-    for source, destination, knots in jobs:
-        try:
-            record = retime(source, destination, shared_plan=plan, row_shift=knots)
-            write_timed_transcript(destination, Path(record['source']['path']))
-        except (ValueError, OSError, RuntimeError, KeyError, TypeError) as error:
-            failures.append(f'{source.parent.name}: {error}')
-            log(f'BLOCKED {failures[-1]}')
+        failures = staged_io.run_staged(jobs, plan, args.scratch / tape, args.workers, lock_root=TAPE_DATA, log=log)
+    else:
+        failures = []
+        for source, destination, knots in jobs:
+            try:
+                record = retime(source, destination, shared_plan=plan, row_shift=knots)
+                write_timed_transcript(destination, Path(record['source']['path']))
+            except (ValueError, OSError, RuntimeError, KeyError, TypeError) as error:
+                failures.append(f'{source.parent.name}: {error}')
+                log(f'BLOCKED {failures[-1]}')
+    if not failures:
+        transcript_times.tape_check_safe(tape, args.retimed_root, progress=log)
     return failures
 
 

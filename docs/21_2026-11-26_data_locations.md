@@ -18,7 +18,7 @@ and audio formats, see the [pipeline overview](00_pipeline_overview.md).
 | 05a plan, 05b render | `D:/…/deflutter_maps`, `D:/…/defluttered_shared`                                           | `D:/…/stage_evidence/flutter/carrier_tones`, `D:/…/stage_evidence/archive/deflutter_*`                                                                                                |
 | 06 transcribe        | `D:/…/timing_transcripts`                                                                  | `D:/…/stage_evidence/timing_transcription` (sessions, hash cache)                                                                                                                     |
 | 07a SG retime fit    | `D:/…/stage_evidence/retiming` (`sg_reference`, `<tape>/sg_anchors`, `sg_quindar`, `sg_fit`) | repo `catalog/sg_drift`, repo `research/readme_figures/inventory.json` (both hash-bound in `sg_inputs.py`) and the SG data below                                                    |
-| 07b retime           | `D:/…/retimed/<tape>/CHnn/` (`retimed.wav`, `timed_transcript.tsv`)                        | the 07a plan                                                                                                                                                                          |
+| 07b retime           | `D:/…/retimed/<tape>/CHnn/` (`retimed.wav`, `timed_transcript.tsv`, `transcript_times.tsv`) | the 07a plan                                                                                                                                                                          |
 | 08 normalize         | `D:/…/normalized/<tape>/CHnn/normalized.wav`                                               | -                                                                                                                                                                                     |
 | 09 IRIG              | `D:/…/irig_search`, `D:/…/carrier_survey_v2` (defaults; not run in this archive)           | -                                                                                                                                                                                     |
 
@@ -45,6 +45,7 @@ resumable render and crosstalk scratch.
 - **Channel ID** (`scripts/30-track/10_channelid/`): `D:/…/channel_id` (`evidence/`, `glm/`, `maps/`, `labels/`,
   `shared/` final maps, `irig_nara/` time-code decodes of the originals, `consistency/`).
 - **07i time-code retime**: `D:/…/stage_evidence/retiming/irig/<tape>/` (`decode/`, `fit-<digest>/`).
+- **Transcript times** (07b, [docs/24](24_2026-11-27_transcript_times.md)): `D:/…/stage_evidence/retiming/transcript_times/<tape>/` (`preview-<digest>/`, `retimed-<digest>/`).
 
 ## Research, archive and the 2026-11-26 cleanup
 

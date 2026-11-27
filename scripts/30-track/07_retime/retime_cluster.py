@@ -266,4 +266,7 @@ def run(args, prepare_tape, lock_root):
         + (f'; not finished: {", ".join(left)}' if left else ''))
     for t, f in failed.items():
         log(f'  {t}: ' + '; '.join(f))
+    import transcript_times
+    for t in done:  # needs the scraped mission transcripts, which are on this host (.local is not in Git)
+        transcript_times.tape_check_safe(t, args.retimed_root, progress=log)
     return 0 if not failed and not left else 2
