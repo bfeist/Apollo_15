@@ -21,13 +21,20 @@ and settings is skipped without reading its audio.
 no channel left to stage it asks for the next tape, so its channels fill the workers that the
 last channels of the previous tape leave idle. Each tape is reported finished (``on_done``) as
 soon as its own channels are published or failed. ``run_staged`` is the one-batch case.
+
+Ctrl-C (or SIGTERM/SIGHUP on Linux, see ``stop_on_signals``) stops the run at once: the render
+workers ignore SIGINT themselves, the coordinator polls instead of blocking (a blocking wait cannot
+be interrupted on Windows), and on interruption it kills the render workers instead of waiting for
+their channels. Nothing half-written is published; a rerun clears the scratch and resumes.
 """
 from __future__ import annotations
 
 import hashlib
 import json
 import os
+import re
 import shutil
+import signal
 import socket
 import time
 from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
@@ -36,6 +43,39 @@ from pathlib import Path
 
 LOCK_STALE_S = 900.0
 CHUNK = 16 * 1024 * 1024
+POLL_S = 1.0  # the coordinator's wait for renders; short so Ctrl-C is seen at once on Windows
+
+
+def _ignore_sigint():
+    """Render workers leave Ctrl-C to the coordinator (it would otherwise kill them one by one and
+    the broken pool would be renewed, so the run would carry on)."""
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+
+def render_pool(max_workers):
+    return ProcessPoolExecutor(max_workers=max_workers, initializer=_ignore_sigint)
+
+
+def stop_on_signals():
+    """On Linux, SIGTERM and SIGHUP (the SSH session of a Genus worker closing) stop like Ctrl-C."""
+    def interrupt(signum, frame):
+        raise KeyboardInterrupt(f'signal {signum}')
+    for name in ('SIGTERM', 'SIGHUP'):
+        if hasattr(signal, name):
+            signal.signal(getattr(signal, name), interrupt)
+
+
+def kill_pool(pool):
+    """Stop a pool now: cancel queued work and terminate its worker processes."""
+    processes = list((getattr(pool, '_processes', None) or {}).values())
+    pool.shutdown(wait=False, cancel_futures=True)
+    for p in processes:
+        try:
+            p.terminate()
+        except Exception:  # noqa: BLE001 - already gone
+            pass
+    for p in processes:
+        p.join(timeout=10)
 
 
 class DiskLock:
@@ -108,14 +148,55 @@ def complete_matching(destination: Path, source: Path):
         and (destination / 'timed_transcript.json').is_file()
 
 
+def progress_path(out):
+    """Live progress of one rendering channel: ``<scratch>/progress/CHnn.json`` (local, small)."""
+    out = Path(out)
+    return out.parent.parent / 'progress' / (out.name + '.json')
+
+
+def note_progress(path, text):
+    """Record the latest progress line of a render (``Retime 42.0% ...`` gives the percentage)."""
+    data = dict(text=str(text)[:200], time=time.time())
+    m = re.match(r'Retime ([\d.]+)%', str(text))
+    if m:
+        data['percent'] = float(m.group(1))
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_name(path.name + '.tmp')
+        tmp.write_text(json.dumps(data), encoding='utf-8')
+        os.replace(tmp, path)
+    except OSError:
+        pass  # progress is a display aid only
+
+
+def read_progress(path):
+    try:
+        return json.loads(Path(path).read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return {}
+
+
 def _render(args):
     source, staged, out, plan, knots = args
     from quindar_retime import retime
     from timed_transcript import write_timed_transcript
-    log = []
-    record = retime(source, out, shared_plan=plan, row_shift=knots, read_from=staged, progress=log.append)
-    write_timed_transcript(out, Path(record['source']['path']), progress=log.append)
+    log, live = [], progress_path(out)
+
+    def progress(message):
+        log.append(message)
+        note_progress(live, message)
+    record = retime(source, out, shared_plan=plan, row_shift=knots, read_from=staged, progress=progress)
+    note_progress(live, 'Timed transcript')
+    write_timed_transcript(out, Path(record['source']['path']), progress=progress)
     return log[-3:]
+
+
+class _NoStatus:
+    def update(self, *args, **kwargs):
+        pass
+
+    def drop(self, *args, **kwargs):
+        pass
 
 
 def run_staged(jobs, plan, scratch: Path, workers: int, lock_root: Path, log=print):
@@ -127,14 +208,17 @@ def run_staged(jobs, plan, scratch: Path, workers: int, lock_root: Path, log=pri
 
 
 def run_stream(next_batch, workers: int, lock_root: Path, on_done, log=print, render=_render,
-               pool_factory=ProcessPoolExecutor):
+               pool_factory=render_pool, status=None):
     """Render batches from ``next_batch()`` -> (key, jobs, plan, scratch) or None through one pool.
 
     ``jobs`` is [(source, destination, knots)]; the batch stages under its own ``scratch`` folder
     (cleared first: leftovers of an interrupted run). ``next_batch`` is called only when no channel
     is waiting to be staged and a slot is free. ``on_done(key, failures)`` is called once per batch
     when its last channel is published or failed (at once for a batch with nothing to render).
+    ``status`` (``update(key, name, phase, **info)`` / ``drop(key, name, done_bytes)``) is told each
+    channel's phase for the dashboard (retime_dashboard.py).
     """
+    status = status or _NoStatus()
     lock = DiskLock(Path(lock_root))
     workers = max(1, workers)
     pending, staged, running = [], [], {}
@@ -192,12 +276,17 @@ def run_stream(next_batch, workers: int, lock_root: Path, on_done, log=print, re
                 local = scratch / 'in' / name / source.name
                 began = time.monotonic()
                 try:
+                    size = source.stat().st_size
+                    status.update(key, name, 'waiting for disk', bytes=size)
                     with lock:
+                        status.update(key, name, 'staging in', bytes=size)
                         copy_verified(source, local)
                     log(f'{key} {name}: staged in ({time.monotonic() - began:.0f} s)')
+                    status.update(key, name, 'staged', bytes=size)
                     staged.append((key, plan, scratch, source, destination, knots, local))
                 except Exception as error:  # noqa: BLE001 - block this channel, keep the others
                     fail(key, name, f'stage-in {error}')
+                    status.drop(key, name, None)
                     settle(key)
             while staged and len(running) < workers:
                 key, plan, scratch, source, destination, knots, local = staged.pop(0)
@@ -206,19 +295,25 @@ def run_stream(next_batch, workers: int, lock_root: Path, on_done, log=print, re
                     shutil.rmtree(out)
                 job = (str(source), str(local), str(out), str(plan), knots)
                 try:
+                    progress_path(out).unlink()
+                except FileNotFoundError:
+                    pass
+                try:
                     fut = pool.submit(render, job)
                 except BrokenProcessPool:  # broke before its failed future was read
                     pool = renew(pool)
                     fut = pool.submit(render, job)
+                status.update(key, name, 'rendering', progress=str(progress_path(out)))
                 running[fut] = (key, source, destination, local, out, pool)
             if not running:
                 if exhausted and not pending and not staged:
                     break
                 continue
-            done, _ = wait(running, return_when=FIRST_COMPLETED)
+            done, _ = wait(running, timeout=POLL_S, return_when=FIRST_COMPLETED)
             for fut in done:
                 key, source, destination, local, out, owner = running.pop(fut)
                 name = source.parent.name
+                published = None
                 try:
                     for line in fut.result():
                         log(f'{key} {name}: {line}')
@@ -226,7 +321,9 @@ def run_stream(next_batch, workers: int, lock_root: Path, on_done, log=print, re
                     if partial.exists():
                         shutil.rmtree(partial)
                     began = time.monotonic()
+                    status.update(key, name, 'waiting for disk')
                     with lock:
+                        status.update(key, name, 'publishing')
                         for f in sorted(out.iterdir()):
                             if f.is_file():
                                 copy_verified(f, partial / f.name)
@@ -235,6 +332,7 @@ def run_stream(next_batch, workers: int, lock_root: Path, on_done, log=print, re
                     if destination.exists():
                         destination.rmdir()
                     partial.replace(destination)
+                    published = source.stat().st_size
                     log(f'{key} {name}: published ({time.monotonic() - began:.0f} s)')
                 except Exception as error:  # noqa: BLE001 - report and continue with the other channels
                     fail(key, name, error)
@@ -246,6 +344,9 @@ def run_stream(next_batch, workers: int, lock_root: Path, on_done, log=print, re
                         local.unlink()
                     except FileNotFoundError:
                         pass
+                    status.drop(key, name, published)
                     settle(key)
-    finally:
-        pool.shutdown(wait=True, cancel_futures=True)
+    except BaseException:  # Ctrl-C or a signal: stop now, do not wait for the running channels
+        kill_pool(pool)
+        raise
+    pool.shutdown(wait=True, cancel_futures=True)

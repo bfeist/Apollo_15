@@ -260,9 +260,25 @@ work, and is resumable. Proprius commands run in PowerShell from `F:\_repos\Apol
    - Scratch defaults: `F:/Apollo_15_30-Track/work/retime` on Proprius,
      `/home/bfeist/.local/share/apollo15-retime` on Genus. Every archive copy holds `DiskLock`.
    - `--hosts local` renders on Proprius only. `--tapes A,B,...` limits the set.
-   - Ctrl-C stops both hosts. Running the command again resumes: done tapes and completed channels
-     are skipped, and tapes that failed are retried. A tape whose worker died is free again 5
-     minutes after its last heartbeat.
+   - **Dashboard.** In a terminal, the command shows a live dashboard instead of log lines. It shows
+     overall progress and ETA, each machine's render workers and rate, the tapes in progress, and
+     every channel in flight with its phase and render percentage. The last log lines are shown
+     too. The full log is in `retimed/.logs/07b-<host>-<time>.log`; `--plain` prints the log
+     instead. From another terminal on either host (Ctrl-C closes only the view):
+     ```powershell
+     uv run python scripts/run.py retime_dashboard.py
+     ```
+     Each host rewrites `retimed/.queue/hosts/<host>.json` every 2 s. Rates come from the last
+     15 minutes of progress, so ETAs warm up after a few minutes.
+   - **Ctrl-C stops both hosts at once.** This host's render workers are killed instead of
+     finishing their channels. The SSH session to Genus is closed, and the Genus worker stops the
+     same way on SIGHUP. Each host releases the claims of its unfinished tapes. Running the command
+     again resumes: done tapes and completed channels are skipped, and tapes that failed are
+     retried. A tape whose worker died without releasing it is free again 5 minutes after its last
+     heartbeat.
+   - **Genus network.** Genus mounts the Proprius shares with `srcaddr=192.168.0.4` in
+     `/etc/fstab`, so archive copies use the 2.5 Gbit/s link (`enp39s0`), not Wi-Fi. Check with
+     `ss -tn dst 192.168.0.2:445` on Genus: the local address must be 192.168.0.4.
    - The summary at the end lists failed tapes with their reasons. Tapes without a v2/v3 plan or
      v3 anchors fail by design (T510111 has no SG curve).
 

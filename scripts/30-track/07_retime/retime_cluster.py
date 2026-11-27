@@ -15,8 +15,12 @@ Each worker renders its tape with its own local scratch (``--scratch``; defaults
 the SSD on Genus). A worker's tapes share one render pool (``staged_io.run_stream``): it claims
 the next tape once the current one has no channel left to stage, so workers do not drain at each
 tape boundary; a host briefly holds two claims. Every archive copy holds ``staged_io.DiskLock``,
-so the archive disk sees one sequential stream across both hosts. Interrupting the coordinator stops Genus too (``ssh -tt``).
-A rerun resumes: completed channels are skipped from their records.
+so the archive disk sees one sequential stream across both hosts.
+
+Ctrl-C on the coordinator stops both hosts at once: this host's render workers are killed, the SSH
+session to Genus is closed and the Genus worker stops on its SIGHUP the same way. Each worker
+releases the claims of its unfinished tapes, so a rerun can start straight away. A rerun resumes:
+completed channels are skipped from their records.
 """
 from __future__ import annotations
 
@@ -49,6 +53,8 @@ def add_arguments(p):
     g.add_argument('--genus-workers', type=int, default=GENUS['workers'])
     g.add_argument('--genus-scratch', default=GENUS['scratch'])
     g.add_argument('--queue-worker', action='store_true', help=argparse_hidden())
+    g.add_argument('--plain', action='store_true',
+                   help='print log lines instead of the live dashboard (the log file is written either way)')
 
 
 def argparse_hidden():
@@ -110,6 +116,15 @@ class TapeQueue:
             except FileNotFoundError:
                 return
 
+    def release(self, tape):
+        """Drop this worker's claim of an unfinished tape (after an interruption)."""
+        path = self._path(tape, 'claim')
+        try:
+            if json.loads(path.read_text(encoding='utf-8')).get('worker') == self.me:
+                path.unlink()
+        except (FileNotFoundError, ValueError):
+            pass
+
     def finish(self, tape, failures):
         kind = 'failed' if failures else 'done'
         tmp = self._path(tape, kind + '.partial')
@@ -135,6 +150,74 @@ class TapeQueue:
         return out
 
 
+class HostStatus:
+    """One host's live state for the dashboard: ``<retimed root>/.queue/hosts/<label>.json``.
+
+    Rewritten every ``STATUS_S`` (2 s) by a daemon thread (and at each phase change, at most once a
+    second): the channels this host holds (phase, since, input bytes, render progress read from
+    the worker's local progress file), the bytes it has published since it started, and its state."""
+    STATUS_S = 2.0
+
+    def __init__(self, queue: TapeQueue, label, workers):
+        self.path = queue.root / 'hosts' / f'{label}.json'
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.lock = threading.Lock()
+        self.info = dict(label=label, host=socket.gethostname(), pid=os.getpid(), workers=workers,
+                         started=time.time(), state='running', done_bytes=0, done_channels=0, failed_channels=0)
+        self.jobs = {}
+        self.last_write = 0.0
+        self.stop = threading.Event()
+        threading.Thread(target=self._loop, daemon=True).start()
+
+    def update(self, key, name, phase, **info):
+        with self.lock:
+            job = self.jobs.setdefault((key, name), dict(tape=key, channel=name, bytes=0, started=time.time()))
+            if job.get('phase') != phase:
+                job['since'] = time.time()
+            job.update(info, phase=phase)
+        if time.time() - self.last_write >= 1.0:
+            self.write()
+
+    def drop(self, key, name, done_bytes):
+        with self.lock:
+            self.jobs.pop((key, name), None)
+            if done_bytes is None:
+                self.info['failed_channels'] += 1
+            else:
+                self.info['done_bytes'] += done_bytes
+                self.info['done_channels'] += 1
+        self.write()
+
+    def write(self, state=None):
+        import staged_io
+        with self.lock:
+            if state:
+                self.info['state'] = state
+            jobs = []
+            for job in self.jobs.values():
+                job = dict(job)
+                if job.get('progress'):
+                    p = staged_io.read_progress(job.pop('progress'))
+                    job.update(percent=p.get('percent'), text=p.get('text'), progress_time=p.get('time'))
+                jobs.append(job)
+            data = dict(self.info, updated=time.time(), jobs=jobs)
+            self.last_write = time.time()
+        try:
+            tmp = self.path.with_name(self.path.name + f'.{os.getpid()}.tmp')
+            tmp.write_text(json.dumps(data, indent=1), encoding='utf-8')
+            os.replace(tmp, self.path)
+        except OSError:
+            pass  # a display aid only
+
+    def _loop(self):
+        while not self.stop.wait(self.STATUS_S):
+            self.write()
+
+    def close(self, state):
+        self.stop.set()
+        self.write(state)
+
+
 def tapes_of(args):
     if args.tapes:
         return [t.strip() for t in args.tapes.split(',') if t.strip()]
@@ -156,6 +239,7 @@ def worker(args, prepare_tape, label, lock_root, log=print, **stream):
     beats, began, finished = {}, {}, []
     tag = lambda m: log(f'[{label}] {m}')  # noqa: E731
     tag(f'worker started: {args.workers} render workers, scratch {args.scratch}, queue {queue.root}')
+    status = HostStatus(queue, label, args.workers)
 
     def finish(tape, failures):
         beats.pop(tape).set()
@@ -180,11 +264,17 @@ def worker(args, prepare_tape, label, lock_root, log=print, **stream):
             return tape, jobs, plan, Path(args.scratch) / tape
         return None
 
+    state = 'stopped'
     try:
-        staged_io.run_stream(next_batch, args.workers, lock_root, finish, log=tag, **stream)
+        staged_io.run_stream(next_batch, args.workers, lock_root, finish, log=tag, status=status, **stream)
+        state = 'finished'
     finally:
-        for stop in beats.values():  # claims left by an interruption go stale and are taken over
+        for tape, stop in beats.items():  # interrupted: release the unfinished tapes for the next run
             stop.set()
+            queue.release(tape)
+            tag(f'{tape}: released (not finished)')
+        status.jobs.clear()
+        status.close(state)
     return len(finished)
 
 
@@ -228,16 +318,58 @@ def start_genus(args, log):
     return proc, t
 
 
+def stop_genus(proc, host, log):
+    """Close the SSH session (the Genus worker stops on SIGHUP); kill any Genus worker left over."""
+    proc.terminate()
+    try:
+        proc.wait(timeout=15)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+    try:
+        subprocess.run(['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8', host,
+                        # [.] and [r]: the pattern must not match this shell's own command line
+                        'pkill -TERM -f "07b_retime[.]py .*--queue-worke[r]" && sleep 20; '
+                        'pkill -KILL -f "07b_retime[.]py .*--queue-worke[r]"; true'],
+                       capture_output=True, timeout=60)
+    except (OSError, subprocess.TimeoutExpired) as error:
+        log(f'07b: could not confirm Genus stopped ({error}); check with ssh {host} pgrep -af 07b_retime')
+    log('07b: Genus stopped')
+
+
 def run(args, prepare_tape, lock_root):
     """Coordinator (or, with --queue-worker, one worker). Returns a process exit code."""
+    import sys
+    from collections import deque
+    from contextlib import nullcontext
     lock = threading.Lock()
+    recent = deque(maxlen=200)
+    log_file = None
+    live_view = not args.queue_worker and not getattr(args, 'plain', False) and sys.stdout.isatty()
+    showing = dict(live=live_view)  # log lines go to the dashboard while it is shown
+    if not args.queue_worker:
+        logs = Path(args.retimed_root) / '.logs'
+        logs.mkdir(parents=True, exist_ok=True)
+        log_file = (logs / f'07b-{socket.gethostname().lower()}-{time.strftime("%Y%m%d-%H%M%S")}.log').open(
+            'a', encoding='utf-8')
 
     def log(message):
         with lock:
-            print(message, flush=True)
+            if log_file:
+                log_file.write(f'{time.strftime("%H:%M:%S")} {message}\n')
+                log_file.flush()
+            if showing['live']:
+                recent.append(f'{time.strftime("%H:%M:%S")} {message}'[:220])
+            else:
+                print(message, flush=True)
 
     if args.queue_worker:
-        worker(args, prepare_tape, 'genus' if os.name != 'nt' else 'proprius', lock_root, log)
+        import staged_io
+        staged_io.stop_on_signals()  # the coordinator closing the SSH session stops this worker
+        try:
+            worker(args, prepare_tape, 'genus' if os.name != 'nt' else 'proprius', lock_root, log)
+        except KeyboardInterrupt:
+            log('worker stopped')
+            return 130
         return 0
     queue = TapeQueue(args.retimed_root)
     queue.reset_failed()
@@ -247,17 +379,40 @@ def run(args, prepare_tape, lock_root):
         f'{" + " if use_genus and args.hosts != "genus" else ""}{"Genus" if use_genus else ""}; queue {queue.root}')
     if args.hosts == 'auto' and not use_genus:
         log('07b: Genus did not answer over SSH; rendering on this host only')
+    if log_file:
+        log(f'07b: log file {log_file.name}')
+    board = view = None
+    if live_view:
+        from rich.live import Live
+        import retime_dashboard
+        board = retime_dashboard.Dashboard(args.defluttered_root, args.retimed_root, tapes, log_lines=recent)
+        view = Live(get_renderable=board.render, refresh_per_second=0.5)
     genus = start_genus(args, log) if use_genus else None
     try:
-        if args.hosts != 'genus':
-            worker(args, prepare_tape, socket.gethostname().lower(), lock_root, log)
-        if genus:
-            genus[0].wait()
-            genus[1].join(timeout=10)
-    except KeyboardInterrupt:
-        if genus:
-            genus[0].terminate()
-        raise
+        with view or nullcontext():
+            try:
+                if args.hosts != 'genus':
+                    worker(args, prepare_tape, socket.gethostname().lower(), lock_root, log)
+                if genus:
+                    while genus[0].poll() is None:  # a blocking wait cannot be interrupted on Windows
+                        time.sleep(1.0)
+                    genus[1].join(timeout=10)
+            except KeyboardInterrupt:
+                if board:
+                    board.stopping = True
+                log('07b: interrupted; stopping both hosts')
+                if genus:
+                    stop_genus(genus[0], args.genus_host, log)
+                log('07b: stopped. Rerun the same command to resume (completed channels are kept).')
+                if view:
+                    view.refresh()
+                return 130
+    finally:
+        if live_view:
+            showing['live'] = False
+            print('\n'.join(list(recent)[-15:]), flush=True)
+        if log_file:
+            print(f'Log: {log_file.name}', flush=True)
     status = queue.summary(tapes)
     done = [t for t, (k, _) in status.items() if k == 'done']
     failed = {t: r['failures'] for t, (k, r) in status.items() if k == 'failed'}
