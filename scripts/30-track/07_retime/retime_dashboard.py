@@ -42,7 +42,7 @@ WINDOW_S = 900.0               # rate window
 WARMUP_S = 120.0
 DONE_RECHECK_S = 20.0
 HOST_STALE_S = 60.0
-PHASE_ORDER = {'rendering': 0, 'publishing': 1, 'staging in': 2, 'waiting for disk': 3, 'staged': 4}
+PHASE_ORDER = {'rendering': 0, 'publishing': 1, 'rendered': 2, 'staging in': 3, 'waiting for disk': 4, 'staged': 5}
 
 
 def duration(seconds):
@@ -177,7 +177,7 @@ class Dashboard:
             h['partial'] = 0.0
             for job in h.get('jobs', []) if live else []:
                 size = inv.channels.get((job['tape'], job['channel']), job.get('bytes') or 0)
-                pct = job.get('percent') if job.get('phase') == 'rendering' else (100.0 if job.get('phase') == 'publishing' else 0.0)
+                pct = job.get('percent') if job.get('phase') == 'rendering' else (100.0 if job.get('phase') in ('rendered', 'publishing') else 0.0)
                 job['fraction'] = (pct or 0.0) / 100.0
                 h['partial'] += job['fraction'] * size
                 running[(job['tape'], job['channel'])] = (label, job)
@@ -232,7 +232,7 @@ class Dashboard:
         for label, h in s['hosts'].items():
             jobs = h.get('jobs', []) if h['live'] else []
             rendering = sum(1 for j in jobs if j.get('phase') == 'rendering')
-            waiting = sum(1 for j in jobs if j.get('phase') in ('staged', 'staging in', 'waiting for disk', 'publishing'))
+            waiting = sum(1 for j in jobs if j.get('phase') in ('staged', 'staging in', 'waiting for disk', 'rendered', 'publishing'))
             age = s['now'] - h.get('updated', 0)
             state = h.get('state', '?') if h['live'] or h.get('state') != 'running' else 'no update (stopped?)'
             machines.add_row(label, Text(state, style='green' if h['live'] else 'yellow'),

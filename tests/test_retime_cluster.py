@@ -138,6 +138,98 @@ class StreamTests(unittest.TestCase):
             self.assertEqual(done, {'T1': ['CH99: render failed'], 'T2': [], 'T3': []})
 
 
+    def test_rendering_starts_before_every_channel_is_staged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            jobs = channels(root, 'T1', 3)
+            events, copy = [], staged_io.copy_verified
+
+            def logged_copy(src, dst, cancel=None):
+                if '.partial' not in str(dst.parent) and 'in' in dst.parts:
+                    events.append(f'stage {Path(src).parent.name}')
+                return copy(src, dst, cancel)
+
+            def render(args):
+                events.append(f'render {Path(args[0]).parent.name}')
+                return fake_render(args)
+            staged_io.copy_verified = logged_copy
+            try:
+                failures = []
+                batches = iter([('T1', jobs, 'p', root / 's' / 'T1')])
+                staged_io.run_stream(lambda: next(batches, None), 3, root, lambda k, f: failures.extend(f),
+                                     log=lambda m: None, render=render, pool_factory=ThreadPoolExecutor)
+            finally:
+                staged_io.copy_verified = copy
+            self.assertEqual(failures, [])
+            self.assertLess(events.index('render CH01'), events.index('stage CH03'))
+
+    def test_a_publish_waiting_for_the_disk_does_not_hold_up_the_renders(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            jobs = channels(root, 'T1', 3)
+            other = staged_io.DiskLock(root)  # the other host: takes the disk when CH01 has rendered
+            ch03_staged, held, released = threading.Event(), threading.Event(), threading.Event()
+
+            def log(message):
+                if 'CH03: staged in' in message:
+                    ch03_staged.set()
+
+            def render(args):
+                name = Path(args[0]).parent.name
+                if name == 'CH01':  # CH03 is the staged spare, then the other host holds the disk
+                    self.assertTrue(ch03_staged.wait(10))
+                    other.__enter__()
+                    held.set()
+                elif name == 'CH02':
+                    self.assertTrue(held.wait(10))
+                else:  # CH03 renders in CH01's slot while CH01's publish waits for the disk
+                    self.assertTrue(held.is_set())
+                    other.__exit__()
+                    released.set()
+                return fake_render(args)
+            done = {}
+            batches = iter([('T1', jobs, 'p', root / 's' / 'T1')])
+            staged_io.run_stream(lambda: next(batches, None), 2, root, lambda k, f: done.setdefault(k, f),
+                                 log=log, render=render, pool_factory=ThreadPoolExecutor)
+            self.assertTrue(released.is_set())
+            self.assertEqual(done, {'T1': []})
+            for _, destination, _ in jobs:
+                self.assertTrue((destination / 'retimed.wav').is_file())
+
+
+class DiskLockTests(unittest.TestCase):
+    def test_a_releasing_holder_yields_to_a_waiting_host(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a = staged_io.DiskLock(Path(tmp), poll_s=0.05)
+            b = staged_io.DiskLock(Path(tmp), poll_s=0.05)
+            b.me, b.wait_path = 'other', b.path.with_name(b.path.name + '.other.wait')
+            order = []
+            a.__enter__()
+
+            def other_host():
+                with b:
+                    order.append('b')
+            t = threading.Thread(target=other_host)
+            t.start()
+            time.sleep(0.3)  # b is waiting
+            a.__exit__()
+            with a:  # straight back: must let b go first
+                order.append('a')
+            t.join(5)
+            self.assertEqual(order, ['b', 'a'])
+            self.assertEqual(list(Path(tmp).glob('*.wait')), [])
+
+    def test_a_cancelled_wait_stops(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cancel = threading.Event()
+            holder = staged_io.DiskLock(Path(tmp))
+            holder.__enter__()
+            cancel.set()
+            with self.assertRaises(staged_io.Cancelled):
+                with staged_io.DiskLock(Path(tmp), poll_s=0.05, cancel=cancel):
+                    pass
+
+
 class CommandTests(unittest.TestCase):
     def test_genus_command_translates_archive_paths(self):
         self.assertEqual(rc.linux_path('D:\\Apollo_15_30-Track\\retimed'), '/mnt/d/Apollo_15_30-Track/retimed')
