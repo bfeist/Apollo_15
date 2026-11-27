@@ -270,6 +270,12 @@ work, and is resumable. Proprius commands run in PowerShell from `F:\_repos\Apol
      ```
      Each host rewrites `retimed/.queue/hosts/<host>.json` every 2 s. Rates come from the last
      15 minutes of progress, so ETAs warm up after a few minutes.
+   - **Stopping.** If Ctrl-C on the coordinator's console does not respond, run this from any terminal
+     on either host. Both hosts check `retimed/.queue/stop` every 2 s and stop exactly as on Ctrl-C;
+     the next run clears it.
+     ```powershell
+     uv run python scripts/run.py 07b_retime.py --stop
+     ```
    - **Ctrl-C stops both hosts at once.** This host's render workers are killed instead of
      finishing their channels. The SSH session to Genus is closed, and the Genus worker stops the
      same way on SIGHUP. Each host releases the claims of its unfinished tapes. Running the command

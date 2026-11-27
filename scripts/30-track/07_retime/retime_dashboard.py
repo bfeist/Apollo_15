@@ -270,7 +270,7 @@ class Dashboard:
         if self.log_lines is not None:
             parts.append(Text('\n'.join(list(self.log_lines)[-10:]), style='dim'))
         parts.append(Text('Stopping both machines...' if self.stopping else
-                          'Ctrl+C stops both machines; rerunning the same command resumes.' if self.log_lines is not None
+                          'Ctrl+C (or 07b_retime.py --stop from any terminal) stops both machines; rerunning resumes.' if self.log_lines is not None
                           else 'Viewer only: Ctrl+C closes this view and leaves the render running.', style='italic'))
         return Group(*parts)
 

@@ -181,6 +181,8 @@ def main():
                    help='use the Quindar-only plan when the tape has neither a 07i nor a final 07a plan')
     retime_cluster.add_arguments(p)
     args = p.parse_args()
+    if args.stop:
+        raise SystemExit(retime_cluster.request_stop(args))
     try:
         if args.clock_anchors and (not args.plan_only or args.all_tapes):
             p.error('--clock-anchors requires one-tape --plan-only')

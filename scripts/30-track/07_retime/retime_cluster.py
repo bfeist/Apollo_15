@@ -17,7 +17,8 @@ the next tape once the current one has no channel left to stage, so workers do n
 tape boundary; a host briefly holds two claims. Every archive copy holds ``staged_io.DiskLock``,
 so the archive disk sees one sequential stream across both hosts.
 
-Ctrl-C on the coordinator stops both hosts at once: this host's render workers are killed, the SSH
+Ctrl-C on the coordinator, or ``07b_retime.py --stop`` from any terminal on either host (it writes
+``.queue/stop``, which both hosts check every 2 s), stops both hosts at once: this host's render workers are killed, the SSH
 session to Genus is closed and the Genus worker stops on its SIGHUP the same way. Each worker
 releases the claims of its unfinished tapes, so a rerun can start straight away. A rerun resumes:
 completed channels are skipped from their records.
@@ -53,6 +54,8 @@ def add_arguments(p):
     g.add_argument('--genus-workers', type=int, default=GENUS['workers'])
     g.add_argument('--genus-scratch', default=GENUS['scratch'])
     g.add_argument('--queue-worker', action='store_true', help=argparse_hidden())
+    g.add_argument('--stop', action='store_true',
+                   help='stop a running two-host render from any terminal (as Ctrl-C on its console) and exit')
     g.add_argument('--plain', action='store_true',
                    help='print log lines instead of the live dashboard (the log file is written either way)')
 
@@ -115,6 +118,27 @@ class TapeQueue:
                 os.utime(path)
             except FileNotFoundError:
                 return
+
+    @property
+    def stop_path(self):
+        return self.root / 'stop'
+
+    def request_stop(self):
+        self.stop_path.write_text(json.dumps(dict(by=self.me, time=time.time())), encoding='utf-8')
+
+    def clear_stop(self):
+        try:
+            self.stop_path.unlink()
+        except FileNotFoundError:
+            pass
+
+    def stop_requested(self, every_s=2.0):
+        """Whether ``07b_retime.py --stop`` asked the run to stop (checked at most every ``every_s``)."""
+        now = time.monotonic()
+        if now - getattr(self, '_stop_checked', 0.0) >= every_s:
+            self._stop_checked = now
+            self._stop = self.stop_path.is_file()
+        return getattr(self, '_stop', False)
 
     def release(self, tape):
         """Drop this worker's claim of an unfinished tape (after an interruption)."""
@@ -266,7 +290,8 @@ def worker(args, prepare_tape, label, lock_root, log=print, **stream):
 
     state = 'stopped'
     try:
-        staged_io.run_stream(next_batch, args.workers, lock_root, finish, log=tag, status=status, **stream)
+        staged_io.run_stream(next_batch, args.workers, lock_root, finish, log=tag, status=status,
+                             should_stop=queue.stop_requested, **stream)
         state = 'finished'
     finally:
         for tape, stop in beats.items():  # interrupted: release the unfinished tapes for the next run
@@ -318,6 +343,15 @@ def start_genus(args, log):
     return proc, t
 
 
+def request_stop(args):
+    """``07b_retime.py --stop``: ask the running render (both hosts) to stop."""
+    queue = TapeQueue(args.retimed_root)
+    queue.request_stop()
+    print(f'Stop requested ({queue.stop_path}). Both hosts stop within a few seconds; the next run clears it '
+          'and resumes.', flush=True)
+    return 0
+
+
 def stop_genus(proc, host, log):
     """Close the SSH session (the Genus worker stops on SIGHUP); kill any Genus worker left over."""
     proc.terminate()
@@ -328,8 +362,9 @@ def stop_genus(proc, host, log):
     try:
         subprocess.run(['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8', host,
                         # [.] and [r]: the pattern must not match this shell's own command line
-                        'pkill -TERM -f "07b_retime[.]py .*--queue-worke[r]" && sleep 20; '
-                        'pkill -KILL -f "07b_retime[.]py .*--queue-worke[r]"; true'],
+                        'p="07b_retime[.]py .*--queue-worke[r]"; pkill -TERM -f "$p"; '
+                        'for i in $(seq 20); do pgrep -f "$p" >/dev/null || exit 0; sleep 1; done; '
+                        'pkill -KILL -f "$p"; true'],
                        capture_output=True, timeout=60)
     except (OSError, subprocess.TimeoutExpired) as error:
         log(f'07b: could not confirm Genus stopped ({error}); check with ssh {host} pgrep -af 07b_retime')
@@ -373,6 +408,7 @@ def run(args, prepare_tape, lock_root):
         return 0
     queue = TapeQueue(args.retimed_root)
     queue.reset_failed()
+    queue.clear_stop()
     tapes = tapes_of(args)
     use_genus = args.hosts == 'genus' or (args.hosts == 'auto' and genus_reachable(args.genus_host))
     log(f'07b: {len(tapes)} tapes; hosts: {"this host" if args.hosts != "genus" else ""}'
@@ -395,6 +431,8 @@ def run(args, prepare_tape, lock_root):
                     worker(args, prepare_tape, socket.gethostname().lower(), lock_root, log)
                 if genus:
                     while genus[0].poll() is None:  # a blocking wait cannot be interrupted on Windows
+                        if queue.stop_requested():
+                            raise KeyboardInterrupt('stop requested')
                         time.sleep(1.0)
                     genus[1].join(timeout=10)
             except KeyboardInterrupt:

@@ -208,7 +208,7 @@ def run_staged(jobs, plan, scratch: Path, workers: int, lock_root: Path, log=pri
 
 
 def run_stream(next_batch, workers: int, lock_root: Path, on_done, log=print, render=_render,
-               pool_factory=render_pool, status=None):
+               pool_factory=render_pool, status=None, should_stop=None):
     """Render batches from ``next_batch()`` -> (key, jobs, plan, scratch) or None through one pool.
 
     ``jobs`` is [(source, destination, knots)]; the batch stages under its own ``scratch`` folder
@@ -216,7 +216,8 @@ def run_stream(next_batch, workers: int, lock_root: Path, on_done, log=print, re
     is waiting to be staged and a slot is free. ``on_done(key, failures)`` is called once per batch
     when its last channel is published or failed (at once for a batch with nothing to render).
     ``status`` (``update(key, name, phase, **info)`` / ``drop(key, name, done_bytes)``) is told each
-    channel's phase for the dashboard (retime_dashboard.py).
+    channel's phase for the dashboard (retime_dashboard.py). ``should_stop()`` is polled every
+    ``POLL_S``; when it returns true the run stops as on Ctrl-C (``07b_retime.py --stop``).
     """
     status = status or _NoStatus()
     lock = DiskLock(Path(lock_root))
@@ -259,9 +260,16 @@ def run_stream(next_batch, workers: int, lock_root: Path, on_done, log=print, re
         return pool_factory(max_workers=workers)
 
     pool = pool_factory(max_workers=workers)
+    def check_stop():
+        if should_stop and should_stop():
+            log('stop requested')
+            raise KeyboardInterrupt('stop requested')
+
     try:
         while True:
+            check_stop()
             while len(staged) + len(running) < workers + 1:
+                check_stop()
                 if not pending:
                     if exhausted:
                         break
@@ -290,6 +298,7 @@ def run_stream(next_batch, workers: int, lock_root: Path, on_done, log=print, re
                     settle(key)
             while staged and len(running) < workers:
                 key, plan, scratch, source, destination, knots, local = staged.pop(0)
+                name = source.parent.name
                 out = scratch / 'out' / source.parent.name
                 if out.exists():
                     shutil.rmtree(out)
