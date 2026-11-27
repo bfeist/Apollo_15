@@ -34,6 +34,7 @@ STATS = json.loads((Path(__file__).with_name('stats.json')).read_text(encoding='
 SR = 8000
 
 C_ORIG, C_DEN, C_REM, C_FLUT, C_MAP = '#8c8c8c', '#1f5fa8', '#d9822b', '#b2263a', '#2a9d5c'
+C_CLOCK = '#3c7d3a'
 plt.rcParams.update({'font.size': 9, 'axes.titlesize': 10, 'axes.labelsize': 9, 'figure.dpi': 150,
                      'axes.spines.top': False, 'axes.spines.right': False, 'savefig.bbox': 'tight',
                      'savefig.pad_inches': .08, 'font.family': 'DejaVu Sans'})
@@ -144,9 +145,9 @@ def fig_recordings():
 # ---------------------------------------------------------------- Figure 2 (pipeline)
 
 def fig_pipeline():
-    fig, ax = plt.subplots(figsize=(10.5, 4.6))
-    ax.set_xlim(0, 105)
-    ax.set_ylim(0, 46)
+    fig, ax = plt.subplots(figsize=(12.6, 6.6))
+    ax.set_xlim(0, 113)
+    ax.set_ylim(0, 66)
     ax.axis('off')
 
     def box(x, y, w, h, title, body, color, done=True):
@@ -154,40 +155,55 @@ def fig_pipeline():
                            fc=color if done else 'white', ec='#333333' if done else '#999999',
                            lw=1.0, ls='-' if done else '--', alpha=1)
         ax.add_patch(p)
-        ax.text(x+w/2, y+h-2.2, title, ha='center', va='top', fontsize=8.6, weight='bold',
+        ax.text(x+w/2, y+h-2.0, title, ha='center', va='top', fontsize=8.4, weight='bold',
                 color='#111111' if done else '#777777')
-        ax.text(x+w/2, y+h-6.0, body, ha='center', va='top', fontsize=7.0, linespacing=1.25,
+        ax.text(x+w/2, y+h-5.6, body, ha='center', va='top', fontsize=6.9, linespacing=1.25,
                 color='#222222' if done else '#888888')
 
-    def arrow(a, b, color='#444444', style='-|>', ls='-', rad=0.):
-        ax.add_patch(FancyArrowPatch(a, b, arrowstyle=style, mutation_scale=10, lw=1.1, color=color,
+    def arrow(a, b, color='#444444', ls='-', rad=0.):
+        ax.add_patch(FancyArrowPatch(a, b, arrowstyle='-|>', mutation_scale=10, lw=1.1, color=color,
                                      ls=ls, connectionstyle=f'arc3,rad={rad}'))
 
-    audio, timing, later = '#dbe7f5', '#f6e3cf', '#ffffff'
-    ax.text(1, 44.5, 'Audio path (what is published)', fontsize=8.5, color=C_DEN, weight='bold')
-    ax.text(1, 19.5, 'Timing-evidence path (measured on unprocessed originals)', fontsize=8.5,
-            color=C_REM, weight='bold')
-    box(1, 26, 14.5, 16, '01 Ingest', 'Verify fragment order,\nconcatenate 39 tapes\n× 30 tracks, 8 kHz\nZIP originals (01a)', audio)
-    box(19.5, 26, 15, 16, '03 Denoise', 'Model-based hum\nsubtraction v2.16:\n60·n Hz comb, low\nenvelope, tones', audio)
-    box(38.5, 26, 15, 16, '04 Crosstalk', 'Two-path subtraction\nof the weaker ~1.37 s\nrepeat; fixed direction\nper tape/channel', audio)
-    box(57.5, 26, 15, 16, '05b Apply map', 'One inverse timing\nmap per tape, same\nfor all channels;\n8× FIR + cubic', audio)
-    box(76.5, 26, 13, 16, '06a Transcribe', 'Interim timing\ntranscript of\n05b audio\n(in progress)', later, done=False)
-    box(92.5, 26, 12, 16, '06b · 07', 'Retime to the\nmission clock;\nspeech level\n(planned)', later, done=False)
-    box(19.5, 2, 15, 15, '02 Capture align', 'Whitened cross-corr.\nat 6 epochs, ±16 s;\nfixed WAV offsets on\nthe tape clock', timing)
-    box(38.5, 2, 15, 15, '05 Census', 'Blind cross-channel\ntape-motion tracking\nof on-tape carriers\n(1971 mains hum)', timing)
-    box(57.5, 2, 15, 15, '05 Qualify', 'Contradiction flags,\nfollow-up, held-out\nQuindar-tone validation', timing)
-    box(76.5, 2, 13, 15, '05a Compile', 'Select, join and\nintegrate once per\ntape: tape_map.npy', timing)
-    for x0, x1 in ((15.9, 19.1), (34.9, 38.1), (53.9, 57.1)):
-        arrow((x0, 34), (x1, 34))
-    arrow((72.9, 34), (76.1, 34), color='#999999', ls='--')
-    arrow((89.9, 34), (92.1, 34), color='#999999', ls='--')
-    arrow((8, 25.6), (19.1, 9.5), color=C_REM, rad=.25)
-    for x0, x1 in ((34.9, 38.1), (53.9, 57.1), (72.9, 76.1)):
-        arrow((x0, 9.5), (x1, 9.5), color=C_REM)
-    arrow((82.7, 17.4), (68.5, 25.6), color=C_REM, rad=-.15)
-    arrow((27, 17.4), (46, 25.6), color=C_REM, ls=':', rad=-.15)
-    ax.text(29.6, 22.6, 'offsets', fontsize=6.8, color=C_REM, rotation=0)
-    ax.text(77.5, 21.0, 'shared map', fontsize=6.8, color=C_REM)
+    audio, timing, clock = '#dbe7f5', '#f6e3cf', '#e2efdc'
+    w, top, mid, low = 14.2, 47, 25, 2
+    xs = [1 + 16*i for i in range(7)]
+    ax.text(1, 64.6, 'Audio path (what is published)', fontsize=8.5, color=C_DEN, weight='bold')
+    ax.text(1, 21.9, 'Flutter evidence (measured on unprocessed originals)', fontsize=8.5, color=C_REM, weight='bold')
+    ax.text(1, 12.5, 'Mission-clock\nevidence', fontsize=8.5, color=C_CLOCK, weight='bold', va='top', linespacing=1.3)
+    box(xs[0], top, w, 15, '01 Ingest', 'Verify fragment order,\nconcatenate 39 tapes\n× 30 tracks, 8 kHz', audio)
+    box(xs[1], top, w, 15, '03 Denoise', 'Model-based hum\nsubtraction v2.16:\n60·n Hz comb, tones', audio)
+    box(xs[2], top, w, 15, '04 Crosstalk', 'Two-path subtraction\nof the weaker ~1.38 s\nrepeat per channel', audio)
+    box(xs[3], top, w, 15, '05b Apply map', 'One inverse flutter\nmap per tape, same\nfor all channels', audio)
+    box(xs[4], top, w, 15, '06 Transcribe', 'Timing transcript of\n05b audio, CTC-\naligned word times', audio)
+    box(xs[5], top, w, 15, '07b Retime', 'One mission-clock\nmap per tape; later\nhead row moved\nearlier (running)', audio)
+    box(xs[6], top, w, 15, '08 Normalize', 'Constant speech-level\ngain; 8 kHz 16-bit\ndelivery (planned)', 'white', done=False)
+    box(xs[0], mid, w, 14, '02 Capture align', 'Fixed WAV offsets\non the tape clock\n(6 epochs, ±16 s)', timing)
+    box(xs[1], mid, w, 14, '05 Census', 'Blind cross-channel\ntracking of on-tape\ncarriers (1971 hum)', timing)
+    box(xs[2], mid, w, 14, '05 Qualify', 'Contradiction flags,\nheld-out Quindar-\ntone validation', timing)
+    box(xs[3], mid, w, 14, '05a Compile', 'Select, join and\nintegrate once per\ntape: tape_map.npy', timing)
+    box(xs[1], low, w, 15, 'NARA flight tapes', 'Space-to-ground reels\nrespeeded from their\nIRIG-B (to ~1 ms)', clock)
+    box(xs[2], low, w, 15, 'Internet Archive', 'SG reels 540-583,\nplaced by drift maps\nfitted to the TEC', clock)
+    box(xs[3], low, w, 15, 'TEC / AFJ', '1971 transcript rows,\nwhole-second stamps,\nwhole mission', clock)
+    box(xs[4], low, w, 15, '07a Joint fit', 'One curve per tape:\nSG audio + journal\nanchors, level gaps', clock)
+    box(xs[5], low, w, 15, '07i Time code', 'IRIG-B on delivered\nCH30 of 5 reels\n(plans to ~2 ms)', clock)
+    for i in range(5):
+        arrow((xs[i]+w+0.4, top+7.5), (xs[i+1]-0.4, top+7.5))
+    arrow((xs[5]+w+0.4, top+7.5), (xs[6]-0.4, top+7.5), color='#999999', ls='--')
+    arrow((xs[0]+w/2, top-0.4), (xs[0]+w/2, mid+14.4), color=C_REM)
+    for i in range(3):
+        arrow((xs[i]+w+0.4, mid+7), (xs[i+1]-0.4, mid+7), color=C_REM)
+    arrow((xs[3]+w/2, mid+14.4), (xs[3]+w/2, top-0.4), color=C_REM)
+    arrow((xs[0]+w-1.5, mid+14.4), (xs[2]+3, top-0.4), color=C_REM, ls=':', rad=-.2)
+    ax.text(xs[1]+w*0.62, top-2.6, 'offsets', fontsize=6.8, color=C_REM, ha='center')
+    ax.text(xs[3]+w/2+0.8, mid+16.8, 'shared map', fontsize=6.8, color=C_REM)
+    for i in (1, 2):
+        arrow((xs[i]+w/2, low+15.4), (xs[4]+3, low+15.4), color=C_CLOCK, rad=-.09)
+    arrow((xs[3]+w+0.4, low+7.5), (xs[4]-0.4, low+7.5), color=C_CLOCK)
+    arrow((xs[4]+w-1.5, top-0.4), (xs[4]+w-1.5, low+15.4), color=C_CLOCK)
+    ax.text(xs[4]+w-1.0, mid+3, 'words', fontsize=6.8, color=C_CLOCK)
+    arrow((xs[4]+w+0.4, low+11), (xs[5]+2.5, top-0.4), color=C_CLOCK, rad=.12)
+    arrow((xs[5]+w/2+1, low+15.4), (xs[5]+w/2+3, top-0.4), color=C_CLOCK)
+    ax.text(xs[5]+w/2+3.6, mid+9, 'plans', fontsize=6.8, color=C_CLOCK)
     save(fig, 'readme_fig02_pipeline.png')
 
 
@@ -837,9 +853,115 @@ def fig_channel_inventory():
     save(fig, 'readme_fig13_channel_inventory.png')
 
 
+# ---------------------------------------------------------------- Figures 14-15 (07a evidence)
+
+C_TC, C_NARA, C_IA, C_JOURNAL = '#1b6e3a', '#1f5fa8', '#d9822b', '#7b3fa0'
+
+
+def retime_evidence():
+    return json.loads((Path(__file__).with_name('retime_evidence.json')).read_text(encoding='utf-8'))
+
+
+def fig_retime_evidence():
+    d = retime_evidence()
+    tapes = sorted(d['tapes'])
+    lanes = (('timecode', C_TC, 'IRIG-B time code'), ('nara', C_NARA, 'NARA space-to-ground'),
+             ('ia', C_IA, 'Internet Archive space-to-ground'), ('journal', C_JOURNAL, 'TEC/AFJ transcript (journal)'))
+    fig = plt.figure(figsize=(12.0, 10.0))
+    gs = fig.add_gridspec(1, 2, width_ratios=[4.2, 1.0], wspace=0.05)
+    ax, axc = fig.add_subplot(gs[0]), fig.add_subplot(gs[1])
+    b = d['bin_s'] / 3600
+    h = 0.19
+    for row, tape in enumerate(tapes):
+        v = d['tapes'][tape]
+        y0 = len(tapes) - 1 - row
+        ax.add_patch(plt.Rectangle((0, y0 - 0.42), v['duration_s'] / 3600, 0.84, fc='#f3f3f3', ec='none'))
+        for k, (name, color, _) in enumerate(lanes):
+            bins = v['bins'][name]
+            if bins:
+                ax.broken_barh([(i * b, b) for i in bins], (y0 + 0.4 - (k + 1) * h, h * 0.92), facecolors=color, lw=0)
+        for a, e, step in v['level_ramps']:
+            ax.add_patch(plt.Rectangle((a / 3600, y0 - 0.42), (e - a) / 3600, 0.84, fc='none', ec='#555555',
+                                       hatch='////', lw=0.6))
+    ax.set_yticks(range(len(tapes)))
+    ax.set_yticklabels([t.replace('A15_', '') for t in reversed(tapes)], fontsize=7.2)
+    ax.set_ylim(-0.7, len(tapes) - 0.3)
+    ax.set_xlim(0, 18)
+    ax.set_xlabel('tape time (hours from the start of the reel)')
+    ax.set_title('Evidence the 07a/07i plans are fitted to (5-minute bins with at least one anchor)', loc='left')
+    handles = [Patch(fc=c, label=l) for _, c, l in lanes]
+    handles.append(Patch(fc='white', ec='#555555', hatch='////', label='level gap: separate GET level each side, ramped'))
+    ax.legend(handles=handles, loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=3, fontsize=7.6, frameon=False)
+    y = np.arange(len(tapes))[::-1]
+    old = [100 * (d['tapes'][t]['fraction_600_levels'] or 0) for t in tapes]
+    new = [100 * (d['tapes'][t]['fraction_600_journal'] or 0) for t in tapes]
+    axc.barh(y, new, height=0.8, color=C_JOURNAL, alpha=0.35, label='with journal anchors')
+    axc.barh(y, old, height=0.36, color='#555555', label='SG audio only')
+    axc.set_ylim(-0.7, len(tapes) - 0.3)
+    axc.set_yticks([])
+    axc.set_xlim(0, 100)
+    axc.set_xlabel('% of tape time within\n10 min of an anchor')
+    axc.legend(loc='upper center', bbox_to_anchor=(0.5, -0.07), fontsize=7.2, frameon=False)
+    save(fig, 'readme_fig14_retime_evidence.png')
+
+
+def fig_journal():
+    d = retime_evidence()
+    fig = plt.figure(figsize=(12.0, 8.2))
+    gs = fig.add_gridspec(2, 3, height_ratios=[1, 1.05], hspace=0.42, wspace=0.28)
+    ax = fig.add_subplot(gs[0, 0])
+    bins = np.linspace(-3, 3, 61)
+    groups = (('timed', C_TC, 'tapes with NARA or time code'), ('ia_only', C_IA, 'IA-only tapes'),
+              ('journal_only', C_JOURNAL, 'journal only (T510111, T510112)'))
+    for key, color, label in groups:
+        r = np.asarray(d['journal_residuals'][key])
+        if len(r):
+            out = float(np.mean(np.abs(r) > 3)) * 100
+            ax.hist(r[np.abs(r) <= 3], bins=bins, density=True, histtype='step', lw=1.4, color=color,
+                    label=f'{label}\nn = {len(r):,}, median |r| {np.median(np.abs(r)):.2f} s, {out:.0f} % beyond 3 s')
+    ax.set_xlabel('journal event minus fitted curve (s)')
+    ax.set_ylabel('density')
+    ax.set_ylim(0, 2.1)
+    ax.set_title(f"(a) Journal residuals (stamp offset {d['journal_offset_s']:+.2f} s)", loc='left')
+    ax.legend(fontsize=6.2, frameon=False, loc='upper left')
+    for k, tape in enumerate(('A15_T510105', 'A15_T510110', 'A15_T510090')):
+        c = d['change'][tape]
+        axk = fig.add_subplot(gs[0, 1 + k]) if k < 2 else fig.add_subplot(gs[1, 2])
+        t = np.asarray(c['t_s']) / 3600
+        a, e = (x / 3600 for x in c['old_anchor_span_s'])
+        axk.axvspan(a, e, color='#e8e8e8', lw=0, label='SG anchors of the old plan')
+        axk.plot(np.asarray(c['events_t_s']) / 3600, c['events_minus_old_s'], '.', ms=3, color=C_JOURNAL,
+                 label='journal events')
+        axk.plot(t, c['new_minus_old_s'], color='#222222', lw=1.2, label='new plan')
+        axk.axhline(0, color='#888888', lw=0.6)
+        axk.set_xlabel('tape time (h)')
+        axk.set_ylabel('GET minus old plan (s)')
+        axk.set_title(f"({'bcd'[k]}) {tape.replace('A15_', '')}", loc='left')
+        if k == 0:
+            axk.legend(fontsize=6.6, frameon=False, loc='lower left')
+    ax = fig.add_subplot(gs[1, 0:2])
+    rows = [r for r in d['ia_offsets'] if r['get_s'] is not None]
+    g = np.array([r['get_s'] for r in rows]) / 3600
+    ax.axhspan(-0.42 - 0.35, -0.42 + 0.35, color='#eeeeee', lw=0)
+    ax.axhline(-0.42, color='#888888', lw=0.6)
+    for name, color, marker, label in (('first', '#aaaaaa', 'o', 'first v3 fit'),
+                                       ('levels', C_IA, 's', 'with level gaps'),
+                                       ('journal', C_JOURNAL, 'D', 'with level gaps and journal anchors')):
+        v = np.array([np.nan if r[name] is None else r[name] for r in rows], float)
+        ax.plot(g, np.clip(v, -8.5, 8.5), marker, ms=3.4, color=color, label=label, alpha=0.9,
+                mfc=color if name == 'journal' else 'none')
+    ax.set_ylim(-8.8, 8.8)
+    ax.set_xlabel('GET of the IA segment start (h)')
+    ax.set_ylabel('IA segment offset b_k (s)')
+    ax.set_title('(e) Fitted IA segment offsets (band: prior mean -0.42 s +/- 0.35 s, the review limit)', loc='left')
+    ax.legend(fontsize=7, frameon=False, loc='upper right', ncol=3)
+    save(fig, 'readme_fig15_journal_anchors.png')
+
+
 FIGURES = dict(recordings=fig_recordings, pipeline=fig_pipeline, offsets=fig_offsets, denoise=fig_denoise, hums=fig_two_hums,
                trace=fig_trace, beeps=fig_beeps, validation=fig_validation, coverage=fig_coverage,
-               map=fig_map, crosstalk=fig_crosstalk, irig=fig_irig_retime, channels=fig_channel_inventory)
+               map=fig_map, crosstalk=fig_crosstalk, irig=fig_irig_retime, channels=fig_channel_inventory,
+               evidence=fig_retime_evidence, journal=fig_journal)
 
 if __name__ == '__main__':
     for name in sys.argv[1:] or FIGURES:

@@ -165,7 +165,8 @@ Result of the first full fit (38 tapes):
   anchors only in its first 2.3 h) and T510090 up to 78 s.
 - **New plans.** T510111 is anchored from tape 5.8 h (GET about 286.7 h; no transcript rows in
   278–286 h) and T510112 through entry and splashdown.
-- **Coverage.** Tape time within 600 s of an anchor rises from 56.5 % to 62.6 %.
+- **Coverage.** Tape time within 600 s of an anchor rises from 54.7 % to 62.6 % of all tape time
+  (56.5 % before, counting only the 36 tapes the earlier fit could fit).
 - **IA offsets.** 36 IA segments remain more than 0.35 s from −0.42 s (was 49). 561:2 and 562 stay
   at −7 s, but are now measured against journal events, so they are IA drift-map errors and no
   longer move the 30-track GET.

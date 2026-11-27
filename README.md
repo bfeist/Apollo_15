@@ -1,13 +1,14 @@
 # Restoring the Apollo 15 Mission Control 30-track recordings: hum subtraction, crosstalk removal and shared-tape flutter correction
 
-**Status, November 2026.** Stages 01–05 have been run across the archive. Stage 06
+**Status, 27 November 2026.** Stages 01–05 have been run across the archive. Stage 06
 (the timing transcript of the stage-05b audio) is complete. Stage 10 has identified the true
 track-sheet channel of every delivered file and inventoried the tracks that were never
 digitized (§9). That work found IRIG-B time code on five reels. Stage 07i has built
 retiming plans for those five reels from it, checked end to end to 0.68 ms rms (§10.3).
-Every other tape is placed on mission time by stage 07a (the fit against the retimed
-space-to-ground reels), whose archive run is pending. Stage 07b applies the plans, and
-stage 08 then writes the 8 kHz 16-bit delivery files. The one-page
+Stage 07a has fitted every other reel to mission time: against the retimed space-to-ground
+reels, and directly against the 1971 transcripts where those reels do not reach (§10.4, §10.6).
+All 38 reels with signal now have a plan. Stage 07b is applying them to the archive on two
+machines (§10.7). Stage 08 then writes the 8 kHz 16-bit delivery files. The one-page
 [pipeline overview](docs/00_pipeline_overview.md) lists every stage, its data and its format. All numbers below come from
 the published archive records under `D:/Apollo_15_30-Track`, and all figures are
 regenerated from those records by `research/readme_figures/` (Appendix A).
@@ -27,7 +28,8 @@ roughly 30-minute overlap. The mission ran 295 hours from launch (26 July 1971,
 ![Recordings](docs/images/readme_fig01_recordings.png)
 
 **Figure 1.** The 40 reels on the mission timeline (filename clock, 1971 day of year).
-Hatched blue reels have mis-dated boxes and are placed provisionally (E.6).
+Hatched blue reels have mis-dated boxes. They are placed by their handover sequence, which
+stage 07a confirms to about a minute (E.6).
 *Right:* playback speed of each digitized reel, from about 40 peak measurements per
 reel of the 1971 hum at 60·ρ·n Hz after exact-line removal.
 
@@ -165,16 +167,18 @@ and every later stage uses them (§3, Figure 3).
 - **T510087** and **T510111** carry box dates of 7 July and 7 May 1971, and box
   durations that contradict the digitized length. Their start times fit the HR1
   handover sequence exactly (a 14:53 start just before T510085 ends; 06:25 just before
-  T510109 ends). We place them provisionally on 30 July and 7 August, pending
-  confirmation in stage 07.
+  T510109 ends). We placed them on 30 July and 7 August. Stage 07a confirms both: the
+  space-to-ground and transcript matches put T510087 72–76 s and T510111 22–34 s from that
+  inferred placement (§10.6).
 
 **Where things stand.** Stages 01–05 are complete. All 1,169 delivered tracks have
 been hum-subtracted and crosstalk-processed, and the 1,139 tracks of the 38 reels with
-signal have been de-fluttered with their tape's shared map. Stage 06 is now
-transcribing that audio to locate exchanges in the 1971 mission transcripts and other
-recordings. That will put each reel on mission time, so that stage 07b can remove the
-slow-playback error (E.4). The stage-06 transcripts have already resolved the channel
-numbering (E.1): stage 10 maps every delivered file to its true track (§9).
+signal have been de-fluttered with their tape's shared map. Stage 06 has transcribed that
+audio, and the transcripts have resolved the channel numbering (E.1): stage 10 maps every
+delivered file to its true track (§9). They also put each reel on mission time. Five reels
+are timed from their own IRIG-B (§10.3). The other 33 are matched against the respeeded
+space-to-ground reels and against the 1971 transcripts themselves (§10.4–10.6). Stage 07b is
+now removing the slow-playback error (E.4) from every track, one map per tape (§10.7).
 
 ---
 
@@ -233,10 +237,13 @@ of stage 07.
 ![Pipeline](docs/images/readme_fig02_pipeline.png)
 
 **Figure 2.** Processing stages. The audio path (blue) produces the published WAVs.
-The timing-evidence path (orange) is measured **on the unprocessed originals**,
-because denoising deliberately removes the tones that carry the timing evidence. The
-two paths meet only at stage 05b, where the qualified tape map is applied to the
-stage-04 audio. Dashed boxes are in progress or planned.
+The flutter evidence (orange) is measured **on the unprocessed originals**, because
+denoising deliberately removes the tones that carry it. It meets the audio path only at
+stage 05b, where the qualified tape map is applied to the stage-04 audio. The
+mission-clock evidence (green) places each tape on GET: the respeeded NARA and Internet
+Archive space-to-ground reels and the 1971 transcripts feed the 07a joint fit, and five
+reels carry their own IRIG-B (07i). Stage 07b applies one plan per tape. Dashed boxes are
+planned.
 
 | Stage | Entry point (`scripts/30-track/`)      | Function                                                                  | Archive state                                                    |
 | ----- | -------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------- |
@@ -249,9 +256,9 @@ stage-04 audio. Dashed boxes are in progress or planned.
 | 05a   | `05_deflutter/05a_plan_deflutter.py`   | Compile one timing map per tape                                           | Done; 38 maps in `deflutter_maps/`                               |
 | 05b   | `05_deflutter/05b_deflutter.py`        | Apply the tape map to every stage-04 track                                | Done; 1,139 tracks in `defluttered_shared/`                      |
 | 06    | `06_transcribe/06_transcribe.py`       | Timing transcript of 05b audio (shared engine in `00_common/`)            | Done; words CTC-aligned ([runbook](docs/15_2026-11-22_transcription_runbook.md)) |
-| 07a   | `07_retime/07a_sg_retime.py`           | SG anchors (IA, NARA) and one joint curve per tape on the real-time head row, as shared-layout plans; needs the retimed SG set | v3 code; archive run pending ([SG retiming](docs/20_2026-11-25_sg_retime_30track.md), [head rows](docs/23_2026-11-26_head_rows_and_real_time.md)) |
-| 07i   | `07_retime/07i_irig_retime.py`         | Plans from the IRIG-B time code on delivered CH30 (hybrid with 07a evidence) | v1 plans for 5 tapes; v2 refit pending the v3 anchors ([time-code retime](docs/22_2026-11-26_irig_timecode_retime.md)) |
-| 07b   | `07_retime/07b_retime.py`              | Apply the tape plan (07i, else 07a) to every track, moving later-row channels earlier by their measured stagger; write the 06 transcript on the output clock | Checked on T510075 CH28-CH30; archive run pending |
+| 07a   | `07_retime/07a_sg_retime.py`           | SG anchors (IA, NARA) and journal anchors (TEC/AFJ) pooled into one joint curve per tape on the real-time head row, as shared-layout plans | Done; plans for all 38 tapes (`fit-4c59ce211a77c83c`; [SG retiming](docs/20_2026-11-25_sg_retime_30track.md), [head rows and fit](docs/23_2026-11-26_head_rows_and_real_time.md)) |
+| 07i   | `07_retime/07i_irig_retime.py`         | Plans from the IRIG-B time code on delivered CH30 (hybrid with 07a evidence) | Done; v2 plans for 5 tapes ([time-code retime](docs/22_2026-11-26_irig_timecode_retime.md)) |
+| 07b   | `07_retime/07b_retime.py`              | Apply the tape plan (07i, else 07a) to every track, moving later-row channels earlier by their measured stagger; write the 06 transcript on the output clock and check the mission transcripts against it | Archive run in progress on Proprius and Genus (§10.7) |
 | 08    | `08_normalize/08_normalize.py`         | Constant gain to a speech-level target; 8 kHz 16-bit dithered delivery WAV | Planned ([guide](docs/05_2026-11-13_speech_normalization.md))    |
 | 09    | `09_irig/irig_search.py`               | Standalone IRIG time-code search (delivered CH01–CH04)                    | Not integrated; the CH30 decode of stage 10 supersedes it        |
 | 10    | `10_channelid/10_channelid.py`         | True track-sheet channel of every delivered channel; missing-track inventory | v2 maps with head-row and carrier evidence in `shared-v2/`; not yet applied ([§9](#9-channel-identification-stage-10), [§10.5](#105-which-head-row-is-real-time)) |
@@ -826,8 +833,8 @@ hum gives only a median speed per reel (E.4). Two techniques put a tape on missi
 
 - **Stage 07i** retimes the five tapes whose IRIG-B survives on delivered CH30 from that time
   code. Its plans are built.
-- **Stage 07a** retimes every tape from the space-to-ground (SG) reels. It is built but has not
-  had its archive run.
+- **Stage 07a** retimes every tape from the space-to-ground (SG) reels and, where those do not
+  reach, from the 1971 transcripts directly (§10.6). Its plans cover all 38 tapes.
 
 Both follow the shared-tape rule: one curve per tape, applied identically by 07b to every channel
 at its canonical origin. The curve is placed on the earlier head row, which is real time. 07b moves
@@ -963,17 +970,14 @@ with the hum:
 - **The SG method can be scored against it.** Against the time code, 07a's text matching has a
   median error of 0.17 s (T510075) and 0.22 s (T510078), and a p90 of 1.47 s and 0.90 s.
 
-**Open items.**
-- *Placement is now direct.* The time code is on the earlier head row, which is on real time
+**Since then.**
+- *Placement is direct.* The time code is on the earlier head row, which is on real time
   (§10.5). The v2 plans (`irig-timing-v2`) take GET from it with no voice offset. The
   0.28–0.36 s "voice offset" measured before is the Internet Archive reel offset, now fitted as
-  `b_k`. The hybrid needs the v3 07a anchors of each tape.
-- *The 05b decode of the other tapes has not run.* `07i_irig_retime.py decode` has run on 05b for
-  T510073 only (no frames: CH30 there carries no 1 kHz carrier, and stage 10 v2 maps it to no
-  track). T510086–T510090 have a weak 1 kHz line (5–11 dB) on CH30 and are worth decoding.
-- *The archive is not yet retimed.* 07b has rendered only check channels: T510075 CH30 into
-  `retiming/irig/A15_T510075/check/`, and CH28/CH29 with the head-row shift into a scratch test
-  root on F:. `retimed/` does not exist yet.
+  `b_k`. The v2 plans are built with the v3 07a anchors of each tape.
+- *No other tape has time code.* The weak 1 kHz line (5–11 dB) on CH30 of T510086–T510090 was
+  decoded from the 05b audio: no frames. T510073 has no carrier at all.
+- *The archive run has started* (§10.7).
 
 ### 10.4 Space-to-ground anchors for tapes without time code (stage 07a, built, archive run pending)
 
@@ -1021,21 +1025,21 @@ Provisional pilot (the five tapes aligned on 2026-11-25, scratch root):
 
 On IA tapes, the IA reels' own clocks now limit the result, not the word times. The SG
 reference covers 71 % of the delivered tape-hours by GET span. Nothing covers GET 7–9, 15–25
-and 40–49 h, 653-AAA, or the time after 286 h. There the curve relies on Quindar alone, because
-the hum witness is not implemented.
+and 40–49 h, 653-AAA, or the time after 285.8 h. In the first full fit the curve only
+extrapolated there; §10.6 describes how the transcripts now anchor those spans.
 
 **Status.**
-- *What exists.* The stage-06 word alignment is complete (18,675 channel-hours). A v3 SG
-  reference and v3 anchors exist for T510075. Earlier v2 anchors exist for T510073, T510078 and
-  T510100–T510110 and serve as evidence only. No fit edition (`sg_fit/`) exists yet.
+- *Archive run done.* SG reference, v3 anchors, audio refinement and Quindar exist for every
+  tape. The joint fit `fit-4c59ce211a77c83c` gives plans for all 38 tapes. T510111 and T510112
+  have no SG reference at all, so their anchors come from the transcripts alone (§10.6).
 - *What changed in v3* (§10.5):
   - the curve is placed on the earlier, real-time head row;
   - NARA voice rows are corrected;
   - IA offsets have prior mean −0.42 s;
   - time-coded tapes add their time code to the joint fit;
   - `--scratch` stages audio for `refine`/`quindar`.
-- *Open decisions.* Feedback of `b_k` into the IA drift map, rate bounds, the uncovered spans, and
-  the free voice offset of NARA 655-AAA.
+- *Open decisions.* Feedback of `b_k` into the IA drift maps, rate bounds, the free voice offset
+  of NARA 655-AAA, and the weight of IA events on reels whose drift maps are poor (§10.6).
 
 ### 10.5 Which head row is real time
 
@@ -1107,6 +1111,106 @@ is one curve, so it can put only one set exactly on mission time.
   per 30-minute interval from the 07a stagger tables, and ramps a change over 600 s. Neither the
   delivered channel number nor a static map gives the row.
 
+### 10.6 Fitting the archive: level gaps and journal anchors
+
+[Guide](docs/23_2026-11-26_head_rows_and_real_time.md#level-gaps-sg_levelspy-level-gaps-v1).
+The first full 07a fit (`fit-fee097094a89eb4c`) showed two weaknesses of fitting against the SG
+reels alone. Both are fixed in the fit that 07b applies, without rebuilding any upstream
+evidence (`sg_levels.py` and `sg_journal.py` wrap the fit only).
+
+**Level gaps.** Across hours of tape with no anchor, the curve's rate is only weakly
+constrained: 0.03 % over six hours is 6.5 s. The first fit carried that drift into the IA
+segment offsets, which reached −7.9 to +6.5 s on the IA-only tapes T510079–T510097, although
+each segment follows its own IA audio within 0.03–0.08 s.
+- Where anchors are more than 1 h apart and an island on either side has no NARA or time code,
+  the two sides get separate GET levels. The IA-sided island is placed by its own segments.
+- The step is spread over the gap as a smoothstep in the rate, so the timing map stays continuous
+  and monotone. It adds at most 0.09 % to the rate.
+- The final solve is conditioned on GET minus a unit-rate line. Without that, GET-sized values
+  (6×10⁵ s) lose precision at large smoothing.
+- What remains: some seamless reel joins need steps that the journal-fitted IA maps do not
+  agree on. An example is 562 → 563 on T510088/T510089, which needs 12.5 s.
+
+**Journal anchors.** The SG reference has no audio for GET 7–9, 15–25 and 40–49 h, 653-AAA,
+or after 285.8 h. The technical air-to-ground transcript (TEC) covers the whole mission, and
+the AFJ's stamps are the TEC times. So the fit now matches their timed rows on the 30-track
+itself, with the technique of the transcript-time check:
+- *Match.* The first four words of a row must be heard as one run, once in the window, and the
+  following words must agree. The window is ±600 s, then ±60 s around the first pass.
+- *Place.* Each match moves onto the real-time head row (§10.5). The channels that heard a row
+  give one event.
+- *Fit.* Events enter the joint fit with σ 0.5 s and one mission-wide offset for the
+  whole-second stamps, which the NARA and time-code tapes calibrate.
+- *Tapes without SG evidence.* T510111 and T510112 get an anchors edition built from the
+  journal matches alone, including their head-row stagger groups (+1.36 and +1.37 s).
+
+![Retiming evidence](docs/images/readme_fig14_retime_evidence.png)
+
+**Figure 14.** What each tape's plan rests on, in 5-minute bins of tape time: the IRIG-B time
+code (07i tapes, in the 07a fit as fixed positions), NARA and Internet Archive space-to-ground
+matches, and the journal (TEC/AFJ) matches. Hatched spans are level gaps, where each side has its
+own GET level and the step is ramped. *Right:* the share of tape time within 10 minutes of an
+anchor, with SG audio only and with the journal anchors.
+
+![Journal anchors](docs/images/readme_fig15_journal_anchors.png)
+
+**Figure 15.** The journal anchors.
+- *(a) Residuals.* Journal events against the fitted curves. On tapes with NARA or time code,
+  the timing is independent of the transcripts: median 0.35 s. That is the whole-second stamp
+  and the recognizer onset.
+- *(b–d) Where the old plans extrapolated.* GET of the new plan minus the plan fitted to SG audio
+  only, with the journal events measured against the old plan. Grey is the span the old plan's
+  SG anchors covered. On T510090 the new plan also moves 5–10 s inside that span, where the
+  journal now pins the IA segment levels.
+- *(e) IA segment offsets* in the three fits: first v3 fit, with level gaps, and with level gaps
+  and journal anchors.
+
+| Result                                                    | Value                                   |
+| --------------------------------------------------------- | --------------------------------------- |
+| Journal events in the fit                                  | 17,496 on 38 tapes                      |
+| Fitted stamp offset (printed minus true GET)               | −0.310 ± 0.008 s                        |
+| Journal residual, tapes with NARA or time code             | median 0.35 s, p90 1.08 s (4,668 events) |
+| Their curves moved by                                      | under 0.2 s, apart from local gaps      |
+| Largest plan corrections                                   | T510105 541 s, T510110 208 s, T510090 78 s |
+| Tape time within 10 min of an anchor                       | 54.7 % → 62.6 %                         |
+| IA segments more than 0.35 s from the prior                | 51 (first fit) → 36                     |
+| Tapes with a plan                                          | 36 → 38 (T510111, T510112)              |
+
+- **The transcripts confirm the mis-dated reels.** T510111 is anchored from tape hour 5.8
+  (GET 286.6 h); the transcripts have no rows at all in 278–286 h. T510112 runs through
+  entry and splashdown. Both mis-dated reels land within about a minute of their inferred
+  placement (E.6).
+- **The remaining IA offsets are IA drift-map errors.** 561:2 and 562 stay at −7 s, but they are
+  now measured against journal events. They are errors in the IA drift maps and no longer move
+  the 30-track GET.
+- **Open: the IA-only tapes.** On T510090–T510095 journal residuals are 0.9 s median. There, tens
+  of thousands of IA events (σ 0.15 s) still set the curve's shape, on reels whose drift maps have
+  held-out errors of 2–3.5 s.
+
+The 07a review (`research/event_check/fit_review.py`) still lists two NARA bins at 217:00
+and 251:00. They are not row switches: only scattered text matches move there, while the
+audio anchors stay at zero.
+
+### 10.7 Rendering the archive on two machines (stage 07b)
+
+[Guide](docs/23_2026-11-26_head_rows_and_real_time.md#archive-run). One command on Proprius
+renders every tape:
+- *Queue.* It starts a Genus worker over SSH, and both hosts take whole tapes from a queue on
+  the archive disk.
+- *Disk.* Each host renders from verified local copies. Every archive copy holds one lock, so the
+  archive HDD sees one sequential stream.
+- *Network.* Genus mounts the Proprius shares from its 2.5 Gbit/s interface (`srcaddr` in
+  `/etc/fstab`). It reads at about 160 MB/s; without the setting the mount ran over Wi-Fi.
+- *Progress.* A live dashboard shows overall progress, the measured rate and ETA, each machine's
+  workers, the tapes in progress and every channel in flight. Each host writes its state to
+  `retimed/.queue/hosts/` every 2 s, so `retime_dashboard.py` can watch from any terminal.
+- *Stopping.* Ctrl-C or `07b_retime.py --stop` from any terminal stops both hosts within
+  seconds. The hosts release their unfinished tapes, and rerunning the command resumes.
+
+With 12 workers on Proprius (Ryzen 9 9950X3D) and 16 on Genus (Ryzen 9 5900XT), the two
+hosts render about 620 audio hours per hour together. A channel takes about 13 min on
+Proprius and 30 min on Genus. The 18,675 track-hours take about 30 hours.
+
 ---
 
 ## Appendix A. Setup and commands
@@ -1131,13 +1235,18 @@ uv run python scripts/30-track/10_channelid/10_channelid.py shared              
 uv run python scripts/30-track/10_channelid/10_channelid.py show A15_T510085
 ```
 
-Stage 07i (time-code tapes) and its application:
+Stages 07a, 07i and 07b (retiming):
 
 ```powershell
+uv run python scripts/run.py 07a_sg_retime.py run --all-tapes --scratch F:/Apollo_15_30-Track/work/sg_audio --workers 8   # SG reference, anchors, refine, Quindar, fit
+uv run python scripts/run.py 07a_sg_retime.py fit --all-tapes          # refit only (level gaps, journal anchors; ~6 min)
+uv run python research/event_check/fit_review.py                         # review the newest fit
 uv run python scripts/run.py 07i_irig_retime.py decode --all-tapes      # 05b CH28-CH30 of every tape
 uv run python scripts/run.py 07i_irig_retime.py fit --all-tapes         # plans where time code exists
-uv run python scripts/run.py 07i_irig_retime.py status --all-tapes
-uv run python scripts/run.py 07b_retime.py --all-tapes --all-channels --workers 8 --genus-workers 12   # every tape, Proprius + Genus (queue)
+uv run python research/event_check/plan_inventory.py                     # which plan 07b applies to each tape
+uv run python scripts/run.py 07b_retime.py --all-tapes --all-channels --workers 12 --genus-workers 16   # every tape, Proprius + Genus, live dashboard
+uv run python scripts/run.py retime_dashboard.py                         # watch the render from any terminal
+uv run python scripts/run.py 07b_retime.py --stop                         # stop both hosts; rerun the render command to resume
 uv run python scripts/run.py 07b_retime.py --tape A15_T510075 --all-channels --scratch F:/Apollo_15_30-Track/work/retime   # one tape here
 #   prefers the 07i plan (--no-irig skips it); moves later-row channels onto real time (head_rows.json);
 #   --scratch stages audio on F: so D: sees one sequential copy at a time (docs/23)
@@ -1161,6 +1270,7 @@ uv run python research/readme_figures/inventory.py         # reels, coverage, pl
 uv run python research/readme_figures/hum_levels.py        # hum power figures quoted in E.3
 uv run python research/readme_figures/channel_maps.py      # stage-10 maps in memory -> channel_maps.json (§9)
 uv run python research/readme_figures/irig_retime.py       # IRIG before/after, NARA 640 + 30-track CH30 -> irig_retime.json (§10; reads the 07i plans, decodes the check WAV once)
+uv run python research/readme_figures/retime_evidence.py   # 07a evidence per tape, journal anchors, IA offsets of three fits -> retime_evidence.json (§10.6)
 uv run --with matplotlib python research/readme_figures/make_figures.py            # all, or name figures
 ```
 
@@ -1188,11 +1298,12 @@ current editions.
 | `F:/…/deflutter_detection_census/<run-id>/`   | Census blocks, joined streams, cluster state                   |
 | `F:/…/deflutter_alignment/`                   | Stage-02 capture-offset reports                                |
 | `timing_transcripts/`                         | Stage-06 transcript store                                      |
-| `stage_evidence/retiming/`                    | Stage-07a SG reference, anchors, fits and per-tape plans (anchors for 2 tapes; no fit yet) |
+| `stage_evidence/retiming/`                    | Stage-07a SG reference, per-tape `sg_anchors/` (SG and journal anchors editions), `sg_fit/` fits with one plan per tape |
 | `stage_evidence/retiming/irig/<tape>/`        | Stage-07i `decode/`, `fit-<digest>/` plans (5 tapes) and the 07b `check/` channel |
 | `channel_id/`                                 | Stage-10 `evidence/`, `glm/`, `irig_nara/`, per-tape `maps/` and `labels/`; final maps in `shared/` |
 | `F:/Apollo_15_data/processing/sg_nara/`       | NARA IRIG surveys, alignment, maps and respeeded WAVs          |
-| `retimed/<tape>/CHnn/`                        | Stage-07b `retimed.wav`, `retime.json`, `timed_transcript.tsv` |
+| `retimed/<tape>/CHnn/`                        | Stage-07b `retimed.wav`, `retime.json`, `timed_transcript.tsv`, `transcript_times.tsv`; `retimed/<tape>/head_rows.json` |
+| `retimed/.queue/`, `retimed/.logs/`           | Two-host tape queue (claims, done, failed, `hosts/<host>.json` status, `stop`) and coordinator logs |
 | `normalized/<tape>/CHnn/`                     | Stage-08 `normalized.wav` (8 kHz, 16-bit), `normalization.json` |
 
 Recordings and outputs are not distributed with the source. `reports/`, `runs/` and
@@ -1213,7 +1324,7 @@ archive records are authoritative.
 | Crosstalk                   | [stage 04](docs/06_2026-11-13_crosstalk_stage.md) |
 | Shared map and capture alignment | [shared de-flutter](docs/08_2026-11-15_shared_deflutter.md) |
 | Census and qualification    | [design](docs/09_2026-11-15_deflutter_detection_guide.md), [census](docs/10_2026-11-15_deflutter_detection.md), [qualification](docs/13_2026-11-17_deflutter_qualification.md) |
-| Stages 06–08                | [transcription](docs/15_2026-11-22_transcription_runbook.md), [SG retiming](docs/20_2026-11-25_sg_retime_30track.md), [time-code retime](docs/22_2026-11-26_irig_timecode_retime.md), [normalization and delivery](docs/05_2026-11-13_speech_normalization.md) |
+| Stages 06–08                | [transcription](docs/15_2026-11-22_transcription_runbook.md), [SG retiming](docs/20_2026-11-25_sg_retime_30track.md), [time-code retime](docs/22_2026-11-26_irig_timecode_retime.md), [head rows, fit and archive run](docs/23_2026-11-26_head_rows_and_real_time.md), [transcript times](docs/24_2026-11-27_transcript_times.md), [normalization and delivery](docs/05_2026-11-13_speech_normalization.md) |
 | SG and documents            | [mission data](docs/16_2026-11-23_mission_data_ingestion.md), [flight plan](docs/17_2026-11-23_flight_plan_ingestion.md), [audio inventory](docs/18_2026-11-24_audio_inventory.md), [NARA flight tapes](docs/19_2026-11-24_nara_flight_tapes.md) |
 | Retired guides              | Local copies in `archive/docs_retired_20261115/` and `archive/docs_retired_20261126/` (denoise v2 plan and rollout, crosstalk research, script layout, Nov 15 status, deflutter next steps, mission timing plan) |
 | Channel identification      | No guide yet; module docstrings in `scripts/30-track/10_channelid/` and §9 |
