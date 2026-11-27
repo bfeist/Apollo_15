@@ -469,6 +469,12 @@ def assign_stagger(pairs, keep, rows, tape_level, groups, curve=None, settings=M
     return out, basis
 
 
+def fitted_segment(seg, kind=None):
+    """Segments whose GET constant is a fitted nuisance offset: IA reels, and NARA tapes of unknown voice row.
+    ``kind``: the source kind, for segment records that do not carry their own."""
+    return seg.get('kind', kind) == 'ia' or bool(seg.get('nuisance'))
+
+
 def tape_events(pairs, keep, stagger, ref_segments, sigma=(0.15, 0.5)):
     """One event per SG word: median reference time over the channels that heard it.
 
@@ -487,7 +493,7 @@ def tape_events(pairs, keep, stagger, ref_segments, sigma=(0.15, 0.5)):
         events.append(dict(ref=r, t=float(np.median(t_ref)), g=float(pairs['g'][idx[0]]), copies=len(idx),
                            channels=sorted({int(c) for c in pairs['channel'][idx]}),
                            spread_s=float(np.ptp(t_ref)), ref_kind=seg['kind'],
-                           bkey=seg['key'] if seg['kind'] == 'ia' else None, source=seg['source'],
+                           bkey=seg['key'] if fitted_segment(seg) else None, source=seg['source'],
                            p=float(np.max(pairs['p'][idx])), aligned=bool(np.all(pairs['aligned'][idx])),
                            sigma_s=sigma[0] if np.all(pairs['aligned'][idx]) else sigma[1]))
     events.sort(key=lambda e: e['t'])

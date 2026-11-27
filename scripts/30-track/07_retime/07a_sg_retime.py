@@ -127,22 +127,36 @@ def current_anchors(args):
     return out
 
 
-def refine(args, found=None):
-    for tape, folder in (found or current_anchors(args)).items():
+def audio_steps(args, found, steps):
+    """The audio steps per tape, reading the tape's WAVs from ``--scratch`` copies when given."""
+    for tape, folder in found.items():
         try:
-            sg_stage.build_refine(tape, folder, args.root, workers=args.workers)
+            if not any(needs(step, tape, folder, args) for step in steps):
+                continue
+            with sg_stage.staged_tape(tape, args.scratch):
+                for step in steps:
+                    if step == 'refine':
+                        sg_stage.build_refine(tape, folder, args.root, workers=args.workers)
+                    else:
+                        sg_stage.build_quindar(tape, folder, args.root, workers=args.workers, include_ia=args.include_ia)
         except (ValueError, RuntimeError, KeyError, OSError) as error:
             print(f'{tape}: BLOCKED {error}', flush=True)
             BLOCKED.append(tape)
+
+
+def needs(step, tape, folder, args):
+    """Whether ``step`` still has to run for this anchors edition (so completed tapes are not staged)."""
+    if sg_stage.load_anchors(folder)[1] is None:
+        return False
+    return sg_stage.latest_child(folder, 'audio' if step == 'refine' else 'quindar') is None
+
+
+def refine(args, found=None):
+    audio_steps(args, found or current_anchors(args), ['refine'])
 
 
 def quindar(args, found=None):
-    for tape, folder in (found or current_anchors(args)).items():
-        try:
-            sg_stage.build_quindar(tape, folder, args.root, workers=args.workers, include_ia=args.include_ia)
-        except (ValueError, RuntimeError, KeyError, OSError) as error:
-            print(f'{tape}: BLOCKED {error}', flush=True)
-            BLOCKED.append(tape)
+    audio_steps(args, found or current_anchors(args), ['quindar'])
 
 
 def fit(args, found=None):
@@ -154,10 +168,9 @@ def fit(args, found=None):
 def run(args):
     ref = reference(args)
     found = anchors(args, ref)
-    if not args.skip_refine:
-        refine(args, found)
-    if not args.skip_quindar:
-        quindar(args, found)
+    steps = [s for s, skip in (('refine', args.skip_refine), ('quindar', args.skip_quindar)) if not skip]
+    if steps:
+        audio_steps(args, found, steps)
     fit(args, found)
 
 
@@ -211,6 +224,9 @@ def main(argv=None):
         s.add_argument('--include-ia', action='store_true', help='quindar: also scan and match the IA reels')
         s.add_argument('--skip-refine', action='store_true', help='run: no audio refinement')
         s.add_argument('--skip-quindar', action='store_true', help='run: no Quindar step')
+        s.add_argument('--scratch', type=Path,
+                       help='refine/quindar/run: read the 05b WAVs of each tape from verified copies on this local disk '
+                            '(F: on Proprius, the SSD on Genus), copied one file at a time')
     args = p.parse_args(argv)
     try:
         if args.command != 'status':

@@ -41,6 +41,14 @@ INVENTORY = REPO / 'research' / 'readme_figures' / 'inventory.json'
 DRIFT_MAPS = REPO / 'catalog' / 'sg_drift' / 'sg_drift_maps.json'
 IA_AUDIO_ROOT = Path(os.environ.get('A15_SG_ROOT', 'F:/Apollo_15_data/raw/audio/Internet Archive'))
 NARA_RESPEED_ROOT = Path(os.environ.get('A15_NARA_RESPEED_ROOT', PROCESSING_ROOT / 'sg_nara' / 'respeed'))
+NARA_VOICE_OFFSETS = REPO / 'catalog' / 'nara_voice' / 'nara_voice_offsets.json'
+# IA reel GET minus true GET, where the truth is known: -0.44 (608), -0.50 (640), -0.52 (641) against
+# row-corrected NARA voice and -0.36/-0.28 against the T510075/T510078 time code (docs/23). The IA
+# segment offsets b_k are fitted with this prior mean and their own held-out sigma.
+IA_OFFSET_PRIOR_MEAN_S = -0.42
+# Archive WAV path -> verified local copy (same bytes and mtime) while a step reads audio from scratch
+# (sg_stage.staged_tape). Identities (size, mtime, review checksum) are unchanged by staging.
+STAGED_WAVS: dict[str, str] = {}
 
 
 @dataclass(frozen=True)
@@ -278,7 +286,8 @@ def tape_channels(tape: str, store: TranscriptStore = STORES['tape'], deflutter_
         channel = int(review['channel'])
         review_sha = sha256_file(review_path)
         row = dict(tape=tape, channel=channel, review_path=str(review_path), review_sha256=review_sha,
-                   wav=str(folder / 'deflutter.wav'), origin_s=float(review['start_seconds']),
+                   wav=STAGED_WAVS.get(str(folder / 'deflutter.wav'), str(folder / 'deflutter.wav')),
+                   archive_wav=str(folder / 'deflutter.wav'), origin_s=float(review['start_seconds']),
                    acquisition_start_s=review['source'].get('acquisition_start_seconds'),
                    duration_s=review['frames'] / review['sample_rate'], sample_rate=review['sample_rate'],
                    map_sha256=review.get('map_sha256'), plan_sha256=review.get('plan_sha256'),
@@ -372,15 +381,22 @@ def ia_sources(maps_path: Path = DRIFT_MAPS, store: TranscriptStore = STORES['ia
             segments.append(dict(key=f"ia:{reel['reel']}:{s['segment']}", kind='ia', source=reel['reel'],
                                  source_start_s=a, source_end_s=b, constant_s=c,
                                  get_start_s=float(a + drift(reel, a) + c), get_end_s=float(b + drift(reel, b) + c),
-                                 prior_sigma_s=float(reel.get('cv_mae_s') or 2.0), anchors=s.get('anchors')))
+                                 prior_sigma_s=float(reel.get('cv_mae_s') or 2.0), prior_mean_s=IA_OFFSET_PRIOR_MEAN_S,
+                                 anchors=s.get('anchors')))
         out.append(dict(kind='ia', name=reel['reel'], identity_dir=str(identity) if identity else None,
                         audio=str(IA_AUDIO_ROOT / reel['file']), audio_sha256=reel['sha256'], reel=reel,
                         segments=segments))
     return out
 
 
-def nara_sources(root: Path = NARA_RESPEED_ROOT, store: TranscriptStore = STORES['nara']) -> list[dict]:
-    """NARA flight tapes with IRIG placement: GET = output seconds + segment constant."""
+def nara_sources(root: Path = NARA_RESPEED_ROOT, store: TranscriptStore = STORES['nara'],
+                 voice_path: Path = NARA_VOICE_OFFSETS) -> list[dict]:
+    """NARA flight tapes on GET: output seconds + the time-code constant, minus the voice-row lag.
+
+    The respeed record places the mix at the GET of its time code. Its voice can come from a track
+    on the other head row, 0.683 s late (catalog/nara_voice; docs/23). Each segment carries the
+    corrected ``constant_s`` and keeps the time-code one as ``timecode_constant_s``."""
+    voice_offsets = load_voice_offsets(voice_path)
     out = []
     for folder in sorted(Path(root).glob('255-PAOa-*')):
         short = folder.name.removeprefix('255-PAOa-')
@@ -396,16 +412,58 @@ def nara_sources(root: Path = NARA_RESPEED_ROOT, store: TranscriptStore = STORES
         for p in sorted(base.iterdir()) if base.is_dir() else []:
             if (p / 'source.json').is_file() and read_json(p / 'source.json')['identity'].get('review_sha256') == meta_sha:
                 identity = p
+        voice = voice_offsets['tapes'].get(short, {})
         segments = []
         for k, s in enumerate(meta['segments']):
             c = float(s['get_equals_output_plus_s'])
             a, b = float(s['output_start_s']), float(s['output_end_s'])
-            segments.append(dict(key=f'nara:{short}:{k}', kind='nara', source=short, source_start_s=a, source_end_s=b,
-                                 constant_s=c, get_start_s=a + c, get_end_s=b + c, prior_sigma_s=None,
-                                 untimed_before_s=s.get('untimed_before_s'), untimed_after_s=s.get('untimed_after_s')))
+            pieces = voice_pieces(voice, a, b, c)
+            for j, (pa, pb, late) in enumerate(pieces):
+                cc = c - late
+                nuisance = voice.get('voice_late_s', 0.0) is None
+                segments.append(dict(key=f'nara:{short}:{k}' + (f'.{j}' if len(pieces) > 1 else ''), kind='nara',
+                                     source=short, source_start_s=pa, source_end_s=pb, constant_s=cc,
+                                     get_start_s=pa + cc, get_end_s=pb + cc,
+                                     prior_sigma_s=float(voice['prior_sigma_s']) if nuisance else None,
+                                     prior_mean_s=0.0 if nuisance else None, nuisance=nuisance,
+                                     timecode_constant_s=c, voice_late_s=late,
+                                     untimed_before_s=s.get('untimed_before_s') if j == 0 else None,
+                                     untimed_after_s=s.get('untimed_after_s') if j == len(pieces) - 1 else None))
         out.append(dict(kind='nara', name=short, identity_dir=str(identity) if identity else None,
                         audio=str(folder / meta['outputs']['mix']['file']), respeed=str(meta_path),
-                        respeed_sha256=meta_sha, sample_rate=meta['sample_rate'], segments=segments))
+                        respeed_sha256=meta_sha, sample_rate=meta['sample_rate'], segments=segments,
+                        voice_offsets_sha256=voice_offsets['sha256'], voice=voice))
+    return out
+
+
+def load_voice_offsets(path: Path = NARA_VOICE_OFFSETS) -> dict:
+    """The reviewed NARA voice-row table (catalog/nara_voice), with its checksum."""
+    table = read_json(path)
+    table['sha256'] = sha256_file(path)
+    return table
+
+
+def voice_pieces(voice: dict, a: float, b: float, c: float) -> list[tuple[float, float, float]]:
+    """Split output seconds [a, b] (GET = out + c on the time code) where the voice row changes.
+
+    Returns (start, end, voice_late_s) pieces; the tape value applies outside its intervals. A tape
+    whose value is unknown (None) is placed at 0 here and fitted with a free offset."""
+    base = voice.get('voice_late_s')
+    base = 0.0 if base is None else float(base)
+    cuts = []
+    for iv in voice.get('intervals', []):
+        lo, hi = float(iv['get_from_s']) - c, float(iv['get_to_s']) - c
+        if hi > a and lo < b:
+            cuts.append((max(lo, a), min(hi, b), float(iv['voice_late_s'])))
+    cuts.sort()
+    out, x = [], a
+    for lo, hi, late in cuts:
+        if lo > x:
+            out.append((x, lo, base))
+        out.append((lo, hi, late))
+        x = hi
+    if x < b:
+        out.append((x, b, base))
     return out
 
 

@@ -202,8 +202,13 @@ def render_stream(source, output, input_times, output_times, speed, *, block_sec
                 resampler='255-tap Kaiser antialias; 8x FIR/cubic; 512-sample halo; global inverse map')
 
 
-def retime(source, destination, candidates_path=None, bandwidth=None, progress=print, *, shared_plan=None):
-    """Render at unity gain; stage 08 sets the one delivery gain."""
+def retime(source, destination, candidates_path=None, bandwidth=None, progress=print, *, shared_plan=None,
+           row_shift=None, read_from=None):
+    """Render at unity gain; stage 08 sets the one delivery gain.
+
+    ``row_shift``: head-row knots of this channel (head_rows.row_plan), applied through the tape map.
+    ``read_from``: a verified local copy of ``source`` (same bytes and mtime) to read the audio from;
+    ``source`` stays the recorded input (stage staging, 07b ``--scratch``)."""
     source, destination = Path(source).resolve(), Path(destination).resolve()
     if source.is_dir():
         if (source/'deflutter.wav').is_file():
@@ -226,8 +231,15 @@ def retime(source, destination, candidates_path=None, bandwidth=None, progress=p
         if candidates_path is not None or bandwidth is not None:
             raise ValueError('A frozen tape plan cannot be combined with per-channel candidates or smoothing overrides')
         from quindar_tape import target_map
-        shared = target_map(shared_plan, source)
+        shared = target_map(shared_plan, source, row_shift)
         settings.update(method='frozen_shared_tape_quindar_curve', shared_plan=shared[4])
+    audio_path = source
+    if read_from is not None:
+        read_from = Path(read_from).resolve()
+        st, sr = read_from.stat(), source.stat()
+        if (st.st_size, st.st_mtime_ns) != (sr.st_size, sr.st_mtime_ns):
+            raise ValueError(f'Staged copy {read_from} differs from {source}')
+        audio_path = read_from
     with planning_lock(destination):
         if destination.exists() and any(destination.iterdir()):
             manifest = destination/'retime.json'
@@ -241,7 +253,7 @@ def retime(source, destination, candidates_path=None, bandwidth=None, progress=p
             for filename, digest in old['artifacts'].items():
                 if hashlib.sha256((destination/filename).read_bytes()).hexdigest() != digest:
                     raise ValueError(f'Retiming artifact changed: {filename}')
-            if verify_audio(destination/'retimed.wav') != old['audio'] or verify_audio(source)['decoded_float32_sha256'] != old['input_audio']['decoded_float32_sha256']:
+            if verify_audio(destination/'retimed.wav') != old['audio'] or verify_audio(audio_path)['decoded_float32_sha256'] != old['input_audio']['decoded_float32_sha256']:
                 raise ValueError('Retimed audio or source content changed')
             progress('Reusing verified retimed output')
             return old
@@ -282,14 +294,14 @@ def retime(source, destination, candidates_path=None, bandwidth=None, progress=p
                 writer = csv.DictWriter(f, fieldnames=list(model['anchors'][0]))
                 writer.writeheader()
                 writer.writerows(model['anchors'])
-            record.update(input_audio=verify_audio(source), anchor_count=len(model['anchors']),
+            record.update(input_audio=verify_audio(audio_path), anchor_count=len(model['anchors']),
                           curve_duration_seconds=model['output_duration_seconds'],
                           curve_validation=model['chosen_validation'], coverage=model['support'],
                           playback_multiplier_range=[float(1/max(speed)), float(1/min(speed))],
                           implementation_sha256=hashlib.sha256(Path(__file__).read_bytes()+Path(__file__).with_name('quindar_speed.py').read_bytes()).hexdigest())
             progress(f'{len(model["anchors"])} Quindar anchors; {model["kernel_sigma_seconds"]/60:g}-minute smoothing; output {nominal[-1]:.3f}s')
             temporary = destination/'retimed.partial.wav'
-            record['render'] = render_stream(source, temporary, tt, nominal, speed, progress=progress)
+            record['render'] = render_stream(audio_path, temporary, tt, nominal, speed, progress=progress)
             audio = verify_audio(temporary)
             if audio['frames'] != round(nominal[-1]*signature['sample_rate']):
                 raise ValueError('Rendered frame count disagrees with timing map')

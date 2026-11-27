@@ -20,9 +20,8 @@ Steps (artifacts under ``RETIMING_ROOT/irig/<tape>/``):
    is *covered* and defines the curve. Everywhere else:
 
    * if a complete 07a anchors edition exists for the tape (hybrid), the SG text, audio and
-     Quindar evidence is fitted together with time-code positions (``sg_curve``; the time-code
-     track's GET offset from the voice reference group is a nuisance with prior
-     ``IRIG_OFFSET_PRIOR_S``). Across an uncovered gap inside a segment that curve is corrected by
+     Quindar evidence is fitted together with time-code positions (``sg_curve``; the anchors are
+     on the earlier, real-time row, the time-code row, so no offset enters). Across an uncovered gap inside a segment that curve is corrected by
      a cubic Hermite term so value and rate meet the time code at both edges exactly; before
      the first and after the last frame the correction decays over ``TAIL_DECAY_S``;
    * without SG evidence, gaps are bridged by a cubic Hermite in GET (value and rate continuous)
@@ -32,8 +31,10 @@ Steps (artifacts under ``RETIMING_ROOT/irig/<tape>/``):
    it like a 07a plan: ``fit-<digest>/plan.json``, ``curve.json``, ``timing_map.npz``.
 
 GET placement: ``GET = output seconds + get_equals_output_plus_s`` per recorder segment, for the
-voice reference stagger group when the hybrid measured the time-code track's offset from it;
-without SG evidence the placement is that of the time-code track (flagged).
+earlier head row. The time code (true CH01) is on that row, which is on real time (docs/23), so
+its GET applies with no offset; channels of the later row are moved earlier by 07b
+(``head_rows``). The SG events' offset against the time code is the IA reel offset and is a
+diagnostic (``timecode_minus_sg_events``).
 """
 from __future__ import annotations
 
@@ -51,7 +52,8 @@ import numpy as np
 import sg_curve
 from sg_inputs import RETIMING_ROOT, read_json, sha256_file, tape_channels, write_json
 
-VERSION = 'irig-timing-v1'
+VERSION = 'irig-timing-v1'          # decode records (unchanged)
+PLAN_VERSION = 'irig-timing-v2'     # v2: the time-code row is the real-time reference (docs/23); no voice offset
 IRIG_ROOT = RETIMING_ROOT / 'irig'
 DECODE_CHANNELS = (28, 29, 30)
 MIN_STRICT = 1000
@@ -299,7 +301,8 @@ def latest_anchors(tape, root=RETIMING_ROOT):
     base = Path(root) / tape / 'sg_anchors'
     found = [p for p in base.iterdir() if p.is_dir() and p.name.startswith('anchors-') and sg_stage.complete(p)] \
         if base.is_dir() else []
-    found = [p for p in found if read_json(p / 'manifest.json').get('status') == 'complete']
+    found = [p for p in found if read_json(p / 'manifest.json').get('status') == 'complete'
+             and read_json(p / 'manifest.json').get('version') == sg_stage.VERSION]
     return max(found, key=lambda p: p.stat().st_mtime) if found else None
 
 
@@ -312,16 +315,19 @@ def hybrid_fit(tape, curve: IrigCurve, anchors: Path, duration, root=RETIMING_RO
     ref = read_json(Path(root) / 'sg_reference' / manifest['reference'] / 'manifest.json')
     bprior = sg_stage.bprior_of(ref['segments'])
     launch = _nara()[1].RANGE_ZERO_S
+    # The time code is on the earlier head row, which is the real-time row the 07a anchors are
+    # placed on (docs/23): its GET applies to that row with no offset. What SG events show against
+    # it is the IA reel offset (fitted as b_k) and is kept as a diagnostic only.
     offset = timecode_offset(curve, ev, launch)
     if offset['offset_s'] is None:
         return None, None, dict(status='no SG events inside the time code', anchors=anchors.name, offset=offset)
-    b_irig = offset['offset_s']
+    b_irig = 0.0
     ts, gs = [], []
     for k, s in enumerate(curve.segments):
         for a, b in s['covered']:
             x = np.arange(a, b, SAMPLE_S)
             ts.append(x)
-            gs.append(curve.gmt(k, x) - launch - b_irig)      # voice reference-group GET
+            gs.append(curve.gmt(k, x) - launch - b_irig)      # real-time (earlier) row GET
     ts, gs = np.concatenate(ts), np.concatenate(gs)
     cuts = sorted(set(cut_points(curve)) | {c for c in ev.cuts if not near_coverage(curve, c)})
     comb = sg_curve.TapeEvidence(
@@ -348,10 +354,10 @@ def hybrid_fit(tape, curve: IrigCurve, anchors: Path, duration, root=RETIMING_RO
             check[label] = dict(events=int(m.sum()), median_s=float(np.median(r)), median_abs_s=float(np.median(np.abs(r))),
                                 p90_abs_s=float(np.percentile(np.abs(r), 90)))
     log(f'{tape}: hybrid with {int(sg_sel.sum()):,} SG events and {len(ts):,} time-code positions; lambda {lam:g}; '
-        f'time-code track minus voice reference group {b_irig:+.3f} s (+/- {offset["uncertainty_s"]:.3f}, '
-        f'{offset["basis"]})')
+        f'SG events against the time code {offset["offset_s"]:+.3f} s (+/- {offset["uncertainty_s"]:.3f}, '
+        f'{offset["basis"]}; the IA reel offset, fitted as b_k)')
     return fitted, b_irig, dict(status='fitted', anchors=anchors.name, evidence=used, lam=lam, irig_offset_s=b_irig,
-                                irig_offset_uncertainty_s=offset['uncertainty_s'], offset=offset,
+                                timecode_minus_sg_events=offset,
                                 ia_offsets_s={k: float(v) for k, v in sol.b.items()}, sg_events=int(sg_sel.sum()),
                                 irig_positions=int(len(ts)), heldout=validation['heldout'],
                                 sg_against_timecode=check)
@@ -496,7 +502,7 @@ def fit_tape(tape, root=RETIMING_ROOT, use_sg=True, log=print):
     if row is None or decode_current(decode_path(tape, track['channel'], irig_root), row) is None:
         raise ValueError(f'{tape}: time-code decode of CH{track["channel"]:02d} is stale; run decode')
     anchors = latest_anchors(tape, root) if use_sg else None
-    payload = dict(version=VERSION, tape=tape, code=code_sha(), decode=sha256_file(decode_path(tape, track['channel'], irig_root)),
+    payload = dict(version=PLAN_VERSION, tape=tape, code=code_sha(), decode=sha256_file(decode_path(tape, track['channel'], irig_root)),
                    channels=[(c['channel'], c['review_sha256'], c['origin_s']) for c in channels],
                    anchors=anchors.name if anchors else None,
                    settings=dict(bridge_s=BRIDGE_S, sample_s=SAMPLE_S, sigma_s=IRIG_SIGMA_S,
@@ -519,11 +525,8 @@ def fit_tape(tape, root=RETIMING_ROOT, use_sg=True, log=print):
             raise ValueError(f'{tape}: invalid rate')
         output = np.r_[0.0, np.cumsum((rate[1:] + rate[:-1]) / 2 * np.diff(grid))]
         segs = placement(curve, grid, output, duration)
-        voice = b_irig is not None
         for s in segs:
             s['timecode_track_get_equals_output_plus_s'] = s['get_equals_output_plus_s']
-            if voice:
-                s['get_equals_output_plus_s'] -= b_irig
         shares = {k: float(np.sum(source == k) / len(source)) for k in ('timecode', 'bridge', 'hybrid_gap', 'hybrid_tail', 'hold')}
         np.savez_compressed(tmp / 'timing_map.npz', input_seconds=grid, output_seconds=output, recorded_speed_ratio=rate)
         anchors_out = [dict(input_seconds=float(x), get_s=float(curve.gmt(k, x) - _nara()[1].RANGE_ZERO_S), kind='irig')
@@ -556,16 +559,15 @@ def fit_tape(tape, root=RETIMING_ROOT, use_sg=True, log=print):
         if len(origins) != 1:
             raise ValueError(f'{tape}: channels disagree on the tape-clock origin')
         flags = []
-        if not voice:
-            flags.append('GET placement is that of the time-code track; the voice stagger offset was not measured '
-                         '(no 07a anchors edition)')
+        if anchors is None:
+            flags.append('no current 07a anchors edition: gaps and ends are bridged from the time code alone')
         if shares['hold'] + shares['hybrid_tail'] > 0.05:
             flags.append(f"{shares['hold'] + shares['hybrid_tail']:.0%} of the tape is outside the time-code span")
         plan = dict(
             schema=2, status='complete', input_stage='defluttered', tape=tape,
             scope='one time-code tape curve (hybrid with SG evidence outside the time code) applied identically to '
                   'every channel of this tape',
-            method=model['method'], version=VERSION, fit_edition=name,
+            method=model['method'], version=PLAN_VERSION, fit_edition=name,
             evidence=dict(timecode_channel=track['channel'], decode=str(decode_path(tape, track['channel'], irig_root)),
                           strict_frames=track['strict'], frames_rejected=curve.rejected,
                           dropped_segments=curve.dropped_segments,
@@ -574,11 +576,11 @@ def fit_tape(tape, root=RETIMING_ROOT, use_sg=True, log=print):
             complete_defluttered_coverage=all(not c['problem'] for c in channels) and bool(channels),
             reference_count=len(references), references=references, targets=targets, clock_anchor_source=None,
             synchronization_claim=False,
-            get_placement=dict(rule='GET = output seconds + segment get_equals_output_plus_s, for the '
-                                    + ('voice reference stagger group (time-code track offset measured by the hybrid fit)'
-                                       if voice else 'time-code track'),
-                               segments=segs, timecode_track_offset_from_reference_s=b_irig,
-                               reference='voice reference group' if voice else 'time-code track'),
+            get_placement=dict(rule='GET = output seconds + segment get_equals_output_plus_s, for the earlier head row '
+                                    '(the time-code row, real time); a channel of the later row is its stagger late and '
+                                    '07b moves it earlier by it (head_rows.py; docs/23)',
+                               segments=segs, timecode_track_offset_from_reference_s=0.0,
+                               reference='earlier head row (time-code row)'),
             support=support,
             timing_offsets_policy='Capture offsets (stage 02) are in the canonical origins and are preserved. One inverse '
                                   'map for every channel; no channel is fitted, anchored or bypassed alone.',
@@ -588,7 +590,7 @@ def fit_tape(tape, root=RETIMING_ROOT, use_sg=True, log=print):
         plan['artifacts'] = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in tmp.iterdir()
                              if p.name in ('curve.json', 'timing_map.npz')}
         write_json(tmp / 'plan.json', plan)
-        write_json(tmp / 'manifest.json', dict(status='complete', edition=name, step='irig_fit', version=VERSION,
+        write_json(tmp / 'manifest.json', dict(status='complete', edition=name, step='irig_fit', version=PLAN_VERSION,
                                                inputs=payload, tape=tape))
         log(f"{tape}: time code on CH{track['channel']:02d}, {track['strict']:,} strict frames, "
             f"{len(curve.segments)} segment(s), {shares['timecode']:.0%} of tape time from time code, "
@@ -600,11 +602,36 @@ def fit_tape(tape, root=RETIMING_ROOT, use_sg=True, log=print):
 
 
 def irig_plan(tape, fit=None, root=RETIMING_ROOT):
-    """The newest complete 07i plan of ``tape`` (or the named edition), else None."""
+    """The newest complete 07i plan of the current plan version (or the named edition), else None.
+    Plans of earlier versions place GET on another reference row (docs/23) and are not applied."""
     if fit is not None:
         path = Path(fit) / 'plan.json'
         return path if path.is_file() else None
     base = Path(root) / 'irig' / tape
     found = [p for p in base.glob('fit-*') if (p / 'plan.json').is_file() and (p / 'manifest.json').is_file()
-             and read_json(p / 'manifest.json').get('status') == 'complete'] if base.is_dir() else []
+             and read_json(p / 'manifest.json').get('status') == 'complete'
+             and read_json(p / 'manifest.json').get('version') == PLAN_VERSION] if base.is_dir() else []
     return max(found, key=lambda p: (p / 'plan.json').stat().st_mtime_ns) / 'plan.json' if found else None
+
+
+def timecode_positions(tape, root=IRIG_ROOT, step=SAMPLE_S):
+    """Time-code positions for the 07a joint fit: (tape seconds, GET, recorder cuts) on the
+    earlier (real-time) row, every ``step`` seconds inside covered spans; None without time code."""
+    track, _ = timecode_track(tape, root)
+    if track is None:
+        return None
+    rows = {c['channel']: c for c in tape_channels(tape)}
+    row = rows.get(track['channel'])
+    if row is None or decode_current(decode_path(tape, track['channel'], root), row) is None:
+        raise ValueError(f'{tape}: time-code decode of CH{track["channel"]:02d} is stale; run 07i decode')
+    f = np.asarray(track['frames'], float)
+    curve = IrigCurve(f[:, 0], f[:, 1])
+    launch = _nara()[1].RANGE_ZERO_S
+    ts, gs = [], []
+    for k, s in enumerate(curve.segments):
+        for a, b in s['covered']:
+            x = np.arange(a, b, step)
+            ts.append(x)
+            gs.append(curve.gmt(k, x) - launch)
+    return dict(t=np.concatenate(ts), g=np.concatenate(gs), cuts=cut_points(curve), channel=track['channel'],
+                decode_sha256=sha256_file(decode_path(tape, track['channel'], root)), strict=track['strict'])

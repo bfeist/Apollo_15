@@ -7,6 +7,7 @@ collapsed to one vote per event. Original-audio surveys are not accepted.
 from collections import defaultdict
 from itertools import combinations
 import hashlib
+import os
 import json
 from pathlib import Path
 
@@ -288,6 +289,20 @@ def build_shared_plan(folder,bandwidth=None,clock_anchors=None):
         return record
 
 
+def host_path(path):
+    """A recorded archive path on this host: on Linux (Genus) a 'D:' path is '/mnt/d/...'."""
+    s=str(path)
+    if os.name!='nt' and len(s)>=2 and s[1]==':':
+        return Path('/mnt/'+s[0].lower()+s[2:].replace(chr(92),'/'))
+    return Path(s)
+
+
+def same_path(a,b):
+    """Two recorded paths name the same file (case and separators normalized, on any host)."""
+    norm=lambda x: os.path.normcase(str(host_path(x)).replace(chr(92),'/'))
+    return norm(a)==norm(b)
+
+
 def load_shared_plan(path):
     path=Path(path).resolve()
     if path.is_dir():path=path/'plan.json'
@@ -299,10 +314,10 @@ def load_shared_plan(path):
         if artifact.parent!=path.parent or hashlib.sha256(artifact.read_bytes()).hexdigest()!=digest:
             raise ValueError('Shared Quindar timing artifact changed')
     for row in plan['references']:
-        stat=Path(row['path']).stat()
+        stat=host_path(row['path']).stat()
         if (stat.st_size,stat.st_mtime_ns)!=(row['bytes'],row['mtime_ns']):
             raise ValueError('Shared-plan post-deflutter reference changed')
-        if hashlib.sha256((Path(row['path']).parent/'review.json').read_bytes()).hexdigest()!=row['review_sha256']:
+        if hashlib.sha256((host_path(row['path']).parent/'review.json').read_bytes()).hexdigest()!=row['review_sha256']:
             raise ValueError('Shared-plan post-deflutter manifest changed')
     if plan.get('clock_anchor_source'):
         source = plan['clock_anchor_source']
@@ -365,8 +380,11 @@ def differential_displacement(references):
                 interpretation='Applied-map displacement relative to first channel; historical/content offsets are preserved, not authenticated')
 
 
-def target_map(plan_path,source):
-    """Slice the SAME frozen tape map using a target's declared tape-clock start."""
+def target_map(plan_path,source,row_shift=None):
+    """Slice the SAME frozen tape map using a target's declared tape-clock start.
+
+    ``row_shift``: the channel's head-row knots (head_rows.row_plan): a later-row channel is read
+    from the map at its canonical time minus its stagger, i.e. moved earlier onto real time."""
     plan_path=Path(plan_path).resolve()
     if plan_path.is_dir():plan_path=plan_path/'plan.json'
     plan=load_shared_plan(plan_path)
@@ -375,7 +393,7 @@ def target_map(plan_path,source):
     review=json.loads(review_path.read_text())
     if review.get('status')!='complete' or review.get('tape')!=plan['tape']:
         raise ValueError('Target requires a completed stage-05b manifest for this tape')
-    candidates=[r for r in plan['targets'] if r['channel']==review['channel'] and Path(r['path']).resolve()==Path(review['source']['path']).resolve()]
+    candidates=[r for r in plan['targets'] if r['channel']==review['channel'] and same_path(r['path'],review['source']['path'])]
     if len(candidates)!=1:raise ValueError('Target source is not uniquely inventoried on this tape')
     row=candidates[0]; original=review['source']
     if (original['bytes'],original['mtime_ns'])!=(row['bytes'],row['mtime_ns']):
@@ -397,10 +415,21 @@ def target_map(plan_path,source):
         tt,oo,ss=(archive[k] for k in ('input_seconds','output_seconds','recorded_speed_ratio'))
         keep=(tt>start)&(tt<end)
         local_t=np.r_[start,tt[keep],end]
-        global_o=np.interp(local_t,tt,oo)
-        speed=np.interp(local_t,tt,ss)
+        if row_shift is None:
+            global_o=np.interp(local_t,tt,oo)
+            speed=np.interp(local_t,tt,ss)
+            moved=np.zeros(len(local_t))
+        else:
+            from head_rows import shifted_local_map
+            global_o,speed,moved=shifted_local_map(local_t-start,start,row_shift,tt,oo,ss)
+    if np.any(np.diff(global_o)<=0):
+        raise ValueError('Row-shifted timing map is not monotone')
     metadata=dict(path=str(plan_path),sha256=hashlib.sha256(plan_path.read_bytes()).hexdigest(),tape=plan['tape'],
                   input_start_seconds=start,output_start_seconds=float(global_o[0]),
-                  original_head_offsets_preserved=True,channel=review['channel'])
+                  original_head_offsets_preserved=row_shift is None,channel=review['channel'])
+    if row_shift is not None:
+        metadata.update(head_row_shift=dict(knots=row_shift,moved_earlier_s_min=float(moved.min()),
+                                            moved_earlier_s_max=float(moved.max()),
+                                            rule='canonical tape seconds minus the head-row stagger (head_rows.py; docs/23)'))
     model=json.loads((plan_path.parent/'curve.json').read_text())
     return model,local_t-start,global_o-global_o[0],speed,metadata

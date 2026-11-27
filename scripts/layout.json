@@ -149,5 +149,8 @@
   "timed_transcript.py": "30-track/07_retime/timed_transcript.py",
   "07i_irig_retime.py": "30-track/07_retime/07i_irig_retime.py",
   "irig_timing.py": "30-track/07_retime/irig_timing.py",
-  "channelid_rows.py": "30-track/10_channelid/channelid_rows.py"
+  "head_rows.py": "30-track/07_retime/head_rows.py",
+  "staged_io.py": "30-track/07_retime/staged_io.py",
+  "channelid_rows.py": "30-track/10_channelid/channelid_rows.py",
+  "retime_cluster.py": "30-track/07_retime/retime_cluster.py"
 }

@@ -9,7 +9,9 @@ rate, so that across gaps without evidence the rate ramps linearly between its m
 Before the first and after the last position anchor of a tape the rate is held.
 
 ``b_k`` is a nuisance offset for each IA drift-map segment, with prior standard deviation equal to
-the segment's held-out error (``cv_mae_s``). NARA segments are IRIG and held at zero. Tapes that
+the segment's held-out error (``cv_mae_s``) and the calibrated IA prior mean (sg_inputs
+``IA_OFFSET_PRIOR_MEAN_S``). NARA segments are IRIG, corrected for their voice row
+(catalog/nara_voice), and held at zero, except a tape whose voice row is unknown (a free offset). Tapes that
 share an IA segment are fitted jointly, so overlapping recorders and reels measure the IA
 constants against each other and against NARA.
 
@@ -194,8 +196,19 @@ def _layout(tapes, settings):
     return bases, offsets, bindex, n + len(keys)
 
 
+def prior_of(value):
+    """(mean, sigma) of a segment-offset prior given as a sigma or a (mean, sigma) pair."""
+    if value is None:
+        return 0.0, None
+    if isinstance(value, (tuple, list)):
+        return float(value[0] or 0.0), value[1]
+    return 0.0, value
+
+
 def solve(tapes, lambdas, bprior, settings=FIT, masks=None, robust=True):
-    """Fit all ``tapes`` jointly. ``masks[tape]`` selects the position rows used (cross-validation)."""
+    """Fit all ``tapes`` jointly. ``masks[tape]`` selects the position rows used (cross-validation).
+
+    ``bprior[k]`` is the prior of segment offset ``b_k``: a sigma (mean 0) or a (mean, sigma) pair."""
     bases, offsets, bindex, n = _layout(tapes, settings)
     rows_A, rows_y, rows_w, meta = [], [], [], []
     for e in tapes:
@@ -237,16 +250,18 @@ def solve(tapes, lambdas, bprior, settings=FIT, masks=None, robust=True):
         P[off:off + basis.n, off:off + basis.n] = pen
         for j in range(len(e.cuts)):
             P[off + basis.n + j, off + basis.n + j] = 1e-9
+    prior_rhs = np.zeros(n)
     for k, i in bindex.items():
-        sigma = bprior.get(k)
+        mean, sigma = prior_of(bprior.get(k))
         P[i, i] = 1.0 / sigma ** 2 if sigma else 1e6
+        prior_rhs[i] = P[i, i] * mean
     P = P.tocsr()
     w = w0.copy()
     sigmas = 1.0 / np.sqrt(w0)
     pos_rows = np.concatenate([np.full(len(yy), m[1] == 'pos') for yy, m in zip(rows_y, meta)])
     for _ in range(settings['irls'] if robust else 1):
         N = (A.T @ sparse.diags(w) @ A + P).tocsc()
-        x = spsolve(N, A.T @ (w * y))
+        x = spsolve(N, A.T @ (w * y) + prior_rhs)
         r = y - A @ x
         if not robust:
             break

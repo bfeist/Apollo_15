@@ -27,6 +27,7 @@ from __future__ import annotations
 import hashlib
 import shutil
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 import numpy as np
@@ -34,16 +35,18 @@ import numpy as np
 import sg_audio
 import sg_curve
 import sg_match
-from sg_inputs import (DRIFT_MAPS, RETIMING_ROOT, STORES, digest, ia_sources, load_words, nara_sources, read_json,
+import sg_inputs
+from sg_inputs import (DRIFT_MAPS, RETIMING_ROOT, STORES, TAPE_DATA, digest, ia_sources, load_words, nara_sources, read_json,
                        read_tsv, sha256_file, store_state, tape_channels, tape_prior, transcript_state, write_json,
                        write_tsv)
 
-VERSION = 'sg-retime-v2'  # v2: CTC-aligned word times; rescue layers withdrawn
+VERSION = 'sg-retime-v3'  # v3: real-time (earlier) head row as reference; NARA voice rows; IA prior mean; time code
+# v2: CTC-aligned word times; rescue layers withdrawn
 CODE = [Path(__file__).with_name(n) for n in ('sg_stage.py', 'sg_inputs.py', 'sg_match.py', 'sg_curve.py', 'sg_audio.py')]
 TEXT_SIGMA_S = (0.15, 0.5)  # text event sigma: both word times aligned / otherwise (Whisper)
 OPEN_DECISIONS = [
-    'Reference stagger group: the map defines GET for the reference group; the other group stays '
-    'off GET by its stagger (metadata, no per-channel shift).',
+    'Head rows (docs/23): the map defines GET for the earlier head row, which carries the time code and is on real '
+    'time; 07b moves channels of the later row earlier by their measured stagger.',
     'IA map feedback: the fitted IA segment offsets are a proposal only; catalog/sg_drift is unchanged.',
     'Rate bounds: max_rate_change_per_hour is provisional until the T510104 hours 11-16 change is confirmed.',
 ]
@@ -205,7 +208,29 @@ def evidence_from_events(tape, duration, events, cuts, sigma=TEXT_SIGMA_S[1], ki
 
 
 def bprior_of(segments):
-    return {s['key']: s['prior_sigma_s'] for s in segments if s['kind'] == 'ia'}
+    """(mean, sigma) of every fitted segment offset: IA segments and NARA tapes of unknown voice row."""
+    return {s['key']: (s.get('prior_mean_s') or 0.0, s['prior_sigma_s']) for s in segments
+            if s['kind'] == 'ia' or s.get('nuisance')}
+
+
+def rereference_to_real_time(groups, tape_level, rows):
+    """Express every stagger relative to the earlier head row (docs/23).
+
+    ``relative_stagger`` measures stagger from the channel with most pairs, which can sit on either
+    row. The earlier row carries the time code and is on real time, so it becomes 0 and the later
+    row about +1.38 s. Returns the shift subtracted (0 with fewer than two groups: then the row of
+    the single group is not known from stagger and the plan is flagged)."""
+    if len(groups) < 2:
+        return 0.0
+    shift = float(min(groups))
+    groups[:] = [g - shift for g in groups]
+    for v in tape_level.values():
+        v['stagger_s'] -= shift
+    for r in rows:
+        for k in ('stagger_s', 'tape_level_s'):
+            if r.get(k) is not None:
+                r[k] -= shift
+    return shift
 
 
 def capture_offset_flags(pairs, origins, groups, tape_level, tolerance=0.3, minimum_s=2.0, window_s=15.0):
@@ -241,6 +266,7 @@ def pooled_fit(tape, pairs, keep, cuts, duration, segments, log=print, origins=N
     reference_channel = max(counts, key=counts.get)
     tape_level, rows = sg_match.relative_stagger(pairs, keep, reference_channel)
     groups = sg_match.cluster_groups(rows)
+    shift = rereference_to_real_time(groups, tape_level, rows)
     curve = None
     for iteration in range(sg_match.MATCH['stagger_iterations']):
         stagger, basis = sg_match.assign_stagger(pairs, keep, rows, tape_level, groups, curve)
@@ -261,7 +287,7 @@ def pooled_fit(tape, pairs, keep, cuts, duration, segments, log=print, origins=N
     return dict(events=events, evidence=evidence, solution=sol, curve=curve, lam=lam, validation=validation,
                 heldout=heldout, stagger=stagger, stagger_basis=basis, stagger_rows=rows, tape_level=tape_level,
                 groups=groups, reference_group=reference_group, reference_channel=reference_channel, pair_group=pair_group,
-                capture_offset_flags=flags)
+                capture_offset_flags=flags, rereference_shift_s=shift, single_row_group=len(groups) < 2)
 
 
 PAIR_FIELDS = ('channel', 't', 'local_s', 'g', 'd', 'ref', 'src', 'seg', 'p', 'aligned', 'kept', 'stagger_s', 'stagger_basis', 'group')
@@ -344,6 +370,8 @@ def build_anchors(tape, reference_folder, allow_provisional=False, root=RETIMING
                       channel_stagger={str(c): v for c, v in sorted(fit['tape_level'].items())},
                       capture_offset_flags=fit['capture_offset_flags'],
                       reference_group=fit['reference_group'], recorder_cuts_s=cuts, lam=fit['lam'],
+                      reference_row='earlier head row (real time; docs/23)',
+                      rereference_shift_s=fit['rereference_shift_s'], single_row_group=fit['single_row_group'],
                       validation=fit['validation'], supported_fraction=support,
                       prior_offset_s=dict(at_start=float(curve.get(np.array([curve.first_s]))[0] - (prior['get_at_zero_s'] + curve.first_s * prior['rate'])),
                                           at_end=float(curve.get(np.array([curve.last_s]))[0] - (prior['get_at_zero_s'] + curve.last_s * prior['rate']))),
@@ -524,6 +552,36 @@ def build_quindar(tape, anchors, root=RETIMING_ROOT, log=print, workers=8, inclu
     return folder
 
 
+@contextmanager
+def staged_tape(tape, scratch, log=print):
+    """Read a tape's 05b WAVs from verified local copies (``scratch``: F: on Proprius, the SSD on Genus)
+    while the audio steps (refine, quindar) run; the archive disk sees one sequential copy at a time
+    (staged_io.DiskLock). No effect with ``scratch`` None."""
+    if scratch is None:
+        yield
+        return
+    from staged_io import DiskLock, copy_verified
+    local = Path(scratch) / tape
+    mapping = {}
+    try:
+        for c in tape_channels(tape):
+            if c['problem']:
+                continue
+            src = Path(c['archive_wav'])
+            dst = local / src.parent.name / src.name
+            began = time.monotonic()
+            with DiskLock(TAPE_DATA):
+                copy_verified(src, dst)
+            mapping[str(src)] = str(dst)
+            log(f'  {tape} {src.parent.name}: staged ({time.monotonic() - began:.0f} s)')
+        sg_inputs.STAGED_WAVS.update(mapping)
+        yield
+    finally:
+        for k in mapping:
+            sg_inputs.STAGED_WAVS.pop(k, None)
+        shutil.rmtree(local, ignore_errors=True)
+
+
 def latest_child(anchors, step):
     """The newest complete audio/quindar edition under an anchors edition (None if none)."""
     base = Path(anchors) / step
@@ -554,11 +612,21 @@ def tape_evidence(tape, anchors):
             rate['r'].append(_f(w['rate']))
             rate['s'].append(_f(w['sigma']))
         used['quindar'] = quindar.name
+    cuts = list(curve_json['cuts_s'])
+    import irig_timing  # lazy: irig_timing imports this module inside its functions
+    tc = irig_timing.timecode_positions(tape)
+    if tc is not None:
+        # The time code is on the earlier (real-time) row the anchors are placed on: positions at
+        # its own GET, fixed like NARA (docs/23). Its recorder stops join the tape's cuts.
+        for t, g in zip(tc['t'], tc['g']):
+            rows.append(dict(t=float(t), g=float(g), ref_kind='nara', bkey=None, sigma_s=irig_timing.IRIG_SIGMA_S, kind='irig'))
+        cuts = sorted(set(cuts) | {c for c in tc['cuts'] if all(abs(c - x) > irig_timing.BRIDGE_S for x in cuts)})
+        used['timecode'] = dict(channel=tc['channel'], decode_sha256=tc['decode_sha256'], positions=len(tc['t']))
     ev = sg_curve.TapeEvidence(tape=tape, duration=manifest['duration_s'], t=[r['t'] for r in rows], g=[r['g'] for r in rows],
                                sigma=[r['sigma_s'] for r in rows], bkey=[r['bkey'] for r in rows],
                                ref_kind=[r['ref_kind'] for r in rows], kind=[r['kind'] for r in rows],
-                               cuts=curve_json['cuts_s'], rate_t=rate['t'], rate_r=rate['r'], rate_sigma=rate['s'])
-    return ev, manifest, dict(used, curve=curve_json)
+                               cuts=cuts, rate_t=rate['t'], rate_r=rate['r'], rate_sigma=rate['s'])
+    return ev, manifest, dict(used, curve=dict(curve_json, cuts_s=cuts))
 
 
 def plan_record(tape, curve, evidence, manifest, extras, validation, b, fit_name, final, duration):
@@ -567,8 +635,8 @@ def plan_record(tape, curve, evidence, manifest, extras, validation, b, fit_name
     references, targets, origins = [], [], set()
     for c in channels:
         review = read_json(c['review_path'])
-        st = Path(c['wav']).stat()
-        references.append(dict(id=f"{tape}:CH{c['channel']:02d}", channel=c['channel'], path=c['wav'], bytes=st.st_size,
+        st = Path(c['archive_wav']).stat()
+        references.append(dict(id=f"{tape}:CH{c['channel']:02d}", channel=c['channel'], path=c['archive_wav'], bytes=st.st_size,
                                mtime_ns=st.st_mtime_ns, review_sha256=c['review_sha256'], start_seconds=c['origin_s']))
         targets.append(dict(review['source'], flutter_map_sha256=review.get('map_sha256')))
         origins.add(review['source']['absolute_start'] - review['source'].get('acquisition_start_seconds', review['source']['start_seconds']))
@@ -584,19 +652,22 @@ def plan_record(tape, curve, evidence, manifest, extras, validation, b, fit_name
         complete_defluttered_coverage=all(not c['problem'] for c in channels) and bool(channels),
         reference_count=len(references), references=references, targets=targets, clock_anchor_source=None,
         synchronization_claim=False,
-        get_placement=dict(rule='GET = output seconds + segment get_equals_output_plus_s, for the reference stagger group; '
-                                'a channel in another group is that stagger later (stagger = channel - reference)',
+        get_placement=dict(rule='GET = output seconds + segment get_equals_output_plus_s, for the earlier head row '
+                                '(reference group, stagger 0, real time); a channel of the later row is that stagger '
+                                'late and 07b moves it earlier by it (head_rows.py; docs/23)',
                            segments=curve.segments(duration), reference_group=ref_group,
                            stagger_groups_s=groups, reference_channel=manifest['reference_channel']),
         support=validation['support'], heldout=validation['heldout'], residual=validation['residual'],
         smoothing=dict(lam=validation['lam'], basis=validation['lambda_basis'], rate_wiggle=validation['rate_wiggle'],
                        rate_problems=validation['rate_problems'], rate_review=validation['rate_review']),
         ia_segment_offsets_s={k: v for k, v in b.items() if any(k == x for x in evidence.bkey)},
-        timing_offsets_policy='Capture offsets (stage 02) are in the canonical origins and are preserved; stagger is '
-                              'metadata. One inverse map for every channel; no channel is fitted, anchored or bypassed alone.',
+        timing_offsets_policy='Capture offsets (stage 02) are in the canonical origins and are preserved. One inverse '
+                              'map for every channel; no channel is fitted, anchored or bypassed alone. The head-row '
+                              'stagger is removed by 07b from the measured row of each channel and interval.',
         time_basis='Canonical post-05b tape seconds (review start_seconds + local seconds)',
         review_flags=dict(rate=validation['rate_review'], capture_offset=manifest.get('capture_offset_flags', []),
                           mixed_channels=sorted(int(c) for c, v in manifest.get('channel_stagger', {}).items() if v.get('mixed')),
+                          single_row_group=bool(manifest.get('single_row_group')),
                           recorder_cuts_s=list(curve.cuts)),
         open_decisions=OPEN_DECISIONS, listening_approved=False,
         caveats=['Before the first and after the last position anchor the rate is held; gaps between anchors are '
@@ -652,10 +723,11 @@ def build_fit(tapes, root=RETIMING_ROOT, log=print, allow_provisional=False, anc
             tapes_k = sorted(t for t, ev in evidences.items() if k in set(ev.bkey))
             n = sum(int(sum(1 for x in evidences[t].bkey if x == k)) for t in tapes_k)
             seg = next(g for g in ref_manifest['segments'] if g['key'] == k)
-            b_rows.append(dict(key=k, offset_s=sol.b[k], se_s=sol.b_se.get(k), prior_sigma_s=bprior.get(k), events=n,
+            b_rows.append(dict(key=k, offset_s=sol.b[k], se_s=sol.b_se.get(k), prior_sigma_s=sg_curve.prior_of(bprior.get(k))[1],
+                               prior_mean_s=sg_curve.prior_of(bprior.get(k))[0], events=n,
                                tapes=tapes_k, constant_s=seg['constant_s'], proposed_constant_s=seg['constant_s'] - sol.b[k]))
-        write_tsv(tmp / 'ia_offsets.tsv', ('key', 'offset_s', 'se_s', 'prior_sigma_s', 'events', 'tapes', 'constant_s',
-                                           'proposed_constant_s'), b_rows)
+        write_tsv(tmp / 'ia_offsets.tsv', ('key', 'offset_s', 'se_s', 'prior_mean_s', 'prior_sigma_s', 'events', 'tapes',
+                                           'constant_s', 'proposed_constant_s'), b_rows)
         write_json(tmp / 'ia_segment_revision.json', dict(
             status='proposed', applied=False, drift_maps_sha256=sha256_file(DRIFT_MAPS),
             rule='the drift map places IA audio at Phi + offset_s; proposed constant_s = constant_s - offset_s. '
@@ -679,7 +751,7 @@ def build_fit(tapes, root=RETIMING_ROOT, log=print, allow_provisional=False, anc
             for r in (120, 600):
                 union[r] += sg_curve.covered(sup[r])
             residual = {}
-            for label in ('text', 'audio'):
+            for label in ('text', 'audio', 'irig'):
                 sel = (ev.kind == label) & (w > 0)
                 if sel.any():
                     residual[label] = dict(events=int(sel.sum()), median_abs_s=float(np.median(np.abs(res[sel]))),

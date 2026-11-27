@@ -1,0 +1,27 @@
+{
+  "version": "nara-voice-v1",
+  "created": "2026-11-26",
+  "doc": "docs/23_2026-11-26_head_rows_and_real_time.md",
+  "rule": "The respeeded NARA mix places its voice at the GET of its time code. Where the voice heard in the mix comes from a track on the other head row than the time code, it is late by the row gap (0.683 s at the NARA tape speed). True GET of a word = mix GET - voice_late_s. 'intervals' (GET seconds) override the tape value inside them. A tape with voice_late_s null is fitted with a free offset (prior_sigma_s) and must be reviewed.",
+  "row_gap_s": 0.683,
+  "row_gap_basis": "file splits between timecode and programme placement on 608 (-679.8 ms), 644 (-684.2), 646 (+683.7), 650 (-683.3), 652 (-684.3); overlap steps 641-640 +0.678, 646-645 -0.680 s",
+  "tapes": {
+    "608-AAA": {"voice_late_s": 0.680, "evidence": "file split tr1 -679.8 ms (reference tr3 programme on the late row); launch countdown numbers heard 0.96 s after their ticks (0.28 s announcer lag after correction); IA 540-AAA consistent with the IA offset of the other tapes"},
+    "640-AAA": {"voice_late_s": 0.0, "evidence": "IA 582/583-AAA: IA-NARA -0.50 s, equal to the IA offset measured at 608 and 641 only with no row lag; overlap step 641-640 +0.678 s; T510100 residual -0.52 s against a 641-led curve"},
+    "641-AAA": {"voice_late_s": 0.683, "evidence": "overlap step from 640 +0.678 s (239 words, MAD 0.011 s); IA 583-AAA:0 differs from 640 by 0.63 s within one IA segment"},
+    "642-AAA": {"voice_late_s": 0.683, "evidence": "T510100 and T510101 continuity with 641 and 643 (residuals -0.005, -0.016 s)"},
+    "643-AAA": {"voice_late_s": 0.683, "evidence": "T510100, T510101, T510102 continuity with 641, 642, 644 (residuals within 0.011 s)"},
+    "644-AAA": {"voice_late_s": 0.684, "evidence": "file split tr1 -684.2 ms; T510102/T510103 continuity with 643 and 645 (residuals within 0.03 s)"},
+    "645-AAA": {"voice_late_s": 0.683, "evidence": "T510102/T510103 continuity with 644 (within 0.03 s outside the 645/646 overlap)"},
+    "646-AAA": {"voice_late_s": 0.683, "intervals": [{"get_from_s": 810000.0, "get_to_s": 813600.0, "voice_late_s": 0.0}],
+                "evidence": "the first hour (225.0-226.0 h) is on the time-code row: 646-645 overlap step -0.680 s (736 words) and T510102/T510103 residuals -0.14..-0.63 s there; from 226.0 h T510103/T510104 continuity with 645 and 647 (within 0.03 s); file split tr2 +683.7 ms shows both rows"},
+    "647-AAA": {"voice_late_s": 0.683, "evidence": "T510104/T510105 continuity with 646 (after 226 h) and 648; overlap step 648-647 +0.001 s"},
+    "648-AAA": {"voice_late_s": 0.683, "evidence": "overlap steps 648-647 +0.001, 649-648 -0.004 s; T510104/T510105 continuity"},
+    "649-AAA": {"voice_late_s": 0.683, "evidence": "overlap step 650-649 +0.001 s; T510106/T510107 continuity with 650"},
+    "650-AAA": {"voice_late_s": 0.683, "evidence": "file split tr1 -683.3 ms; T510106/T510107 continuity"},
+    "651-AAA": {"voice_late_s": 0.683, "evidence": "overlap step 652-651 +0.001 s (5 words); T510108 continuity with 652 (-0.014 s, 114 events); files tr1/tr2/tr4 not placed (start assumed)"},
+    "652-AAA": {"voice_late_s": 0.684, "evidence": "file split tr1 -684.3 ms; T510107/T510108/T510109 continuity"},
+    "654-AAA": {"voice_late_s": 0.683, "evidence": "T510108/T510109 continuity with 652 (-0.009/-0.013 s)"},
+    "655-AAA": {"voice_late_s": null, "prior_sigma_s": 1.0, "evidence": "no overlap measurement: T510110 matched no 655 words and T510111 has no SG curve; fitted with a free offset, review after the joint fit"}
+  }
+}

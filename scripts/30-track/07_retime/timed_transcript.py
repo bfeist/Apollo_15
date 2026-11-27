@@ -8,8 +8,8 @@ result is written beside ``retimed.wav``:
 * ``timed_transcript.tsv``: one ``segment`` row per transcript segment followed by its ``word``
   rows. ``start_s``/``end_s`` are seconds in ``retimed.wav``; ``tape_start_s``/``tape_end_s``
   are the same instants on the retimed tape clock (``shared_plan.output_start_seconds`` +
-  local); ``get_start_s``/``get_end_s`` are mission GET when the 07a plan defines a placement
-  (reference stagger group; a channel in the other group is that stagger later);
+  local); ``get_start_s``/``get_end_s`` are mission GET when the plan defines a placement (the
+  earlier, real-time head row; a later-row channel was moved onto it by its head-row shift);
   ``source_start_s``/``source_end_s`` keep the 05b-local times.
 * ``timed_transcript.json``: what was read and its checksums (transcript identity, chunk
   state, timing map, retime record and plan), the column meanings and the TSV checksum.
@@ -28,7 +28,7 @@ import numpy as np
 from sg_inputs import STORES
 from transcript_read import identity_rows, identity_state
 
-VERSION = 'timed-transcript-v1'
+VERSION = 'timed-transcript-v2'  # v2: head-row shift (docs/23)
 COLUMNS = ('kind', 'segment', 'word', 'text', 'start_s', 'end_s', 'tape_start_s', 'tape_end_s',
            'get_start_s', 'get_end_s', 'source_start_s', 'source_end_s', 'probability', 'flags')
 
@@ -103,6 +103,7 @@ def write_timed_transcript(destination, source, progress=print, store=STORES['ta
     origin_out = float((record.get('shared_plan') or {}).get('output_start_seconds', 0.0))
     origin_in = float(source_record['canonical_origin_s'])
     segments, rule = get_rule(record)
+    knots = ((record.get('shared_plan') or {}).get('head_row_shift') or {}).get('knots')
 
     def place(frame):
         if frame is None:
@@ -113,6 +114,9 @@ def write_timed_transcript(destination, source, progress=print, store=STORES['ta
         get = None
         if segments:
             canonical = origin_in+local
+            if knots:  # the real-time (earlier-row) tape position of a later-row channel
+                from head_rows import shift_at
+                canonical -= float(shift_at(knots, canonical))
             seg = next((s for s in segments if s['tape_start_s'] <= canonical <= s['tape_end_s']), None)
             get = None if seg is None else tape+seg['get_equals_output_plus_s']
         return out, tape, get, local

@@ -25,6 +25,7 @@ import soundfile as sf
 from scipy import ndimage, signal
 
 from sg_inputs import read_json, source_get, source_seconds, segment_at_get, write_json
+from sg_match import fitted_segment
 
 AUDIO = dict(
     rate=8000,
@@ -139,7 +140,7 @@ def refine_window(channel, curve, stagger, t_ref_c, ref: ReferenceAudio, setting
     seg = ref.segment(phi - half - lag, phi + half + lag)
     if seg is None:
         return None
-    bkey = ref.source['segments'][seg]['key'] if ref.source['kind'] == 'ia' else None
+    bkey = ref.source['segments'][seg]['key'] if fitted_segment(ref.source['segments'][seg], ref.source['kind']) else None
     g_c = phi + (b or {}).get(bkey, 0.0) if bkey else phi
     seg = ref.segment(g_c - half - lag, g_c + half + lag)
     if seg is None:
@@ -153,7 +154,7 @@ def refine_window(channel, curve, stagger, t_ref_c, ref: ReferenceAudio, setting
     out = gcc_phat(x, y, sr, lag, settings['band_hz'])
     out.update(channel=channel['channel'], t_ref=float(t_ref_c), stagger_s=float(stagger), predicted_get=g_c,
                ref_source=ref.source['name'], ref_kind=ref.source['kind'], ref_segment=int(seg),
-               bkey=ref.source['segments'][seg]['key'] if ref.source['kind'] == 'ia' else None,
+               bkey=ref.source['segments'][seg]['key'] if fitted_segment(ref.source['segments'][seg], ref.source['kind']) else None,
                rate=float(curve.rate(np.array([t_ref_c]))[0]))
     out['accepted'] = out['ratio'] >= settings['min_ratio'] and out['second_ratio'] <= settings['max_second_ratio']
     return out
