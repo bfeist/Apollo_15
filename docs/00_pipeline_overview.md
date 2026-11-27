@@ -41,6 +41,7 @@ and stops, naming the missing inputs, if it is absent.
 | 07a SG retime fit ([guide](20_2026-11-25_sg_retime_30track.md)) | 06 transcript + retimed SG set → one plan per tape | `D:stage_evidence/retiming` | (plans) |
 | 07i time-code retime ([guide](22_2026-11-26_irig_timecode_retime.md)) | 05b time-code track (+ 07a anchors for the hybrid) → one plan per time-code tape | `D:stage_evidence/retiming/irig` | (plans) |
 | 07b retime | 05b tracks + 06 transcript + 07i plan, else 07a plan → `retimed.wav`, `timed_transcript.tsv` | `D:retimed` | 8 kHz, 32-bit float |
+| 07c historical hum (stub, not implemented; [research](../research/ground_hum_20261127/README.md)) | 07b tracks → gently hum-reduced copy (optional; 07b stays the archival master) | `D:historical_hum` (planned) | 8 kHz, 32-bit float |
 | 08 normalize ([guide](05_2026-11-13_speech_normalization.md)) | 07b tracks → **delivery** `normalized.wav` (+ timed transcript) | `D:normalized` | **8 kHz, 16-bit PCM, TPDF dither** |
 | 09 IRIG | originals CH01–CH04 → IRIG decodes | `D:irig_search` | (reports) |
 | 10 channel ID | 06 transcripts + GLM + time code → delivered-to-true channel maps | `D:channel_id` | (maps, labels) |
