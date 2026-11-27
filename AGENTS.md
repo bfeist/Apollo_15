@@ -64,3 +64,12 @@ Use `uv run python ...`. Deliver matched WAV files for Adobe Audition, with
 identical source interval, duration, cleanup, and gain. Do not create listening
 web pages or start servers unless explicitly requested. Preserve A.wav and
 B.wav when the user requests a new C.wav comparison.
+
+## Line endings
+
+Write every new or edited text file with LF line endings, never CRLF. This
+includes code, docs, JSON and TSV. Git does not normalize the `-text` paths in
+`.gitattributes`, so write LF there yourself. Exception: hash-bound sources keep
+their exact bytes. These are the frozen denoise runtime, self-hashing `sg_*.py`
+modules, qualification reports and `catalog/sg_drift/`. Do not convert their
+line endings unless the dependent hashes are deliberately re-bound.
