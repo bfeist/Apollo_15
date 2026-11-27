@@ -127,12 +127,13 @@ def prompt_key(prompt: str, model: str) -> str:
     return hashlib.sha256(f'{PROMPT_VERSION}|{model}|{SYSTEM}|{prompt}'.encode()).hexdigest()[:20]
 
 
-def stream(prompt: str, *, on_delta=None, timeout=900, max_tokens=12000):
+def stream(prompt: str, *, on_delta=None, timeout=900, max_tokens=12000, system=SYSTEM, response_format=None,
+           reasoning_effort='low'):
     """Return (content, reasoning, meta). ``on_delta(kind, text)`` gets 'reasoning'/'content' tokens."""
     url, key, model = settings()
-    payload = {'model': model, 'messages': [{'role': 'system', 'content': SYSTEM}, {'role': 'user', 'content': prompt}],
-               'max_tokens': max_tokens, 'temperature': 0.1, 'stream': True, 'reasoning_effort': 'low',
-               'response_format': schema(), 'stream_options': {'include_usage': True}}
+    payload = {'model': model, 'messages': [{'role': 'system', 'content': system}, {'role': 'user', 'content': prompt}],
+               'max_tokens': max_tokens, 'temperature': 0.1, 'stream': True, 'reasoning_effort': reasoning_effort,
+               'response_format': response_format or schema(), 'stream_options': {'include_usage': True}}
     headers = {'Content-Type': 'application/json', 'Accept': 'text/event-stream', 'Authorization': f'Bearer {key}'}
     request = urllib.request.Request(url + '/chat/completions', data=json.dumps(payload).encode('utf-8'),
                                      headers=headers)
